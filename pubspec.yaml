@@ -1,0 +1,29 @@
+name: cartzy
+description: A Flutter e-commerce app.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Equivalent of Retrofit + Gson + OkHttp — used for the PSGC API calls
+  http: ^1.2.0
+
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Equivalent of your app/src/main/res/drawable images
+  # (cartzy_splash.png, google_logo.png, facebook_logo.png)
+  assets:
+    - assets/
