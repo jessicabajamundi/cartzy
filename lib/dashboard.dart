@@ -1,51 +1,16 @@
 import 'package:flutter/material.dart';
 
 import 'cartzy_colors.dart';
-import 'neumorphic_rounded_button.dart';
-
-// ==========================================
-// PRODUCT DATA
-// ==========================================
-
-class Product {
-  final String name;
-  final String price;
-
-  const Product({required this.name, required this.price});
-}
-
-const List<String> _categories = [
-  'All',
-  'Fashion',
-  'Electronics',
-  'Home',
-  'Beauty',
-  'Sports',
-];
-
-const List<Product> _sampleProducts = [
-  Product(name: 'Wireless Earbuds', price: '\$29.99'),
-  Product(name: 'Running Shoes', price: '\$49.99'),
-  Product(name: 'Smart Watch', price: '\$59.99'),
-  Product(name: 'Backpack', price: '\$34.99'),
-  Product(name: 'Sunglasses', price: '\$19.99'),
-  Product(name: 'Desk Lamp', price: '\$24.99'),
-];
-
-// ==========================================
-// DASHBOARD SCREEN
-// ==========================================
+import 'home_sections.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
   final VoidCallback? onProfileClick;
-  final ValueChanged<Product>? onProductClick;
 
   const DashboardScreen({
     super.key,
     this.onCartClick,
     this.onProfileClick,
-    this.onProductClick,
   });
 
   @override
@@ -54,7 +19,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedCategory = 'All';
+  String _selectedCategory = categoryIcons.first.label;
 
   @override
   void dispose() {
@@ -69,33 +34,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --------------------------------
-            // TOP BAR
-            // --------------------------------
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset(
-                        'assets/cartzy_splash.png',
-                        height: 32,
-                        fit: BoxFit.contain,
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        "Let's go shopping",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: CartzyColors.gray,
-                        ),
-                      ),
-                    ],
-                  ),
+                  Image.asset('assets/cartzy_splash.png', height: 30, fit: BoxFit.contain),
                   Row(
                     children: [
                       IconButton(
@@ -111,158 +56,112 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-
-            // --------------------------------
-            // SEARCH BAR — matches Login field style
-            // --------------------------------
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search products',
-                  hintStyle: const TextStyle(fontSize: 13),
-                  prefixIcon: const Icon(Icons.search, color: CartzyColors.coral),
-                  filled: true,
-                  fillColor: CartzyColors.background,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: CartzyColors.coral, width: 2),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // --------------------------------
-            // CATEGORIES TITLE
-            // --------------------------------
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Categories',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // --------------------------------
-            // CATEGORIES
-            // --------------------------------
-            SizedBox(
-              height: 42,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  return _CategoryItem(
-                    name: category,
-                    selected: _selectedCategory == category,
-                    onClick: () {
-                      setState(() => _selectedCategory = category);
-                    },
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 22),
-
-            // --------------------------------
-            // PRODUCTS TITLE
-            // --------------------------------
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 20),
                 children: [
-                  const Text(
-                    'Popular Products',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search for products, brands and more...',
+                        hintStyle: const TextStyle(fontSize: 13),
+                        prefixIcon: const Icon(Icons.search, color: CartzyColors.coral),
+                        filled: true,
+                        fillColor: CartzyColors.surface,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: CartzyColors.coral, width: 1.8),
+                        ),
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  const Text(
-                    'See All',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: CartzyColors.coral,
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: HeroBanner(onShopNow: () {}),
+                  ),
+                  const SizedBox(height: 14),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        PromoCard(
+                          tag: 'FLEXIBLE PAYMENTS',
+                          title: '0% Interest Installments',
+                          description: 'Split payments into 3, 6, or 12 convenient monthly terms',
+                          linkText: 'Learn More →',
+                        ),
+                        SizedBox(height: 12),
+                        PromoCard(
+                          tag: 'EXPRESS DELIVERY',
+                          title: 'Next Day Nationwide',
+                          description: 'Guaranteed prompt dispatch on verified partner items',
+                          linkText: 'Explore Express →',
+                          dark: true,
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  const SectionTitle(title: 'Categories'),
+                  const SizedBox(height: 12),
+                  CategoryIconRow(
+                    selectedCategory: _selectedCategory,
+                    onSelected: (label) => setState(() => _selectedCategory = label),
+                  ),
+                  const SizedBox(height: 26),
+                  FlashDealsSection(onViewAll: () {}),
+                  const SizedBox(height: 26),
+                  SectionTitle(title: 'Daily Discover', actionText: 'See More', onAction: () {}),
+                  const SizedBox(height: 4),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      'Curated deals tailored for you',
+                      style: TextStyle(fontSize: 12, color: CartzyColors.gray),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 14,
+                      mainAxisSpacing: 14,
+                      childAspectRatio: 0.68,
+                    ),
+                    itemCount: discoverProducts.length,
+                    itemBuilder: (context, index) {
+                      return DiscoverProductCard(
+                        product: discoverProducts[index],
+                        onTap: () {},
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            // --------------------------------
-            // PRODUCT GRID
-            // --------------------------------
-            Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 0.62,
-                ),
-                itemCount: _sampleProducts.length,
-                itemBuilder: (context, index) {
-                  final product = _sampleProducts[index];
-                  return _ProductCard(
-                    product: product,
-                    onClick: () => widget.onProductClick?.call(product),
-                  );
-                },
-              ),
-            ),
-
-            // --------------------------------
-            // BOTTOM NAVIGATION
-            // --------------------------------
             Container(
               color: CartzyColors.surface,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _BottomNavigationItem(
-                    icon: Icons.home,
-                    label: 'Home',
-                    selected: true,
-                    onClick: () {},
-                  ),
-                  _BottomNavigationItem(
-                    icon: Icons.search,
-                    label: 'Search',
-                    selected: false,
-                    onClick: () {},
-                  ),
+                  _BottomNavigationItem(icon: Icons.home, label: 'Home', selected: true, onClick: () {}),
+                  _BottomNavigationItem(icon: Icons.search, label: 'Search', selected: false, onClick: () {}),
                   _BottomNavigationItem(
                     icon: Icons.shopping_cart,
                     label: 'Cart',
@@ -285,140 +184,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-// --------------------------------
-// CATEGORY ITEM
-// --------------------------------
-
-class _CategoryItem extends StatelessWidget {
-  final String name;
-  final bool selected;
-  final VoidCallback onClick;
-
-  const _CategoryItem({
-    required this.name,
-    required this.selected,
-    required this.onClick,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onClick,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected ? CartzyColors.navy : CartzyColors.surface,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Text(
-          name,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : CartzyColors.navy,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// --------------------------------
-// PRODUCT CARD — soft shadow instead of border
-// --------------------------------
-
-class _ProductCard extends StatelessWidget {
-  final Product product;
-  final VoidCallback onClick;
-
-  const _ProductCard({required this.product, required this.onClick});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onClick,
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: CartzyColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: CartzyColors.background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 40,
-                  color: CartzyColors.coral,
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              product.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: CartzyColors.navy,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              product.price,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: CartzyColors.coral,
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: NeumorphicRoundedButton(
-                text: 'Add to Cart',
-                borderRadius: 10,
-                height: 34,
-                width: double.infinity,
-                textColor: Colors.white,
-                onTap: onClick,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// --------------------------------
-// BOTTOM NAVIGATION ITEM
-// --------------------------------
-
 class _BottomNavigationItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -435,7 +200,6 @@ class _BottomNavigationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = selected ? CartzyColors.coral : CartzyColors.gray;
-
     return GestureDetector(
       onTap: onClick,
       child: Column(
@@ -443,10 +207,7 @@ class _BottomNavigationItem extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 3),
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: color),
-          ),
+          Text(label, style: TextStyle(fontSize: 11, color: color)),
         ],
       ),
     );

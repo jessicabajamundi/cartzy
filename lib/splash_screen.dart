@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'cartzy_colors.dart';
-import 'guest_home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final VoidCallback onFinished;
+
+  const SplashScreen({super.key, required this.onFinished});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -14,26 +14,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToGuestHome();
+    _finish();
   }
 
-  Future<void> _navigateToGuestHome() async {
+  Future<void> _finish() async {
     await Future.delayed(const Duration(seconds: 2));
-
     if (!mounted) return;
-
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => GuestHomeScreen(
-          onLogin: () {
-            // Navigation to login is handled inside GuestHomeScreen's
-            // parent (CartzyApp router) if you're using that pattern —
-            // see note below.
-          },
-          onSignUp: () {},
-        ),
-      ),
-    );
+    widget.onFinished();
   }
 
   @override

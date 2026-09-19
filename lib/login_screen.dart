@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-
 import 'cartzy_colors.dart';
 import 'neumorphic_rounded_button.dart';
+import 'services/api_service.dart';
+
+enum AccountType { buyer, rider }
 
 class LoginScreen extends StatefulWidget {
-  final VoidCallback onLogin;
-  final VoidCallback onSignUp;
+  final void Function(AccountType accountType, Map<String, dynamic> user) onLogin;
+  final ValueChanged<AccountType> onSignUp;
   final VoidCallback onBackToGuest;
 
   const LoginScreen({
@@ -20,26 +22,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // ============================================================
-  // TEXT CONTROLLERS
-  // ============================================================
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // ============================================================
-  // STATES
-  // ============================================================
+  AccountType _accountType = AccountType.buyer;
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isLoggingIn = false;
 
   String? _emailError;
   String? _passwordError;
-
-  // ============================================================
-  // DISPOSE
-  // ============================================================
 
   @override
   void dispose() {
@@ -47,10 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
-
-  // ============================================================
-  // VALIDATE LOGIN
-  // ============================================================
 
   bool _validateLogin() {
     final email = _emailController.text.trim();
@@ -63,7 +52,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
     bool valid = true;
 
-    // EMAIL VALIDATION
     if (email.isEmpty) {
       setState(() {
         _emailError = 'Please enter your email address.';
@@ -76,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
       valid = false;
     }
 
-    // PASSWORD VALIDATION
     if (password.isEmpty) {
       setState(() {
         _passwordError = 'Please enter your password.';
@@ -87,29 +74,63 @@ class _LoginScreenState extends State<LoginScreen> {
     return valid;
   }
 
-  // ============================================================
-  // LOGIN
-  // ============================================================
-
-  void _handleLogin() {
-    if (!_validateLogin()) {
-      return;
-    }
-
-    // ----------------------------------------------------------
-    // TEMPORARY LOGIN
-    // ----------------------------------------------------------
-    // For now, clicking Login takes the user to the dashboard.
-    //
-    // Later we can connect this to your actual backend/database.
-    // ----------------------------------------------------------
-
-    widget.onLogin();
+  Future<void> _handleLogin() async {
+  if (!_validateLogin()) {
+    return;
   }
 
-  // ============================================================
-  // FORGOT PASSWORD
-  // ============================================================
+  setState(() {
+    _isLoggingIn = true;
+  });
+
+  try {
+    final response = await ApiService.post(
+      '/login',
+      {
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text,
+      },
+    );
+
+    final user = Map<String, dynamic>.from(
+      response['user'] ?? {},
+    );
+
+    final role = user['role']?.toString().toLowerCase();
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoggingIn = false;
+    });
+
+    if (role == 'buyer') {
+      widget.onLogin(AccountType.buyer, user);
+    } else if (role == 'rider' || role == 'courier') {
+      widget.onLogin(AccountType.rider, user);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This account type is not supported.'),
+        ),
+      );
+    }
+  } catch (e) {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoggingIn = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Login failed: ${e.toString().replaceFirst('Exception: ', '')}',
+        ),
+      ),
+    );
+  }
+}
 
   void _showForgotPasswordDialog() {
     final TextEditingController resetEmailController = TextEditingController();
@@ -177,18 +198,44 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ============================================================
-  // BUILD
-  // ============================================================
+  Widget _buildAccountTypeToggle() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: CartzyColors.background,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _AccountTypeOption(
+              label: 'Buyer',
+              icon: Icons.shopping_bag_outlined,
+              selected: _accountType == AccountType.buyer,
+              onTap: () {
+                setState(() => _accountType = AccountType.buyer);
+              },
+            ),
+          ),
+          Expanded(
+            child: _AccountTypeOption(
+              label: 'Rider',
+              icon: Icons.two_wheeler_outlined,
+              selected: _accountType == AccountType.rider,
+              onTap: () {
+                setState(() => _accountType = AccountType.rider);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CartzyColors.background,
-
-      // ========================================================
-      // APP BAR
-      // ========================================================
       appBar: AppBar(
         backgroundColor: CartzyColors.background,
         elevation: 0,
@@ -200,10 +247,6 @@ class _LoginScreenState extends State<LoginScreen> {
           onPressed: widget.onBackToGuest,
         ),
       ),
-
-      // ========================================================
-      // BODY
-      // ========================================================
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -216,7 +259,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // TITLE
                   const Text(
                     'Welcome Back!',
                     textAlign: TextAlign.center,
@@ -228,13 +270,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Sign in to continue shopping',
+                    'Sign in to continue',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 14, color: CartzyColors.gray),
                   ),
-                  const SizedBox(height: 35),
+                  const SizedBox(height: 25),
 
-                  // EMAIL LABEL
+                  _buildAccountTypeToggle(),
+
+                  const SizedBox(height: 30),
+
                   const Text(
                     'Email Address',
                     style: TextStyle(
@@ -245,7 +290,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // EMAIL FIELD
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -277,7 +321,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // PASSWORD LABEL
                   const Text(
                     'Password',
                     style: TextStyle(
@@ -288,7 +331,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  // PASSWORD FIELD
                   TextField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
@@ -334,7 +376,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // REMEMBER ME + FORGOT PASSWORD
                   Row(
                     children: [
                       Checkbox(
@@ -364,12 +405,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 25),
 
-                  // NEUMORPHIC LOGIN BUTTON
                   Center(
                     child: NeumorphicRoundedButton(
-                      text: 'Login',
+                      text: _accountType == AccountType.buyer
+                          ? 'Login as Buyer'
+                          : 'Login as Rider',
                       borderRadius: 14,
-                      width: 200,
+                      width: 220,
                       height: 50,
                       textColor: Colors.white,
                       onTap: _handleLogin,
@@ -377,12 +419,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // OR DIVIDER
-                  Row(
+                  const Row(
                     children: [
-                      const Expanded(child: Divider(color: CartzyColors.border)),
+                      Expanded(child: Divider(color: CartzyColors.border)),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        padding: EdgeInsets.symmetric(horizontal: 15),
                         child: Text(
                           'OR',
                           style: TextStyle(
@@ -392,21 +433,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const Expanded(child: Divider(color: CartzyColors.border)),
+                      Expanded(child: Divider(color: CartzyColors.border)),
                     ],
                   ),
                   const SizedBox(height: 25),
 
-                  // CREATE ACCOUNT
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Don't have an account? ",
-                        style: TextStyle(color: CartzyColors.gray, fontSize: 14),
+                      Text(
+                        _accountType == AccountType.buyer
+                            ? "Don't have an account? "
+                            : "Not registered as a rider yet? ",
+                        style: const TextStyle(color: CartzyColors.gray, fontSize: 14),
                       ),
                       TextButton(
-                        onPressed: widget.onSignUp,
+                        onPressed: () => widget.onSignUp(_accountType),
                         child: const Text(
                           'Create Account',
                           style: TextStyle(
@@ -420,7 +462,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // CONTINUE AS GUEST
                   TextButton(
                     onPressed: widget.onBackToGuest,
                     child: const Text(
@@ -436,6 +477,54 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountTypeOption extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _AccountTypeOption({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? CartzyColors.coral : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected ? Colors.white : CartzyColors.gray,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : CartzyColors.gray,
+              ),
+            ),
+          ],
         ),
       ),
     );

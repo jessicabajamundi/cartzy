@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
 import 'cartzy_colors.dart';
-import 'guest_home_screen.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
-  final GuestProduct product;
+  final String name;
+  final String category;
+  final String price;
   final VoidCallback onBack;
   final VoidCallback onAddToCart;
 
   const ProductDetailsScreen({
     super.key,
-    required this.product,
+    required this.name,
+    required this.category,
+    required this.price,
     required this.onBack,
     required this.onAddToCart,
   });
@@ -45,8 +48,7 @@ class ProductDetailsScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
 
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
 
@@ -60,19 +62,22 @@ class ProductDetailsScreen extends StatelessWidget {
 
               decoration: BoxDecoration(
                 color: CartzyColors.surface,
-                borderRadius:
-                    BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
 
               alignment: Alignment.center,
 
-              child: const Text(
-                'PRODUCT IMAGE',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: CartzyColors.gray,
-                ),
+              child: const Icon(
+                Icons.shopping_bag_outlined,
+                size: 64,
+                color: CartzyColors.coral,
               ),
             ),
 
@@ -83,7 +88,7 @@ class ProductDetailsScreen extends StatelessWidget {
             // ==================================
 
             Text(
-              product.category,
+              category,
               style: const TextStyle(
                 fontSize: 13,
                 color: CartzyColors.gray,
@@ -97,7 +102,7 @@ class ProductDetailsScreen extends StatelessWidget {
             // ==================================
 
             Text(
-              product.name,
+              name,
               style: const TextStyle(
                 fontSize: 27,
                 fontWeight: FontWeight.bold,
@@ -112,7 +117,7 @@ class ProductDetailsScreen extends StatelessWidget {
             // ==================================
 
             Text(
-              product.price,
+              price,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -157,7 +162,7 @@ class ProductDetailsScreen extends StatelessWidget {
 
             SizedBox(
               width: double.infinity,
-              height: 52,
+              height: 54,
 
               child: ElevatedButton.icon(
                 onPressed: onAddToCart,
@@ -175,15 +180,12 @@ class ProductDetailsScreen extends StatelessWidget {
                 ),
 
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      CartzyColors.coral,
-                  foregroundColor:
-                      Colors.white,
+                  backgroundColor: CartzyColors.coral,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
 
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
                 ),
               ),
@@ -198,21 +200,19 @@ class ProductDetailsScreen extends StatelessWidget {
             Container(
               width: double.infinity,
 
-              padding:
-                  const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
 
               decoration: BoxDecoration(
                 color: CartzyColors.surface,
-                borderRadius:
-                    BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: CartzyColors.border,
+                  width: 1.2,
                 ),
               ),
 
               child: const Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
 

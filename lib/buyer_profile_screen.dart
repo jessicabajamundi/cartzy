@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
 import 'cartzy_colors.dart';
 
 // ============================================================
@@ -8,7 +8,7 @@ import 'cartzy_colors.dart';
 
 class Order {
   final String productName;
-  final String status; // 'To Pay', 'To Ship', 'To Receive', 'To Review'
+  final String status;
   final String price;
   final int quantity;
 
@@ -21,10 +21,30 @@ class Order {
 }
 
 const List<Order> _sampleOrders = [
-  Order(productName: 'Wireless Earbuds', status: 'To Pay', price: '\$29.99', quantity: 1),
-  Order(productName: 'Running Shoes', status: 'To Ship', price: '\$49.99', quantity: 1),
-  Order(productName: 'Smart Watch', status: 'To Receive', price: '\$59.99', quantity: 1),
-  Order(productName: 'Backpack', status: 'To Review', price: '\$34.99', quantity: 2),
+  Order(
+    productName: 'Wireless Earbuds',
+    status: 'To Pay',
+    price: '\$29.99',
+    quantity: 1,
+  ),
+  Order(
+    productName: 'Running Shoes',
+    status: 'To Ship',
+    price: '\$49.99',
+    quantity: 1,
+  ),
+  Order(
+    productName: 'Smart Watch',
+    status: 'To Receive',
+    price: '\$59.99',
+    quantity: 1,
+  ),
+  Order(
+    productName: 'Backpack',
+    status: 'To Review',
+    price: '\$34.99',
+    quantity: 2,
+  ),
 ];
 
 // ============================================================
@@ -37,12 +57,16 @@ class BuyerProfileScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onLogout;
 
+  // NEW
+  final VoidCallback onEditProfile;
+
   const BuyerProfileScreen({
     super.key,
     this.userName = 'Guest User',
     this.userEmail = 'guest@cartzy.com',
     required this.onBack,
     required this.onLogout,
+    required this.onEditProfile,
   });
 
   @override
@@ -53,12 +77,20 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  static const List<String> _tabs = ['To Pay', 'To Ship', 'To Receive', 'To Review'];
+  static const List<String> _tabs = [
+    'To Pay',
+    'To Ship',
+    'To Receive',
+    'To Review',
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+    );
   }
 
   @override
@@ -68,20 +100,28 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
   }
 
   List<Order> _ordersForStatus(String status) {
-    return _sampleOrders.where((order) => order.status == status).toList();
+    return _sampleOrders
+        .where((order) => order.status == status)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CartzyColors.background,
+
       appBar: AppBar(
         backgroundColor: CartzyColors.surface,
         elevation: 0,
+
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: CartzyColors.navy,
+          ),
           onPressed: widget.onBack,
         ),
+
         title: const Text(
           'My Profile',
           style: TextStyle(
@@ -90,35 +130,39 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
             fontSize: 18,
           ),
         ),
+
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout, color: CartzyColors.coral),
+            icon: const Icon(
+              Icons.logout,
+              color: CartzyColors.coral,
+            ),
             onPressed: widget.onLogout,
-            tooltip: 'Logout',
           ),
         ],
       ),
+
       body: Column(
         children: [
-          // ==========================================================
           // PROFILE HEADER
-          // ==========================================================
           Container(
             width: double.infinity,
             color: CartzyColors.surface,
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             child: Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 34,
                   backgroundColor: CartzyColors.background,
-                  child: const Icon(
+                  child: Icon(
                     Icons.person,
                     size: 38,
                     color: CartzyColors.coral,
                   ),
                 ),
+
                 const SizedBox(width: 16),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +175,9 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
                           color: CartzyColors.navy,
                         ),
                       ),
+
                       const SizedBox(height: 4),
+
                       Text(
                         widget.userEmail,
                         style: const TextStyle(
@@ -142,19 +188,20 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
                     ],
                   ),
                 ),
+
+                // EDIT PROFILE
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined, color: CartzyColors.gray),
-                  onPressed: () {
-                    // Edit profile — connect later
-                  },
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: CartzyColors.navy,
+                  ),
+                  onPressed: widget.onEditProfile,
                 ),
               ],
             ),
           ),
 
-          // ==========================================================
-          // MY ORDERS LABEL
-          // ==========================================================
+          // MY ORDERS
           Container(
             width: double.infinity,
             color: CartzyColors.surface,
@@ -169,9 +216,6 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
             ),
           ),
 
-          // ==========================================================
-          // ORDER STATUS TABS
-          // ==========================================================
           Container(
             color: CartzyColors.surface,
             child: TabBar(
@@ -181,16 +225,15 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
               unselectedLabelColor: CartzyColors.gray,
               indicatorColor: CartzyColors.coral,
               indicatorWeight: 3,
-              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
             ),
           ),
 
-          const Divider(height: 1, color: CartzyColors.border),
+          const Divider(
+            height: 1,
+            color: CartzyColors.border,
+          ),
 
-          // ==========================================================
-          // ORDER LISTS PER TAB
-          // ==========================================================
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -204,9 +247,12 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: orders.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(height: 12),
                   itemBuilder: (context, index) {
-                    return _OrderCard(order: orders[index]);
+                    return _OrderCard(
+                      order: orders[index],
+                    );
                   },
                 );
               }).toList(),
@@ -225,7 +271,9 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
 class _EmptyOrdersView extends StatelessWidget {
   final String status;
 
-  const _EmptyOrdersView({required this.status});
+  const _EmptyOrdersView({
+    required this.status,
+  });
 
   IconData get _icon {
     switch (status) {
@@ -248,11 +296,18 @@ class _EmptyOrdersView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(_icon, size: 56, color: CartzyColors.border),
+          Icon(
+            _icon,
+            size: 56,
+            color: CartzyColors.border,
+          ),
           const SizedBox(height: 12),
           Text(
             'No orders $status',
-            style: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+            style: const TextStyle(
+              fontSize: 14,
+              color: CartzyColors.gray,
+            ),
           ),
         ],
       ),
@@ -267,7 +322,9 @@ class _EmptyOrdersView extends StatelessWidget {
 class _OrderCard extends StatelessWidget {
   final Order order;
 
-  const _OrderCard({required this.order});
+  const _OrderCard({
+    required this.order,
+  });
 
   Color get _statusColor {
     switch (order.status) {
@@ -306,7 +363,9 @@ class _OrderCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: CartzyColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: CartzyColors.border),
+        border: Border.all(
+          color: CartzyColors.border,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +384,9 @@ class _OrderCard extends StatelessWidget {
                   color: CartzyColors.coral,
                 ),
               ),
+
               const SizedBox(width: 12),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,15 +402,22 @@ class _OrderCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Qty: ${order.quantity}',
-                      style: const TextStyle(fontSize: 12, color: CartzyColors.gray),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: CartzyColors.gray,
+                      ),
                     ),
                   ],
                 ),
               ),
+
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
+                  color: _statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -363,7 +431,12 @@ class _OrderCard extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 20, color: CartzyColors.border),
+
+          const Divider(
+            height: 20,
+            color: CartzyColors.border,
+          ),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -376,21 +449,14 @@ class _OrderCard extends StatelessWidget {
                 ),
               ),
               OutlinedButton(
-                onPressed: () {
-                  // Connect action later
-                },
+                onPressed: () {},
                 style: OutlinedButton.styleFrom(
                   foregroundColor: CartzyColors.coral,
-                  side: const BorderSide(color: CartzyColors.coral),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  side: const BorderSide(
+                    color: CartzyColors.coral,
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 ),
-                child: Text(
-                  _actionLabel,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
+                child: Text(_actionLabel),
               ),
             ],
           ),

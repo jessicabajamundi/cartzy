@@ -10,10 +10,17 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Equivalent of Retrofit + Gson + OkHttp — used for the PSGC API calls
+  # Used for PSGC API calls
   http: ^1.2.0
 
   cupertino_icons: ^1.0.6
+
+  # Poppins font
+  google_fonts: ^6.2.1
+
+  # Barcode/QR scanning
+  mobile_scanner: ^5.2.3
+  image_picker: ^1.2.3
 
 dev_dependencies:
   flutter_test:
@@ -23,7 +30,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Equivalent of your app/src/main/res/drawable images
-  # (cartzy_splash.png, google_logo.png, facebook_logo.png)
   assets:
     - assets/

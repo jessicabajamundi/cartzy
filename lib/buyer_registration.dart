@@ -1,9 +1,12 @@
 import 'dart:convert';
+
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 
 import 'cartzy_colors.dart';
-
+import 'services/api_service.dart';
 // ============================================================
 // PSGC API MODELS + SERVICE
 // ============================================================
@@ -78,8 +81,13 @@ class PsgcApi {
 
 class BuyerRegistration extends StatefulWidget {
   final VoidCallback onRegistrationSubmitted;
+  final VoidCallback onBackToLogin;
 
-  const BuyerRegistration({super.key, required this.onRegistrationSubmitted});
+  const BuyerRegistration({
+    super.key,
+    required this.onRegistrationSubmitted,
+    required this.onBackToLogin,
+  });
 
   @override
   State<BuyerRegistration> createState() => _BuyerRegistrationState();
@@ -88,16 +96,30 @@ class BuyerRegistration extends StatefulWidget {
 class _BuyerRegistrationState extends State<BuyerRegistration> {
   int _currentStep = 1;
 
-  final _firstNameController = TextEditingController();
+  // ========================================================
+  // PERSONAL INFO + CONTACT + BIRTHDAY
+  // ========================================================
+
   final _lastNameController = TextEditingController();
+  final _firstNameController = TextEditingController();
   final _middleInitialController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _contactNoController = TextEditingController();
+
   String _selectedSex = '';
   String _birthday = '';
+  int? _age;
 
-  bool _firstNameError = false;
   bool _lastNameError = false;
+  bool _firstNameError = false;
   bool _sexError = false;
+  bool _emailError = false;
+  bool _contactNoError = false;
   bool _birthdayError = false;
+
+  // ========================================================
+  // ADDRESS
+  // ========================================================
 
   final _houseStreetController = TextEditingController();
   String _selectedProvince = '';
@@ -111,20 +133,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   bool _municipalityError = false;
   bool _barangayError = false;
 
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-
-  bool _passwordVisible = false;
-  bool _confirmPasswordVisible = false;
-
-  bool _emailError = false;
-  bool _passwordError = false;
-  bool _confirmPasswordError = false;
-  String _confirmPasswordMessage = 'This field is required';
-
-  static const List<String> sexOptions = ['Male', 'Female', 'Prefer not to say'];
-
   List<PsgcProvince> _provinces = [];
   bool _provincesLoading = true;
   bool _provincesLoadError = false;
@@ -137,6 +145,26 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   bool _barangaysLoading = false;
   bool _barangaysLoadError = false;
 
+  // ========================================================
+  // ACCOUNT + ID UPLOAD
+  // ========================================================
+
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _passwordVisible = false;
+  bool _confirmPasswordVisible = false;
+
+  bool _passwordError = false;
+  bool _confirmPasswordError = false;
+  String _confirmPasswordMessage = 'This field is required';
+
+  String? _idFileName;
+XFile? _idFile;
+bool _idError = false;
+
+bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -145,11 +173,12 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
     _lastNameController.dispose();
+    _firstNameController.dispose();
     _middleInitialController.dispose();
-    _houseStreetController.dispose();
     _emailController.dispose();
+    _contactNoController.dispose();
+    _houseStreetController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -229,11 +258,189 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           Navigator.of(context).pop();
           setState(() {
             _birthday = date;
+            _age = _calculateAge(date);
             _birthdayError = false;
           });
         },
       ),
     );
+  }
+
+  int? _calculateAge(String formattedDate) {
+    try {
+      final parts = formattedDate.split(' ');
+      const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      final monthIndex = months.indexOf(parts[0]);
+      final day = int.parse(parts[1].replaceAll(',', ''));
+      final year = int.parse(parts[2]);
+
+      final birthDate = DateTime(year, monthIndex + 1, day);
+      final today = DateTime.now();
+
+      int age = today.year - birthDate.year;
+      if (today.month < birthDate.month ||
+          (today.month == birthDate.month && today.day < birthDate.day)) {
+        age--;
+      }
+      return age;
+    } catch (_) {
+      return null;
+    }
+  }
+Future<void> _pickIdFile() async {
+  try {
+    final picker = ImagePicker();
+
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (pickedFile == null) return;
+
+    setState(() {
+      _idFile = pickedFile;
+      _idFileName = pickedFile.name;
+      _idError = false;
+    });
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Unable to select ID photo: $e'),
+      ),
+    );
+  }
+}
+
+  String _birthdayForDatabase() {
+    if (_birthday.isEmpty) return '';
+
+    try {
+      final parts = _birthday.replaceAll(',', '').split(' ');
+      const months = <String, String>{
+        'January': '01',
+        'February': '02',
+        'March': '03',
+        'April': '04',
+        'May': '05',
+        'June': '06',
+        'July': '07',
+        'August': '08',
+        'September': '09',
+        'October': '10',
+        'November': '11',
+        'December': '12',
+      };
+
+      final month = months[parts[0]];
+      if (month == null) return '';
+
+      final day = parts[1].padLeft(2, '0');
+      final year = parts[2];
+      return '$year-$month-$day';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> _registerBuyer() async {
+    if (_idFile == null) {
+      setState(() => _idError = true);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiService.baseUrl}/register/buyer'),
+      );
+
+      final firstName = _firstNameController.text.trim();
+      final lastName = _lastNameController.text.trim();
+      final middleInitial = _middleInitialController.text.trim();
+
+      request.fields['name'] = '$firstName $lastName'.trim();
+      request.fields['middle_initial'] = middleInitial;
+      request.fields['sex'] = _selectedSex;
+      request.fields['birthday'] = _birthdayForDatabase();
+      request.fields['age'] = _age?.toString() ?? '';
+      request.fields['email'] = _emailController.text.trim();
+      request.fields['phone'] = _contactNoController.text.trim();
+      request.fields['street_address'] = _houseStreetController.text.trim();
+      request.fields['address'] = _houseStreetController.text.trim();
+      request.fields['region'] = '';
+      request.fields['province'] = _selectedProvince;
+      request.fields['city'] = _selectedMunicipality;
+      request.fields['barangay'] = _selectedBarangay;
+      request.fields['postal_code'] = '';
+      request.fields['password'] = _passwordController.text;
+
+      final idBytes = await _idFile!.readAsBytes();
+
+request.files.add(
+  http.MultipartFile.fromBytes(
+    'id_photo',
+    idBytes,
+    filename: _idFileName ?? 'id_photo.jpg',
+  ),
+);
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      final data = responseBody.isNotEmpty
+          ? jsonDecode(responseBody)
+          : <String, dynamic>{};
+
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception(
+          data['error'] ??
+              data['message'] ??
+              'Registration failed (${response.statusCode})',
+        );
+      }
+
+      if (!mounted) return;
+
+      setState(() => _isSubmitting = false);
+
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Registration Successful'),
+          content: const Text(
+            'Your Cartzy buyer account has been created successfully.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('CONTINUE'),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+      widget.onRegistrationSubmitted();
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _isSubmitting = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Registration failed: ${e.toString().replaceFirst('Exception: ', '')}',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -252,10 +459,10 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                 top: 28,
                 bottom: 18,
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Create Your Account',
                     style: TextStyle(
                       fontSize: 26,
@@ -263,8 +470,8 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                       color: CartzyColors.navy,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
+                  SizedBox(height: 6),
+                  Text(
                     'Buyer Registration',
                     style: TextStyle(
                       fontSize: 13,
@@ -279,6 +486,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
               currentStep: _currentStep,
               accent: CartzyColors.coral,
               gray: CartzyColors.border,
+              icons: const [
+                Icons.person_outline,
+                Icons.location_on_outlined,
+                Icons.lock_outline,
+              ],
             ),
             const Divider(color: CartzyColors.border, height: 1),
             Expanded(
@@ -300,6 +512,10 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
     );
   }
 
+  // ============================================================
+  // STEP 1 — PERSONAL + CONTACT + BIRTHDAY
+  // ============================================================
+
   Widget _buildStep1() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,19 +530,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           style: TextStyle(fontSize: 13, color: CartzyColors.gray),
         ),
         const SizedBox(height: 28),
-        RegistrationTextField(
-          controller: _firstNameController,
-          label: 'First Name *',
-          icon: Icons.person_outline,
-          isError: _firstNameError,
-          errorMessage: 'First name is required',
-          onChanged: (value) {
-            if (_firstNameError && value.trim().isNotEmpty) {
-              setState(() => _firstNameError = false);
-            }
-          },
-        ),
-        const SizedBox(height: 18),
+
         RegistrationTextField(
           controller: _lastNameController,
           label: 'Last Name *',
@@ -340,17 +544,30 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           },
         ),
         const SizedBox(height: 18),
+
+        RegistrationTextField(
+          controller: _firstNameController,
+          label: 'First Name *',
+          icon: Icons.person_outline,
+          isError: _firstNameError,
+          errorMessage: 'First name is required',
+          onChanged: (value) {
+            if (_firstNameError && value.trim().isNotEmpty) {
+              setState(() => _firstNameError = false);
+            }
+          },
+        ),
+        const SizedBox(height: 18),
+
         RegistrationTextField(
           controller: _middleInitialController,
           label: 'Middle Initial',
           icon: Icons.person_outline,
         ),
         const SizedBox(height: 18),
-        RegistrationDropdown(
-          label: 'Sex *',
-          icon: Icons.wc,
+
+        SexDropdown(
           selectedValue: _selectedSex,
-          options: sexOptions,
           isError: _sexError,
           errorMessage: 'Please select your sex',
           onSelected: (value) {
@@ -361,32 +578,107 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           },
         ),
         const SizedBox(height: 18),
+
+        RegistrationTextField(
+          controller: _emailController,
+          label: 'E-mail *',
+          icon: Icons.email_outlined,
+          isError: _emailError,
+          errorMessage: 'Email is required',
+          onChanged: (value) {
+            if (_emailError && value.trim().isNotEmpty) {
+              setState(() => _emailError = false);
+            }
+          },
+        ),
+        const SizedBox(height: 18),
+
+        RegistrationTextField(
+          controller: _contactNoController,
+          label: 'Contact No. *',
+          icon: Icons.phone_outlined,
+          isError: _contactNoError,
+          errorMessage: 'Contact number is required',
+          onChanged: (value) {
+            if (_contactNoError && value.trim().isNotEmpty) {
+              setState(() => _contactNoError = false);
+            }
+          },
+        ),
+        const SizedBox(height: 18),
+
         RegistrationDateField(
           birthday: _birthday,
           onClick: _openBirthdayPicker,
           isError: _birthdayError,
           errorMessage: 'Please select your birthday',
         ),
-        const SizedBox(height: 36),
-        PrimaryButton(
-          text: 'NEXT',
-          color: CartzyColors.navy,
-          onClick: () {
-            setState(() {
-              _firstNameError = _firstNameController.text.trim().isEmpty;
-              _lastNameError = _lastNameController.text.trim().isEmpty;
-              _sexError = _selectedSex.isEmpty;
-              _birthdayError = _birthday.isEmpty;
+        const SizedBox(height: 18),
 
-              if (!_firstNameError && !_lastNameError && !_sexError && !_birthdayError) {
-                _currentStep = 2;
-              }
-            });
-          },
+        // AGE (AUTOGEN)
+        TextField(
+          readOnly: true,
+          controller: TextEditingController(text: _age?.toString() ?? ''),
+          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+          decoration: InputDecoration(
+            labelText: 'Age (auto-generated)',
+            labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+            prefixIcon: const Icon(Icons.badge_outlined, color: CartzyColors.coral, size: 20),
+            filled: true,
+            fillColor: CartzyColors.surface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+            ),
+          ),
+        ),
+        const SizedBox(height: 36),
+
+        Row(
+          children: [
+            Expanded(
+              child: SecondaryButton(
+                text: 'BACK',
+                color: CartzyColors.navy,
+                onClick: widget.onBackToLogin,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: PrimaryButton(
+                text: 'NEXT',
+                color: CartzyColors.navy,
+                onClick: () {
+                  setState(() {
+                    _lastNameError = _lastNameController.text.trim().isEmpty;
+                    _firstNameError = _firstNameController.text.trim().isEmpty;
+                    _sexError = _selectedSex.isEmpty;
+                    _emailError = _emailController.text.trim().isEmpty;
+                    _contactNoError = _contactNoController.text.trim().isEmpty;
+                    _birthdayError = _birthday.isEmpty;
+
+                    if (!_lastNameError &&
+                        !_firstNameError &&
+                        !_sexError &&
+                        !_emailError &&
+                        !_contactNoError &&
+                        !_birthdayError) {
+                      _currentStep = 2;
+                    }
+                  });
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
+
+  // ============================================================
+  // STEP 2 — ADDRESS
+  // ============================================================
 
   Widget _buildStep2() {
     return Column(
@@ -402,19 +694,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           style: TextStyle(fontSize: 13, color: CartzyColors.gray),
         ),
         const SizedBox(height: 28),
-        RegistrationTextField(
-          controller: _houseStreetController,
-          label: 'House / Unit No. and Street *',
-          icon: Icons.home_outlined,
-          isError: _houseStreetError,
-          errorMessage: 'This field is required',
-          onChanged: (value) {
-            if (_houseStreetError && value.trim().isNotEmpty) {
-              setState(() => _houseStreetError = false);
-            }
-          },
-        ),
-        const SizedBox(height: 18),
+
         if (_provincesLoadError) ...[
           const Text(
             "Couldn't load provinces. Check your connection.",
@@ -443,6 +723,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           },
         ),
         const SizedBox(height: 18),
+
         if (_municipalitiesLoadError) ...[
           const Text(
             "Couldn't load municipalities. Check your connection.",
@@ -469,6 +750,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           },
         ),
         const SizedBox(height: 18),
+
         if (_barangaysLoadError) ...[
           const Text(
             "Couldn't load barangays. Check your connection.",
@@ -490,7 +772,22 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             });
           },
         ),
+        const SizedBox(height: 18),
+
+        RegistrationTextField(
+          controller: _houseStreetController,
+          label: 'Street / House Number *',
+          icon: Icons.home_outlined,
+          isError: _houseStreetError,
+          errorMessage: 'This field is required',
+          onChanged: (value) {
+            if (_houseStreetError && value.trim().isNotEmpty) {
+              setState(() => _houseStreetError = false);
+            }
+          },
+        ),
         const SizedBox(height: 36),
+
         Row(
           children: [
             Expanded(
@@ -507,15 +804,15 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                 color: CartzyColors.navy,
                 onClick: () {
                   setState(() {
-                    _houseStreetError = _houseStreetController.text.trim().isEmpty;
                     _provinceError = _selectedProvince.isEmpty;
                     _municipalityError = _selectedMunicipality.isEmpty;
                     _barangayError = _selectedBarangay.isEmpty;
+                    _houseStreetError = _houseStreetController.text.trim().isEmpty;
 
-                    if (!_houseStreetError &&
-                        !_provinceError &&
+                    if (!_provinceError &&
                         !_municipalityError &&
-                        !_barangayError) {
+                        !_barangayError &&
+                        !_houseStreetError) {
                       _currentStep = 3;
                     }
                   });
@@ -527,6 +824,10 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       ],
     );
   }
+
+  // ============================================================
+  // STEP 3 — ACCOUNT + ID UPLOAD
+  // ============================================================
 
   Widget _buildStep3() {
     return Column(
@@ -542,19 +843,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           style: TextStyle(fontSize: 13, color: CartzyColors.gray),
         ),
         const SizedBox(height: 28),
-        RegistrationTextField(
-          controller: _emailController,
-          label: 'Email Address *',
-          icon: Icons.email_outlined,
-          isError: _emailError,
-          errorMessage: 'Email is required',
-          onChanged: (value) {
-            if (_emailError && value.trim().isNotEmpty) {
-              setState(() => _emailError = false);
-            }
-          },
-        ),
-        const SizedBox(height: 18),
+
         RegistrationTextField(
           controller: _passwordController,
           label: 'Password *',
@@ -576,6 +865,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           },
         ),
         const SizedBox(height: 18),
+
         RegistrationTextField(
           controller: _confirmPasswordController,
           label: 'Confirm Password *',
@@ -596,7 +886,17 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             }
           },
         ),
+        const SizedBox(height: 30),
+
+        _UploadField(
+          label: 'Upload ID *',
+          fileName: _idFileName,
+          isError: _idError,
+          errorMessage: 'Please upload a valid ID',
+          onTap: _pickIdFile,
+        ),
         const SizedBox(height: 36),
+
         Row(
           children: [
             Expanded(
@@ -609,28 +909,33 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: 'CREATE ACCOUNT',
+                text: _isSubmitting ? 'CREATING...' : 'CREATE ACCOUNT',
                 color: CartzyColors.navy,
-                onClick: () {
-                  setState(() {
-                    _emailError = _emailController.text.trim().isEmpty;
-                    _passwordError = _passwordController.text.trim().isEmpty;
+                onClick: _isSubmitting
+                    ? () {}
+                    : () {
+                        setState(() {
+                          _passwordError = _passwordController.text.trim().isEmpty;
 
-                    if (_confirmPasswordController.text.trim().isEmpty) {
-                      _confirmPasswordMessage = 'Please confirm your password';
-                      _confirmPasswordError = true;
-                    } else if (_confirmPasswordController.text != _passwordController.text) {
-                      _confirmPasswordMessage = 'Passwords do not match';
-                      _confirmPasswordError = true;
-                    } else {
-                      _confirmPasswordError = false;
-                    }
+                          if (_confirmPasswordController.text.trim().isEmpty) {
+                            _confirmPasswordMessage = 'Please confirm your password';
+                            _confirmPasswordError = true;
+                          } else if (_confirmPasswordController.text != _passwordController.text) {
+                            _confirmPasswordMessage = 'Passwords do not match';
+                            _confirmPasswordError = true;
+                          } else {
+                            _confirmPasswordError = false;
+                          }
 
-                    if (!_emailError && !_passwordError && !_confirmPasswordError) {
-                      widget.onRegistrationSubmitted();
-                    }
-                  });
-                },
+                          _idError = _idFile == null;
+                        });
+
+                        if (!_passwordError &&
+                            !_confirmPasswordError &&
+                            !_idError) {
+                          _registerBuyer();
+                        }
+                      },
               ),
             ),
           ],
@@ -641,7 +946,82 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 }
 
 // ============================================================
-// DATE FIELD — matches login screen field style
+// UPLOAD FIELD (placeholder — real file picking added later)
+// ============================================================
+
+class _UploadField extends StatelessWidget {
+  final String label;
+  final String? fileName;
+  final bool isError;
+  final String errorMessage;
+  final VoidCallback onTap;
+
+  const _UploadField({
+    required this.label,
+    required this.fileName,
+    required this.isError,
+    required this.errorMessage,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: CartzyColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isError ? CartzyColors.error : CartzyColors.border,
+            width: isError ? 1.5 : 1.2,
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.upload_file, color: CartzyColors.coral),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: CartzyColors.navy,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    fileName ?? 'Tap to upload',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: fileName != null ? CartzyColors.coral : CartzyColors.gray,
+                    ),
+                  ),
+                  if (isError) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      errorMessage,
+                      style: const TextStyle(fontSize: 11, color: CartzyColors.error),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// DATE FIELD
 // ============================================================
 
 class RegistrationDateField extends StatelessWidget {
@@ -666,29 +1046,35 @@ class RegistrationDateField extends StatelessWidget {
         child: TextField(
           controller: TextEditingController(text: birthday),
           readOnly: true,
+          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
           decoration: InputDecoration(
+            labelText: 'Birthday *',
+            labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+            floatingLabelStyle: const TextStyle(fontSize: 14, color: CartzyColors.coral, fontWeight: FontWeight.w600),
             hintText: 'Select your birthday',
-            hintStyle: const TextStyle(fontSize: 13),
-            prefixIcon: const Icon(Icons.cake_outlined, color: CartzyColors.coral),
-            suffixIcon: const Icon(Icons.arrow_drop_down, color: CartzyColors.coral),
+            hintStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+            prefixIcon: const Icon(Icons.cake_outlined, color: CartzyColors.coral, size: 20),
+            suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.coral),
             errorText: isError ? errorMessage : null,
+            errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
             filled: true,
-            fillColor: CartzyColors.background,
+            fillColor: CartzyColors.surface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: CartzyColors.coral),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.coral, width: 1.8),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: CartzyColors.error),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.error, width: 1.2),
             ),
           ),
         ),
@@ -767,92 +1153,143 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
       decoration: const BoxDecoration(
         color: CartzyColors.surface,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select Birthday',
-            style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold, color: CartzyColors.navy),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Scroll each column to select your date',
-            style: TextStyle(fontSize: 13, color: CartzyColors.gray),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            '${monthNames[_selectedMonth]} $_selectedDay, $_selectedYear',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-              color: widget.accent,
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: CartzyColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
-          const SizedBox(height: 16),
+
+          const Text(
+            'Select Birthday',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Scroll to choose your date of birth',
+            style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+          ),
+          const SizedBox(height: 20),
+
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              color: widget.accent.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Text(
+              '${monthNames[_selectedMonth]} $_selectedDay, $_selectedYear',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: widget.accent,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
           SizedBox(
-            height: 220,
-            child: Row(
+            height: 240,
+            child: Stack(
               children: [
-                Expanded(
-                  flex: 15,
-                  child: _wheel(
-                    itemCount: monthNames.length,
-                    initialIndex: _selectedMonth,
-                    labelBuilder: (i) => monthNames[i],
-                    onChanged: (i) => setState(() => _selectedMonth = i),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 15,
+                      child: _wheel(
+                        itemCount: monthNames.length,
+                        initialIndex: _selectedMonth,
+                        labelBuilder: (i) => monthNames[i],
+                        onChanged: (i) => setState(() => _selectedMonth = i),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 7,
+                      child: _wheel(
+                        itemCount: _daysInMonth,
+                        initialIndex: _selectedDay - 1,
+                        labelBuilder: (i) => '${i + 1}',
+                        onChanged: (i) => setState(() => _selectedDay = i + 1),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 9,
+                      child: _wheel(
+                        itemCount: _years.length,
+                        initialIndex: _years.indexOf(_selectedYear).clamp(0, _years.length - 1),
+                        labelBuilder: (i) => '${_years[i]}',
+                        onChanged: (i) => setState(() => _selectedYear = _years[i]),
+                      ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  flex: 7,
-                  child: _wheel(
-                    itemCount: _daysInMonth,
-                    initialIndex: _selectedDay - 1,
-                    labelBuilder: (i) => '${i + 1}',
-                    onChanged: (i) => setState(() => _selectedDay = i + 1),
-                  ),
-                ),
-                Expanded(
-                  flex: 9,
-                  child: _wheel(
-                    itemCount: _years.length,
-                    initialIndex: _years.indexOf(_selectedYear).clamp(0, _years.length - 1),
-                    labelBuilder: (i) => '${_years[i]}',
-                    onChanged: (i) => setState(() => _selectedYear = _years[i]),
+                IgnorePointer(
+                  child: Center(
+                    child: Container(
+                      height: 48,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: widget.accent.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.symmetric(
+                          horizontal: BorderSide(color: widget.accent.withValues(alpha: 0.25), width: 1),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          const Divider(),
+
+          const SizedBox(height: 20),
+          const Divider(color: CartzyColors.border),
           const SizedBox(height: 8),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
                 onPressed: widget.onDismiss,
-                child: Text(
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                child: const Text(
                   'CANCEL',
-                  style: TextStyle(color: widget.accent, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: CartzyColors.gray, fontWeight: FontWeight.w600, fontSize: 13),
                 ),
               ),
-              TextButton(
+              const SizedBox(width: 8),
+              ElevatedButton(
                 onPressed: () {
                   final formatted =
                       '${monthNames[_selectedMonth]} ${_selectedDay.toString().padLeft(2, '0')}, $_selectedYear';
                   widget.onDateSelected(formatted);
                 },
-                child: Text(
-                  'DONE',
-                  style: TextStyle(color: widget.accent, fontWeight: FontWeight.bold),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: widget.accent,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
+                child: const Text('DONE', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               ),
             ],
           ),
@@ -868,21 +1305,22 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
     required ValueChanged<int> onChanged,
   }) {
     return ListWheelScrollView.useDelegate(
-      itemExtent: 44,
-      diameterRatio: 1.5,
+      itemExtent: 48,
+      diameterRatio: 1.8,
       physics: const FixedExtentScrollPhysics(),
       controller: FixedExtentScrollController(initialItem: initialIndex),
       onSelectedItemChanged: onChanged,
       childDelegate: ListWheelChildBuilderDelegate(
         childCount: itemCount,
         builder: (context, index) {
+          final isSelected = index == initialIndex;
           return Center(
             child: Text(
               labelBuilder(index),
               style: TextStyle(
-                fontSize: index == initialIndex ? 17 : 14,
-                fontWeight: index == initialIndex ? FontWeight.bold : FontWeight.normal,
-                color: index == initialIndex ? widget.accent : const Color(0xFF9CA3AF),
+                fontSize: isSelected ? 19 : 15,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? widget.accent : CartzyColors.gray.withValues(alpha: 0.6),
               ),
             ),
           );
@@ -893,12 +1331,12 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
 }
 
 // ============================================================
-// DROPDOWN — matches login screen field style
+// DROPDOWN — polished bottom sheet with search
 // ============================================================
 
 class RegistrationDropdown extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final IconData? icon;
   final String selectedValue;
   final List<String> options;
   final ValueChanged<String> onSelected;
@@ -908,7 +1346,7 @@ class RegistrationDropdown extends StatelessWidget {
   const RegistrationDropdown({
     super.key,
     required this.label,
-    required this.icon,
+    this.icon,
     required this.selectedValue,
     required this.options,
     required this.onSelected,
@@ -924,24 +1362,13 @@ class RegistrationDropdown extends StatelessWidget {
           : () async {
               final selected = await showModalBottomSheet<String>(
                 context: context,
-                constraints: const BoxConstraints(maxHeight: 400),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => _DropdownSheet(
+                  label: label,
+                  icon: icon,
+                  options: options,
                 ),
-                builder: (context) {
-                  return ListView.builder(
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(options[index]),
-                        onTap: () => Navigator.of(context).pop(options[index]),
-                      );
-                    },
-                  );
-                },
               );
               if (selected != null) onSelected(selected);
             },
@@ -949,29 +1376,33 @@ class RegistrationDropdown extends StatelessWidget {
         child: TextField(
           controller: TextEditingController(text: selectedValue),
           readOnly: true,
+          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
           decoration: InputDecoration(
-            hintText: label,
-            hintStyle: const TextStyle(fontSize: 13),
-            prefixIcon: Icon(icon, color: CartzyColors.coral),
-            suffixIcon: const Icon(Icons.arrow_drop_down, color: CartzyColors.coral),
+            labelText: label,
+            labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+            floatingLabelStyle: const TextStyle(fontSize: 14, color: CartzyColors.coral, fontWeight: FontWeight.w600),
+            prefixIcon: Icon(icon ?? Icons.list_alt_outlined, color: CartzyColors.coral, size: 20),
+            suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.coral),
             errorText: isError ? errorMessage : null,
+            errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
             filled: true,
-            fillColor: CartzyColors.background,
+            fillColor: CartzyColors.surface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: CartzyColors.coral),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.coral, width: 1.8),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: CartzyColors.error),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.error, width: 1.2),
             ),
           ),
         ),
@@ -981,13 +1412,316 @@ class RegistrationDropdown extends StatelessWidget {
 }
 
 // ============================================================
-// TEXT FIELD — matches login screen field style
+// DROPDOWN BOTTOM SHEET (with search)
+// ============================================================
+
+class _DropdownSheet extends StatefulWidget {
+  final String label;
+  final IconData? icon;
+  final List<String> options;
+
+  const _DropdownSheet({
+    required this.label,
+    required this.icon,
+    required this.options,
+  });
+
+  @override
+  State<_DropdownSheet> createState() => _DropdownSheetState();
+}
+
+class _DropdownSheetState extends State<_DropdownSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  late List<String> _filteredOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredOptions = widget.options;
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filter(String query) {
+    setState(() {
+      _filteredOptions = widget.options
+          .where((o) => o.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: CartzyColors.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: CartzyColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Row(
+                  children: [
+                    Icon(widget.icon ?? Icons.list_alt_outlined, color: CartzyColors.coral, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.label.replaceAll('*', '').trim(),
+                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                      ),
+                    ),
+                    Text(
+                      '${widget.options.length} options',
+                      style: const TextStyle(fontSize: 12, color: CartzyColors.gray),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _filter,
+                  style: const TextStyle(fontSize: 14, color: CartzyColors.text),
+                  decoration: InputDecoration(
+                    hintText: 'Search...',
+                    hintStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+                    prefixIcon: const Icon(Icons.search, color: CartzyColors.gray, size: 20),
+                    filled: true,
+                    fillColor: CartzyColors.background,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Divider(height: 1, color: CartzyColors.border),
+              Expanded(
+                child: _filteredOptions.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No matches found',
+                          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+                        ),
+                      )
+                    : ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        itemCount: _filteredOptions.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1, color: CartzyColors.border),
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                            title: Text(
+                              _filteredOptions[index],
+                              style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+                            ),
+                            trailing: const Icon(Icons.chevron_right, color: CartzyColors.border, size: 18),
+                            onTap: () => Navigator.of(context).pop(_filteredOptions[index]),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================
+// SEX DROPDOWN (with icon per option)
+// ============================================================
+
+class SexDropdown extends StatelessWidget {
+  final String selectedValue;
+  final ValueChanged<String> onSelected;
+  final bool isError;
+  final String errorMessage;
+
+  const SexDropdown({
+    super.key,
+    required this.selectedValue,
+    required this.onSelected,
+    this.isError = false,
+    this.errorMessage = '',
+  });
+
+  static const List<Map<String, dynamic>> _options = [
+    {'label': 'Male', 'icon': Icons.male},
+    {'label': 'Female', 'icon': Icons.female},
+    {'label': 'Prefer not to say', 'icon': Icons.remove_circle_outline},
+  ];
+
+  IconData get _selectedIcon {
+    final match = _options.firstWhere(
+      (o) => o['label'] == selectedValue,
+      orElse: () => {'icon': Icons.wc},
+    );
+    return match['icon'] as IconData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        final selected = await showModalBottomSheet<String>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (context) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: CartzyColors.surface,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: CartzyColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Sex',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ..._options.map((option) {
+                    final isSelected = option['label'] == selectedValue;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => Navigator.of(context).pop(option['label'] as String),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isSelected ? CartzyColors.coral.withValues(alpha: 0.08) : CartzyColors.background,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? CartzyColors.coral : CartzyColors.border,
+                              width: isSelected ? 1.6 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                option['icon'] as IconData,
+                                color: isSelected ? CartzyColors.coral : CartzyColors.gray,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Text(
+                                  option['label'] as String,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                    color: isSelected ? CartzyColors.coral : CartzyColors.text,
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                const Icon(Icons.check_circle, color: CartzyColors.coral, size: 20),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            );
+          },
+        );
+        if (selected != null) onSelected(selected);
+      },
+      child: AbsorbPointer(
+        child: TextField(
+          controller: TextEditingController(text: selectedValue),
+          readOnly: true,
+          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+          decoration: InputDecoration(
+            labelText: 'Sex *',
+            labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+            floatingLabelStyle: const TextStyle(fontSize: 14, color: CartzyColors.coral, fontWeight: FontWeight.w600),
+            prefixIcon: Icon(_selectedIcon, color: CartzyColors.coral, size: 20),
+            suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.coral),
+            errorText: isError ? errorMessage : null,
+            errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
+            filled: true,
+            fillColor: CartzyColors.surface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.coral, width: 1.8),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: CartzyColors.error, width: 1.2),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// TEXT FIELD
 // ============================================================
 
 class RegistrationTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
-  final IconData icon;
+  final IconData? icon;
   final bool isError;
   final String errorMessage;
   final bool obscureText;
@@ -998,7 +1732,7 @@ class RegistrationTextField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.label,
-    required this.icon,
+    this.icon,
     this.isError = false,
     this.errorMessage = '',
     this.obscureText = false,
@@ -1012,29 +1746,37 @@ class RegistrationTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       onChanged: onChanged,
+      style: const TextStyle(fontSize: 15, color: CartzyColors.text),
       decoration: InputDecoration(
-        hintText: label,
-        hintStyle: const TextStyle(fontSize: 13),
-        prefixIcon: Icon(icon, color: CartzyColors.coral),
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+        floatingLabelStyle: const TextStyle(fontSize: 14, color: CartzyColors.coral, fontWeight: FontWeight.w600),
+        prefixIcon: Icon(icon ?? Icons.edit_outlined, color: CartzyColors.coral, size: 20),
         suffixIcon: trailing,
         errorText: isError ? errorMessage : null,
+        errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
         filled: true,
-        fillColor: CartzyColors.background,
+        fillColor: CartzyColors.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: CartzyColors.coral),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CartzyColors.coral, width: 1.8),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: CartzyColors.error),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CartzyColors.error, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CartzyColors.error, width: 1.8),
         ),
       ),
     );
@@ -1061,19 +1803,20 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 54,
       child: ElevatedButton(
         onPressed: onClick,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.3),
         ),
       ),
     );
@@ -1100,19 +1843,19 @@ class SecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 54,
       child: OutlinedButton(
         onPressed: onClick,
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
-          side: BorderSide(color: color),
+          side: BorderSide(color: color, width: 1.4),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, letterSpacing: 0.3),
         ),
       ),
     );
@@ -1127,12 +1870,14 @@ class StepIndicator extends StatelessWidget {
   final int currentStep;
   final Color accent;
   final Color gray;
+  final List<IconData> icons;
 
   const StepIndicator({
     super.key,
     required this.currentStep,
     required this.accent,
     required this.gray,
+    required this.icons,
   });
 
   @override
@@ -1142,19 +1887,24 @@ class StepIndicator extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
       child: Row(
         children: [
-          StepCircle(number: '1', active: currentStep >= 1, accent: accent, gray: gray),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Divider(color: currentStep >= 2 ? accent : gray, thickness: 1),
-          ),
-          const SizedBox(width: 8),
-          StepCircle(number: '2', active: currentStep >= 2, accent: accent, gray: gray),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Divider(color: currentStep >= 3 ? accent : gray, thickness: 1),
-          ),
-          const SizedBox(width: 8),
-          StepCircle(number: '3', active: currentStep >= 3, accent: accent, gray: gray),
+          for (int i = 0; i < icons.length; i++) ...[
+            StepCircle(
+              icon: icons[i],
+              active: currentStep >= i + 1,
+              accent: accent,
+              gray: gray,
+            ),
+            if (i < icons.length - 1) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: Divider(
+                  color: currentStep >= i + 2 ? accent : gray,
+                  thickness: 1,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ],
         ],
       ),
     );
@@ -1166,14 +1916,14 @@ class StepIndicator extends StatelessWidget {
 // ============================================================
 
 class StepCircle extends StatelessWidget {
-  final String number;
+  final IconData icon;
   final bool active;
   final Color accent;
   final Color gray;
 
   const StepCircle({
     super.key,
-    required this.number,
+    required this.icon,
     required this.active,
     required this.accent,
     required this.gray,
@@ -1189,9 +1939,10 @@ class StepCircle extends StatelessWidget {
         color: active ? accent : gray,
         shape: BoxShape.circle,
       ),
-      child: Text(
-        number,
-        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+      child: Icon(
+        icon,
+        color: Colors.white,
+        size: 17,
       ),
     );
   }
