@@ -1,0 +1,113 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Lato', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --color-brand-50: #FAF9FB;
+    --color-brand-100: #F1EFF5;
+    --color-brand-200: #E1DDE7;
+    --color-brand-300: #C9C3D3;
+    --color-brand-400: #A8A0B2;
+    --color-brand-500: #91879E;
+    --color-brand-600: #6F6382;
+    --color-brand-700: #564B68;
+    --color-brand-800: #3E354C;
+    --color-brand-900: #282133;
+    --color-brand-950: #191421;
+}
+
+:root {
+    --brand-primary: #A8A0B2;
+    --brand-deep: #6F6382;
+    --brand-dark: #564B68;
+    --brand-darkest: #282133;
+    --brand-soft: #FAF9FB;
+    --brand-light: #F1EFF5;
+    --brand-border: #E1DDE7;
+}
+
+.bg-brand { background-color: var(--brand-primary); }
+.bg-brand-deep { background-color: var(--brand-deep); }
+.bg-brand-dark { background-color: var(--brand-dark); }
+.bg-brand-soft { background-color: var(--brand-soft); }
+.bg-brand-light { background-color: var(--brand-light); }
+.text-brand { color: var(--brand-deep); }
+.text-brand-dark { color: var(--brand-darkest); }
+.border-brand { border-color: var(--brand-border); }
+.brand-gradient {
+    background: linear-gradient(135deg, #91879E 0%, #6F6382 50%, #564B68 100%);
+}
+.brand-gradient-hover:hover {
+    background: linear-gradient(135deg, #9E94AB 0%, #7B6E90 50%, #625575 100%);
+}
+
+/* Hide default browser password reveal and clear buttons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ── Compact Product Cards ─────────────────────────────────────────────── */
+
+/* Clamp image height so cards look smaller overall */
+.product-card .relative.aspect-square {
+    max-height: 130px;
+}
+
+/* Tighten inner content area */
+.product-card > div:not(.relative) {
+    padding: 0.35rem 0.5rem 0.45rem !important;
+}
+
+/* Smaller product title */
+.product-card h3 {
+    font-size: 0.64rem !important;
+    line-height: 1.25 !important;
+}
+
+/* Compact price */
+.product-card .text-base {
+    font-size: 0.8rem !important;
+}
+
+/* Compact Add to Cart button */
+.product-card button[onclick] {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    font-size: 0.59rem !important;
+    margin-top: 0.3rem !important;
+    border-radius: 0.35rem !important;
+    gap: 0.25rem !important;
+}
+.product-card button[onclick] svg {
+    width: 0.65rem !important;
+    height: 0.65rem !important;
+}
+
+/* Tighter section divider above price */
+.product-card .border-t {
+    margin-top: 0.3rem !important;
+    padding-top: 0.3rem !important;
+}
+
+/* Shrink Free Shipping / tag badges */
+.product-card .flex.items-center.gap-1 span {
+    font-size: 0.58rem !important;
+    padding: 0.08rem 0.3rem !important;
+}
+
+/* Smaller sold / rating text */
+.product-card .text-\[10px\] {
+    font-size: 0.56rem !important;
+}
