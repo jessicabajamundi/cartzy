@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'cartzy_colors.dart';
 import 'psgc_api.dart';
 import 'services/api_service.dart';
+import 'cartzy_flash_notif.dart';
 
 class BuyerAccountScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -1096,15 +1097,13 @@ class _BuyerAccountScreenState
                   .trim(),
         },
       );
-final updatedUser = Map<String, dynamic>.from(
-  response['user'] ?? {},
-);
 
-widget.onProfileUpdated?.call(updatedUser);
       final user =
           Map<String, dynamic>.from(
         response['user'] ?? {},
       );
+
+      widget.onProfileUpdated?.call(user);
 
       if (!mounted) {
         return;
@@ -1148,8 +1147,9 @@ widget.onProfileUpdated?.call(updatedUser);
         );
       });
 
-      _showMessage(
-        'Profile updated successfully.',
+      showCartzyFlash(
+        context,
+        'Changes saved.',
       );
     } catch (e) {
       if (!mounted) {
@@ -1261,6 +1261,9 @@ widget.onProfileUpdated?.call(updatedUser);
   // ============================================================
   // MESSAGE
   // ============================================================
+  //
+  // Used for ERRORS only now — success feedback goes through
+  // showCartzyFlash instead (see _saveProfile).
 
   void _showMessage(
     String message, {

@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import 'cartzy_colors.dart';
 import 'services/api_service.dart';
+import 'cartzy_flash_notif.dart';
 // ============================================================
 // PSGC API MODELS + SERVICE
 // ============================================================
@@ -76,11 +76,33 @@ class PsgcApi {
 }
 
 // ============================================================
+// EMAIL AVAILABILITY CHECK (shared helper)
+// ============================================================
+
+Future<bool?> checkEmailAvailable(String email) async {
+  try {
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/check-email?email=${Uri.encodeQueryComponent(email)}'),
+    );
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body);
+    return data['available'] == true;
+  } catch (_) {
+    // Network hiccup — don't block the user here, the final
+    // submit will still catch a duplicate email server-side.
+    return null;
+  }
+}
+
+// ============================================================
 // BUYER REGISTRATION
 // ============================================================
 
 class BuyerRegistration extends StatefulWidget {
-  final VoidCallback onRegistrationSubmitted;
+  // Now passes back the real created account (id, name, email, etc.)
+  // so main.dart can log the person straight into THEIR dashboard,
+  // not a leftover/hardcoded one.
+  final ValueChanged<Map<String, dynamic>> onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
 
   const BuyerRegistration({
@@ -105,6 +127,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   final _middleInitialController = TextEditingController();
   final _emailController = TextEditingController();
   final _contactNoController = TextEditingController();
+  final _emailShakeKey = GlobalKey<ShakeWidgetState>();
 
   String _selectedSex = '';
   String _birthday = '';
@@ -114,8 +137,10 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   bool _firstNameError = false;
   bool _sexError = false;
   bool _emailError = false;
+  String? _emailErrorMessage;
   bool _contactNoError = false;
   bool _birthdayError = false;
+  bool _isCheckingEmail = false;
 
   // ========================================================
   // ADDRESS
@@ -160,10 +185,10 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   String _confirmPasswordMessage = 'This field is required';
 
   String? _idFileName;
-XFile? _idFile;
-bool _idError = false;
+  XFile? _idFile;
+  bool _idError = false;
 
-bool _isSubmitting = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -290,32 +315,33 @@ bool _isSubmitting = false;
       return null;
     }
   }
-Future<void> _pickIdFile() async {
-  try {
-    final picker = ImagePicker();
 
-    final XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 85,
-    );
+  Future<void> _pickIdFile() async {
+    try {
+      final picker = ImagePicker();
 
-    if (pickedFile == null) return;
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
 
-    setState(() {
-      _idFile = pickedFile;
-      _idFileName = pickedFile.name;
-      _idError = false;
-    });
-  } catch (e) {
-    if (!mounted) return;
+      if (pickedFile == null) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Unable to select ID photo: $e'),
-      ),
-    );
+      setState(() {
+        _idFile = pickedFile;
+        _idFileName = pickedFile.name;
+        _idError = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to select ID photo: $e'),
+        ),
+      );
+    }
   }
-}
 
   String _birthdayForDatabase() {
     if (_birthday.isEmpty) return '';
@@ -346,6 +372,54 @@ Future<void> _pickIdFile() async {
     } catch (_) {
       return '';
     }
+  }
+
+  // ============================================================
+  // STEP 1 → STEP 2: validate fields, THEN check email availability
+  // ============================================================
+
+  Future<void> _handleStep1Next() async {
+    setState(() {
+      _lastNameError = _lastNameController.text.trim().isEmpty;
+      _firstNameError = _firstNameController.text.trim().isEmpty;
+      _sexError = _selectedSex.isEmpty;
+      _emailError = _emailController.text.trim().isEmpty;
+      _emailErrorMessage = _emailError ? 'Email is required' : null;
+      _contactNoError = _contactNoController.text.trim().isEmpty;
+      _birthdayError = _birthday.isEmpty;
+    });
+
+    if (_lastNameError ||
+        _firstNameError ||
+        _sexError ||
+        _emailError ||
+        _contactNoError ||
+        _birthdayError) {
+      return;
+    }
+
+    setState(() => _isCheckingEmail = true);
+
+    final available = await checkEmailAvailable(_emailController.text.trim());
+
+    if (!mounted) return;
+
+    if (available == false) {
+      setState(() {
+        _isCheckingEmail = false;
+        _emailError = true;
+        _emailErrorMessage = 'This email is already registered. Try logging in instead.';
+      });
+      _emailShakeKey.currentState?.shake();
+      return;
+    }
+
+    // available == true, or available == null (check failed —
+    // let them continue; the final submit still catches duplicates).
+    setState(() {
+      _isCheckingEmail = false;
+      _currentStep = 2;
+    });
   }
 
   Future<void> _registerBuyer() async {
@@ -384,13 +458,13 @@ Future<void> _pickIdFile() async {
 
       final idBytes = await _idFile!.readAsBytes();
 
-request.files.add(
-  http.MultipartFile.fromBytes(
-    'id_photo',
-    idBytes,
-    filename: _idFileName ?? 'id_photo.jpg',
-  ),
-);
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'id_photo',
+          idBytes,
+          filename: _idFileName ?? 'id_photo.jpg',
+        ),
+      );
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
@@ -399,6 +473,24 @@ request.files.add(
           : <String, dynamic>{};
 
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        // Duplicate email caught server-side too (race condition
+        // safety net even though we already checked in Step 1).
+        if (response.statusCode == 409) {
+          setState(() {
+            _isSubmitting = false;
+            _currentStep = 1;
+            _emailError = true;
+            _emailErrorMessage = 'This email is already registered. Try logging in instead.';
+          });
+          // Step 1 (and the ShakeWidget inside it) only mounts on the next
+          // frame after switching _currentStep back to 1, so defer the
+          // shake until after that rebuild.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _emailShakeKey.currentState?.shake();
+          });
+          return;
+        }
+
         throw Exception(
           data['error'] ??
               data['message'] ??
@@ -410,24 +502,16 @@ request.files.add(
 
       setState(() => _isSubmitting = false);
 
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Registration Successful'),
-          content: const Text(
-            'Your Cartzy buyer account has been created successfully.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('CONTINUE'),
-            ),
-          ],
-        ),
-      );
+      showCartzyFlash(context, 'Account created! Welcome to Cartzy.');
+
+      // Let the flash notif be visible for a moment before handing off
+      // to the dashboard.
+      await Future.delayed(const Duration(milliseconds: 700));
 
       if (!mounted) return;
-      widget.onRegistrationSubmitted();
+
+      final createdUser = Map<String, dynamic>.from(data['user'] ?? {});
+      widget.onRegistrationSubmitted(createdUser);
     } catch (e) {
       if (!mounted) return;
 
@@ -579,17 +663,23 @@ request.files.add(
         ),
         const SizedBox(height: 18),
 
-        RegistrationTextField(
-          controller: _emailController,
-          label: 'E-mail *',
-          icon: Icons.email_outlined,
-          isError: _emailError,
-          errorMessage: 'Email is required',
-          onChanged: (value) {
-            if (_emailError && value.trim().isNotEmpty) {
-              setState(() => _emailError = false);
-            }
-          },
+        ShakeWidget(
+          key: _emailShakeKey,
+          child: RegistrationTextField(
+            controller: _emailController,
+            label: 'E-mail *',
+            icon: Icons.email_outlined,
+            isError: _emailError,
+            errorMessage: _emailErrorMessage ?? 'Email is required',
+            onChanged: (value) {
+              if (_emailError) {
+                setState(() {
+                  _emailError = false;
+                  _emailErrorMessage = null;
+                });
+              }
+            },
+          ),
         ),
         const SizedBox(height: 18),
 
@@ -647,27 +737,9 @@ request.files.add(
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: 'NEXT',
+                text: _isCheckingEmail ? 'CHECKING...' : 'NEXT',
                 color: CartzyColors.navy,
-                onClick: () {
-                  setState(() {
-                    _lastNameError = _lastNameController.text.trim().isEmpty;
-                    _firstNameError = _firstNameController.text.trim().isEmpty;
-                    _sexError = _selectedSex.isEmpty;
-                    _emailError = _emailController.text.trim().isEmpty;
-                    _contactNoError = _contactNoController.text.trim().isEmpty;
-                    _birthdayError = _birthday.isEmpty;
-
-                    if (!_lastNameError &&
-                        !_firstNameError &&
-                        !_sexError &&
-                        !_emailError &&
-                        !_contactNoError &&
-                        !_birthdayError) {
-                      _currentStep = 2;
-                    }
-                  });
-                },
+                onClick: _isCheckingEmail ? () {} : _handleStep1Next,
               ),
             ),
           ],
@@ -1710,6 +1782,66 @@ class SexDropdown extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ============================================================
+// SHAKE WIDGET
+// ============================================================
+//
+// Wrap any field with this + a GlobalKey<ShakeWidgetState> to trigger a
+// horizontal "shake" (e.g. when a duplicate email is detected):
+//
+//   final _emailShakeKey = GlobalKey<ShakeWidgetState>();
+//   ShakeWidget(key: _emailShakeKey, child: someField)
+//   ...
+//   _emailShakeKey.currentState?.shake();
+
+class ShakeWidget extends StatefulWidget {
+  final Widget child;
+
+  const ShakeWidget({super.key, required this.child});
+
+  @override
+  State<ShakeWidget> createState() => ShakeWidgetState();
+}
+
+class ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 420),
+  );
+
+  late final Animation<double> _offset = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 0.0, end: -10.0), weight: 1),
+    TweenSequenceItem(tween: Tween(begin: -10.0, end: 10.0), weight: 2),
+    TweenSequenceItem(tween: Tween(begin: 10.0, end: -8.0), weight: 2),
+    TweenSequenceItem(tween: Tween(begin: -8.0, end: 6.0), weight: 2),
+    TweenSequenceItem(tween: Tween(begin: 6.0, end: 0.0), weight: 1),
+  ]).animate(CurvedAnimation(parent: _controller, curve: Curves.linear));
+
+  void shake() {
+    _controller.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _offset,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(_offset.value, 0),
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

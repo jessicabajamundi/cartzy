@@ -190,12 +190,6 @@ class AccountMenuScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  const Icon(
-                    Icons.chevron_right,
-                    color:
-                        CartzyColors.gray,
-                  ),
                 ],
               ),
             ),

@@ -3,17 +3,29 @@ import 'cartzy_colors.dart';
 import 'neumorphic_rounded_button.dart';
 import 'services/api_service.dart';
 
-enum AccountType { buyer, rider }
+enum AccountType { buyer, rider, admin }
 
 class LoginScreen extends StatefulWidget {
-  final void Function(AccountType accountType, Map<String, dynamic> user) onLogin;
+  final AccountType initialAccountType;
+  final void Function(
+    AccountType accountType,
+    Map<String, dynamic> user, {
+    String? token,
+  }) onLogin;
   final ValueChanged<AccountType> onSignUp;
+
+  /// Back arrow — goes back to the role-selection screen.
+  final VoidCallback onBack;
+
+  /// "Continue as Guest" — skips straight to the guest home screen.
   final VoidCallback onBackToGuest;
 
   const LoginScreen({
     super.key,
+    required this.initialAccountType,
     required this.onLogin,
     required this.onSignUp,
+    required this.onBack,
     required this.onBackToGuest,
   });
 
@@ -25,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  AccountType _accountType = AccountType.buyer;
+  late AccountType _accountType;
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
@@ -35,10 +47,38 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
 
   @override
+  void initState() {
+    super.initState();
+    _accountType = widget.initialAccountType;
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  String get _roleLabel {
+    switch (_accountType) {
+      case AccountType.buyer:
+        return 'Buyer';
+      case AccountType.rider:
+        return 'Rider';
+      case AccountType.admin:
+        return 'Logistics';
+    }
+  }
+
+  IconData get _roleIcon {
+    switch (_accountType) {
+      case AccountType.buyer:
+        return Icons.shopping_bag_outlined;
+      case AccountType.rider:
+        return Icons.two_wheeler_outlined;
+      case AccountType.admin:
+        return Icons.local_shipping_outlined;
+    }
   }
 
   bool _validateLogin() {
@@ -95,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = Map<String, dynamic>.from(
       response['user'] ?? {},
     );
+    final token = response['token']?.toString();
 
     final role = user['role']?.toString().toLowerCase();
 
@@ -105,9 +146,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (role == 'buyer') {
-      widget.onLogin(AccountType.buyer, user);
+      widget.onLogin(AccountType.buyer, user, token: token);
     } else if (role == 'rider' || role == 'courier') {
-      widget.onLogin(AccountType.rider, user);
+      widget.onLogin(AccountType.rider, user, token: token);
+    } else if (role == 'admin') {
+      widget.onLogin(AccountType.admin, user, token: token);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -198,33 +241,41 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildAccountTypeToggle() {
+  Widget _buildRoleBadge() {
     return Container(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: CartzyColors.background,
-        borderRadius: BorderRadius.circular(16),
+        color: CartzyColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CartzyColors.border),
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _AccountTypeOption(
-              label: 'Buyer',
-              icon: Icons.shopping_bag_outlined,
-              selected: _accountType == AccountType.buyer,
-              onTap: () {
-                setState(() => _accountType = AccountType.buyer);
-              },
+          Icon(_roleIcon, size: 18, color: CartzyColors.coral),
+          const SizedBox(width: 8),
+          Text(
+            '$_roleLabel Login',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: CartzyColors.navy,
             ),
           ),
-          Expanded(
-            child: _AccountTypeOption(
-              label: 'Rider',
-              icon: Icons.two_wheeler_outlined,
-              selected: _accountType == AccountType.rider,
-              onTap: () {
-                setState(() => _accountType = AccountType.rider);
-              },
+          const Spacer(),
+          TextButton(
+            onPressed: widget.onBack,
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              minimumSize: const Size(0, 0),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text(
+              'Change',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: CartzyColors.coral,
+              ),
             ),
           ),
         ],
@@ -244,7 +295,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Icons.arrow_back,
             color: CartzyColors.navy,
           ),
-          onPressed: widget.onBackToGuest,
+          onPressed: widget.onBack,
         ),
       ),
       body: SafeArea(
@@ -276,7 +327,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 25),
 
-                  _buildAccountTypeToggle(),
+                  _buildRoleBadge(),
 
                   const SizedBox(height: 30),
 
@@ -407,9 +458,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   Center(
                     child: NeumorphicRoundedButton(
-                      text: _accountType == AccountType.buyer
-                          ? 'Login as Buyer'
-                          : 'Login as Rider',
+                      text: _isLoggingIn ? 'Logging in...' : 'Login as $_roleLabel',
                       borderRadius: 14,
                       width: 220,
                       height: 50,
@@ -417,7 +466,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: _handleLogin,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 25),
 
                   const Row(
                     children: [
@@ -444,7 +493,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         _accountType == AccountType.buyer
                             ? "Don't have an account? "
-                            : "Not registered as a rider yet? ",
+                            : _accountType == AccountType.rider
+                                ? "Not registered as a rider yet? "
+                                : "Registering a logistics hub? ",
                         style: const TextStyle(color: CartzyColors.gray, fontSize: 14),
                       ),
                       TextButton(
@@ -477,54 +528,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AccountTypeOption extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _AccountTypeOption({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: selected ? CartzyColors.coral : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: selected ? Colors.white : CartzyColors.gray,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : CartzyColors.gray,
-              ),
-            ),
-          ],
         ),
       ),
     );

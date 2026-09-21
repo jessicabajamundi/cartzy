@@ -9,24 +9,24 @@ import 'services/api_service.dart';
 import 'buyer_registration.dart'; // reuses PsgcApi + shared form widgets + checkEmailAvailable
 
 // ============================================================
-// RIDER REGISTRATION
+// LOGISTICS / SORTING CENTER REGISTRATION
 // ============================================================
 
-class RiderRegistration extends StatefulWidget {
+class LogisticsRegistration extends StatefulWidget {
   final VoidCallback onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
 
-  const RiderRegistration({
+  const LogisticsRegistration({
     super.key,
     required this.onRegistrationSubmitted,
     required this.onBackToLogin,
   });
 
   @override
-  State<RiderRegistration> createState() => _RiderRegistrationState();
+  State<LogisticsRegistration> createState() => _LogisticsRegistrationState();
 }
 
-class _RiderRegistrationState extends State<RiderRegistration> {
+class _LogisticsRegistrationState extends State<LogisticsRegistration> {
   // ========================================================
   // STEP
   // ========================================================
@@ -74,30 +74,20 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   bool _barangayError = false;
 
   // ========================================================
-  // VEHICLE + DOCUMENTS
+  // BUSINESS + DOCUMENTS
   // ========================================================
 
-  String _selectedVehicle = '';
-  final _plateNumberController = TextEditingController();
+  final _businessNameController = TextEditingController();
+  bool _businessNameError = false;
 
-  bool _vehicleError = false;
-  bool _plateNumberError = false;
+  String? _idFileName;
+  XFile? _idFile;
 
-  String? _orCrFileName;
-  XFile? _orCrFile;
+  String? _permitFileName;
+  XFile? _permitFile;
 
-  String? _idLicenseFileName;
-  XFile? _idLicenseFile;
-
-  bool _orCrError = false;
-  bool _idLicenseError = false;
-
-  static const List<String> vehicleOptions = [
-    'Motorcycle',
-    'Bicycle',
-    'Tricycle',
-    'Car',
-  ];
+  bool _idError = false;
+  bool _permitError = false;
 
   // ========================================================
   // ACCOUNT
@@ -145,7 +135,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     _emailController.dispose();
     _contactNoController.dispose();
     _houseStreetController.dispose();
-    _plateNumberController.dispose();
+    _businessNameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -277,38 +267,38 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     }
   }
 
-  Future<void> _pickOrCrFile() async {
+  Future<void> _pickIdFile() async {
     try {
       final picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (pickedFile == null) return;
       setState(() {
-        _orCrFile = pickedFile;
-        _orCrFileName = pickedFile.name;
-        _orCrError = false;
+        _idFile = pickedFile;
+        _idFileName = pickedFile.name;
+        _idError = false;
       });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to select OR/CR photo: $e')),
+        SnackBar(content: Text('Unable to select ID photo: $e')),
       );
     }
   }
 
-  Future<void> _pickIdLicenseFile() async {
+  Future<void> _pickPermitFile() async {
     try {
       final picker = ImagePicker();
       final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (pickedFile == null) return;
       setState(() {
-        _idLicenseFile = pickedFile;
-        _idLicenseFileName = pickedFile.name;
-        _idLicenseError = false;
+        _permitFile = pickedFile;
+        _permitFileName = pickedFile.name;
+        _permitError = false;
       });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to select ID/License photo: $e')),
+        SnackBar(content: Text('Unable to select business/DTI permit: $e')),
       );
     }
   }
@@ -368,16 +358,16 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   }
 
   // ============================================================
-  // SUBMIT — actually calls the backend now
+  // SUBMIT
   // ============================================================
 
-  Future<void> _registerRider() async {
+  Future<void> _registerLogistics() async {
     setState(() => _isSubmitting = true);
 
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('${ApiService.baseUrl}/register/rider'),
+        Uri.parse('${ApiService.baseUrl}/register/logistics'),
       );
 
       final firstName = _firstNameController.text.trim();
@@ -399,27 +389,26 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       request.fields['barangay'] = _selectedBarangay;
       request.fields['postal_code'] = '';
       request.fields['password'] = _passwordController.text;
-      request.fields['vehicle_type'] = _selectedVehicle;
-      request.fields['plate_number'] = _plateNumberController.text.trim();
+      request.fields['business_name'] = _businessNameController.text.trim();
 
-      if (_idLicenseFile != null) {
-        final licenseBytes = await _idLicenseFile!.readAsBytes();
+      if (_idFile != null) {
+        final idBytes = await _idFile!.readAsBytes();
         request.files.add(
           http.MultipartFile.fromBytes(
-            'license_photo',
-            licenseBytes,
-            filename: _idLicenseFileName ?? 'license.jpg',
+            'id_photo',
+            idBytes,
+            filename: _idFileName ?? 'id.jpg',
           ),
         );
       }
 
-      if (_orCrFile != null) {
-        final orCrBytes = await _orCrFile!.readAsBytes();
+      if (_permitFile != null) {
+        final permitBytes = await _permitFile!.readAsBytes();
         request.files.add(
           http.MultipartFile.fromBytes(
-            'or_cr_photo',
-            orCrBytes,
-            filename: _orCrFileName ?? 'or_cr.jpg',
+            'permit_photo',
+            permitBytes,
+            filename: _permitFileName ?? 'permit.jpg',
           ),
         );
       }
@@ -436,9 +425,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             _emailError = true;
             _emailErrorMessage = 'This email is already registered. Try logging in instead.';
           });
-          // Step 1 (and the ShakeWidget inside it) only mounts on the next
-          // frame after switching _currentStep back to 1, so defer the
-          // shake until after that rebuild.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _emailShakeKey.currentState?.shake();
           });
@@ -505,10 +491,10 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          'Become a Courier',
+                          'Register Your Logistics Hub',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.w700,
                             color: CartzyColors.navy,
                             letterSpacing: -0.3,
@@ -516,13 +502,13 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'RIDER REGISTRATION',
+                          'LOGISTICS / SORTING CENTER REGISTRATION',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: CartzyColors.coral,
-                            letterSpacing: 1.2,
+                            letterSpacing: 1.0,
                           ),
                         ),
                       ],
@@ -541,7 +527,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
               gray: CartzyColors.border,
               icons: const [
                 Icons.person_outline,
-                Icons.two_wheeler_outlined,
+                Icons.local_shipping_outlined,
                 Icons.lock_outline,
               ],
             ),
@@ -813,7 +799,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   }
 
   // ============================================================
-  // STEP 2 — VEHICLE + DOCUMENTS
+  // STEP 2 — BUSINESS + DOCUMENTS
   // ============================================================
 
   Widget _buildStep2() {
@@ -821,61 +807,45 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Vehicle & Documents',
+          'Business Information',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Tell us what you\'ll be delivering with.',
+          'Tell us about your logistics/sorting center.',
           style: TextStyle(fontSize: 13, color: CartzyColors.gray),
         ),
         const SizedBox(height: 28),
 
-        RegistrationDropdown(
-          label: 'Choose Vehicle *',
-          icon: Icons.two_wheeler_outlined,
-          selectedValue: _selectedVehicle,
-          options: vehicleOptions,
-          isError: _vehicleError,
-          errorMessage: 'Please select a vehicle type',
-          onSelected: (value) {
-            setState(() {
-              _selectedVehicle = value;
-              _vehicleError = false;
-            });
-          },
-        ),
-        const SizedBox(height: 18),
-
         RegistrationTextField(
-          controller: _plateNumberController,
-          label: 'Plate Number *',
-          icon: Icons.confirmation_number_outlined,
-          isError: _plateNumberError,
-          errorMessage: 'Plate number is required',
+          controller: _businessNameController,
+          label: 'Business Name',
+          icon: Icons.storefront_outlined,
+          isError: _businessNameError,
+          errorMessage: 'Business name is required',
           onChanged: (value) {
-            if (_plateNumberError && value.trim().isNotEmpty) {
-              setState(() => _plateNumberError = false);
+            if (_businessNameError && value.trim().isNotEmpty) {
+              setState(() => _businessNameError = false);
             }
           },
         ),
         const SizedBox(height: 30),
 
         _UploadField(
-          label: 'Upload OR/CR *',
-          fileName: _orCrFileName,
-          isError: _orCrError,
-          errorMessage: 'Please upload your OR/CR',
-          onTap: _pickOrCrFile,
+          label: 'Upload ID *',
+          fileName: _idFileName,
+          isError: _idError,
+          errorMessage: 'Please upload a valid ID',
+          onTap: _pickIdFile,
         ),
         const SizedBox(height: 18),
 
         _UploadField(
-          label: 'Upload ID / Driver\'s License *',
-          fileName: _idLicenseFileName,
-          isError: _idLicenseError,
-          errorMessage: 'Please upload your ID or license',
-          onTap: _pickIdLicenseFile,
+          label: 'Upload Business / DTI Permit *',
+          fileName: _permitFileName,
+          isError: _permitError,
+          errorMessage: 'Please upload your business or DTI permit',
+          onTap: _pickPermitFile,
         ),
         const SizedBox(height: 36),
 
@@ -895,15 +865,10 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 color: CartzyColors.navy,
                 onClick: () {
                   setState(() {
-                    _vehicleError = _selectedVehicle.isEmpty;
-                    _plateNumberError = _plateNumberController.text.trim().isEmpty;
-                    _orCrError = _orCrFile == null;
-                    _idLicenseError = _idLicenseFile == null;
+                    _idError = _idFile == null;
+                    _permitError = _permitFile == null;
 
-                    if (!_vehicleError &&
-                        !_plateNumberError &&
-                        !_orCrError &&
-                        !_idLicenseError) {
+                    if (!_idError && !_permitError) {
                       _currentStep = 3;
                     }
                   });
@@ -930,7 +895,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Create your Cartzy Courier login details.',
+          'Create your Cartzy Logistics login details.',
           style: TextStyle(fontSize: 13, color: CartzyColors.gray),
         ),
         const SizedBox(height: 28),
@@ -1011,7 +976,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                         });
 
                         if (!_passwordError && !_confirmPasswordError) {
-                          _registerRider();
+                          _registerLogistics();
                         }
                       },
               ),
@@ -1045,8 +1010,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           ),
           content: const Text(
             "After submitting your registration, please wait for the "
-            "Logistics/Sorting Center's approval, which will be sent to "
-            "your email.",
+            "administrator's approval, which will be sent to your email.",
             style: TextStyle(fontSize: 14, color: CartzyColors.gray),
           ),
           actions: [
@@ -1068,7 +1032,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 }
 
 // ============================================================
-// UPLOAD FIELD (placeholder — real file picking added later)
+// UPLOAD FIELD
 // ============================================================
 
 class _UploadField extends StatelessWidget {
