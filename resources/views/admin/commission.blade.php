@@ -126,15 +126,6 @@
 </div>
 
 @push('scripts')
-<script>
-    function calculateCommission() {
-        const amount = parseFloat(document.getElementById('calcOrderAmount').value) || 0;
-        const commission = amount * 0.10;
-        const sellerNet = amount - commission;
-
-        document.getElementById('calcPlatformCut').innerText = '₱' + commission.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('calcSellerNet').innerText = '₱' + sellerNet.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-</script>
+<script src="{{ asset('js/admin/commission.js') }}"></script>
 @endpush
 @endsection

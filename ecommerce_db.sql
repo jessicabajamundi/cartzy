@@ -1,7 +1,7 @@
 -- ==========================================================
--- Cartzy Live Database Dump / Schema (Milestone 4 Updated)
+-- Cartzy Live Database Dump / Schema
 -- Database: `ecommerce_db`
--- Auto-synced at: 2026-09-21 06:07:35
+-- Auto-synced at: 2026-09-23 02:11:29
 -- ==========================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -10,8 +10,6 @@ SET time_zone = "+00:00";
 
 CREATE DATABASE IF NOT EXISTS `ecommerce_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `ecommerce_db`;
-
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- --------------------------------------------------------
 -- Table structure for table `addresses`
@@ -37,8 +35,9 @@ CREATE TABLE `addresses` (
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `addresses` (2 rows)
-INSERT INTO `addresses` (`id`, `user_id`, `label`, `recipient`, `phone`, `line1`, `barangay`, `city`, `province`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES ('1', '1', 'Default Address', 'jess Pambago', '09773587409', '1011, purok 4', 'Masapang', 'Victoria', 'Laguna', '4011', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `addresses` (`id`, `user_id`, `label`, `recipient`, `phone`, `line1`, `barangay`, `city`, `province`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES ('2', '4', 'Default Address', 'Pajavera, Nhieckaella Ashley R.', '09152608445', 'St. Burol', 'Magdapio', 'Pagsanjan', 'Laguna', '4008', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `addresses` (`id`, `user_id`, `label`, `recipient`, `phone`, `line1`, `barangay`, `city`, `province`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES
+('1', '1', 'Default Address', 'jess Pambago', '09773587409', '1011, purok 4', 'Masapang', 'Victoria', 'Laguna', '4011', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '4', 'Default Address', 'Pajavera, Nhieckaella Ashley R.', '09152608445', 'St. Burol', 'Magdapio', 'Pagsanjan', 'Laguna', '4008', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `cache`
@@ -84,7 +83,8 @@ CREATE TABLE `cart_items` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `cart_items` (1 rows)
-INSERT INTO `cart_items` (`id`, `cart_id`, `product_variant_id`, `quantity`, `selected`, `created_at`, `updated_at`) VALUES ('1', '1', '3', '1', '1', '2026-09-21 06:03:58', '2026-09-21 06:03:58');
+INSERT INTO `cart_items` (`id`, `cart_id`, `product_variant_id`, `quantity`, `selected`, `created_at`, `updated_at`) VALUES
+('1', '1', '3', '1', '1', '2026-09-21 06:03:58', '2026-09-21 06:03:58');
 
 -- --------------------------------------------------------
 -- Table structure for table `carts`
@@ -101,7 +101,8 @@ CREATE TABLE `carts` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `carts` (1 rows)
-INSERT INTO `carts` (`id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '1', '2026-09-21 06:03:58', '2026-09-21 06:03:58');
+INSERT INTO `carts` (`id`, `user_id`, `created_at`, `updated_at`) VALUES
+('1', '1', '2026-09-21 06:03:58', '2026-09-21 06:03:58');
 
 -- --------------------------------------------------------
 -- Table structure for table `categories`
@@ -123,12 +124,13 @@ CREATE TABLE `categories` (
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `categories` (6 rows)
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES ('1', NULL, 'Electronics', 'electronics', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES ('2', '1', 'Headphones & Audio', 'audio-headphones', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES ('3', '1', 'Smart Watches & Wearables', 'smart-wearables', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES ('4', NULL, 'Fashion & Apparel', 'fashion', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES ('5', '4', 'Sneakers & Footwear', 'sneakers-footwear', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES ('6', '4', 'Bags & Accessories', 'bags-accessories', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES
+('1', NULL, 'Electronics', 'electronics', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '1', 'Headphones & Audio', 'audio-headphones', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('3', '1', 'Smart Watches & Wearables', 'smart-wearables', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('4', NULL, 'Fashion & Apparel', 'fashion', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('5', '4', 'Sneakers & Footwear', 'sneakers-footwear', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('6', '4', 'Bags & Accessories', 'bags-accessories', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `delivery_events`
@@ -223,7 +225,8 @@ CREATE TABLE `logistics_providers` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `logistics_providers` (1 rows)
-INSERT INTO `logistics_providers` (`id`, `user_id`, `name`, `slug`, `status`, `rejection_reason`, `contact_phone`, `created_at`, `updated_at`) VALUES ('1', '7', 'Cartzy Express Logistics Hub', 'cartzy-express-logistics', 'approved', NULL, '09173334444', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `logistics_providers` (`id`, `user_id`, `name`, `slug`, `status`, `rejection_reason`, `contact_phone`, `created_at`, `updated_at`) VALUES
+('1', '7', 'Cartzy Express Logistics Hub', 'cartzy-express-logistics', 'approved', NULL, '09173334444', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `migrations`
@@ -237,24 +240,25 @@ CREATE TABLE `migrations` (
 ) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `migrations` (18 rows)
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('1', '0001_01_01_000000_create_users_table', '1');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('2', '0001_01_01_000001_create_cache_table', '1');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('3', '0001_01_01_000002_create_jobs_table', '1');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('4', '2026_08_19_000001_add_role_and_details_to_users_table', '1');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('5', '2026_08_26_000002_add_address_contact_to_users_table', '1');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('6', '2026_09_06_000001_add_detailed_address_to_users_table', '2');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('7', '2026_09_06_000002_add_buyer_fields_to_users_table', '3');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('8', '2026_09_13_000001_add_id_verification_fields_to_users_table', '4');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('9', '2026_09_19_000001_add_google_id_to_users_table', '5');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('10', '2026_09_21_000001_add_is_suspended_to_users_table', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('11', '2026_09_21_000002_create_roles_and_role_user_tables', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('12', '2026_09_21_000003_create_addresses_table', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('13', '2026_09_21_000004_create_sellers_table', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('14', '2026_09_21_000005_create_logistics_and_riders_tables', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('15', '2026_09_21_000006_create_categories_table', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('16', '2026_09_21_000007_create_products_variants_images_tables', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('17', '2026_09_21_000008_create_carts_and_cart_items_tables', '6');
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES ('18', '2026_09_21_000009_create_orders_and_fulfillment_tables', '6');
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+('1', '0001_01_01_000000_create_users_table', '1'),
+('2', '0001_01_01_000001_create_cache_table', '1'),
+('3', '0001_01_01_000002_create_jobs_table', '1'),
+('4', '2026_08_19_000001_add_role_and_details_to_users_table', '1'),
+('5', '2026_08_26_000002_add_address_contact_to_users_table', '1'),
+('6', '2026_09_06_000001_add_detailed_address_to_users_table', '2'),
+('7', '2026_09_06_000002_add_buyer_fields_to_users_table', '3'),
+('8', '2026_09_13_000001_add_id_verification_fields_to_users_table', '4'),
+('9', '2026_09_19_000001_add_google_id_to_users_table', '5'),
+('10', '2026_09_21_000001_add_is_suspended_to_users_table', '6'),
+('11', '2026_09_21_000002_create_roles_and_role_user_tables', '6'),
+('12', '2026_09_21_000003_create_addresses_table', '6'),
+('13', '2026_09_21_000004_create_sellers_table', '6'),
+('14', '2026_09_21_000005_create_logistics_and_riders_tables', '6'),
+('15', '2026_09_21_000006_create_categories_table', '6'),
+('16', '2026_09_21_000007_create_products_variants_images_tables', '6'),
+('17', '2026_09_21_000008_create_carts_and_cart_items_tables', '6'),
+('18', '2026_09_21_000009_create_orders_and_fulfillment_tables', '6');
 
 -- --------------------------------------------------------
 -- Table structure for table `order_items`
@@ -346,8 +350,9 @@ CREATE TABLE `product_images` (
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `product_images` (2 rows)
-INSERT INTO `product_images` (`id`, `product_id`, `path`, `position`, `created_at`, `updated_at`) VALUES ('1', '1', 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `product_images` (`id`, `product_id`, `path`, `position`, `created_at`, `updated_at`) VALUES ('2', '2', 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `product_images` (`id`, `product_id`, `path`, `position`, `created_at`, `updated_at`) VALUES
+('1', '1', 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '2', 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `product_variants`
@@ -373,9 +378,10 @@ CREATE TABLE `product_variants` (
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `product_variants` (3 rows)
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `name`, `options`, `price_minor`, `stock`, `weight_grams`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES ('1', '1', 'ANC-BLK', 'Matte Black', '{\"color\": \"Black\"}', '89000', '50', '250', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `name`, `options`, `price_minor`, `stock`, `weight_grams`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES ('2', '1', 'ANC-WHT', 'Glossy White', '{\"color\": \"White\"}', '89000', '40', '250', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `name`, `options`, `price_minor`, `stock`, `weight_grams`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES ('3', '2', 'FIT-SMT-01', 'Midnight Black / Standard Strap', '{\"size\": \"Standard\", \"color\": \"Black\"}', '129900', '35', '180', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `name`, `options`, `price_minor`, `stock`, `weight_grams`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
+('1', '1', 'ANC-BLK', 'Matte Black', '{\"color\": \"Black\"}', '89000', '50', '250', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '1', 'ANC-WHT', 'Glossy White', '{\"color\": \"White\"}', '89000', '40', '250', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('3', '2', 'FIT-SMT-01', 'Midnight Black / Standard Strap', '{\"size\": \"Standard\", \"color\": \"Black\"}', '129900', '35', '180', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `products`
@@ -401,8 +407,9 @@ CREATE TABLE `products` (
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `products` (2 rows)
-INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `slug`, `description`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES ('1', '1', '2', 'ANC Pro Wireless Noise Cancelling Earphones', 'anc-pro-wireless-noise-cancelling-earphones', 'High-fidelity audio with active noise cancellation, 32-hour battery life, and ultra-low latency gaming mode.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
-INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `slug`, `description`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES ('2', '1', '3', 'Smart Fitness Tracker Watch with Blood Oxygen & Heart Rate', 'smart-fitness-tracker-watch-blood-oxygen', 'Track your vitals 24/7 with AMOLED display, IP68 water resistance, and 14-day standby time.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `slug`, `description`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
+('1', '1', '2', 'ANC Pro Wireless Noise Cancelling Earphones', 'anc-pro-wireless-noise-cancelling-earphones', 'High-fidelity audio with active noise cancellation, 32-hour battery life, and ultra-low latency gaming mode.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '1', '3', 'Smart Fitness Tracker Watch with Blood Oxygen & Heart Rate', 'smart-fitness-tracker-watch-blood-oxygen', 'Track your vitals 24/7 with AMOLED display, IP68 water resistance, and 14-day standby time.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `riders`
@@ -425,7 +432,8 @@ CREATE TABLE `riders` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `riders` (1 rows)
-INSERT INTO `riders` (`id`, `user_id`, `logistics_provider_id`, `vehicle_type`, `plate_no`, `is_active`, `created_at`, `updated_at`) VALUES ('1', '7', '1', 'Motorcycle', 'ND-4921', '1', '2026-09-21 06:03:58', '2026-09-21 06:03:58');
+INSERT INTO `riders` (`id`, `user_id`, `logistics_provider_id`, `vehicle_type`, `plate_no`, `is_active`, `created_at`, `updated_at`) VALUES
+('1', '7', '1', 'Motorcycle', 'ND-4921', '1', '2026-09-21 06:03:58', '2026-09-21 06:03:58');
 
 -- --------------------------------------------------------
 -- Table structure for table `role_user`
@@ -443,16 +451,17 @@ CREATE TABLE `role_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `role_user` (10 rows)
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '1', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '2', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '3', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '4', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '8', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('1', '9', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('2', '6', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('3', '7', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('4', '7', NULL, NULL);
-INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES ('5', '5', NULL, NULL);
+INSERT INTO `role_user` (`role_id`, `user_id`, `created_at`, `updated_at`) VALUES
+('1', '1', NULL, NULL),
+('1', '2', NULL, NULL),
+('1', '3', NULL, NULL),
+('1', '4', NULL, NULL),
+('1', '8', NULL, NULL),
+('1', '9', NULL, NULL),
+('2', '6', NULL, NULL),
+('3', '7', NULL, NULL),
+('4', '7', NULL, NULL),
+('5', '5', NULL, NULL);
 
 -- --------------------------------------------------------
 -- Table structure for table `roles`
@@ -468,11 +477,12 @@ CREATE TABLE `roles` (
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `roles` (5 rows)
-INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES ('1', 'buyer', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
-INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES ('2', 'seller', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
-INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES ('3', 'logistics', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
-INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES ('4', 'rider', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
-INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES ('5', 'admin', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
+INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES
+('1', 'buyer', '2026-09-21 06:03:56', '2026-09-21 06:03:56'),
+('2', 'seller', '2026-09-21 06:03:56', '2026-09-21 06:03:56'),
+('3', 'logistics', '2026-09-21 06:03:56', '2026-09-21 06:03:56'),
+('4', 'rider', '2026-09-21 06:03:56', '2026-09-21 06:03:56'),
+('5', 'admin', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
 
 -- --------------------------------------------------------
 -- Table structure for table `seller_orders`
@@ -527,7 +537,8 @@ CREATE TABLE `sellers` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table `sellers` (1 rows)
-INSERT INTO `sellers` (`id`, `user_id`, `name`, `slug`, `description`, `logo_path`, `banner_path`, `status`, `rejection_reason`, `commission_bps`, `pickup_address_id`, `created_at`, `updated_at`) VALUES ('1', '6', 'TechZone Official Mall', 'techzone-official-mall', 'Your premier destination for authentic wireless earbuds, smartwatches, and premium accessories.', 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=200&h=200&fit=crop&q=80', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=400&fit=crop&q=80', 'approved', NULL, '800', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+INSERT INTO `sellers` (`id`, `user_id`, `name`, `slug`, `description`, `logo_path`, `banner_path`, `status`, `rejection_reason`, `commission_bps`, `pickup_address_id`, `created_at`, `updated_at`) VALUES
+('1', '6', 'TechZone Official Mall', 'techzone-official-mall', 'Your premier destination for authentic wireless earbuds, smartwatches, and premium accessories.', 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=200&h=200&fit=crop&q=80', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=400&fit=crop&q=80', 'approved', NULL, '800', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
 
 -- --------------------------------------------------------
 -- Table structure for table `sessions`
@@ -611,18 +622,19 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
   UNIQUE KEY `users_google_id_unique` (`google_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `users` (9 rows)
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('1', 'jess Pambago', NULL, 'Female', '2005-12-05', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessicapambago27@gmail.com', '102943877745797449792', '09773587409', '1011, purok 4', '1011, purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011', 'IV-A', 'Laguna', 'Victoria', 'Masapang', '4011', '2026-09-19 09:39:48', '$2y$12$3nOKEW1najIzdZqV2g.KSOp2TnIrXnnwN.m.cXjZeU9htWcSh28tW', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocKRnO3z--zfu4NoW4iXG9RuYJ4W7Hc5Ty8Q9LfGYo8PptOyDiQ=s96-c', 'active', '0', 'EBhCnTFC1c6rFmBcjPEdJP9hzH0hmrKRy3HsbFs8b2Lqn7zWxgLbJMmv9Vw1', '2026-09-06 10:07:45', '2026-09-19 09:39:48');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('2', 'Jessie Bajamundi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bajamundijessie2@gmail.com', '105267381396672766135', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T1E7WJ09XHkR69TZhisBfuxO87Qu4x8gfTpp3e1iHINstiNoyAz/y', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJpogT-VfJhnw40Xyj5tD46nnZ8k-cTondgVTm5pl7QXgtv-FE=s96-c', 'active', '0', 'UyY0OQ7Jb0ucp8Xl5kNmhb9va56wxMFudR9dXmLRwJhMmNPFvswsit0vUbWy', '2026-09-19 09:38:11', '2026-09-19 09:38:11');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('3', 'Leonardo, Tiffany Joy O.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'tiffany.leonardolspu@gmail.com', '102856395965406016321', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2rPlMMwYfnaULGFzuFg7FOJSONDLg43g3jm/W13JnB9onE.Bl3qb2', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJIBmZGdR_My3EM3rpyD5hHikz_j0zobdBv9aAD8Ts4A9fNJQzz=s96-c', 'active', '0', 'phoKm8Bx9yeXpLw8bmOdmOmGZFS6NH8VXoDHbBFMotWrp6uoVeNORb46J1Ax', '2026-09-19 10:08:30', '2026-09-19 10:08:30');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('4', 'Pajavera, Nhieckaella Ashley R.', NULL, NULL, '2005-11-14', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'nhieckaella05@gmail.com', '109760982595777107804', '09152608445', 'St. Burol', 'St. Burol, Brgy. Magdapio, Pagsanjan, Laguna, IV-A, 4008', 'IV-A', 'Laguna', 'Pagsanjan', 'Magdapio', '4008', NULL, '$2y$12$1rq7GlIrNoH9D8/5.maRFeJpY7YL7dtXCSG7IW0ETH.ZnmrTJuPoK', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLp_Yq1EHEIBYc28poVjnMKVg-6M7ZvC0FVN-PMoSsQMcZQcJpw=s96-c', 'active', '0', '3nj4tC6v9kUD0XpA9JVCiMozO0Sq1W1gp7pdvfTfXHXGTR1Zb0ePtx1dipzO', '2026-09-19 10:08:50', '2026-09-19 13:21:10');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('5', 'admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'administrationa570@gmail.com', NULL, '09170000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$K.ZOCaZwXJ/eeTCXb4Qj.u.enxvmlXYylGlLZ2D4NRBNmK2QguLOy', 'admin', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('6', 'Official Tech Store', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'seller@shopee.ph', NULL, '09171112222', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$MVeFMiwQGc70AodeiKOJreP/U/KKFmuMHjLdvTMvHrHZDS8BEbBwW', 'seller', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('7', 'SPX Rider - Juan', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'courier@shopee.ph', NULL, '09173334444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T2HrurgfgDtHGEQdJ37fV.kZS64ItiJx7PVRZVMy.InsNuCbPv4Oi', 'courier', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('8', 'Maria Dela Cruz', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'buyer@shopee.ph', NULL, '09175556666', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$6TEzJ1W3R1rvfGcDjJT0EujRLAaHR.qJs3En7aRtwnI2PTHkUlSDC', 'buyer', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46');
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES ('9', 'Del Mundo, Jan Reyben, D.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'reybendelmundo2005@gmail.com', '100001932505618334922', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$nIUFGFX5nFSwpK89mDQOlu7MNR.bgexpjXwiQW8m7Du7KcPoLIPFC', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLqMeWtsRY85r-QPVe8hW6nuusyr01ufXW6Au2Kj21L0MeXLdTc=s96-c', 'active', '0', 'lUE7PfMWYcaphZThZNE9J6nKB30rzR35fP9EdpcwoK2dk6NmyN5KIR1OnXHB', '2026-09-19 10:22:32', '2026-09-19 10:22:32');
+-- Dumping data for table `users` (10 rows)
+INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES
+('1', 'jess Pambago', NULL, 'Female', '2005-12-05', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessicapambago27@gmail.com', '102943877745797449792', '09773587409', '1011, purok 4', '1011, purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011', 'IV-A', 'Laguna', 'Victoria', 'Masapang', '4011', '2026-09-19 09:39:48', '$2y$12$3nOKEW1najIzdZqV2g.KSOp2TnIrXnnwN.m.cXjZeU9htWcSh28tW', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocKRnO3z--zfu4NoW4iXG9RuYJ4W7Hc5Ty8Q9LfGYo8PptOyDiQ=s96-c', 'active', '0', 'cIefcZoTZwKBRVMUInfSpn5nGIlXEmIc7rL5lcF9TS9RGkFeUmDLIr9KbIf7', '2026-09-06 10:07:45', '2026-09-19 09:39:48'),
+('2', 'Jessie Bajamundi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bajamundijessie2@gmail.com', '105267381396672766135', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T1E7WJ09XHkR69TZhisBfuxO87Qu4x8gfTpp3e1iHINstiNoyAz/y', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJpogT-VfJhnw40Xyj5tD46nnZ8k-cTondgVTm5pl7QXgtv-FE=s96-c', 'active', '0', 'UyY0OQ7Jb0ucp8Xl5kNmhb9va56wxMFudR9dXmLRwJhMmNPFvswsit0vUbWy', '2026-09-19 09:38:11', '2026-09-19 09:38:11'),
+('3', 'Leonardo, Tiffany Joy O.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'tiffany.leonardolspu@gmail.com', '102856395965406016321', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2rPlMMwYfnaULGFzuFg7FOJSONDLg43g3jm/W13JnB9onE.Bl3qb2', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJIBmZGdR_My3EM3rpyD5hHikz_j0zobdBv9aAD8Ts4A9fNJQzz=s96-c', 'active', '0', 'phoKm8Bx9yeXpLw8bmOdmOmGZFS6NH8VXoDHbBFMotWrp6uoVeNORb46J1Ax', '2026-09-19 10:08:30', '2026-09-19 10:08:30'),
+('4', 'Pajavera, Nhieckaella Ashley R.', NULL, NULL, '2005-11-14', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'nhieckaella05@gmail.com', '109760982595777107804', '09152608445', 'St. Burol', 'St. Burol, Brgy. Magdapio, Pagsanjan, Laguna, IV-A, 4008', 'IV-A', 'Laguna', 'Pagsanjan', 'Magdapio', '4008', NULL, '$2y$12$1rq7GlIrNoH9D8/5.maRFeJpY7YL7dtXCSG7IW0ETH.ZnmrTJuPoK', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLp_Yq1EHEIBYc28poVjnMKVg-6M7ZvC0FVN-PMoSsQMcZQcJpw=s96-c', 'active', '0', '3nj4tC6v9kUD0XpA9JVCiMozO0Sq1W1gp7pdvfTfXHXGTR1Zb0ePtx1dipzO', '2026-09-19 10:08:50', '2026-09-19 13:21:10'),
+('5', 'admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'administrationa570@gmail.com', NULL, '09170000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$K.ZOCaZwXJ/eeTCXb4Qj.u.enxvmlXYylGlLZ2D4NRBNmK2QguLOy', 'admin', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45'),
+('6', 'Official Tech Store', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'seller@shopee.ph', NULL, '09171112222', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$MVeFMiwQGc70AodeiKOJreP/U/KKFmuMHjLdvTMvHrHZDS8BEbBwW', 'seller', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45'),
+('7', 'SPX Rider - Juan', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'courier@shopee.ph', NULL, '09173334444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T2HrurgfgDtHGEQdJ37fV.kZS64ItiJx7PVRZVMy.InsNuCbPv4Oi', 'courier', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
+('8', 'Maria Dela Cruz', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'buyer@shopee.ph', NULL, '09175556666', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$6TEzJ1W3R1rvfGcDjJT0EujRLAaHR.qJs3En7aRtwnI2PTHkUlSDC', 'buyer', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
+('9', 'Del Mundo, Jan Reyben, D.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'reybendelmundo2005@gmail.com', '100001932505618334922', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$nIUFGFX5nFSwpK89mDQOlu7MNR.bgexpjXwiQW8m7Du7KcPoLIPFC', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLqMeWtsRY85r-QPVe8hW6nuusyr01ufXW6Au2Kj21L0MeXLdTc=s96-c', 'active', '0', 'lUE7PfMWYcaphZThZNE9J6nKB30rzR35fP9EdpcwoK2dk6NmyN5KIR1OnXHB', '2026-09-19 10:22:32', '2026-09-19 10:22:32'),
+('10', 'Pambago, Jessica B.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessica.p.bajamundi@gmail.com', '105023496569977781629', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$FKxTiUCZPSseqM/aXmkcO.2CQNKw.WuJl3Tg5ZIVH12mIsvADwQLu', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLySMhHn9faFZJycPSeuiPaf_czFDlfAJT3lJi9SexiP_SZ8Cml=s96-c', 'active', '0', NULL, '2026-09-23 02:11:29', '2026-09-23 02:11:29');
 
-SET FOREIGN_KEY_CHECKS = 1;
 COMMIT;

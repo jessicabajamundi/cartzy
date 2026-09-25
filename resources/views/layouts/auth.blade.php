@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>@yield('title', 'cartzy')</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}?v={{ filemtime(public_path('images/favicon.png')) }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,6 +59,43 @@
         }
         .auth-logo:hover .auth-logo-img {
             transform: scale(1.04);
+        }
+
+        .auth-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
+        .btn-back-shop {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: #6F6382;
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 9999px;
+            background: #FAF8FC;
+            border: 1px solid #ECE7F2;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+        .btn-back-shop:hover {
+            color: #564B68;
+            background: #F1EFF5;
+            border-color: #D6CFE2;
+            transform: translateX(-3px);
+            box-shadow: 0 2px 8px rgba(111, 99, 130, 0.12);
+        }
+        .btn-back-shop svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s ease;
+        }
+        .btn-back-shop:hover svg {
+            transform: translateX(-2px);
         }
 
         .auth-title    { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.35rem; font-weight: 700; color: #111; margin-bottom: 8px; text-align: center; letter-spacing: -0.5px; }
@@ -280,12 +317,13 @@
         .auth-foot a:hover { color: #564B68; text-decoration: underline; }
 
         .alert {
-            border-radius: 8px; padding: 12px 16px;
-            font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5;
+            border-radius: 10px; padding: 13px 18px;
+            font-size: 0.88rem; margin-bottom: 22px; line-height: 1.5;
+            display: flex; align-items: center; gap: 10px;
         }
-        .alert-success { background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
-        .alert-info    { background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; }
-        .alert-error   { background:#fff1f2; border:1px solid #fecdd3; color:#be123c; }
+        .alert-success { background: #F0FDF4; border: 1px solid #BBF7D0; border-left: 4px solid #16A34A; color: #166534; font-weight: 600; }
+        .alert-info    { background: #FAF8FC; border: 1px solid #E1DDE7; border-left: 4px solid #6F6382; color: #564B68; font-weight: 600; box-shadow: 0 2px 8px rgba(111, 99, 130, 0.06); }
+        .alert-error   { background: #FFF1F2; border: 1px solid #FECDD3; border-left: 4px solid #BE123C; color: #BE123C; font-weight: 600; display: block; }
 
         .page-footer {
             margin-top: 32px;
@@ -357,8 +395,18 @@
 
     <div class="auth-card">
 
+        <div class="auth-top-bar">
+            <a href="{{ route('home') }}" class="btn-back-shop" title="Back to the shop">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                <span>Back to the shop</span>
+            </a>
+        </div>
+
         <a href="/" class="auth-logo" title="cartzy">
-            <img src="{{ asset('images/logo-transparent.png') }}" alt="cartzy" class="auth-logo-img">
+            <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="auth-logo-img">
         </a>
 
         @yield('auth_form')
@@ -372,5 +420,6 @@
         <div>© 2026 cartzy. All rights reserved.</div>
     </footer>
 
+    @stack('scripts')
 </body>
 </html>

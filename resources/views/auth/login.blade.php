@@ -8,11 +8,24 @@
     <p class="auth-subtitle">Login to your account and continue shopping</p>
 
     @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
+        <div class="alert alert-success">
+            <svg style="width: 18px; height: 18px; flex-shrink: 0; color: #16A34A;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            <span>{{ session('success') }}</span>
+        </div>
     @endif
 
     @if(session('info'))
-        <div class="alert alert-info">{{ session('info') }}</div>
+        <div class="alert alert-info">
+            <svg style="width: 18px; height: 18px; flex-shrink: 0; color: #6F6382;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>{{ session('info') }}</span>
+        </div>
     @endif
 
     @if ($errors->any())
@@ -98,18 +111,8 @@
         <a href="{{ route('register') }}">Sign up</a>
     </div>
 
-<script>
-    function togglePassword(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon  = document.getElementById(iconId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
-        } else {
-            input.type = 'password';
-            icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-        }
-    }
-</script>
+@push('scripts')
+<script src="{{ asset('js/auth/login.js') }}"></script>
+@endpush
 
 @endsection

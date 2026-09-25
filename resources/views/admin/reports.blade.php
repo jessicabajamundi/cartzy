@@ -122,24 +122,13 @@
         </div>
     </div>
 
+    <div id="reportsExportData" 
+         data-report-type="{{ $reportType }}" 
+         data-categories='@json($salesData['top_categories'] ?? [])' 
+         class="hidden"></div>
 </div>
 
 @push('scripts')
-<script>
-    function exportCSV() {
-        let csv = "Category,Gross Sales,10% Platform Commission,Merchant Payout\n";
-        @foreach($salesData['top_categories'] as $c)
-            csv += "{{ $c['category'] }},{{ $c['sales'] }},{{ $c['commission'] }},{{ $c['sales'] * 0.9 }}\n";
-        @endforeach
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.setAttribute("download", "MarketStore_Reports_{{ $reportType }}.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-</script>
+<script src="{{ asset('js/admin/reports.js') }}"></script>
 @endpush
 @endsection

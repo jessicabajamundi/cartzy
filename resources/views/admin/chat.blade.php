@@ -148,11 +148,6 @@
 </div>
 
 @push('scripts')
-<script>
-    function setQuickMessage(text) {
-        document.getElementById('chatMessageInput').value = text;
-        document.getElementById('chatMessageInput').focus();
-    }
-</script>
+<script src="{{ asset('js/admin/chat.js') }}"></script>
 @endpush
 @endsection

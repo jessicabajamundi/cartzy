@@ -107,7 +107,12 @@
                             @if(!empty($reg['address']) && $reg['address'] !== 'N/A')
                                 <div class="sm:col-span-2 lg:col-span-3"><strong class="text-slate-900">Residential Address:</strong> {{ $reg['address'] }}</div>
                             @endif
-                            @if(isset($reg['category']))
+                            @if(!empty($reg['business_name']) && $reg['role'] === 'seller')
+                                <div><strong class="text-slate-900">Business Name:</strong> <span class="text-purple-700 font-bold">{{ $reg['business_name'] }}</span></div>
+                            @endif
+                            @if(!empty($reg['line_of_business']) && $reg['role'] === 'seller')
+                                <div><strong class="text-slate-900">Line of Business:</strong> <span class="text-indigo-600 font-bold">{{ $reg['line_of_business'] }}</span></div>
+                            @elseif(isset($reg['category']))
                                 <div><strong class="text-slate-900">Registered Category:</strong> <span class="text-indigo-600 font-bold">{{ $reg['category'] }}</span></div>
                             @endif
                             @if(isset($reg['vehicle']))
@@ -236,40 +241,6 @@
 </div>
 
 @push('scripts')
-<script>
-    function openRejectModal(id, name, email) {
-        document.getElementById('rejectApplicantName').innerText = name;
-        document.getElementById('rejectApplicantEmail').innerText = email;
-        document.getElementById('rejectForm').action = "/admin/registrations/" + id + "/status";
-        document.getElementById('rejectModal').classList.remove('hidden');
-    }
-    function closeRejectModal() {
-        document.getElementById('rejectModal').classList.add('hidden');
-    }
-
-    function openDocPreview(docName, ownerName, photoUrl) {
-        document.getElementById('previewDocName').innerText = docName;
-        document.getElementById('previewDocOwner').innerText = 'Applicant: ' + ownerName;
-        
-        const imgContainer = document.getElementById('previewDocImageContainer');
-        const img = document.getElementById('previewDocImage');
-        const placeholder = document.getElementById('previewDocPlaceholder');
-        
-        if (photoUrl && (photoUrl.endsWith('.jpg') || photoUrl.endsWith('.jpeg') || photoUrl.endsWith('.png'))) {
-            img.src = photoUrl;
-            imgContainer.classList.remove('hidden');
-            placeholder.classList.add('hidden');
-        } else {
-            img.src = '';
-            imgContainer.classList.add('hidden');
-            placeholder.classList.remove('hidden');
-        }
-
-        document.getElementById('docPreviewModal').classList.remove('hidden');
-    }
-    function closeDocPreview() {
-        document.getElementById('docPreviewModal').classList.add('hidden');
-    }
-</script>
+<script src="{{ asset('js/admin/registrations.js') }}"></script>
 @endpush
 @endsection

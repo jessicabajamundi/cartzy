@@ -55,7 +55,7 @@
             <!-- Column 1: Cartzy Logo -->
             <div class="col-span-2 md:col-span-1">
                 <a href="/" class="flex items-center gap-2 mb-6">
-                    <img src="{{ asset('images/logo-transparent.png') }}" alt="cartzy" class="h-16 w-auto object-contain">
+                    <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-16 w-auto object-contain">
                 </a>
                 <p class="text-gray-500 text-xs leading-relaxed">
                     Shop the best electronics, fashion, and home essentials. Your trusted online marketplace in the Philippines.

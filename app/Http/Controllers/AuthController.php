@@ -276,6 +276,8 @@ class AuthController extends Controller
             'city'                 => ['nullable', 'string', 'max:100'],
             'barangay'             => ['nullable', 'string', 'max:100'],
             'postal_code'          => ['nullable', 'string', 'max:20'],
+            'business_name'        => ['nullable', 'string', 'max:255'],
+            'line_of_business'     => ['nullable', 'string', 'max:150'],
             'id_photo'             => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'role'                 => ['required', 'string', Rule::in([User::ROLE_BUYER, User::ROLE_SELLER, User::ROLE_COURIER])],
             'password'             => ['required', 'string', 'confirmed', Password::min(6)],
@@ -349,24 +351,26 @@ class AuthController extends Controller
             $status = ($validated['role'] === User::ROLE_BUYER) ? 'active' : 'pending';
 
             $user = User::create([
-                'name'           => $validated['name'],
-                'middle_initial' => $validated['middle_initial'] ?? null,
-                'email'          => $validated['email'],
-                'sex'            => $validated['sex'] ?? null,
-                'birthday'       => $validated['birthday'] ?? null,
-                'age'            => $age,
-                'phone'          => $validated['phone'] ?? null,
-                'address'        => $fullAddress ?: $street,
-                'street_address' => $street,
-                'region'         => $region,
-                'province'       => $province,
-                'city'           => $city,
-                'barangay'       => $barangay,
-                'postal_code'    => $postalCode,
-                'id_photo'       => $idPhotoPath,
-                'role'           => $validated['role'],
-                'status'         => $status,
-                'password'       => Hash::make($validated['password']),
+                'name'             => $validated['name'],
+                'middle_initial'   => $validated['middle_initial'] ?? null,
+                'email'            => $validated['email'],
+                'sex'              => $validated['sex'] ?? null,
+                'birthday'         => $validated['birthday'] ?? null,
+                'age'              => $age,
+                'phone'            => $validated['phone'] ?? null,
+                'address'          => $fullAddress ?: $street,
+                'street_address'   => $street,
+                'region'           => $region,
+                'province'         => $province,
+                'city'             => $city,
+                'barangay'         => $barangay,
+                'postal_code'      => $postalCode,
+                'business_name'    => $validated['role'] === User::ROLE_SELLER ? ($validated['business_name'] ?? null) : null,
+                'line_of_business' => $validated['role'] === User::ROLE_SELLER ? ($validated['line_of_business'] ?? null) : null,
+                'id_photo'         => $idPhotoPath,
+                'role'             => $validated['role'],
+                'status'           => $status,
+                'password'         => Hash::make($validated['password']),
             ]);
 
             // Clear verified OTP
@@ -454,12 +458,23 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        $role = $user ? $user->role : null;
+
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login')->with('info', 'You have been logged out from Admin Portal.');
+        $message = match ($role) {
+            User::ROLE_ADMIN => 'You have been logged out from Admin Portal.',
+            User::ROLE_SELLER => 'You have been logged out from Seller Centre.',
+            User::ROLE_COURIER => 'You have been logged out from Rider Hub.',
+            User::ROLE_BUYER => 'You have been logged out from your Buyer account.',
+            default => 'You have been successfully logged out.',
+        };
+
+        return redirect('/login')->with('info', $message);
     }
 
     /**
@@ -476,7 +491,7 @@ class AuthController extends Controller
             ]);
         }
 
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->stateless()->redirect();
     }
 
     /**
@@ -491,11 +506,17 @@ class AuthController extends Controller
         }
 
         try {
-            $googleUser = Socialite::driver('google')->user();
+            // Use stateless to bypass InvalidStateException caused by cross-domain redirects or session loss
+            try {
+                $googleUser = Socialite::driver('google')->stateless()->user();
+            } catch (\Throwable $statelessException) {
+                $googleUser = Socialite::driver('google')->user();
+            }
         } catch (\Exception $e) {
-            Log::error('Google OAuth error: ' . $e->getMessage());
+            $errorMsg = $e->getMessage() ?: 'Session state expired or authentication was interrupted. Please try again.';
+            Log::error('Google OAuth error: ' . $errorMsg);
             return redirect()->route('login')->withErrors([
-                'email' => 'Unable to authenticate with Google: ' . $e->getMessage(),
+                'email' => 'Unable to authenticate with Google: ' . $errorMsg,
             ]);
         }
 

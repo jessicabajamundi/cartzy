@@ -42,6 +42,8 @@ class User extends Authenticatable
         'city',
         'barangay',
         'postal_code',
+        'business_name',
+        'line_of_business',
         'id_photo',
         'id_type',
         'id_number',

@@ -33,7 +33,7 @@
         <ul style="font-size:0.85rem;color:#6F6382;padding-left:18px;line-height:1.8;margin:0;">
             <li>Our team will review your submitted details and ID.</li>
             <li>You will receive an email once your account is approved.</li>
-            <li>Once approved, you can log in and start shopping on Cartzy.</li>
+            <li>Once approved, you can log in to start managing your store and selling products on Cartzy.</li>
         </ul>
     </div>
 

@@ -43,17 +43,63 @@
         </div>
     @endif
 
-    <form action="{{ route('register.submit') }}" method="POST" id="registerForm" enctype="multipart/form-data">
+    <form action="{{ route('register.submit') }}" method="POST" id="registerForm" enctype="multipart/form-data"
+          data-initial-role="{{ old('role', $selectedRole ?? 'buyer') }}"
+          data-request-otp-url="{{ route('register.request_otp') }}"
+          data-verify-otp-url="{{ route('register.verify_otp') }}">
         @csrf
 
         <!-- STEP 1: Personal Info -->
         <div id="step-1">
-            <div class="field-block">
-                <label class="field-heading" for="first_name">Personal information</label>
-                <p class="field-subheading">Enter your basic details</p>
+            <!-- Role Selection: Buyer vs Seller -->
+            <div class="role-selection-wrapper">
+                <label class="field-label" style="margin-bottom: 8px;">I want to register as <span style="color:#ef4444">*</span></label>
+                <div class="role-grid">
+                    <label class="role-option {{ old('role', $selectedRole ?? 'buyer') === 'buyer' ? 'selected' : '' }}" id="roleOptionBuyer" onclick="selectRole('buyer')">
+                        <input type="radio" name="role" id="role_buyer" value="buyer" {{ old('role', $selectedRole ?? 'buyer') === 'buyer' ? 'checked' : '' }} style="display:none;">
+                        <div class="role-option-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 01-8 0"></path>
+                            </svg>
+                        </div>
+                        <div class="role-option-details">
+                            <div class="role-option-title">Buyer</div>
+                            <div class="role-option-desc">Shop &amp; discover items</div>
+                        </div>
+                        <div class="role-option-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </label>
+
+                    <label class="role-option {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'selected' : '' }}" id="roleOptionSeller" onclick="selectRole('seller')">
+                        <input type="radio" name="role" id="role_seller" value="seller" {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'checked' : '' }} style="display:none;">
+                        <div class="role-option-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                            </svg>
+                        </div>
+                        <div class="role-option-details">
+                            <div class="role-option-title">Seller</div>
+                            <div class="role-option-desc">Sell &amp; manage store</div>
+                        </div>
+                        <div class="role-option-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                    </label>
+                </div>
             </div>
 
-            <input type="hidden" name="role" value="buyer">
+            <div class="field-block" style="margin-top: 22px; margin-bottom: 18px; padding-top: 18px; border-top: 1.5px solid #f3f4f6;">
+                <label class="field-heading" for="first_name">Personal information</label>
+                <p class="field-subheading" style="margin-bottom: 0;">Enter your basic details</p>
+            </div>
 
             <div class="form-grid-2 mb-4">
                 <div>
@@ -369,6 +415,105 @@
                         onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                     >
                 </div>
+            </div>
+
+            {{-- Seller Verification / KYC Section (Shown when registering as Seller) --}}
+            <div id="sellerKycSection" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'block' : 'none' }}; margin-bottom: 24px; padding: 18px; background: #F8F6FA; border: 1.5px dashed #A8A0B2; border-radius: 12px;">
+
+                {{-- Section Header --}}
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:#6F6382; color:#ffffff; font-weight:700; font-size:0.85rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
+                            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                        </svg>
+                    </span>
+                    <div>
+                        <label class="field-label" style="margin-bottom:0; font-size:0.92rem; color:#111;">Seller Business Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Required for Merchant Account)</span></label>
+                        <p style="font-size:0.78rem; color:#6b7280; margin:0;">Provide your business details and upload a valid government ID for KYC verification</p>
+                    </div>
+                </div>
+
+                {{-- Business Name --}}
+                <div class="mb-4">
+                    <label class="field-label" for="business_name">Business Name <span style="color:#ef4444">*</span></label>
+                    <div class="input-group">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+                                <line x1="12" y1="12" x2="12" y2="16"/>
+                                <line x1="10" y1="14" x2="14" y2="14"/>
+                            </svg>
+                        </span>
+                        <input
+                            type="text"
+                            name="business_name"
+                            id="business_name"
+                            value="{{ old('business_name') }}"
+                            placeholder="e.g. Maria's Electronics Store"
+                            class="auth-input"
+                            maxlength="255"
+                        >
+                    </div>
+                </div>
+
+                {{-- Line of Business (Category) --}}
+                <div class="mb-4">
+                    <label class="field-label" for="line_of_business">Line of Business <span style="color:#ef4444">*</span> <span style="font-size:0.77rem; color:#9ca3af; font-weight:500;">(Category)</span></label>
+                    <div class="input-group">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 6h16M4 10h16M4 14h10"/>
+                            </svg>
+                        </span>
+                        <select name="line_of_business" id="line_of_business" class="auth-input select-input">
+                            <option value="">Select your line of business</option>
+                            <option value="Electronics & Gadgets" {{ old('line_of_business') == 'Electronics & Gadgets' ? 'selected' : '' }}>Electronics & Gadgets</option>
+                            <option value="Fashion & Apparel" {{ old('line_of_business') == 'Fashion & Apparel' ? 'selected' : '' }}>Fashion & Apparel</option>
+                            <option value="Health & Beauty" {{ old('line_of_business') == 'Health & Beauty' ? 'selected' : '' }}>Health & Beauty</option>
+                            <option value="Home & Living" {{ old('line_of_business') == 'Home & Living' ? 'selected' : '' }}>Home & Living</option>
+                            <option value="Sports & Outdoors" {{ old('line_of_business') == 'Sports & Outdoors' ? 'selected' : '' }}>Sports & Outdoors</option>
+                            <option value="Food & Beverages" {{ old('line_of_business') == 'Food & Beverages' ? 'selected' : '' }}>Food & Beverages</option>
+                            <option value="Toys & Games" {{ old('line_of_business') == 'Toys & Games' ? 'selected' : '' }}>Toys & Games</option>
+                            <option value="Books & Stationery" {{ old('line_of_business') == 'Books & Stationery' ? 'selected' : '' }}>Books & Stationery</option>
+                            <option value="Automotive Parts & Accessories" {{ old('line_of_business') == 'Automotive Parts & Accessories' ? 'selected' : '' }}>Automotive Parts & Accessories</option>
+                            <option value="Pet Supplies" {{ old('line_of_business') == 'Pet Supplies' ? 'selected' : '' }}>Pet Supplies</option>
+                            <option value="Baby & Kids" {{ old('line_of_business') == 'Baby & Kids' ? 'selected' : '' }}>Baby & Kids</option>
+                            <option value="Arts & Crafts" {{ old('line_of_business') == 'Arts & Crafts' ? 'selected' : '' }}>Arts & Crafts</option>
+                            <option value="Agricultural Products" {{ old('line_of_business') == 'Agricultural Products' ? 'selected' : '' }}>Agricultural Products</option>
+                            <option value="Other / General Merchandise" {{ old('line_of_business') == 'Other / General Merchandise' ? 'selected' : '' }}>Other / General Merchandise</option>
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Government ID Upload --}}
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:16px; padding-top:14px; border-top:1px solid #E5E0EE;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:#6F6382; color:#ffffff; font-weight:700; font-size:0.85rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                            <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                            <circle cx="9" cy="10" r="2"></circle>
+                            <line x1="15" y1="8" x2="17" y2="8"></line>
+                            <line x1="15" y1="12" x2="17" y2="12"></line>
+                            <line x1="7" y1="16" x2="17" y2="16"></line>
+                        </svg>
+                    </span>
+                    <div>
+                        <label class="field-label" style="margin-bottom:0; font-size:0.92rem; color:#111;">Valid Government ID <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(KYC Verification)</span></label>
+                        <p style="font-size:0.78rem; color:#6b7280; margin:0;">Upload ID for merchant account verification &amp; KYC compliance</p>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom:6px;">
+                    <input
+                        type="file"
+                        name="id_photo"
+                        id="id_photo"
+                        accept="image/png,image/jpeg,image/jpg,application/pdf"
+                        class="auth-input"
+                        style="padding-top:10px !important; padding-bottom:10px !important; height:auto;"
+                    >
+                </div>
+                <p style="font-size:0.75rem; color:#6b7280; margin:0;">Accepted formats: JPG, PNG, or PDF (Max 5MB). e.g. Passport, Driver's License, UMID, PhilID, or Voter's ID.</p>
             </div>
 
             <div class="form-btn-row">
@@ -714,546 +859,112 @@
         border-bottom: 1.5px solid #f3f4f6;
     }
     .addr-required { color: #ef4444; }
-    .addr-select:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: #f9fafb !important;
+    /* Role Selector Cards */
+    .role-selection-wrapper {
+        margin-bottom: 22px;
     }
-    .addr-loading { color: #9ca3af; font-style: italic; }
+    .role-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    .role-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 15px;
+        background: #ffffff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        user-select: none;
+    }
+    .role-option:hover {
+        border-color: #A8A0B2;
+        background: #FAF8FC;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(111, 99, 130, 0.08);
+    }
+    .role-option.selected {
+        border-color: #6F6382;
+        background: #F6F4F8;
+        box-shadow: 0 0 0 2px rgba(111, 99, 130, 0.2), 0 4px 12px rgba(111, 99, 130, 0.1);
+    }
+    .role-option-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #f3f4f6;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+    .role-option-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+    .role-option.selected .role-option-icon {
+        background: #6F6382;
+        color: #ffffff;
+    }
+    .role-option-details {
+        flex: 1;
+        min-width: 0;
+    }
+    .role-option-title {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 2px;
+        transition: color 0.18s;
+    }
+    .role-option.selected .role-option-title {
+        color: #564B68;
+    }
+    .role-option-desc {
+        font-size: 0.74rem;
+        color: #6b7280;
+        line-height: 1.25;
+    }
+    .role-option-badge {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1.5px solid #d1d5db;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: transparent;
+        transition: all 0.2s ease;
+    }
+    .role-option-badge svg {
+        width: 12px;
+        height: 12px;
+    }
+    .role-option.selected .role-option-badge {
+        background: #6F6382;
+        border-color: #6F6382;
+        color: #ffffff;
+    }
+
+    @media (max-width: 480px) {
+        .role-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+    }
 
 </style>
 
-<script>
-    let currentStep = 1;
-    const totalSteps = 3;
-
-    // Age auto-calculate from birthday
-    function autoCalcAge(dateStr) {
-        if (!dateStr) { document.getElementById('age_display').value = ''; return; }
-        const today = new Date();
-        const bday  = new Date(dateStr);
-        let age = today.getFullYear() - bday.getFullYear();
-        const m = today.getMonth() - bday.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
-        document.getElementById('age_display').value = age >= 0 ? age : '';
-    }
-
-    function updateStepperUI() {
-        for (let i = 1; i <= totalSteps; i++) {
-            const labelEl = document.getElementById('label-step-' + i);
-            const lineEl = document.getElementById('line-' + i);
-
-            if (i <= currentStep) {
-                if (labelEl) labelEl.classList.remove('inactive');
-                if (lineEl && (i < currentStep || currentStep === totalSteps)) {
-                    lineEl.classList.remove('inactive');
-                }
-            } else {
-                if (labelEl) labelEl.classList.add('inactive');
-                if (lineEl) lineEl.classList.add('inactive');
-            }
-        }
-
-        const line1 = document.getElementById('line-1');
-        const line2 = document.getElementById('line-2');
-        if (currentStep >= 2) {
-            if (line1) line1.classList.remove('inactive');
-        } else {
-            if (line1) line1.classList.add('inactive');
-        }
-        if (currentStep >= 3) {
-            if (line2) line2.classList.remove('inactive');
-        } else {
-            if (line2) line2.classList.add('inactive');
-        }
-
-        for (let i = 1; i <= totalSteps; i++) {
-            const stepDiv = document.getElementById('step-' + i);
-            if (stepDiv) {
-                stepDiv.style.display = (i === currentStep) ? 'block' : 'none';
-            }
-        }
-    }
-
-    function nextStep(step) {
-        if (currentStep === 1) {
-            const firstName = document.getElementById('first_name').value.trim();
-            const lastName = document.getElementById('last_name').value.trim();
-            const mi = document.getElementById('middle_initial').value.trim();
-            const sex = document.getElementById('sex').value;
-            const email = document.getElementById('email').value.trim();
-
-            if (!firstName) {
-                document.getElementById('first_name').focus();
-                return;
-            }
-            if (!lastName) {
-                document.getElementById('last_name').focus();
-                return;
-            }
-            if (!sex) {
-                document.getElementById('sex').focus();
-                return;
-            }
-            if (!email) {
-                document.getElementById('email').focus();
-                return;
-            }
-            document.getElementById('name').value = firstName + (mi ? ' ' + mi : '') + ' ' + lastName;
-        }
-        if (currentStep === 2) {
-            const phone = document.getElementById('phone').value.trim();
-            const birthday = document.getElementById('birthday').value.trim();
-            const street = document.getElementById('street_address').value.trim();
-            const region = document.getElementById('region').value;
-
-            if (!phone) {
-                document.getElementById('phone').focus();
-                return;
-            }
-            if (!birthday) {
-                document.getElementById('birthday').focus();
-                return;
-            }
-            if (!street) {
-                document.getElementById('street_address').focus();
-                return;
-            }
-            if (!region) {
-                document.getElementById('region').focus();
-                return;
-            }
-        }
-
-        currentStep = step;
-        updateStepperUI();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // When landing on Step 3 (Security & OTP)
-        if (currentStep === 3) {
-            sendAutomaticOtp();
-            startOtpTimer();
-        }
-    }
-
-    function prevStep(step) {
-        currentStep = step;
-        updateStepperUI();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // --- Cascading Philippine Address Dropdowns (PSGC API) ---
-    const PSGC = 'https://psgc.gitlab.io/api';
-
-    function populateSelect(sel, items, valueKey, labelKey, placeholder) {
-        sel.innerHTML = `<option value="">${placeholder}</option>`;
-        items.sort((a, b) => a[labelKey].localeCompare(b[labelKey])).forEach(item => {
-            const opt = document.createElement('option');
-            opt.value = item[valueKey];
-            opt.textContent = item[labelKey];
-            sel.appendChild(opt);
-        });
-        sel.disabled = false;
-    }
-
-    function resetSelect(sel, placeholder) {
-        sel.innerHTML = `<option value="">${placeholder}</option>`;
-        sel.disabled = true;
-    }
-
-    // Region -> Province
-    document.getElementById('region').addEventListener('change', function() {
-        const regionCode = this.value;
-        const provSel  = document.getElementById('province');
-        const citySel  = document.getElementById('city');
-        const brgySel  = document.getElementById('barangay');
-        resetSelect(provSel,  'Select Province');
-        resetSelect(citySel,  'Select City / Municipality');
-        resetSelect(brgySel,  'Select Barangay');
-        if (!regionCode) return;
-
-        // NCR has no provinces — go straight to cities
-        if (regionCode === 'NCR') {
-            provSel.innerHTML = '<option value="Metro Manila" selected>Metro Manila</option>';
-            provSel.disabled = false;
-            document.getElementById('province').value = 'Metro Manila';
-            // Load NCR cities
-            citySel.innerHTML = '<option value="">Loading...</option>';
-            fetch(`${PSGC}/regions/130000000/cities-municipalities.json`)
-                .then(r => r.json())
-                .then(data => populateSelect(citySel, data, 'name', 'name', 'Select City / Municipality'))
-                .catch(() => resetSelect(citySel, 'Select City / Municipality'));
-            return;
-        }
-
-        // Map region code to PSGC numeric code
-        const regionMap = {
-            'CAR':'140000000','I':'010000000','II':'020000000','III':'030000000',
-            'IV-A':'040000000','IV-B':'170000000','V':'050000000','VI':'060000000',
-            'VII':'070000000','VIII':'080000000','IX':'090000000','X':'100000000',
-            'XI':'110000000','XII':'120000000','XIII':'160000000','BARMM':'190000000'
-        };
-        const psgcCode = regionMap[regionCode];
-        if (!psgcCode) return;
-
-        provSel.innerHTML = '<option value="">Loading...</option>';
-        fetch(`${PSGC}/regions/${psgcCode}/provinces.json`)
-            .then(r => r.json())
-            .then(data => populateSelect(provSel, data, 'name', 'name', 'Select Province'))
-            .catch(() => resetSelect(provSel, 'Select Province'));
-    });
-
-    // Province -> City/Municipality
-    document.getElementById('province').addEventListener('change', function() {
-        const provName = this.value;
-        const citySel  = document.getElementById('city');
-        const brgySel  = document.getElementById('barangay');
-        resetSelect(citySel,  'Select City / Municipality');
-        resetSelect(brgySel,  'Select Barangay');
-        if (!provName) return;
-
-        // Find the province code by fetching all provinces and matching the name
-        const regionCode = document.getElementById('region').value;
-        const regionMap = {
-            'NCR':'130000000','CAR':'140000000','I':'010000000','II':'020000000',
-            'III':'030000000','IV-A':'040000000','IV-B':'170000000','V':'050000000',
-            'VI':'060000000','VII':'070000000','VIII':'080000000','IX':'090000000',
-            'X':'100000000','XI':'110000000','XII':'120000000','XIII':'160000000','BARMM':'190000000'
-        };
-        const psgcCode = regionMap[regionCode];
-        if (!psgcCode) return;
-
-        if (regionCode === 'NCR') {
-            // Already loaded cities above for NCR — no-op here
-            return;
-        }
-
-        citySel.innerHTML = '<option value="">Loading...</option>';
-        // Get the province code first
-        fetch(`${PSGC}/regions/${psgcCode}/provinces.json`)
-            .then(r => r.json())
-            .then(provinces => {
-                const prov = provinces.find(p => p.name === provName);
-                if (!prov) { resetSelect(citySel, 'Select City / Municipality'); return; }
-                return fetch(`${PSGC}/provinces/${prov.code}/cities-municipalities.json`);
-            })
-            .then(r => r && r.json())
-            .then(data => data && populateSelect(citySel, data, 'name', 'name', 'Select City / Municipality'))
-            .catch(() => resetSelect(citySel, 'Select City / Municipality'));
-    });
-
-    // City/Municipality -> Barangay
-    document.getElementById('city').addEventListener('change', function() {
-        const cityName = this.value;
-        const brgySel  = document.getElementById('barangay');
-        resetSelect(brgySel, 'Select Barangay');
-        if (!cityName) return;
-
-        const regionCode = document.getElementById('region').value;
-        const provName   = document.getElementById('province').value;
-        const regionMap = {
-            'NCR':'130000000','CAR':'140000000','I':'010000000','II':'020000000',
-            'III':'030000000','IV-A':'040000000','IV-B':'170000000','V':'050000000',
-            'VI':'060000000','VII':'070000000','VIII':'080000000','IX':'090000000',
-            'X':'100000000','XI':'110000000','XII':'120000000','XIII':'160000000','BARMM':'190000000'
-        };
-        const psgcCode = regionMap[regionCode];
-        if (!psgcCode) return;
-
-        brgySel.innerHTML = '<option value="">Loading...</option>';
-
-        // For NCR, fetch from region cities directly
-        if (regionCode === 'NCR') {
-            fetch(`${PSGC}/regions/130000000/cities-municipalities.json`)
-                .then(r => r.json())
-                .then(cities => {
-                    const city = cities.find(c => c.name === cityName);
-                    if (!city) { resetSelect(brgySel, 'Select Barangay'); return; }
-                    return fetch(`${PSGC}/cities-municipalities/${city.code}/barangays.json`);
-                })
-                .then(r => r && r.json())
-                .then(data => data && populateSelect(brgySel, data, 'name', 'name', 'Select Barangay'))
-                .catch(() => resetSelect(brgySel, 'Select Barangay'));
-            return;
-        }
-
-        // For other regions, fetch province -> city -> barangays
-        fetch(`${PSGC}/regions/${psgcCode}/provinces.json`)
-            .then(r => r.json())
-            .then(provinces => {
-                const prov = provinces.find(p => p.name === provName);
-                if (!prov) throw new Error('Province not found');
-                return fetch(`${PSGC}/provinces/${prov.code}/cities-municipalities.json`);
-            })
-            .then(r => r.json())
-            .then(cities => {
-                const city = cities.find(c => c.name === cityName);
-                if (!city) throw new Error('City not found');
-                return fetch(`${PSGC}/cities-municipalities/${city.code}/barangays.json`);
-            })
-            .then(r => r.json())
-            .then(data => populateSelect(brgySel, data, 'name', 'name', 'Select Barangay'))
-            .catch(() => resetSelect(brgySel, 'Select Barangay'));
-    });
-
-    function togglePasswordVisibility(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
-        } else {
-            input.type = 'password';
-            icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-        }
-    }
-
-    // --- Automatic Instant OTP Dispatch ---
-    function sendAutomaticOtp() {
-        const email = document.getElementById('email').value.trim();
-        const firstName = document.getElementById('first_name').value.trim();
-        const lastName = document.getElementById('last_name').value.trim();
-        const name = (firstName + ' ' + lastName).trim();
-
-        if (!email) return;
-
-        const targetDisplay = document.getElementById('noticeEmailTarget');
-        const noticeBanner = document.getElementById('otpSentNotice');
-        if (targetDisplay) targetDisplay.innerText = email;
-
-        fetch("{{ route('register.request_otp') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ email: email, name: name, role: 'buyer' })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (noticeBanner) {
-                noticeBanner.style.display = 'flex';
-            }
-            // Auto focus on first box
-            const firstBox = document.querySelector('.otp-input');
-            if (firstBox && !firstBox.value) firstBox.focus();
-        })
-        .catch(err => console.error('Automatic OTP dispatch error:', err));
-    }
-
-    let isEmailVerified = false;
-
-    // --- OTP Input Auto-Tab & Paste Handling ---
-    const otpInputs = document.querySelectorAll('.otp-input');
-    otpInputs.forEach((input, index) => {
-        input.addEventListener('input', (e) => {
-            const val = e.target.value;
-            if (val.length > 0) {
-                input.classList.add('filled');
-                if (index < otpInputs.length - 1) {
-                    otpInputs[index + 1].focus();
-                }
-            } else {
-                input.classList.remove('filled');
-            }
-            syncOtpValue();
-        });
-
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && !input.value && index > 0) {
-                otpInputs[index - 1].focus();
-            }
-        });
-
-        input.addEventListener('paste', (e) => {
-            e.preventDefault();
-            const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
-            if (/^\d+$/.test(pasteData)) {
-                const digits = pasteData.slice(0, 6).split('');
-                digits.forEach((digit, i) => {
-                    if (otpInputs[i]) {
-                        otpInputs[i].value = digit;
-                        otpInputs[i].classList.add('filled');
-                    }
-                });
-                const nextIndex = Math.min(digits.length, otpInputs.length - 1);
-                otpInputs[nextIndex].focus();
-                syncOtpValue();
-            }
-        });
-    });
-
-    function syncOtpValue() {
-        let otpCode = '';
-        otpInputs.forEach(i => otpCode += i.value);
-        const hiddenOtp = document.getElementById('email_verification_otp');
-        if (hiddenOtp) hiddenOtp.value = otpCode;
-
-        // Auto trigger verification once 6 digits are typed
-        if (otpCode.length === 6 && !isEmailVerified) {
-            checkAndVerifyOtp();
-        }
-    }
-
-    // --- Verify OTP Code before revealing Password Creation ---
-    function checkAndVerifyOtp() {
-        syncOtpValue();
-        const email = document.getElementById('email').value.trim();
-        const enteredOtp = document.getElementById('email_verification_otp').value.trim();
-        const feedback = document.getElementById('otpFeedbackMsg');
-        const verifyBtn = document.getElementById('btnVerifyEmailOtp');
-
-        if (enteredOtp.length < 6) {
-            if (feedback) {
-                feedback.style.display = 'block';
-                feedback.style.color = '#ef4444';
-                feedback.innerText = 'Please enter all 6 digits of the verification code.';
-            }
-            otpInputs.forEach(inp => { if (!inp.value) inp.focus(); });
-            return;
-        }
-
-        if (verifyBtn) {
-            verifyBtn.disabled = true;
-            verifyBtn.innerText = 'Verifying...';
-        }
-
-        fetch("{{ route('register.verify_otp') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ email: email, otp: enteredOtp })
-        })
-        .then(res => res.json().then(data => ({ status: res.status, body: data })))
-        .then(({ status, body }) => {
-            if (verifyBtn) {
-                verifyBtn.disabled = false;
-                verifyBtn.innerText = 'Verify Code';
-            }
-
-            if (status === 200 && body.success) {
-                isEmailVerified = true;
-                if (feedback) feedback.style.display = 'none';
-
-                // Hide verify button row & resend row
-                const btnRow = document.getElementById('verifyOtpBtnRow');
-                const resendRow = document.getElementById('otpResendContainer');
-                if (btnRow) btnRow.style.display = 'none';
-                if (resendRow) resendRow.style.display = 'none';
-
-                // Lock OTP input boxes
-                otpInputs.forEach(inp => {
-                    inp.disabled = true;
-                    inp.style.background = '#f9fafb';
-                    inp.style.borderColor = '#10b981';
-                });
-
-                // Unlock & display Password Creation Section
-                const pwSection = document.getElementById('passwordCreationSection');
-                if (pwSection) {
-                    pwSection.style.display = 'block';
-                    pwSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-
-                const pwInput = document.getElementById('register_password');
-                if (pwInput) pwInput.focus();
-
-            } else {
-                if (feedback) {
-                    feedback.style.display = 'block';
-                    feedback.style.color = '#ef4444';
-                    feedback.innerText = body.message || 'Invalid verification code. Please check your email.';
-                }
-                otpInputs.forEach(inp => {
-                    inp.style.borderColor = '#ef4444';
-                });
-            }
-        })
-        .catch(err => {
-            if (verifyBtn) {
-                verifyBtn.disabled = false;
-                verifyBtn.innerText = 'Verify Code';
-            }
-            if (feedback) {
-                feedback.style.display = 'block';
-                feedback.style.color = '#ef4444';
-                feedback.innerText = 'Verification error. Please try again.';
-            }
-        });
-    }
-
-    // --- Form Submit Validation ---
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        if (!isEmailVerified) {
-            e.preventDefault();
-            alert('Please verify your email address first with the 6-digit OTP.');
-            checkAndVerifyOtp();
-            return;
-        }
-
-        const pw = document.getElementById('register_password').value;
-        const confirmPw = document.getElementById('password_confirmation').value;
-
-        if (!pw || pw.length < 6) {
-            e.preventDefault();
-            alert('Password must be at least 6 characters long.');
-            document.getElementById('register_password').focus();
-            return;
-        }
-
-        if (pw !== confirmPw) {
-            e.preventDefault();
-            alert('Password confirmation does not match.');
-            document.getElementById('password_confirmation').focus();
-            return;
-        }
-    });
-
-    // --- OTP Timer Countdown Logic ---
-    let timerInterval = null;
-    let secondsRemaining = 45;
-
-    function startOtpTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        secondsRemaining = 45;
-        const display = document.getElementById('otpTimerDisplay');
-        const resendBtn = document.getElementById('resendOtpBtn');
-
-        if (!display || !resendBtn) return;
-
-        resendBtn.disabled = true;
-
-        timerInterval = setInterval(() => {
-            secondsRemaining--;
-            if (secondsRemaining <= 0) {
-                clearInterval(timerInterval);
-                display.innerText = '00:00';
-                resendBtn.disabled = false;
-                resendBtn.innerText = 'Resend the OTP';
-            } else {
-                const formatted = '00:' + (secondsRemaining < 10 ? '0' + secondsRemaining : secondsRemaining);
-                display.innerText = formatted;
-            }
-        }, 1000);
-    }
-
-    function triggerResendOtp() {
-        const resendBtn = document.getElementById('resendOtpBtn');
-        resendBtn.innerHTML = 'Resend the OTP (<span id="otpTimerDisplay">00:45</span>)';
-        startOtpTimer();
-        sendAutomaticOtp();
-
-        otpInputs.forEach(inp => {
-            inp.value = '';
-            inp.classList.remove('filled');
-            inp.style.borderColor = '#e5e7eb';
-        });
-        syncOtpValue();
-        if (otpInputs[0]) otpInputs[0].focus();
-    }
-</script>
+@push('scripts')
+<script src="{{ asset('js/auth/register.js') }}"></script>
+@endpush
 
 @endsection
 

@@ -254,35 +254,6 @@
 </div>
 
 @push('scripts')
-<script>
-    function openStatusModal(id, name, currentStatus) {
-        document.getElementById('statusUserName').innerText = name;
-        document.getElementById('statusForm').action = "/admin/users/" + id + "/status";
-        
-        const radio = document.querySelector(`input[name="status"][value="${currentStatus}"]`);
-        if(radio) radio.checked = true;
-
-        document.getElementById('statusModal').classList.remove('hidden');
-    }
-    function closeStatusModal() {
-        document.getElementById('statusModal').classList.add('hidden');
-    }
-
-    function openProfileModal(user) {
-        document.getElementById('modalProfileName').innerText = user.name;
-        document.getElementById('modalProfileEmail').innerText = user.email;
-        document.getElementById('modalProfilePhone').innerText = user.phone;
-        document.getElementById('modalProfileRole').innerText = user.role;
-        document.getElementById('modalProfileStatus').innerText = user.status.toUpperCase();
-        document.getElementById('modalProfileOrders').innerText = user.orders_count;
-        document.getElementById('modalProfileViolations').innerText = user.violations + ' Strikes';
-        document.getElementById('modalProfileAvatar').innerText = user.name.substring(0, 2).toUpperCase();
-
-        document.getElementById('profileModal').classList.remove('hidden');
-    }
-    function closeProfileModal() {
-        document.getElementById('profileModal').classList.add('hidden');
-    }
-</script>
+<script src="{{ asset('js/admin/users.js') }}"></script>
 @endpush
 @endsection
