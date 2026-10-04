@@ -1,16 +1,16 @@
 <header class="sticky top-0 z-50 bg-white border-b border-[#E1DDE7] shadow-sm w-full">
     <!-- Main Navigation & Search Bar -->
-    <div class="w-full px-4 sm:px-6 lg:px-10 py-2">
+    <div class="w-full px-4 sm:px-6 lg:px-10 py-2.5">
         <div class="flex items-center justify-between gap-4 lg:gap-8">
             
             <!-- Brand Logo -->
             <a href="/" class="flex items-center shrink-0 group" title="cartzy">
-                <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-8 sm:h-9 w-auto object-contain group-hover:scale-105 transition-transform duration-200">
+                <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-8.5 sm:h-9.5 w-auto object-contain group-hover:scale-105 transition-transform duration-200">
             </a>
 
             <!-- Search Area -->
             <div class="flex-1 mx-2 sm:mx-4 flex justify-center">
-                <form id="header-search-form" action="{{ route('home') }}" method="GET" class="relative flex items-center w-full max-w-[560px] border border-[#E1DDE7] rounded-lg overflow-hidden bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#A8A0B2] focus-within:border-[#6F6382] transition">
+                <form id="header-search-form" action="{{ route('home') }}" method="GET" class="relative flex items-center w-full max-w-[650px] border border-[#E1DDE7] rounded-lg overflow-hidden bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#A8A0B2] focus-within:border-[#6F6382] transition">
                     <input 
                         type="text" 
                         id="header-search-input"
@@ -18,7 +18,7 @@
                         value="{{ request('q') }}"
                         placeholder="Search products, brands, categories..." 
                         autocomplete="off"
-                        class="w-full px-3.5 py-2 text-sm text-[#191421] placeholder-gray-400 focus:outline-none bg-transparent"
+                        class="w-full px-4 py-2.5 text-sm text-[#191421] placeholder-gray-400 focus:outline-none bg-transparent"
                     >
                     <button 
                         type="button" 
@@ -29,10 +29,10 @@
                     <button 
                         type="submit" 
                         id="header-search-btn"
-                        class="bg-[#6F6382] hover:bg-[#564B68] text-white w-10 h-8 flex items-center justify-center transition-colors shrink-0 m-0.5 rounded-md"
+                        class="bg-[#6F6382] hover:bg-[#564B68] text-white w-11 h-9 flex items-center justify-center transition-colors shrink-0 m-0.5 rounded-md"
                         aria-label="Search"
                     >
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </button>
@@ -46,7 +46,7 @@
                 @guest
                     <div class="flex items-center gap-3 mr-1">
                         <!-- Login Link -->
-                        <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-gray-700 hover:text-[#564B68] transition group px-2 py-1.5 rounded-md hover:bg-[#F6F3F7]">
+                        <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-gray-700 hover:text-[#564B68] transition group px-2.5 py-1.5 rounded-md hover:bg-[#F6F3F7]">
                             <svg class="w-4.5 h-4.5 shrink-0" style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9A3.75 3.75 0 1 1 8.25 9a3.75 3.75 0 0 1 7.5 0ZM3 20.25a9 9 0 0 1 18 0"/>
                             </svg>
@@ -54,7 +54,7 @@
                         </a>
 
                         <!-- Sign up Link -->
-                        <a href="{{ route('register') }}" class="flex items-center gap-1.5 text-white bg-[#6F6382] hover:bg-[#564B68] transition px-3 py-1.5 rounded-md text-xs font-semibold">
+                        <a href="{{ route('register') }}" class="flex items-center gap-1.5 text-white bg-[#6F6382] hover:bg-[#564B68] transition px-3.5 py-1.5 rounded-md text-xs font-semibold">
                             <svg class="shrink-0" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                             </svg>
@@ -69,7 +69,7 @@
                 @auth
                     {{-- Profile Avatar --}}
                     <div class="relative group">
-                        <button class="flex items-center justify-center w-8 h-8 rounded-full bg-[#6F6382] text-white hover:bg-[#564B68] transition font-bold text-xs" aria-label="Profile" title="Profile">
+                        <button class="flex items-center justify-center w-8.5 h-8.5 rounded-full bg-[#6F6382] text-white hover:bg-[#564B68] transition font-bold text-xs" aria-label="Profile" title="Profile">
                             {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 1)) }}
                         </button>
                         
@@ -111,39 +111,39 @@
                 @endauth
 
                 {{-- Notification --}}
-                <button type="button" class="relative flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Notifications" title="Notifications">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <button type="button" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Notifications" title="Notifications">
+                    <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
                     </svg>
                     <span class="absolute top-0.5 right-0.5 bg-[#6F6382] text-white text-[8px] font-bold min-w-[14px] min-h-[14px] rounded-full flex items-center justify-center px-0.5">3</span>
                 </button>
 
                 {{-- Mail --}}
-                <button type="button" class="relative flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Messages" title="Messages">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <button type="button" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Messages" title="Messages">
+                    <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
                     </svg>
                 </button>
 
                 {{-- Customer Service --}}
-                <a href="#" class="relative flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Customer Service" title="Customer Service">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <a href="#" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Customer Service" title="Customer Service">
+                    <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/>
                     </svg>
                 </a>
 
                 {{-- Wishlist --}}
-                <a href="#" class="relative flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Wishlist" title="Wishlist">
-                    <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <a href="#" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Wishlist" title="Wishlist">
+                    <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
                     </svg>
                 </a>
 
                 {{-- Cart --}}
                 <div class="relative group">
-                    <a href="{{ route('cart.index') }}" class="flex items-center justify-center w-8 h-8 rounded-full text-gray-600 hover:bg-[#F6F3F7] hover:text-[#564B68] transition relative" aria-label="Cart" title="Cart">
+                    <a href="{{ route('cart.index') }}" class="flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-600 hover:bg-[#F6F3F7] hover:text-[#564B68] transition relative" aria-label="Cart" title="Cart">
                         <div class="relative">
-                            <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
                             </svg>
                             @if(isset($cartCount) && $cartCount > 0)
