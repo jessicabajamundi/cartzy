@@ -26,10 +26,12 @@
 
             <div class="flex flex-wrap items-center gap-3">
                 <a href="{{ route('admin.registrations') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
-                    <span>📝 Review KYC ({{ $stats['pending_registrations'] }})</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Review KYC ({{ $stats['pending_registrations'] }})</span>
                 </a>
                 <a href="{{ route('admin.disputes') }}" class="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition border border-white/15 flex items-center gap-2">
-                    <span>⚖️ Disputes ({{ $stats['active_disputes'] }})</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                    <span>Disputes ({{ $stats['active_disputes'] }})</span>
                 </a>
             </div>
         </div>
@@ -42,7 +44,9 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md transition">
             <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <span>Total GMV Sales</span>
-                <span class="p-2 bg-indigo-50 text-indigo-600 rounded-xl text-sm">📈</span>
+                <span class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </span>
             </div>
             <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-3">₱{{ number_format($stats['total_gmv'], 2) }}</div>
             <div class="flex items-center gap-1.5 text-xs text-emerald-600 font-bold mt-2">
@@ -55,7 +59,9 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md transition">
             <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <span>10% Platform Cut</span>
-                <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl text-sm">💰</span>
+                <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
             </div>
             <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-3">₱{{ number_format($stats['platform_revenue'], 2) }}</div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-2">
@@ -67,7 +73,9 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md transition">
             <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <span>Pending KYC Reviews</span>
-                <span class="p-2 bg-amber-50 text-amber-600 rounded-xl text-sm">📝</span>
+                <span class="p-2 bg-amber-50 text-amber-600 rounded-xl">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </span>
             </div>
             <div class="text-2xl sm:text-3xl font-black text-amber-600 mt-3">{{ $stats['pending_registrations'] }} Applicants</div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-2">
@@ -79,7 +87,9 @@
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-md transition">
             <div class="flex items-center justify-between text-slate-500 text-xs font-bold uppercase tracking-wider">
                 <span>Active Disputes</span>
-                <span class="p-2 bg-rose-50 text-rose-600 rounded-xl text-sm">⚖️</span>
+                <span class="p-2 bg-rose-50 text-rose-600 rounded-xl">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                </span>
             </div>
             <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-3">{{ $stats['active_disputes'] }} Open</div>
             <div class="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-2">
@@ -92,8 +102,8 @@
     <!-- Secondary Stats: User Breakdown -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
-                🛍️
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             </div>
             <div>
                 <div class="text-xs text-slate-500 font-semibold">Registered Buyers</div>
@@ -102,8 +112,8 @@
         </div>
 
         <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
-                🏬
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
             <div>
                 <div class="text-xs text-slate-500 font-semibold">Active Merchants & Sellers</div>
@@ -112,8 +122,8 @@
         </div>
 
         <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
-                🛵
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
             <div>
                 <div class="text-xs text-slate-500 font-semibold">Express Couriers & Riders</div>
@@ -130,7 +140,8 @@
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <span>📝</span> Recent Account Registrations (KYC)
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Recent Account Registrations (KYC)</span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Review submitted IDs, business permits, and rider licenses.</p>
                 </div>
@@ -143,8 +154,14 @@
                 @foreach($recentRegistrations as $reg)
                 <div class="p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 hover:bg-slate-50 transition">
                     <div class="flex items-start gap-3.5">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold shrink-0 {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-700' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
-                            {{ $reg['role'] === 'seller' ? '🏬' : ($reg['role'] === 'courier' ? '🛵' : '👤') }}
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-700' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
+                            @if($reg['role'] === 'seller')
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            @elseif($reg['role'] === 'courier')
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            @else
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            @endif
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
@@ -155,7 +172,8 @@
                             </div>
                             <div class="text-xs text-slate-500 mt-0.5">{{ $reg['email'] }} &bull; {{ $reg['phone'] }}</div>
                             <div class="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
-                                <span>📄 Submitted: {{ count($reg['documents']) }} documents</span>
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <span>Submitted: {{ count($reg['documents']) }} documents</span>
                                 <span>&bull;</span>
                                 <span>{{ $reg['applied_at'] }}</span>
                             </div>
@@ -187,7 +205,8 @@
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <span>🔔</span> Platform Event Feed
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Platform Event Feed</span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Real-time alerts & action notices.</p>
                 </div>
@@ -223,7 +242,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <span>💰</span> Recent 10% Commission Deductions
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Recent 10% Commission Deductions</span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Automatically retained from completed merchant sales.</p>
                 </div>
@@ -259,7 +279,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <span>⚖️</span> Active Dispute Escalations
+                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        <span>Active Dispute Escalations</span>
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">3-way mediation between Buyer, Seller, and Courier.</p>
                 </div>

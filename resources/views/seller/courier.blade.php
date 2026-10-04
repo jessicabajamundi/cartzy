@@ -9,11 +9,13 @@
     <!-- Header & Action Summary -->
     <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-wrap items-center justify-between gap-6 border border-indigo-700/50">
         <div>
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">🚚</span>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                </div>
                 <h1 class="text-2xl font-extrabold font-heading">Courier Dispatch & Shipment Tracking</h1>
             </div>
-            <p class="text-xs text-indigo-200 mt-1 max-w-xl leading-relaxed">
+            <p class="text-xs text-indigo-200 mt-2 max-w-xl leading-relaxed">
                 Schedule on-demand courier rider pickups at your warehouse address, generate hand-over manifests, and monitor real-time delivery milestones.
             </p>
         </div>
@@ -39,7 +41,10 @@
                     <p class="text-[10px] text-slate-500">{{ $partner['type'] }}</p>
                 </div>
                 <div class="text-right">
-                    <span class="text-xs font-bold text-amber-500">⭐ {{ $partner['rating'] }}</span>
+                    <span class="text-xs font-bold text-amber-500 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                        <span>{{ $partner['rating'] }}</span>
+                    </span>
                 </div>
             </div>
         @endforeach
@@ -49,7 +54,10 @@
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-base font-extrabold text-slate-900">📦 Packed Parcels Awaiting Courier Pickup ({{ count($pickupReady) }})</h2>
+                <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <span>Packed Parcels Awaiting Courier Pickup ({{ count($pickupReady) }})</span>
+                </h2>
                 <p class="text-xs text-slate-500">Schedule pickup so designated riders can collect your prepared packages.</p>
             </div>
             <span class="text-xs text-slate-500 font-medium">Pickup Address: Unit 402, High Street Plaza, BGC</span>
@@ -107,7 +115,10 @@
     <!-- Section 2: Active Shipments In Transit (With Real-Time Milestones) -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
         <div>
-            <h2 class="text-base font-extrabold text-slate-900">🚚 Active Shipments In Transit & Live Tracking ({{ count($inTransit) }})</h2>
+            <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                <span>Active Shipments In Transit & Live Tracking ({{ count($inTransit) }})</span>
+            </h2>
             <p class="text-xs text-slate-500">Parcels handed over to courier riders currently moving through logistics hubs to customers.</p>
         </div>
 
@@ -132,7 +143,9 @@
 
                             <!-- Rider Information Card -->
                             <div class="flex items-center gap-3 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-xs">
-                                <span class="text-xl">🛵</span>
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="6.5" cy="16.5" r="2.5" stroke-width="1.8"/><circle cx="17.5" cy="16.5" r="2.5" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 16.5h5m-2.5-7l-3 7m2.5-7l4-2h3m-7 2l2-3h3"/></svg>
+                                </div>
                                 <div>
                                     <div class="font-bold text-slate-900">{{ $order['rider_name'] ?? 'Arnel Gomez (Express Rider)' }}</div>
                                     <div class="text-[11px] text-slate-500">

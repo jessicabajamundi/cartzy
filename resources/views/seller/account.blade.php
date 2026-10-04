@@ -9,8 +9,8 @@
     <!-- Store Profile & KYC Banner -->
     <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-6">
         <div class="flex items-center gap-5">
-            <div class="w-18 h-18 rounded-3xl bg-[#6F6382] text-white flex items-center justify-center text-3xl font-black shadow-md shrink-0">
-                🏬
+            <div class="w-16 h-16 rounded-3xl bg-[#6F6382] text-white flex items-center justify-center shadow-md shrink-0">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
             <div>
                 <div class="flex items-center gap-3">
@@ -40,7 +40,10 @@
         <!-- Column 1: Store Profile Settings -->
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div>
-                <h2 class="text-base font-extrabold text-slate-900">🏪 Store Profile & Operating Status</h2>
+                <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#6F6382]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Store Profile & Operating Status</span>
+                </h2>
                 <p class="text-xs text-slate-500">Update your public storefront name, description, and vacation status</p>
             </div>
 
@@ -96,7 +99,10 @@
         <!-- Column 2: Warehouse & Courier Pickup Address -->
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div>
-                <h2 class="text-base font-extrabold text-slate-900">📍 Warehouse & Courier Pickup Address</h2>
+                <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#6F6382]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <span>Warehouse & Courier Pickup Address</span>
+                </h2>
                 <p class="text-xs text-slate-500">The address where courier fleet riders will arrive to collect scheduled parcels</p>
             </div>
 
@@ -158,7 +164,10 @@
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-base font-extrabold text-slate-900">💳 Bank & GCash Payout Destination</h2>
+                    <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-[#6F6382]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 10h20M6 14h2"/></svg>
+                        <span>Bank & GCash Payout Destination</span>
+                    </h2>
                     <p class="text-xs text-slate-500">Destination account for withdrawing your completed order revenues</p>
                 </div>
                 <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
@@ -189,7 +198,10 @@
         <!-- Security: Change Password -->
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
             <div>
-                <h2 class="text-base font-extrabold text-slate-900">🔒 Account Security</h2>
+                <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#6F6382]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    <span>Account Security</span>
+                </h2>
                 <p class="text-xs text-slate-500">Ensure your merchant credentials and payout authorizations remain secure</p>
             </div>
 

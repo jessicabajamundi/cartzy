@@ -80,7 +80,9 @@
                 @empty
                 <tr>
                     <td colspan="7" class="text-center py-16 text-slate-400">
-                        <div class="text-4xl mb-3">📦</div>
+                        <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        </div>
                         <p class="font-bold">No parcels found.</p>
                     </td>
                 </tr>

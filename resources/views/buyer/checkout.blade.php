@@ -46,7 +46,7 @@
                 <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-2xs">
                     <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-lg">📍</span>
+                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <h3 class="text-base font-extrabold text-gray-900">Delivery Address</h3>
                         </div>
                         <a href="{{ route('account.index', ['tab' => 'addresses']) }}" class="text-xs font-bold text-gray-600 hover:text-black underline">
@@ -73,7 +73,7 @@
                 <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-2xs">
                     <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-lg">📦</span>
+                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                             <h3 class="text-base font-extrabold text-gray-900">Order Items ({{ count($cartItems) }})</h3>
                         </div>
                         <span class="text-xs text-gray-400 font-medium">Fulfilled by Verified Merchant</span>
@@ -100,18 +100,22 @@
                 <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-2xs">
                     <div class="flex items-center justify-between pb-4 border-b border-gray-100 mb-4">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-lg">💳</span>
+                            <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 10h20M6 14h2"/></svg>
                             <h3 class="text-base font-extrabold text-gray-900">Payment Method</h3>
                         </div>
-                        <span class="text-xs text-emerald-600 font-bold flex items-center gap-1">
-                            <span>🔒</span> 100% Encrypted
+                        <span class="text-xs text-emerald-600 font-bold flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            <span>100% Encrypted</span>
                         </span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-bold">
                         <label class="border-2 border-black rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer bg-gray-50">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-extrabold text-gray-900">💵 Cash on Delivery</span>
+                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    <span>Cash on Delivery</span>
+                                </span>
                                 <input type="radio" name="payment_method" value="COD" checked class="accent-black">
                             </div>
                             <span class="text-[11px] text-gray-500 font-normal">Pay in cash upon doorstep delivery</span>
@@ -119,7 +123,10 @@
 
                         <label class="border-2 border-gray-200 hover:border-gray-400 rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer transition">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-extrabold text-gray-900">📱 GCash / Maya</span>
+                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    <span>GCash / Maya</span>
+                                </span>
                                 <input type="radio" name="payment_method" value="E-Wallet" class="accent-black">
                             </div>
                             <span class="text-[11px] text-gray-500 font-normal">Instant digital wallet QR payment</span>
@@ -127,7 +134,10 @@
 
                         <label class="border-2 border-gray-200 hover:border-gray-400 rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer transition">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-extrabold text-gray-900">💳 Card / Debit</span>
+                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-1.5">
+                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 10h20M6 14h2"/></svg>
+                                    <span>Card / Debit</span>
+                                </span>
                                 <input type="radio" name="payment_method" value="Card" class="accent-black">
                             </div>
                             <span class="text-[11px] text-gray-500 font-normal">Visa, Mastercard, JCB</span>

@@ -51,7 +51,9 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-lg bg-[#1A6FA8] text-white flex items-center justify-center font-black text-sm">🏭</span>
+                <span class="w-8 h-8 rounded-lg bg-[#1A6FA8] text-white flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                </span>
                 <span class="font-bold text-sm tracking-wide">LOGISTICS HUB</span>
             </div>
         </div>
@@ -309,7 +311,9 @@
                         <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">3</span>
                     </a>
                     <a href="{{ route('logistics.account') }}" class="flex items-center gap-2 bg-slate-100 hover:bg-blue-50 border border-slate-200 px-3 py-1.5 rounded-xl transition group">
-                        <span class="w-7 h-7 rounded-lg bg-[#1A6FA8] text-white flex items-center justify-center font-black text-sm">🏭</span>
+                        <span class="w-7 h-7 rounded-lg bg-[#1A6FA8] text-white flex items-center justify-center">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </span>
                         <span class="text-sm font-bold text-slate-700 group-hover:text-[#0F4C75] truncate max-w-[140px]">{{ Auth::user()->name ?? 'Hub Manager' }}</span>
                     </a>
                 </div>

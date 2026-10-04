@@ -81,11 +81,20 @@
                                 </div>
                                 <div class="py-1">
                                     @if(Auth::user()->isAdmin())
-                                        <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 hover:bg-[#FAF9FB] font-bold text-[#564B68]">🛡️ Admin Dashboard</a>
+                                        <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-2 hover:bg-[#FAF9FB] font-bold text-[#564B68]">
+                                            <svg class="w-4 h-4 text-indigo-600 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                            <span>Admin Dashboard</span>
+                                        </a>
                                     @elseif(Auth::user()->isSeller())
-                                        <a href="{{ route('seller.dashboard') }}" class="block px-4 py-2 hover:bg-[#FAF9FB] font-bold text-[#564B68]">🏬 Seller Centre</a>
+                                        <a href="{{ route('seller.dashboard') }}" class="flex items-center px-4 py-2 hover:bg-[#FAF9FB] font-bold text-[#564B68]">
+                                            <svg class="w-4 h-4 text-[#6F6382] mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                            <span>Seller Centre</span>
+                                        </a>
                                     @elseif(Auth::user()->isCourier())
-                                        <a href="{{ route('courier.dashboard') }}" class="block px-4 py-2 hover:bg-[#FAF9FB] font-bold text-[#564B68]">🛵 Rider Hub</a>
+                                        <a href="{{ route('courier.dashboard') }}" class="flex items-center px-4 py-2 hover:bg-[#FAF9FB] font-bold text-[#564B68]">
+                                            <svg class="w-4 h-4 text-[#1A6FA8] mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="6.5" cy="16.5" r="2.5" stroke-width="1.8"/><circle cx="17.5" cy="16.5" r="2.5" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 16.5h5m-2.5-7l-3 7m2.5-7l4-2h3m-7 2l2-3h3"/></svg>
+                                            <span>Rider Hub</span>
+                                        </a>
                                     @endif
                                     <a href="{{ route('account.index') }}" class="block px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium">My Account</a>
                                     <a href="{{ route('account.purchases') }}" class="block px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium">My Purchase</a>
@@ -158,7 +167,8 @@
                                         @if(!Auth::user()->isIdVerified())
                                             <div class="px-3 py-2 bg-amber-50 border-b border-amber-200 text-[11px] text-amber-800 font-bold flex items-center justify-between">
                                                 <span class="flex items-center gap-1.5">
-                                                    <span>⚠️</span> ID Verification Required to Checkout
+                                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                                    <span>ID Verification Required to Checkout</span>
                                                 </span>
                                                 <a href="{{ route('account.index', ['tab' => 'profile']) }}" class="underline hover:text-amber-950 font-black">Verify Now</a>
                                             </div>
@@ -190,8 +200,8 @@
                                     </div>
                                 @else
                                     <div class="p-8 text-center flex flex-col items-center justify-center">
-                                        <div class="w-16 h-16 bg-gray-100 text-gray-800 rounded-full flex items-center justify-center text-2xl mb-2">
-                                            🛒
+                                        <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-2">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                                         </div>
                                         <h4 class="text-sm font-bold text-gray-900">Your Cart is Empty</h4>
                                         <p class="text-xs text-gray-500 mt-1 max-w-xs">No items added to your cart yet.</p>

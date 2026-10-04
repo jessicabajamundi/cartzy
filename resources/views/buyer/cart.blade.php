@@ -154,8 +154,9 @@
                                 <span>Proceed to Checkout</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </a>
-                            <p class="text-[11px] text-gray-400 text-center mt-2.5">
-                                🔒 Secure checkout with 100% Buyer Protection
+                            <p class="text-[11px] text-gray-400 text-center mt-2.5 inline-flex items-center justify-center gap-1 w-full">
+                                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span>Secure checkout with 100% Buyer Protection</span>
                             </p>
                         </div>
                     </div>
@@ -165,8 +166,8 @@
         @else
             {{-- Empty Cart State --}}
             <div class="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-12 text-center max-w-xl mx-auto my-8">
-                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">
-                    🛒
+                <div class="w-20 h-20 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 </div>
                 <h2 class="text-xl font-extrabold text-gray-900">Your Shopping Cart is Empty</h2>
                 <p class="text-xs sm:text-sm text-gray-500 mt-2 max-w-sm mx-auto">

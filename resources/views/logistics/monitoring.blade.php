@@ -50,14 +50,17 @@
                     <td class="px-4 py-3">
                         <div class="font-semibold text-slate-800">{{ $parcel['recipient_name'] }}</div>
                         <div class="text-xs text-slate-400 max-w-[160px] truncate">{{ $parcel['recipient_address'] }}</div>
-                        <div class="text-xs text-slate-400">📞 {{ $parcel['recipient_phone'] }}</div>
+                        <div class="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg><span>{{ $parcel['recipient_phone'] }}</span></div>
                     </td>
                     <td class="px-4 py-3">
                         <span class="text-xs font-semibold text-slate-700">{{ $parcel['delivery_area'] ?? '—' }}</span>
                     </td>
                     <td class="px-4 py-3">
                         @if($parcel['assigned_rider_name'])
-                            <span class="text-sm font-bold text-slate-700">🛵 {{ $parcel['assigned_rider_name'] }}</span>
+                            <span class="inline-flex items-center gap-1.5 text-sm font-bold text-slate-700">
+                                <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="6.5" cy="16.5" r="2.5" stroke-width="1.8"/><circle cx="17.5" cy="16.5" r="2.5" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 16.5h5m-2.5-7l-3 7m2.5-7l4-2h3m-7 2l2-3h3"/></svg>
+                                <span>{{ $parcel['assigned_rider_name'] }}</span>
+                            </span>
                         @else
                             <span class="text-xs text-slate-400">Not assigned</span>
                         @endif
@@ -81,7 +84,9 @@
                 @empty
                 <tr>
                     <td colspan="7" class="text-center py-16 text-slate-400">
-                        <div class="text-4xl mb-3">📡</div>
+                        <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                        </div>
                         <p class="font-bold">No deliveries to monitor for this filter.</p>
                     </td>
                 </tr>

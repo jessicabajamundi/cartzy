@@ -9,20 +9,24 @@
     <!-- Header & Action Summary -->
     <div class="bg-gradient-to-r from-slate-900 via-[#2D2438] to-[#564B68] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-wrap items-center justify-between gap-6 border border-slate-700/50">
         <div>
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">📑</span>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
                 <h1 class="text-2xl font-extrabold font-heading">Financial & Profit Statements</h1>
             </div>
-            <p class="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+            <p class="text-xs text-slate-300 mt-2 max-w-xl leading-relaxed">
                 Filter by custom date ranges to audit gross sales, platform commission fees (10%), net payout earnings, and SKU performance.
             </p>
         </div>
         <div class="flex items-center gap-3">
             <button onclick="window.print()" class="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-xl border border-white/20 transition flex items-center gap-2">
-                <span>🖨️ Print Statement</span>
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>Print Statement</span>
             </button>
             <button onclick="exportToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
-                <span>📥 Export to CSV</span>
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <span>Export to CSV</span>
             </button>
         </div>
     </div>
@@ -31,7 +35,8 @@
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
         <div class="flex items-center justify-between">
             <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <span>📅 Date Range Filter</span>
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Date Range Filter</span>
                 <span class="text-[10px] text-slate-400 font-normal">Select From Date and To Date to generate financial metrics</span>
             </h2>
         </div>
@@ -126,7 +131,10 @@
     <!-- Top Performing Products in Period -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
         <div>
-            <h2 class="text-base font-extrabold text-slate-900">🏆 Top Selling Products & Profit Contribution</h2>
+            <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                <span>Top Selling Products & Profit Contribution</span>
+            </h2>
             <p class="text-xs text-slate-500">Breakdown of best-performing inventory items during the selected date window</p>
         </div>
 

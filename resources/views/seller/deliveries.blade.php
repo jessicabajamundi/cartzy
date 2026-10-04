@@ -9,8 +9,10 @@
     <!-- Header & Notification Alert -->
     <div class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-wrap items-center justify-between gap-6 border border-emerald-700/50">
         <div>
-            <div class="flex items-center gap-2">
-                <span class="text-2xl">✅</span>
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                </div>
                 <h1 class="text-2xl font-extrabold font-heading">Confirmed Deliveries & Escrow Release</h1>
             </div>
             <p class="text-xs text-emerald-200 mt-1 max-w-xl leading-relaxed">
@@ -31,7 +33,7 @@
 
     <!-- Notification Highlight Banner -->
     <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3 text-emerald-900 text-xs">
-        <span class="text-2xl">🔔</span>
+        <svg class="w-6 h-6 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
         <div>
             <span class="font-extrabold">Automatic Delivery Notification:</span>
             <span>Once the courier rider completes package handover and the customer confirms receipt via app or OTP, funds are released in real-time with zero hold periods.</span>
@@ -101,8 +103,9 @@
                                 </span>
                             </td>
                             <td class="p-4 text-right">
-                                <a href="{{ route('seller.orders.waybill', $order['id']) }}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition inline-block">
-                                    🖨️ AWB
+                                <a href="{{ route('seller.orders.waybill', $order['id']) }}" target="_blank" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                    <span>AWB</span>
                                 </a>
                             </td>
                         </tr>

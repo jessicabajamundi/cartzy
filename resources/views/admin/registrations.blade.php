@@ -16,7 +16,8 @@
         </div>
         <div class="flex items-center gap-3">
             <span class="text-xs bg-indigo-50 text-indigo-700 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1.5">
-                <span>📧</span> Automated Decision Email Notifier Active
+                <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span>Automated Decision Email Notifier Active</span>
             </span>
         </div>
     </div>
@@ -30,17 +31,17 @@
             <a href="{{ route('admin.registrations', ['role' => 'all', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                 All ({{ count($registrations) }})
             </a>
-            <a href="{{ route('admin.registrations', ['role' => 'seller', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'seller' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                🏬 Sellers
+            <a href="{{ route('admin.registrations', ['role' => 'seller', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ $roleFilter === 'seller' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Sellers
             </a>
-            <a href="{{ route('admin.registrations', ['role' => 'courier', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'courier' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                🛵 Couriers
+            <a href="{{ route('admin.registrations', ['role' => 'courier', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ $roleFilter === 'courier' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5l-3-3h4l2 3h4"/><circle cx="9" cy="5" r="2"/></svg> Couriers
             </a>
-            <a href="{{ route('admin.registrations', ['role' => 'logistics', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'logistics' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                🏭 Logistics
+            <a href="{{ route('admin.registrations', ['role' => 'logistics', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ $roleFilter === 'logistics' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Logistics
             </a>
-            <a href="{{ route('admin.registrations', ['role' => 'buyer', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'buyer' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                👤 Buyers
+            <a href="{{ route('admin.registrations', ['role' => 'buyer', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ $roleFilter === 'buyer' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Buyers
             </a>
         </div>
 
@@ -72,8 +73,16 @@
                 
                 <!-- Left: Applicant Details & Role Badge -->
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-700' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-700' : ($reg['role'] === 'logistics' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700')) }}">
-                        {{ $reg['role'] === 'seller' ? '🏬' : ($reg['role'] === 'courier' ? '🛵' : ($reg['role'] === 'logistics' ? '🏭' : '👤')) }}
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-700' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-700' : ($reg['role'] === 'logistics' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700')) }}">
+                        @if($reg['role'] === 'seller')
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        @elseif($reg['role'] === 'courier')
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5l-3-3h4l2 3h4"/><circle cx="9" cy="5" r="2"/></svg>
+                        @elseif($reg['role'] === 'logistics')
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        @else
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        @endif
                     </div>
 
                     <div>
@@ -83,8 +92,9 @@
                                 {{ $reg['role'] === 'logistics' ? 'Logistics Hub' : $reg['role'] }} Application
                             </span>
                             @if($reg['status'] === 'pending')
-                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
-                                    ⏳ Pending Verification
+                                <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 animate-pulse">
+                                    <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Pending Verification</span>
                                 </span>
                             @elseif($reg['status'] === 'approved')
                                 <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -129,7 +139,7 @@
                             <div class="flex flex-wrap gap-2">
                                 @foreach($reg['documents'] as $doc)
                                 <div class="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium transition cursor-pointer" onclick="openDocPreview('{{ $doc }}', '{{ $reg['name'] }}', '{{ $reg['id_photo'] ?? '' }}')">
-                                    <span>📄</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     <span>{{ $doc }}</span>
                                     <span class="text-indigo-500 text-[10px] ml-1 font-bold">View</span>
                                 </div>
@@ -226,7 +236,9 @@
                     <img id="previewDocImage" src="" alt="Uploaded Document" class="max-h-72 mx-auto rounded-lg shadow-sm border border-slate-200">
                 </div>
                 <div id="previewDocPlaceholder" class="flex flex-col items-center">
-                    <div class="text-5xl mb-2">📄</div>
+                    <div class="mb-2 text-slate-400">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
                     <div class="font-bold text-sm text-slate-900" id="previewDocName"></div>
                 </div>
                 <div class="text-xs text-slate-500" id="previewDocOwner"></div>

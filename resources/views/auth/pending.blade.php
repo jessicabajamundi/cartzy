@@ -23,13 +23,17 @@
     </p>
 
     <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px 20px;margin-bottom:28px;display:inline-block;">
-        <span style="font-size:0.95rem;font-weight:700;color:#065f46;">
-            📧 {{ $pending_email ?: 'your registered email' }}
+        <span style="font-size:0.95rem;font-weight:700;color:#065f46;display:inline-flex;align-items:center;gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <span>{{ $pending_email ?: 'your registered email' }}</span>
         </span>
     </div>
 
     <div style="background:#F1EFF5;border:1.5px solid #E1DDE7;border-radius:10px;padding:14px 20px;margin-bottom:32px;text-align:left;">
-        <p style="font-size:0.82rem;font-weight:700;color:#564B68;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">⏳ What happens next?</p>
+        <p style="font-size:0.82rem;font-weight:700;color:#564B68;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>What happens next?</span>
+        </p>
         <ul style="font-size:0.85rem;color:#6F6382;padding-left:18px;line-height:1.8;margin:0;">
             <li>Our team will review your submitted details and ID.</li>
             <li>You will receive an email once your account is approved.</li>

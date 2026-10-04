@@ -10,9 +10,13 @@
 
     {{-- Profile Card --}}
     <div class="bg-gradient-to-br from-[#0A2E4A] to-[#1A6FA8] rounded-2xl text-white p-6 mb-6 shadow-xl relative overflow-hidden">
-        <div class="absolute -right-6 -top-6 text-8xl opacity-10 select-none">🏭</div>
+        <div class="absolute -right-4 -top-4 opacity-[0.07] select-none">
+            <svg class="w-28 h-28" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="0.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        </div>
         <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-4xl shrink-0">🏭</div>
+            <div class="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
             <div>
                 <div class="text-xl font-black">{{ $hub->business_name ?? $hub->name }}</div>
                 <div class="text-blue-200 text-sm">{{ $hub->email }}</div>
@@ -89,8 +93,9 @@
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition">
-                    🚪 Logout
+                <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Logout</span>
                 </button>
             </form>
         </div>

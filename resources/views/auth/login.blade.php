@@ -113,21 +113,22 @@
 
     <!-- Quick Portal Demo Logins for Easy Evaluation -->
     <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed #E2E8F0; text-align: center;">
-        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block; margin-bottom: 0.6rem;">
-            ⚡ Quick Portal Demo Logins (1-Click Access)
+        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; margin-bottom: 0.6rem;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Quick Portal Demo Logins (1-Click Access)</span>
         </span>
         <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
             <a href="{{ route('demo.login', 'seller') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
-                <span>🏬 Seller Centre</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Seller Centre</span>
             </a>
             <a href="{{ route('demo.login', 'admin') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
-                <span>🛡️ Super Admin</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Super Admin</span>
             </a>
             <a href="{{ route('demo.login', 'courier') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
-                <span>🛵 Courier Hub</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M12 18v-5l-3-3h4l2 3h4"/><circle cx="9" cy="5" r="2"/></svg> Courier Hub</span>
             </a>
             <a href="{{ route('demo.login', 'logistics') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
-                <span>🏭 Logistics Hub</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg> Logistics Hub</span>
             </a>
         </div>
     </div>

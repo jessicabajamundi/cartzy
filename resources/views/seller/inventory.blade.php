@@ -14,10 +14,12 @@
         </div>
         <div class="flex items-center gap-3">
             <button type="button" onclick="document.getElementById('addProductModal').classList.remove('hidden')" class="bg-[#6F6382] hover:bg-[#564B68] text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2">
-                <span>➕ Add New Product</span>
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Add New Product</span>
             </button>
             <button type="button" onclick="document.getElementById('addVoucherModal').classList.remove('hidden')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2">
-                <span>🎟️ Create Shop Voucher</span>
+                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+                <span>Create Shop Voucher</span>
             </button>
         </div>
     </div>
@@ -30,14 +32,17 @@
         <a href="{{ route('seller.inventory', ['tab' => 'active']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $tab === 'active' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
             ✓ Active Products ({{ $counts['active'] }})
         </a>
-        <a href="{{ route('seller.inventory', ['tab' => 'low_stock']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $tab === 'low_stock' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            ⚠️ Low Stock Alert ({{ $counts['low_stock'] }})
+        <a href="{{ route('seller.inventory', ['tab' => 'low_stock']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap inline-flex items-center gap-1.5 {{ $tab === 'low_stock' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>Low Stock Alert ({{ $counts['low_stock'] }})</span>
         </a>
-        <a href="{{ route('seller.inventory', ['tab' => 'archived']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $tab === 'archived' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            📁 Archived Items ({{ $counts['archived'] }})
+        <a href="{{ route('seller.inventory', ['tab' => 'archived']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap inline-flex items-center gap-1.5 {{ $tab === 'archived' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+            <span>Archived Items ({{ $counts['archived'] }})</span>
         </a>
-        <a href="{{ route('seller.inventory', ['tab' => 'vouchers']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $tab === 'vouchers' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            🎟️ Shop Vouchers ({{ $counts['vouchers'] }})
+        <a href="{{ route('seller.inventory', ['tab' => 'vouchers']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap inline-flex items-center gap-1.5 {{ $tab === 'vouchers' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
+            <span>Shop Vouchers ({{ $counts['vouchers'] }})</span>
         </a>
     </div>
 
@@ -132,8 +137,9 @@
                                             {{ $product['stock'] }} units (Critical)
                                         </span>
                                     @elseif($product['stock'] <= 10)
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200">
-                                            ⚠️ {{ $product['stock'] }} units (Low)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200">
+                                            <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>{{ $product['stock'] }} units (Low)</span>
                                         </span>
                                     @else
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -143,7 +149,10 @@
                                 </td>
                                 <td class="p-4">
                                     <div class="font-bold text-slate-800">{{ $product['sales_count'] ?? 0 }} sold</div>
-                                    <div class="text-[11px] text-amber-500 font-bold">⭐ {{ $product['rating'] ?? 5.0 }}</div>
+                                    <div class="text-[11px] text-amber-500 font-bold inline-flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                        <span>{{ $product['rating'] ?? 5.0 }}</span>
+                                    </div>
                                 </td>
                                 <td class="p-4">
                                     @if(($product['status'] ?? 'active') === 'active')

@@ -118,7 +118,7 @@
         </p>
 
         <div class="security-badge">
-            🔒 <strong>Security Notice:</strong> If you did not request this verification code, please ignore this email.
+            <strong>Security Notice:</strong> If you did not request this verification code, please ignore this email.
         </div>
 
         <div class="footer">

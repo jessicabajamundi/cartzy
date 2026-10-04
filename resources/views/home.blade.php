@@ -205,7 +205,8 @@
         <div class="p-5 sm:p-6 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <span class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-                    ⚡ FLASH DEALS
+                    <svg class="w-6 h-6 text-amber-500 fill-amber-500" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span>FLASH DEALS</span>
                 </span>
                 <!-- Countdown Timer -->
                 <div class="flex items-center gap-1.5 text-xs sm:text-sm font-bold" id="flash-sale-timer">
@@ -341,7 +342,9 @@
     <!-- Search Results Announcement Bar (Dynamically shown when searching) -->
     <div id="search-results-banner" class="hidden bg-gray-900 text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-800 flex flex-wrap items-center justify-between gap-3 w-full">
         <div class="flex items-center gap-3">
-            <span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-lg shrink-0">🔍</span>
+            <span class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </span>
             <div>
                 <p class="text-[11px] text-gray-400 font-medium uppercase tracking-wider">Marketplace Search</p>
                 <h3 class="text-sm sm:text-base font-bold text-white">
@@ -359,7 +362,9 @@
 
     <!-- No Search Results Fallback Card -->
     <div id="no-search-results" class="hidden bg-white rounded-2xl p-8 sm:p-12 text-center border border-gray-200 shadow-2xs w-full flex-col items-center justify-center">
-        <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-2xl mb-3">👟</div>
+        <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-3">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
         <h3 class="text-base sm:text-lg font-bold text-gray-900">No matching products found</h3>
         <p class="text-xs sm:text-sm text-gray-500 mt-1 max-w-md">Try searching with a different term like "Nike", "Adidas", "Jordan", "Ultraboost", "Watch", or "Earphones".</p>
         <button type="button" onclick="clearSearch()" class="mt-4 bg-black hover:bg-gray-800 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition shadow-xs">
@@ -372,8 +377,8 @@
         <!-- Section Header -->
         <div class="bg-white rounded-2xl p-5 sm:p-6 border border-gray-200 shadow-2xs flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3.5">
-                <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center text-xl shrink-0 shadow-xs">
-                    👟
+                <div class="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">

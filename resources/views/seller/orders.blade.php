@@ -25,20 +25,25 @@
         <a href="{{ route('seller.orders', ['status' => 'all']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $statusFilter === 'all' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
             All Orders ({{ $counts['all'] }})
         </a>
-        <a href="{{ route('seller.orders', ['status' => 'new']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $statusFilter === 'new' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            🔴 New Orders ({{ $counts['new'] }})
+        <a href="{{ route('seller.orders', ['status' => 'new']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 {{ $statusFilter === 'new' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>New Orders ({{ $counts['new'] }})</span>
         </a>
-        <a href="{{ route('seller.orders', ['status' => 'to_pack']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $statusFilter === 'to_pack' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            🟡 To Pack ({{ $counts['to_pack'] }})
+        <a href="{{ route('seller.orders', ['status' => 'to_pack']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 {{ $statusFilter === 'to_pack' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>To Pack ({{ $counts['to_pack'] }})</span>
         </a>
-        <a href="{{ route('seller.orders', ['status' => 'ready_pickup']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $statusFilter === 'ready_pickup' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            🔵 Ready for Pickup ({{ $counts['ready_pickup'] }})
+        <a href="{{ route('seller.orders', ['status' => 'ready_pickup']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 {{ $statusFilter === 'ready_pickup' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>Ready for Pickup ({{ $counts['ready_pickup'] }})</span>
         </a>
-        <a href="{{ route('seller.orders', ['status' => 'in_transit']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $statusFilter === 'in_transit' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            🟣 In Transit ({{ $counts['in_transit'] }})
+        <a href="{{ route('seller.orders', ['status' => 'in_transit']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 {{ $statusFilter === 'in_transit' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span>In Transit ({{ $counts['in_transit'] }})</span>
         </a>
-        <a href="{{ route('seller.orders', ['status' => 'delivered']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap {{ $statusFilter === 'delivered' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
-            🟢 Delivered ({{ $counts['delivered'] }})
+        <a href="{{ route('seller.orders', ['status' => 'delivered']) }}" class="px-4 py-2 rounded-xl transition whitespace-nowrap flex items-center gap-1.5 {{ $statusFilter === 'delivered' ? 'bg-[#6F6382] text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200' }}">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Delivered ({{ $counts['delivered'] }})</span>
         </a>
     </div>
 
@@ -72,16 +77,19 @@
                                 New Order (Action Required)
                             </span>
                         @elseif($order['status'] === 'to_pack')
-                            <span class="px-3 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200">
-                                🟡 Preparing Items
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span>Preparing Items</span>
                             </span>
                         @elseif($order['status'] === 'ready_pickup')
-                            <span class="px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
-                                🔵 Ready for Courier Pickup
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <span>Ready for Courier Pickup</span>
                             </span>
                         @elseif($order['status'] === 'in_transit')
-                            <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-50 text-purple-700 border border-purple-200">
-                                🟣 In Transit With Courier
+                            <span class="px-3 py-1 rounded-full text-xs font-black bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                                <span>In Transit With Courier</span>
                             </span>
                         @elseif($order['status'] === 'delivered')
                             <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -118,8 +126,9 @@
                         <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Customer & Shipping</div>
                         <div class="font-extrabold text-slate-900 text-sm">{{ $order['buyer_name'] }}</div>
                         <div class="text-slate-500 font-medium">{{ $order['buyer_phone'] }}</div>
-                        <p class="text-slate-600 leading-relaxed mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                            📍 {{ $order['shipping_address'] }}
+                        <p class="text-slate-600 leading-relaxed mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex items-start gap-1.5">
+                            <svg class="w-4 h-4 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span>{{ $order['shipping_address'] }}</span>
                         </p>
                     </div>
 
@@ -159,20 +168,23 @@
                                 <form action="{{ route('seller.orders.pack', $order['id']) }}" method="POST" class="m-0">
                                     @csrf
                                     <button type="submit" class="w-full bg-[#6F6382] hover:bg-[#564B68] text-white text-xs font-bold py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
-                                        <span>📦 Pack & Ready Order</span>
+                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                        <span>Pack & Ready Order</span>
                                     </button>
                                 </form>
                             @endif
 
                             @if($order['status'] === 'ready_pickup')
                                 <a href="{{ route('seller.courier') }}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
-                                    <span>🚚 Schedule Courier Pickup</span>
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                    <span>Schedule Courier Pickup</span>
                                 </a>
                             @endif
 
                             <div class="flex items-center gap-2">
-                                <a href="{{ route('seller.orders.waybill', $order['id']) }}" target="_blank" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl transition text-center flex items-center justify-center gap-1">
-                                    <span>🖨️ Print Waybill</span>
+                                <a href="{{ route('seller.orders.waybill', $order['id']) }}" target="_blank" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl transition text-center flex items-center justify-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                    <span>Print Waybill</span>
                                 </a>
                                 <button type="button" onclick="openOrderModal('{{ $order['id'] }}')" class="px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-xl transition">
                                     Details
@@ -187,7 +199,9 @@
             </div>
         @empty
             <div class="bg-white p-12 rounded-3xl border border-slate-200 text-center">
-                <div class="text-4xl mb-3">📦</div>
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
                 <h3 class="text-base font-extrabold text-slate-800">No Orders in this Status</h3>
                 <p class="text-xs text-slate-500 mt-1">There are currently no orders under "{{ ucfirst($statusFilter) }}".</p>
                 <a href="{{ route('seller.orders', ['status' => 'all']) }}" class="mt-4 inline-block text-xs font-bold text-[#6F6382] hover:underline">

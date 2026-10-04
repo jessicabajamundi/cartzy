@@ -98,7 +98,9 @@
                 </svg>
             </button>
             <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-lg bg-[#6F6382] text-white flex items-center justify-center font-black text-sm">🛡️</span>
+                <span class="w-8 h-8 rounded-lg bg-[#6F6382] text-white flex items-center justify-center font-black text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                </span>
                 <span class="font-bold text-sm tracking-wide">SUPER ADMIN</span>
             </div>
         </div>
@@ -162,7 +164,7 @@
 
                 <!-- 1. Dashboard -->
                 <a href="{{ route('admin.dashboard') }}" title="Dashboard & Overview" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.dashboard') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span class="text-xl shrink-0">📊</span>
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     <span class="tracking-wide sidebar-full-only truncate">Dashboard & Overview</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
                         Dashboard & Overview
@@ -176,7 +178,7 @@
                 <!-- 2. Manage Registrations -->
                 <a href="{{ route('admin.registrations') }}" title="Account Registrations (KYC)" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.registrations*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3.5 truncate">
-                        <span class="text-xl shrink-0">📝</span>
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         <span class="tracking-wide sidebar-full-only truncate">Account Registrations</span>
                     </div>
                     <span class="sidebar-full-only bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full shadow-xs">KYC</span>
@@ -187,7 +189,7 @@
 
                 <!-- 3. Manage User Accounts -->
                 <a href="{{ route('admin.users') }}" title="User Accounts" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.users*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span class="text-xl shrink-0">👥</span>
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     <span class="tracking-wide sidebar-full-only truncate">User Accounts</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
                         User Accounts
@@ -201,7 +203,7 @@
                 <!-- 4. Monitor Seller Compliance -->
                 <a href="{{ route('admin.compliance') }}" title="Seller Compliance" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.compliance*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3.5 truncate">
-                        <span class="text-xl shrink-0">🛡️</span>
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                         <span class="tracking-wide sidebar-full-only truncate">Seller Compliance</span>
                     </div>
                     <span class="sidebar-full-only bg-rose-50 text-rose-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-rose-200">Audit</span>
@@ -213,7 +215,7 @@
                 <!-- 5. Manage Complaints & Disputes -->
                 <a href="{{ route('admin.disputes') }}" title="Complaints & Disputes" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.disputes*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3.5 truncate">
-                        <span class="text-xl shrink-0">⚖️</span>
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                         <span class="tracking-wide sidebar-full-only truncate">Complaints & Disputes</span>
                     </div>
                     <span class="sidebar-full-only bg-amber-50 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-200">3-Way</span>
@@ -229,7 +231,7 @@
                 <!-- 6. Manage Commission (10%) -->
                 <a href="{{ route('admin.commission') }}" title="Platform Commission" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.commission*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3.5 truncate">
-                        <span class="text-xl shrink-0">💰</span>
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         <span class="tracking-wide sidebar-full-only truncate">Platform Commission</span>
                     </div>
                     <span class="sidebar-full-only bg-emerald-50 text-emerald-700 text-xs font-black px-2.5 py-1 rounded-lg border border-emerald-200">10%</span>
@@ -240,7 +242,7 @@
 
                 <!-- 7. Generate Reports -->
                 <a href="{{ route('admin.reports') }}" title="Generate Reports" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.reports*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span class="text-xl shrink-0">📑</span>
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <span class="tracking-wide sidebar-full-only truncate">Generate Reports</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
                         Generate Reports
@@ -254,7 +256,7 @@
                 <!-- 8. Chat / Messaging -->
                 <a href="{{ route('admin.chat') }}" title="Chat & Messaging" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.chat*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3.5 truncate">
-                        <span class="text-xl shrink-0">💬</span>
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                         <span class="tracking-wide sidebar-full-only truncate">Chat & Messaging</span>
                     </div>
                     <span class="sidebar-full-only w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -265,7 +267,7 @@
 
                 <!-- 9. Manage Platform Settings -->
                 <a href="{{ route('admin.settings') }}" title="Platform Settings" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.settings*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span class="text-xl shrink-0">⚙️</span>
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     <span class="tracking-wide sidebar-full-only truncate">Platform Settings</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
                         Platform Settings
@@ -274,7 +276,7 @@
 
                 <!-- 10. Account Management -->
                 <a href="{{ route('admin.account') }}" title="Account Profile" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.account*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span class="text-xl shrink-0">👤</span>
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span class="tracking-wide sidebar-full-only truncate">Account Profile</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
                         Account Profile
@@ -353,7 +355,8 @@
                 <div class="flex items-center gap-3">
                     
                     <a href="/" target="_blank" class="hidden sm:flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg transition border border-slate-200">
-                        <span>🏬 View Storefront</span>
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <span>View Storefront</span>
                         <span class="text-slate-400">&rarr;</span>
                     </a>
 
@@ -370,14 +373,17 @@
                         <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden text-xs">
                             <div class="p-3.5 bg-slate-900 text-white flex items-center justify-between">
                                 <div class="font-bold flex items-center gap-2">
-                                    <span>🔔 Notifications</span>
+                                    <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                    <span>Notifications</span>
                                     <span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">4 New</span>
                                 </div>
                                 <span class="text-[11px] text-slate-400">Live Platform Feed</span>
                             </div>
                             <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
                                 <a href="{{ route('admin.registrations') }}" class="p-3 hover:bg-slate-50 flex items-start gap-3 transition">
-                                    <span class="text-base p-1.5 bg-amber-50 text-amber-600 rounded-lg">📝</span>
+                                    <span class="p-1.5 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </span>
                                     <div>
                                         <div class="font-bold text-slate-900">New Seller KYC Submission</div>
                                         <p class="text-slate-500 text-[11px] mt-0.5">TechZone Gadgets submitted DTI & BIR 2303 for verification.</p>
@@ -385,7 +391,9 @@
                                     </div>
                                 </a>
                                 <a href="{{ route('admin.disputes') }}" class="p-3 hover:bg-slate-50 flex items-start gap-3 transition">
-                                    <span class="text-base p-1.5 bg-rose-50 text-rose-600 rounded-lg">⚖️</span>
+                                    <span class="p-1.5 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                                    </span>
                                     <div>
                                         <div class="font-bold text-slate-900">Dispute Escalated</div>
                                         <p class="text-slate-500 text-[11px] mt-0.5">Buyer #BY-9021 filed dispute: Item Damaged during Transit.</p>
@@ -393,7 +401,9 @@
                                     </div>
                                 </a>
                                 <a href="{{ route('admin.compliance') }}" class="p-3 hover:bg-slate-50 flex items-start gap-3 transition">
-                                    <span class="text-base p-1.5 bg-[#F1EFF5] text-[#6F6382] rounded-lg border border-[#E1DDE7]">🛡️</span>
+                                    <span class="p-1.5 bg-[#F1EFF5] text-[#6F6382] rounded-lg border border-[#E1DDE7] flex items-center justify-center">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    </span>
                                     <div>
                                         <div class="font-bold text-slate-900">Seller Compliance Alert</div>
                                         <p class="text-slate-500 text-[11px] mt-0.5">ShoeHaven listed "Replica Sneakers" under Footwear.</p>
@@ -427,7 +437,7 @@
                 @if(session('success'))
                     <div id="flash-alert-success" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center justify-between shadow-2xs transition-all duration-700">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-base">✅</span>
+                            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span class="font-bold text-sm">{{ session('success') }}</span>
                         </div>
                         <button onclick="dismissAlert('flash-alert-success')" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm">✕</button>
@@ -437,7 +447,7 @@
                 @if(session('info'))
                     <div id="flash-alert-info" class="mb-4 p-4 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs rounded-xl flex items-center justify-between shadow-2xs transition-all duration-700">
                         <div class="flex items-center gap-2.5">
-                            <span class="text-base">ℹ️</span>
+                            <svg class="w-5 h-5 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span class="font-bold text-sm">{{ session('info') }}</span>
                         </div>
                         <button onclick="dismissAlert('flash-alert-info')" class="text-indigo-600 hover:text-indigo-900 font-bold text-sm">✕</button>

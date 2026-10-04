@@ -11,7 +11,8 @@
         <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
                 <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
-                    <span>📢</span> Post Platform Announcement / Banner
+                    <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+                    <span>Post Platform Announcement / Banner</span>
                 </h2>
                 <p class="text-xs text-slate-500 mt-0.5">Broadcast important operational updates, flash campaigns, or rider notices to users.</p>
             </div>
@@ -23,15 +24,15 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-bold text-slate-700 mb-1">Announcement Headline:</label>
-                    <input type="text" name="title" required placeholder="e.g. ⚡ System Maintenance Schedule or Payday Flash Sale" class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600">
+                    <input type="text" name="title" required placeholder="e.g. System Maintenance Schedule or Payday Flash Sale" class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Target Audience:</label>
                     <select name="target" class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600 bg-white">
-                        <option value="all">🌐 All Users (Buyers, Sellers, Couriers)</option>
-                        <option value="sellers">🏬 Merchants & Sellers Only</option>
-                        <option value="couriers">🛵 Express Couriers / Riders Only</option>
-                        <option value="buyers">🛍️ Buyers Only</option>
+                        <option value="all">All Users (Buyers, Sellers, Couriers)</option>
+                        <option value="sellers">Merchants & Sellers Only</option>
+                        <option value="couriers">Express Couriers / Riders Only</option>
+                        <option value="buyers">Buyers Only</option>
                     </select>
                 </div>
             </div>
@@ -43,7 +44,8 @@
 
             <div class="flex justify-end">
                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
-                    <span>🚀 Publish Live Announcement</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    <span>Publish Live Announcement</span>
                 </button>
             </div>
         </form>
@@ -77,7 +79,8 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-6">
         <div class="pb-3 border-b border-slate-100">
             <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
-                <span>📜</span> Platform Policies, Rules & Commission Engine
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Platform Policies, Rules & Commission Engine</span>
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">Configure operational thresholds, platform terms, and merchant compliance guidelines.</p>
         </div>

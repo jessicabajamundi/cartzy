@@ -416,7 +416,8 @@
 
                     <!-- Marketplace Link -->
                     <a href="{{ route('home') }}" target="_blank" class="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-slate-200">
-                        <span>🛍️ View Storefront</span>
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        <span>View Storefront</span>
                     </a>
 
                     <!-- Notification Pill -->
@@ -444,7 +445,7 @@
                 @if(session('success'))
                     <div class="p-4 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-bold flex items-center justify-between shadow-xs">
                         <div class="flex items-center gap-2">
-                            <span>✅</span>
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             <span>{{ session('success') }}</span>
                         </div>
                         <button type="button" onclick="this.parentElement.remove()" class="text-emerald-600 hover:text-emerald-900 font-black">&times;</button>
@@ -454,7 +455,7 @@
                 @if(session('info'))
                     <div class="p-4 mb-4 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-800 text-sm font-bold flex items-center justify-between shadow-xs">
                         <div class="flex items-center gap-2">
-                            <span>ℹ️</span>
+                            <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <span>{{ session('info') }}</span>
                         </div>
                         <button type="button" onclick="this.parentElement.remove()" class="text-indigo-600 hover:text-indigo-900 font-black">&times;</button>

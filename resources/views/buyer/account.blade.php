@@ -45,7 +45,7 @@
         @if(session('warning'))
             <div class="mb-6 bg-amber-50 border border-amber-300 text-amber-900 text-sm sm:text-base px-5 py-3.5 rounded-2xl flex items-center justify-between shadow-2xs">
                 <div class="flex items-center gap-3">
-                    <span class="text-xl shrink-0">⚠️</span>
+                    <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     <div>
                         <div class="font-bold text-amber-950">Action Required</div>
                         <div class="text-xs sm:text-sm text-amber-800 mt-0.5">{{ session('warning') }}</div>
@@ -84,8 +84,8 @@
                                     {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
                                 @endif
                             </div>
-                            <button type="button" onclick="document.getElementById('sidebarAvatarInput').click()" title="Change photo" class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-sm">
-                                📷
+                            <button type="button" onclick="document.getElementById('sidebarAvatarInput').click()" title="Change photo" class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </button>
                             <form id="sidebarAvatarForm" action="{{ route('account.avatar.update') }}" method="POST" enctype="multipart/form-data" class="hidden">
                                 @csrf
@@ -171,7 +171,10 @@
                                 <div class="border border-gray-200 rounded-2xl p-5 hover:border-gray-300 transition bg-white shadow-2xs space-y-4">
                                     <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm font-black text-gray-900">🏬 {{ $order['store_name'] }}</span>
+                                            <span class="text-sm font-black text-gray-900 inline-flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                                <span>{{ $order['store_name'] }}</span>
+                                            </span>
                                             <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800">{{ $order['store_badge'] }}</span>
                                         </div>
                                         <div class="flex items-center gap-2 text-xs">
@@ -429,7 +432,9 @@
 
                             @if(empty($addresses))
                                 <div class="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl">
-                                    <div class="text-4xl mb-2">📍</div>
+                                    <div class="mb-2 text-gray-400 flex justify-center">
+                                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                    </div>
                                     <p class="font-bold text-gray-800 text-sm sm:text-base">No saved addresses yet</p>
                                     <p class="text-xs text-gray-500 mt-0.5 mb-4">Add a delivery address for faster checkout</p>
                                     <button type="button" onclick="openAddressModal()" class="bg-black hover:bg-zinc-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition inline-flex items-center gap-1.5 uppercase tracking-wider">

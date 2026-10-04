@@ -55,7 +55,8 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-6 space-y-4">
         <div class="flex items-center justify-between">
             <h3 class="font-black text-sm text-slate-900 flex items-center gap-2">
-                <span>🧮</span> Interactive 10% Platform Commission Calculator
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span>Interactive 10% Platform Commission Calculator</span>
             </h3>
             <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-bold">Simulate Any Order Gross</span>
         </div>

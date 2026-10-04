@@ -14,7 +14,8 @@
             <div class="p-4 border-b border-slate-200">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="font-black text-sm text-slate-900 flex items-center gap-2">
-                        <span>💬</span> Direct Messages
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                        <span>Direct Messages</span>
                     </h2>
                     <span class="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2 py-0.5 rounded-full">
                         {{ count($contacts) }} Active
@@ -126,9 +127,18 @@
                 <!-- Quick Canned Replies -->
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 text-[11px]">
                     <span class="text-slate-400 font-bold mr-1">Quick:</span>
-                    <button type="button" onclick="setQuickMessage('Your KYC documents have been reviewed and approved.')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg shrink-0">✓ KYC Approved</button>
-                    <button type="button" onclick="setQuickMessage('Please re-upload a clear copy of your Mayor Permit 2026.')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg shrink-0">📄 Request Re-upload</button>
-                    <button type="button" onclick="setQuickMessage('Your dispute refund has been approved and credited.')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg shrink-0">💸 Refund Issued</button>
+                    <button type="button" onclick="setQuickMessage('Your KYC documents have been reviewed and approved.')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg shrink-0 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>KYC Approved</span>
+                    </button>
+                    <button type="button" onclick="setQuickMessage('Please re-upload a clear copy of your Mayor Permit 2026.')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg shrink-0 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>Request Re-upload</span>
+                    </button>
+                    <button type="button" onclick="setQuickMessage('Your dispute refund has been approved and credited.')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg shrink-0 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Refund Issued</span>
+                    </button>
                 </div>
 
                 <form action="{{ route('admin.chat.send', $currentContact['id']) }}" method="POST" class="flex items-center gap-2">
