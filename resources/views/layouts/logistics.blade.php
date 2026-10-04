@@ -255,42 +255,55 @@
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Account Management</span>
                 </a>
 
-                <!-- Logout -->
-                <form method="POST" action="{{ route('logout') }}" class="mt-2">
-                    @csrf
-                    <button type="submit" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition text-slate-500 hover:bg-rose-50 hover:text-rose-600 group relative">
-                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                        </div>
-                        <span class="sidebar-full-only truncate">Logout</span>
-                        <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Logout</span>
-                    </button>
-                </form>
             </div>
 
             <!-- User Card -->
             <div class="user-card-full border-t border-slate-200 p-3 shrink-0 bg-slate-50">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-white shrink-0 shadow-xs">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-9 h-9 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-white shrink-0 shadow-xs">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-slate-800 truncate" title="{{ Auth::user()->business_name ?? Auth::user()->name }}">{{ Auth::user()->business_name ?? Auth::user()->name }}</div>
+                            <div class="text-[11px] text-slate-500 flex items-center gap-1 font-medium mt-0.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                <span class="truncate">{{ Auth::user()->email }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="text-xs font-bold text-slate-800 truncate">{{ Auth::user()->business_name ?? Auth::user()->name }}</div>
-                        <div class="text-[11px] text-slate-500 truncate">{{ Auth::user()->email }}</div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <span class="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">LIVE</span>
+                        <form method="POST" action="{{ route('logout') }}" class="m-0">
+                            @csrf
+                            <button type="submit" title="Logout" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 active:scale-95 rounded-lg transition flex items-center justify-center group" aria-label="Logout">
+                                <svg class="w-4 h-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                            </button>
+                        </form>
                     </div>
-                    <span class="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">LIVE</span>
                 </div>
             </div>
-            <div class="user-card-mini hidden border-t border-slate-200 p-2.5 justify-center shrink-0">
-                <div class="w-8 h-8 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-white shadow-xs">
+            <div class="user-card-mini hidden border-t border-slate-200 p-2.5 flex-col items-center gap-2 justify-center shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-white shadow-xs" title="{{ Auth::user()->business_name ?? Auth::user()->name }}">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                 </div>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    @csrf
+                    <button type="submit" title="Logout" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 active:scale-95 rounded-lg transition flex items-center justify-center group relative" aria-label="Logout">
+                        <svg class="w-4 h-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 group-hover:block bg-slate-900 text-white text-xs font-semibold px-2 py-1 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
+                            Logout
+                        </span>
+                    </button>
+                </form>
             </div>
         </aside>
 
