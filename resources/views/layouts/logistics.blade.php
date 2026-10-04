@@ -92,116 +92,163 @@
             </div>
 
             <!-- Navigation -->
-            <div class="flex-1 overflow-y-auto sidebar-scroll min-h-0 px-3 py-4 space-y-1 text-[14px]">
+            <div class="flex-1 overflow-y-auto sidebar-scroll min-h-0 px-3 py-3 space-y-1 text-[13.5px]">
 
                 <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-wider text-blue-400 block">OVERVIEW</span>
+                    <span class="sidebar-full-only px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70 block">Overview</span>
                 </div>
 
                 <!-- Dashboard -->
-                <a href="{{ route('logistics.dashboard') }}" title="Dashboard" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.dashboard') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
-                    <span class="text-lg shrink-0">📊</span>
+                <a href="{{ route('logistics.dashboard') }}" title="Dashboard" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.dashboard') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.dashboard') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                            <rect x="3" y="3" width="7" height="9" rx="1.5"/>
+                            <rect x="14" y="3" width="7" height="5" rx="1.5"/>
+                            <rect x="14" y="12" width="7" height="9" rx="1.5"/>
+                            <rect x="3" y="16" width="7" height="5" rx="1.5"/>
+                        </svg>
+                    </div>
                     <span class="sidebar-full-only truncate">Dashboard</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Dashboard</span>
                 </a>
 
                 <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-[10px] font-black uppercase tracking-wider text-blue-400 block">RIDER MANAGEMENT</span>
+                    <span class="sidebar-full-only px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70 block">Rider Management</span>
                 </div>
 
                 <!-- Riders -->
-                <a href="{{ route('logistics.riders') }}" title="Rider Management" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.riders*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.riders') }}" title="Rider Management" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.riders*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">🛵</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.riders*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <circle cx="5" cy="18" r="3"/>
+                                <circle cx="19" cy="18" r="3"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5l-3-3h4l2 3h4"/>
+                                <circle cx="9" cy="5" r="2"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Rider Management</span>
                     </div>
-                    <span class="sidebar-full-only bg-amber-500 text-white text-xs font-black px-2 py-0.5 rounded-full">3</span>
+                    <span class="sidebar-full-only bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Rider Management</span>
                 </a>
 
                 <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-[10px] font-black uppercase tracking-wider text-blue-400 block">PARCEL OPERATIONS</span>
+                    <span class="sidebar-full-only px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70 block">Parcel Operations</span>
                 </div>
 
                 <!-- Pickup Requests -->
-                <a href="{{ route('logistics.pickups') }}" title="Pickup Requests" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.pickups*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.pickups') }}" title="Pickup Requests" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.pickups*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">📥</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.pickups*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Pickup Requests</span>
                     </div>
-                    <span class="sidebar-full-only bg-rose-500 text-white text-xs font-black px-2 py-0.5 rounded-full">New</span>
+                    <span class="sidebar-full-only bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">New</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Pickup Requests</span>
                 </a>
 
                 <!-- Incoming Parcels -->
-                <a href="{{ route('logistics.parcels') }}" title="Incoming Parcels" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.parcels*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.parcels') }}" title="Incoming Parcels" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.parcels*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">📦</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.parcels*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Incoming Parcels</span>
                     </div>
-                    <span class="sidebar-full-only bg-sky-600 text-white text-xs font-bold px-2 py-0.5 rounded-lg">187</span>
+                    <span class="sidebar-full-only bg-sky-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg">187</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Incoming Parcels</span>
                 </a>
 
                 <!-- Sorting -->
-                <a href="{{ route('logistics.sorting') }}" title="Sort Parcels" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.sorting*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.sorting') }}" title="Sort Parcels" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.sorting*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">🗂️</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.sorting*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Sorting of Parcels</span>
                     </div>
-                    <span class="sidebar-full-only bg-violet-600 text-white text-xs font-bold px-2 py-0.5 rounded-lg">Sort</span>
+                    <span class="sidebar-full-only bg-violet-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-lg">Sort</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Sorting of Parcels</span>
                 </a>
 
                 <!-- Delivery Assignment -->
-                <a href="{{ route('logistics.assignments') }}" title="Delivery Assignment" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.assignments*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.assignments') }}" title="Delivery Assignment" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.assignments*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">📋</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.assignments*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Delivery Assignment</span>
                     </div>
-                    <span class="sidebar-full-only bg-emerald-600 text-white text-xs font-bold px-2 py-0.5 rounded-lg">Assign</span>
+                    <span class="sidebar-full-only bg-emerald-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-lg">Assign</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Delivery Assignment</span>
                 </a>
 
                 <!-- Delivery Monitoring -->
-                <a href="{{ route('logistics.monitoring') }}" title="Delivery Monitoring" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.monitoring*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.monitoring') }}" title="Delivery Monitoring" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.monitoring*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">📡</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.monitoring*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Delivery Monitoring</span>
                     </div>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Delivery Monitoring</span>
                 </a>
 
                 <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-[10px] font-black uppercase tracking-wider text-blue-400 block">ANALYTICS & COMMS</span>
+                    <span class="sidebar-full-only px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70 block">Analytics & Comms</span>
                 </div>
 
                 <!-- Reports -->
-                <a href="{{ route('logistics.reports') }}" title="Reports" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.reports*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.reports') }}" title="Reports" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.reports*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">📑</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.reports*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Reports</span>
                     </div>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Reports</span>
                 </a>
 
                 <!-- Chat -->
-                <a href="{{ route('logistics.chat') }}" title="Chat" class="nav-item flex items-center justify-between px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.chat*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                <a href="{{ route('logistics.chat') }}" title="Chat" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.chat*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
                     <div class="flex items-center gap-3 truncate">
-                        <span class="text-lg shrink-0">💬</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.chat*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Chat / Messaging</span>
                     </div>
-                    <span class="sidebar-full-only bg-rose-500 text-white text-xs font-black px-2 py-0.5 rounded-full">3</span>
+                    <span class="sidebar-full-only bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">3</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Chat / Messaging</span>
                 </a>
 
                 <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-[10px] font-black uppercase tracking-wider text-blue-400 block">ACCOUNT</span>
+                    <span class="sidebar-full-only px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-300/70 block">Account</span>
                 </div>
 
                 <!-- Account -->
-                <a href="{{ route('logistics.account') }}" title="Account" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition group relative {{ request()->routeIs('logistics.account*') ? 'bg-[#1A6FA8] text-white shadow-lg' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
-                    <span class="text-lg shrink-0">⚙️</span>
+                <a href="{{ route('logistics.account') }}" title="Account" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.account*') ? 'bg-[#1A6FA8] text-white shadow-sm' : 'text-slate-300 hover:bg-blue-900/60 hover:text-white' }}">
+                    <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.account*') ? 'bg-white/20 text-white' : 'text-blue-300 group-hover:text-white' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
                     <span class="sidebar-full-only truncate">Account Management</span>
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Account Management</span>
                 </a>
@@ -209,8 +256,12 @@
                 <!-- Logout -->
                 <form method="POST" action="{{ route('logout') }}" class="mt-2">
                     @csrf
-                    <button type="submit" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold transition text-slate-400 hover:bg-rose-900/40 hover:text-rose-300 group relative">
-                        <span class="text-lg shrink-0">🚪</span>
+                    <button type="submit" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition text-slate-400 hover:bg-rose-900/40 hover:text-rose-300 group relative">
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                        </div>
                         <span class="sidebar-full-only truncate">Logout</span>
                         <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Logout</span>
                     </button>
@@ -218,20 +269,26 @@
             </div>
 
             <!-- User Card -->
-            <div class="user-card-full border-t border-blue-900 p-4 shrink-0 bg-blue-950/40">
+            <div class="user-card-full border-t border-blue-900 p-3 shrink-0 bg-blue-950/40">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-xl font-black text-white shrink-0">
-                        🏭
+                    <div class="w-9 h-9 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-white shrink-0 shadow-xs">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="text-sm font-bold text-white truncate">{{ Auth::user()->business_name ?? Auth::user()->name }}</div>
-                        <div class="text-xs text-blue-300 truncate">{{ Auth::user()->email }}</div>
+                        <div class="text-xs font-bold text-white truncate">{{ Auth::user()->business_name ?? Auth::user()->name }}</div>
+                        <div class="text-[11px] text-blue-300 truncate">{{ Auth::user()->email }}</div>
                     </div>
-                    <span class="bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shrink-0">LIVE</span>
+                    <span class="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full shrink-0">LIVE</span>
                 </div>
             </div>
-            <div class="user-card-mini hidden border-t border-blue-900 p-3 justify-center shrink-0">
-                <div class="w-9 h-9 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-lg font-black text-white">🏭</div>
+            <div class="user-card-mini hidden border-t border-blue-900 p-2.5 justify-center shrink-0">
+                <div class="w-8 h-8 rounded-xl bg-[#1A6FA8] flex items-center justify-center text-white shadow-xs">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
             </div>
         </aside>
 
