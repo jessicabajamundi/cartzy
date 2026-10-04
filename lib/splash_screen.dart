@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'cartzy_colors.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onFinished;
@@ -18,6 +18,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _finish() async {
+
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
     widget.onFinished();

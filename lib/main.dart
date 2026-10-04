@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-import 'cartzy_colors.dart';
+import 'package:cartzy/theme/cartzy_theme.dart';
 import 'splash_screen.dart';
-import 'guest_home_screen.dart';
-import 'account_type_selection_screen.dart';
-import 'login_screen.dart';
-import 'dashboard.dart';
-import 'rider_dashboard.dart';
-import 'logistics_dashboard.dart';
-import 'buyer_profile_screen.dart';
-import 'account_menu_screen.dart';
-import 'my_addresses_screen.dart';
-import 'add_address_screen.dart';
-import 'buyer_registration.dart';
-import 'rider_registration.dart';
-import 'logistics_registration.dart';
+import 'package:cartzy/guest/guest_home_screen.dart';
+import 'package:cartzy/auth/account_type_selection_screen.dart';
+import 'package:cartzy/auth/login_screen.dart';
+import 'package:cartzy/buyer/dashboard.dart';
+import 'package:cartzy/rider/rider_dashboard.dart';
+import 'package:cartzy/buyer/buyer_profile_screen.dart';
+import 'package:cartzy/buyer/account_menu_screen.dart';
+import 'package:cartzy/address/my_addresses_screen.dart';
+import 'package:cartzy/address/add_address_screen.dart';
+import 'package:cartzy/auth/buyer_registration.dart';
+import 'package:cartzy/rider/rider_registration.dart';
+import 'package:cartzy/cart/cart_screen.dart';
+import 'package:cartzy/checkout/checkout_screen.dart';
+import 'package:cartzy/services/cart_service.dart';
 
 void main() {
   runApp(const CartzyApp());
@@ -29,18 +29,7 @@ class CartzyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Cartzy',
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: CartzyColors.background,
-        fontFamily: GoogleFonts.poppins().fontFamily,
-        textTheme: GoogleFonts.poppinsTextTheme(
-          ThemeData.light().textTheme,
-        ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: CartzyColors.navy,
-          brightness: Brightness.light,
-        ),
-      ),
+      theme: CartzyTheme.lightTheme,
       home: const CartzyHome(),
     );
   }
@@ -57,7 +46,9 @@ class _CartzyHomeState extends State<CartzyHome> {
   String currentRoute = 'splash';
 
   Map<String, dynamic>? loggedInUser;
-  String? adminToken;
+
+  String? riderToken;
+
   AccountType pendingAccountType = AccountType.buyer;
 
   // ============================================================
@@ -77,7 +68,8 @@ class _CartzyHomeState extends State<CartzyHome> {
   void logout() {
     setState(() {
       loggedInUser = null;
-      adminToken = null;
+      riderToken = null;
+      pendingAccountType = AccountType.buyer;
     });
 
     goTo('guest');
@@ -91,6 +83,7 @@ class _CartzyHomeState extends State<CartzyHome> {
     setState(() {
       pendingAccountType = accountType;
     });
+
     goTo('login');
   }
 
@@ -105,31 +98,36 @@ class _CartzyHomeState extends State<CartzyHome> {
   }) {
     setState(() {
       loggedInUser = Map<String, dynamic>.from(user);
-      adminToken = accountType == AccountType.admin ? token : null;
+
+      if (accountType == AccountType.rider) {
+        riderToken = token;
+      } else {
+        riderToken = null;
+      }
     });
 
+    // IMPORTANT:
+    // Rider → Rider Dashboard
+    // Buyer → Buyer Dashboard
     if (accountType == AccountType.rider) {
       goTo('riderDashboard');
-    } else if (accountType == AccountType.admin) {
-      goTo('adminDashboard');
     } else {
       goTo('dashboard');
     }
   }
 
   // ============================================================
-  // REGISTRATION SUCCESS
+  // BUYER REGISTRATION SUCCESS
   // ============================================================
-  //
-  // Buyer registration now hands back the REAL created account
-  // (id, name, email, etc.) from the backend, so we log the
-  // person straight into their own dashboard — not a leftover
-  // or hardcoded account.
 
-  void handleBuyerRegistrationSuccess(Map<String, dynamic> user) {
+  void handleBuyerRegistrationSuccess(
+    Map<String, dynamic> user,
+  ) {
     setState(() {
       loggedInUser = Map<String, dynamic>.from(user);
+      pendingAccountType = AccountType.buyer;
     });
+
     goTo('dashboard');
   }
 
@@ -165,7 +163,10 @@ class _CartzyHomeState extends State<CartzyHome> {
         );
 
       // ========================================================
-      // ACCOUNT TYPE SELECTION (Buyer / Rider / Logistics)
+      // ACCOUNT TYPE SELECTION
+      //
+      // Buyer and Rider only.
+      // Logistics has been removed.
       // ========================================================
 
       case 'accountTypeSelect':
@@ -183,19 +184,27 @@ class _CartzyHomeState extends State<CartzyHome> {
       case 'login':
         return LoginScreen(
           initialAccountType: pendingAccountType,
+
           onLogin: handleLogin,
+
           onSignUp: (accountType) {
+            // Buyer registration
             if (accountType == AccountType.buyer) {
               goTo('buyerRegistration');
-            } else if (accountType == AccountType.rider) {
-              goTo('riderRegistration');
-            } else {
-              goTo('logisticsRegistration');
             }
+
+            // Rider registration
+            else if (accountType == AccountType.rider) {
+              goTo('riderRegistration');
+            }
+
+            // No Logistics registration
           },
+
           onBack: () {
             goTo('accountTypeSelect');
           },
+
           onBackToGuest: () {
             goTo('guest');
           },
@@ -207,7 +216,8 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'buyerRegistration':
         return BuyerRegistration(
-          onRegistrationSubmitted: handleBuyerRegistrationSuccess,
+          onRegistrationSubmitted:
+              handleBuyerRegistrationSuccess,
           onBackToLogin: () {
             goTo('login');
           },
@@ -215,11 +225,9 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       // ========================================================
       // RIDER REGISTRATION
-      // ========================================================
       //
-      // Rider accounts wait for logistics/admin approval, so this
-      // just sends them back to the login screen (already set to
-      // Rider) after they submit, rather than logging them in.
+      // Existing Rider accounts are still supported.
+      // ========================================================
 
       case 'riderRegistration':
         return RiderRegistration(
@@ -227,27 +235,7 @@ class _CartzyHomeState extends State<CartzyHome> {
             setState(() {
               pendingAccountType = AccountType.rider;
             });
-            goTo('login');
-          },
-          onBackToLogin: () {
-            goTo('login');
-          },
-        );
 
-      // ========================================================
-      // LOGISTICS / SORTING CENTER REGISTRATION
-      // ========================================================
-      //
-      // Same "pending approval" pattern as riders: they submit,
-      // then wait for an existing admin to approve them from the
-      // logistics dashboard before they can log in.
-
-      case 'logisticsRegistration':
-        return LogisticsRegistration(
-          onRegistrationSubmitted: () {
-            setState(() {
-              pendingAccountType = AccountType.admin;
-            });
             goTo('login');
           },
           onBackToLogin: () {
@@ -261,28 +249,58 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'dashboard':
         return DashboardScreen(
+          onCartClick: () {
+            goTo('cart');
+          },
           onProfileClick: () {
             goTo('profile');
           },
         );
 
       // ========================================================
+      // CART
+      // ========================================================
+
+      case 'cart':
+        return CartScreen(
+          onBack: () {
+            goTo('dashboard');
+          },
+          onCheckout: () {
+            goTo('checkout');
+          },
+        );
+
+      // ========================================================
+      // CHECKOUT
+      // ========================================================
+
+      case 'checkout':
+        return CheckoutScreen(
+          onBack: () {
+            goTo('cart');
+          },
+          onOrderPlaced: () {
+            CartService.instance.clearSelected();
+            goTo('dashboard');
+          },
+        );
+
+      // ========================================================
       // RIDER DASHBOARD
+      //
+      // Existing Rider account goes here.
       // ========================================================
 
       case 'riderDashboard':
         return RiderDashboard(
-          onLogout: logout,
-        );
-
-      // ========================================================
-      // ADMIN DASHBOARD (rider approvals / logistics)
-      // ========================================================
-
-      case 'adminDashboard':
-        return LogisticsDashboardScreen(
-          token: adminToken ?? '',
-          adminName: loggedInUser?['name']?.toString() ?? 'Admin',
+          token: riderToken ?? '',
+          userId: int.tryParse(
+                loggedInUser?['id']?.toString() ?? '',
+              ) ??
+              0,
+          userName:
+              loggedInUser?['name']?.toString() ?? 'Rider',
           onLogout: logout,
         );
 
@@ -395,6 +413,10 @@ class _CartzyHomeState extends State<CartzyHome> {
         );
     }
   }
+
+  // ============================================================
+  // BUILD
+  // ============================================================
 
   @override
   Widget build(BuildContext context) {
