@@ -5,7 +5,7 @@
 @section('auth_form')
 
     <h2 class="auth-title">Create your account</h2>
-    <p class="auth-subtitle">Join Cartzy and start shopping the best electronics</p>
+    <p class="auth-subtitle">Join cartzy and start shopping the best electronics</p>
 
     <div style="margin-bottom: 20px;">
         <a href="{{ route('auth.google') }}" class="btn-google">
@@ -52,7 +52,29 @@
         <!-- STEP 1: Personal Info -->
         <div id="step-1">
             <!-- Role Selection: Buyer vs Seller -->
-            <div class="role-selection-wrapper">
+            <input type="radio" name="role" id="role_logistics" value="logistics" {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'checked' : '' }} style="display:none;">
+
+            <!-- Logistics Mode Active Banner (Shown when user chooses to apply as Logistics Hub) -->
+            <div id="logisticsModeBanner" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'flex' : 'none' }}; margin-bottom: 20px; padding: 14px 16px; background: #F6F4F8; border: 1.5px solid #6F6382; border-radius: 12px; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 10px; background: #6F6382; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;">
+                            <rect x="1" y="3" width="15" height="13" rx="1"/>
+                            <path d="M16 8h4l3 3v5h-7V8z"/>
+                            <circle cx="5.5" cy="18.5" r="2.5"/>
+                            <circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #111;">Logistics Hub Registration</div>
+                        <div style="font-size: 0.76rem; color: #6b7280;">Sorting &amp; fulfillment center partner application</div>
+                    </div>
+                </div>
+                <button type="button" onclick="selectRole('buyer')" style="background: none; border: none; font-size: 0.78rem; font-weight: 700; color: #6F6382; cursor: pointer; text-decoration: underline; padding: 0; white-space: nowrap;">Switch to standard account</button>
+            </div>
+
+            <!-- Role Selection: Buyer, Seller, Courier -->
+            <div class="role-selection-wrapper" id="standardRoleWrapper" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'none' : 'block' }};">
                 <label class="field-label" style="margin-bottom: 8px;">I want to register as <span style="color:#ef4444">*</span></label>
                 <div class="role-grid">
                     <label class="role-option {{ old('role', $selectedRole ?? 'buyer') === 'buyer' ? 'selected' : '' }}" id="roleOptionBuyer" onclick="selectRole('buyer')">
@@ -93,6 +115,8 @@
                             </svg>
                         </div>
                     </label>
+
+                    <input type="radio" name="role" id="role_courier" value="courier" {{ old('role', $selectedRole ?? 'buyer') === 'courier' ? 'checked' : '' }} style="display:none;">
                 </div>
             </div>
 
@@ -138,46 +162,6 @@
                             class="auth-input"
                             style="padding-left: 16px !important;"
                         >
-                    </div>
-                </div>
-            </div>
-
-            {{-- Middle Initial + Sex --}}
-            <div class="form-grid-2 mb-4">
-                <div>
-                    <label class="field-label" for="middle_initial">Middle Initial</label>
-                    <div class="input-group">
-                        <span class="input-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 7h16M4 12h16M4 17h10"/>
-                            </svg>
-                        </span>
-                        <input
-                            type="text"
-                            name="middle_initial"
-                            id="middle_initial"
-                            value="{{ old('middle_initial') }}"
-                            placeholder="e.g. B."
-                            class="auth-input"
-                            maxlength="5"
-                        >
-                    </div>
-                </div>
-                <div>
-                    <label class="field-label" for="sex">Sex <span style="color:#ef4444">*</span></label>
-                    <div class="input-group">
-                        <span class="input-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="4"/>
-                                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-                            </svg>
-                        </span>
-                        <select name="sex" id="sex" class="auth-input select-input">
-                            <option value="">Select sex</option>
-                            <option value="Male" {{ old('sex') == 'Male' ? 'selected' : '' }}>Male</option>
-                            <option value="Female" {{ old('sex') == 'Female' ? 'selected' : '' }}>Female</option>
-                            <option value="Prefer not to say" {{ old('sex') == 'Prefer not to say' ? 'selected' : '' }}>Prefer not to say</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -417,26 +401,26 @@
                 </div>
             </div>
 
-            {{-- Seller Verification / KYC Section (Shown when registering as Seller) --}}
-            <div id="sellerKycSection" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'block' : 'none' }}; margin-bottom: 24px; padding: 18px; background: #F8F6FA; border: 1.5px dashed #A8A0B2; border-radius: 12px;">
+            {{-- Business / Logistics Verification / KYC Section (Shown when registering as Seller or Logistics) --}}
+            <div id="sellerKycSection" style="display: {{ in_array(old('role', $selectedRole ?? 'buyer'), ['seller', 'logistics']) ? 'block' : 'none' }}; margin-bottom: 24px; padding: 18px; background: #F8F6FA; border: 1.5px dashed #A8A0B2; border-radius: 12px;">
 
                 {{-- Section Header --}}
                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-                    <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:#6F6382; color:#ffffff; font-weight:700; font-size:0.85rem;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:#6F6382; color:#ffffff; font-weight:700; font-size:0.85rem;" id="kycHeaderIcon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
                             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path>
                             <polyline points="9 22 9 12 15 12 15 22"></polyline>
                         </svg>
                     </span>
                     <div>
-                        <label class="field-label" style="margin-bottom:0; font-size:0.92rem; color:#111;">Seller Business Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Required for Merchant Account)</span></label>
-                        <p style="font-size:0.78rem; color:#6b7280; margin:0;">Provide your business details and upload a valid government ID for KYC verification</p>
+                        <label class="field-label" id="kycHeaderTitle" style="margin-bottom:0; font-size:0.92rem; color:#111;">Business &amp; Facility Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Required for Approval)</span></label>
+                        <p id="kycHeaderDesc" style="font-size:0.78rem; color:#6b7280; margin:0;">Provide your registered business details and upload valid documents for verification</p>
                     </div>
                 </div>
 
                 {{-- Business Name --}}
                 <div class="mb-4">
-                    <label class="field-label" for="business_name">Business Name <span style="color:#ef4444">*</span></label>
+                    <label class="field-label" for="business_name" id="businessNameLabel">Business / Hub Name <span style="color:#ef4444">*</span></label>
                     <div class="input-group">
                         <span class="input-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -451,15 +435,15 @@
                             name="business_name"
                             id="business_name"
                             value="{{ old('business_name') }}"
-                            placeholder="e.g. Maria's Electronics Store"
+                            placeholder="e.g. Metro South Sorting & Fulfillment Hub"
                             class="auth-input"
                             maxlength="255"
                         >
                     </div>
                 </div>
 
-                {{-- Line of Business (Category) --}}
-                <div class="mb-4">
+                {{-- Line of Business (Category - only for Sellers) --}}
+                <div class="mb-4" id="lineOfBusinessWrapper">
                     <label class="field-label" for="line_of_business">Line of Business <span style="color:#ef4444">*</span> <span style="font-size:0.77rem; color:#9ca3af; font-weight:500;">(Category)</span></label>
                     <div class="input-group">
                         <span class="input-icon">
@@ -499,8 +483,8 @@
                         </svg>
                     </span>
                     <div>
-                        <label class="field-label" style="margin-bottom:0; font-size:0.92rem; color:#111;">Valid Government ID <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(KYC Verification)</span></label>
-                        <p style="font-size:0.78rem; color:#6b7280; margin:0;">Upload ID for merchant account verification &amp; KYC compliance</p>
+                        <label class="field-label" style="margin-bottom:0; font-size:0.92rem; color:#111;">Upload ID <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(KYC Verification)</span></label>
+                        <p style="font-size:0.78rem; color:#6b7280; margin:0;">Upload a valid government-issued ID (Passport, Driver's License, UMID, PhilID)</p>
                     </div>
                 </div>
                 <div class="input-group" style="margin-bottom:6px;">
@@ -513,7 +497,47 @@
                         style="padding-top:10px !important; padding-bottom:10px !important; height:auto;"
                     >
                 </div>
-                <p style="font-size:0.75rem; color:#6b7280; margin:0;">Accepted formats: JPG, PNG, or PDF (Max 5MB). e.g. Passport, Driver's License, UMID, PhilID, or Voter's ID.</p>
+                <p style="font-size:0.75rem; color:#6b7280; margin:0 0 14px 0;">Accepted formats: JPG, PNG, or PDF (Max 5MB).</p>
+
+                {{-- Business / DTI Permit Upload --}}
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; margin-top:14px; padding-top:14px; border-top:1px solid #E5E0EE;">
+                    <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; background:#6F6382; color:#ffffff; font-weight:700; font-size:0.85rem;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
+                    </span>
+                    <div>
+                        <label class="field-label" style="margin-bottom:0; font-size:0.92rem; color:#111;">Upload Business / DTI Permit <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Official Document)</span></label>
+                        <p style="font-size:0.78rem; color:#6b7280; margin:0;">Upload your Mayor's Permit, DTI Registration certificate, or Logistics license</p>
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom:6px;">
+                    <input
+                        type="file"
+                        name="dti_permit"
+                        id="dti_permit"
+                        accept="image/png,image/jpeg,image/jpg,application/pdf"
+                        class="auth-input"
+                        style="padding-top:10px !important; padding-bottom:10px !important; height:auto;"
+                    >
+                </div>
+                <p style="font-size:0.75rem; color:#6b7280; margin:0 0 14px 0;">Accepted formats: JPG, PNG, or PDF (Max 5MB).</p>
+
+                {{-- Administrator Approval Notice --}}
+                <div style="margin-top: 14px; padding: 12px 14px; background: #EEF2FF; border: 1.5px solid #C7D2FE; border-radius: 10px; display: flex; align-items: flex-start; gap: 10px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;margin-top:2px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <div style="font-size: 0.8rem; color: #3730A3; line-height: 1.45; font-style: italic;">
+                        <strong>Important:</strong> After submitting your registration, please wait for the administrator's approval, which will be sent to your email.
+                    </div>
+                </div>
+
             </div>
 
             <div class="form-btn-row">
@@ -658,6 +682,11 @@
     <div class="auth-foot">
         Already have an account?
         <a href="{{ route('login') }}">Log in</a>
+    </div>
+
+    <div class="auth-foot" style="margin-top: 10px; padding-top: 12px; border-top: 1px dashed #e5e7eb; font-size: 0.88rem; color: #4b5563;">
+        Do you want to be a logistics in cartzy?
+        <a href="{{ route('register', ['role' => 'logistics']) }}" id="linkLogisticsApply" onclick="selectRole('logistics'); return false;" style="font-weight: 700; color: #6F6382; margin-left: 4px; text-decoration: underline;">Apply here</a>
     </div>
 
 <style>

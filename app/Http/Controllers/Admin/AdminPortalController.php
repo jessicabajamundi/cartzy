@@ -579,6 +579,19 @@ class AdminPortalController extends Controller
                 'status' => 'rejected',
                 'rejection_reason' => 'Prohibited age-restricted products without required specialized DTI / BIR age-gate licensing permit.',
             ],
+            [
+                'id' => 106,
+                'name' => 'Metro South Sorting & Fulfillment Hub',
+                'applicant_name' => 'Jose Reyes',
+                'email' => 'jose.reyes@metrosouthlogistics.ph',
+                'phone' => '+63 917 555 0011',
+                'role' => 'logistics',
+                'business_name' => 'Metro South Sorting & Fulfillment Hub',
+                'documents' => ['DTI Business Registration', 'Mayor\'s Permit 2026', 'SEC Certificate of Incorporation', 'Valid Gov ID (PhilSys)'],
+                'applied_at' => 'Feb 24, 2026 08:45 AM',
+                'status' => 'pending',
+                'rejection_reason' => null,
+            ],
         ]);
 
         // Merge live database users if any exist

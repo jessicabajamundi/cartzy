@@ -52,7 +52,7 @@
     <div class="w-full max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
         <div class="grid grid-cols-2 md:grid-cols-5 gap-10 pb-12 border-b border-gray-200">
 
-            <!-- Column 1: Cartzy Logo -->
+            <!-- Column 1: cartzy Logo -->
             <div class="col-span-2 md:col-span-1">
                 <a href="/" class="flex items-center gap-2 mb-6">
                     <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-16 w-auto object-contain">

@@ -111,13 +111,94 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
 
-    // Seller Centre Routes
-    Route::middleware('role:seller')->prefix('seller')->name('seller.')->group(function () {
-        Route::get('/dashboard', [SellerDashboardController::class, 'index'])->name('dashboard');
+    // Seller Centre Routes (With automatic fallback demo auth if MySQL is offline)
+    Route::middleware('seller.demo')->prefix('seller')->name('seller.')->group(function () {
+        // 1. Dashboard Overview (Stats, Charts)
+        Route::get('/', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard']);
+        Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard'])->name('dashboard');
+
+        // 2. Order Management & Notifications
+        Route::get('/orders', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orders'])->name('orders');
+        Route::post('/orders/{id}/pack', [\App\Http\Controllers\Seller\SellerPortalController::class, 'packOrder'])->name('orders.pack');
+        Route::get('/orders/{id}/waybill', [\App\Http\Controllers\Seller\SellerPortalController::class, 'printWaybill'])->name('orders.waybill');
+
+        // 3. Courier Handover & Shipment Tracking
+        Route::get('/courier', [\App\Http\Controllers\Seller\SellerPortalController::class, 'courier'])->name('courier');
+        Route::post('/courier/{id}/schedule', [\App\Http\Controllers\Seller\SellerPortalController::class, 'schedulePickup'])->name('courier.schedule');
+
+        // 4. Delivery Confirmations (Customer received order)
+        Route::get('/deliveries', [\App\Http\Controllers\Seller\SellerPortalController::class, 'deliveries'])->name('deliveries');
+        Route::post('/deliveries/{id}/confirm', [\App\Http\Controllers\Seller\SellerPortalController::class, 'markDelivered'])->name('deliveries.confirm');
+
+        // 5. Handle Customer Feedback
+        Route::get('/feedback', [\App\Http\Controllers\Seller\SellerPortalController::class, 'feedback'])->name('feedback');
+        Route::post('/feedback/{id}/reply', [\App\Http\Controllers\Seller\SellerPortalController::class, 'replyFeedback'])->name('feedback.reply');
+
+        // 6. Manage Inventory (Products, Stock, Vouchers & Discounts)
+        Route::get('/inventory', [\App\Http\Controllers\Seller\SellerPortalController::class, 'inventory'])->name('inventory');
+        Route::post('/inventory/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addProduct'])->name('inventory.add');
+        Route::post('/inventory/{id}/update', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProduct'])->name('inventory.update');
+        Route::post('/inventory/{id}/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'toggleArchiveProduct'])->name('inventory.archive');
+        Route::post('/inventory/vouchers/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addVoucher'])->name('inventory.vouchers.add');
+
+        // 7. Generate Report (Financial, Profit with From-To Date Pickers)
+        Route::get('/reports', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reports'])->name('reports');
+
+        // 8. Chat / Messaging
+        Route::get('/chat', [\App\Http\Controllers\Seller\SellerPortalController::class, 'chat'])->name('chat');
+        Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Seller\SellerPortalController::class, 'sendMessage'])->name('chat.send');
+
+        // 9. Account Management (Store Profile, Pickup Address, Payout)
+        Route::get('/account', [\App\Http\Controllers\Seller\SellerPortalController::class, 'account'])->name('account');
+        Route::post('/account/profile', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProfile'])->name('account.profile');
+        Route::post('/account/address', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateAddress'])->name('account.address');
+        Route::post('/account/withdraw', [\App\Http\Controllers\Seller\SellerPortalController::class, 'withdrawFunds'])->name('account.withdraw');
     });
 
     // Courier / Rider Hub Routes
     Route::middleware('role:courier')->prefix('courier')->name('courier.')->group(function () {
         Route::get('/dashboard', [CourierDashboardController::class, 'index'])->name('dashboard');
     });
+});
+
+// Logistics / Sorting Center Portal Routes
+Route::middleware('logistics.demo')->prefix('logistics')->name('logistics.')->group(function () {
+    // 1. Dashboard
+    Route::get('/', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard']);
+    Route::get('/dashboard', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard'])->name('dashboard');
+
+    // 2. Rider Management (approve/disapprove/activate/deactivate)
+    Route::get('/riders', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'riders'])->name('riders');
+    Route::post('/riders/{id}/status', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'updateRiderStatus'])->name('riders.status');
+    Route::post('/riders/{id}/toggle', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'toggleRiderActive'])->name('riders.toggle');
+
+    // 3. Parcel Pickup Requests (confirm/approve/verify from seller)
+    Route::get('/pickups', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'pickups'])->name('pickups');
+    Route::post('/pickups/{id}/confirm', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'confirmPickup'])->name('pickups.confirm');
+
+    // 4. Incoming Parcels Management
+    Route::get('/parcels', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'parcels'])->name('parcels');
+    Route::post('/parcels/{id}/receive', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');
+
+    // 5. Sorting of Parcels
+    Route::get('/sorting', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sorting'])->name('sorting');
+    Route::post('/sorting/{id}/sort', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sortParcel'])->name('sorting.sort');
+
+    // 6. Delivery Assignment (per area and per rider)
+    Route::get('/assignments', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignments'])->name('assignments');
+    Route::post('/assignments/{id}/assign', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignDelivery'])->name('assignments.assign');
+
+    // 7. Delivery Monitoring
+    Route::get('/monitoring', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'monitoring'])->name('monitoring');
+
+    // 8. Generation of Reports
+    Route::get('/reports', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'reports'])->name('reports');
+
+    // 9. Chat / Messaging
+    Route::get('/chat', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'chat'])->name('chat');
+    Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sendMessage'])->name('chat.send');
+
+    // 10. Account Management
+    Route::get('/account', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'account'])->name('account');
+    Route::post('/account/update', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'updateAccount'])->name('account.update');
 });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Cartzy Email Verification Code</title>
+    <title>Your cartzy Email Verification Code</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -105,7 +105,7 @@
         <h1 class="header-title">Verify Your Email Address</h1>
         <p class="subtitle">
             Hello {{ $name ?? 'there' }},<br>
-            Thank you for registering on Cartzy! Here is your 6-digit email verification code:
+            Thank you for registering on cartzy! Here is your 6-digit email verification code:
         </p>
 
         <div class="otp-box-wrap">
@@ -114,7 +114,7 @@
         </div>
 
         <p class="meta-notice">
-            Enter this 6-digit code on the registration screen within 15 minutes to complete creating your <strong>Cartzy</strong> account.
+            Enter this 6-digit code on the registration screen within 15 minutes to complete creating your <strong>cartzy</strong> account.
         </p>
 
         <div class="security-badge">
@@ -122,7 +122,7 @@
         </div>
 
         <div class="footer">
-            &copy; {{ date('Y') }} Cartzy Marketplace. All rights reserved.
+            &copy; {{ date('Y') }} cartzy Marketplace. All rights reserved.
         </div>
     </div>
 </body>

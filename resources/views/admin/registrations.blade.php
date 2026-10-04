@@ -36,6 +36,9 @@
             <a href="{{ route('admin.registrations', ['role' => 'courier', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'courier' ? 'bg-amber-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                 🛵 Couriers
             </a>
+            <a href="{{ route('admin.registrations', ['role' => 'logistics', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'logistics' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                🏭 Logistics
+            </a>
             <a href="{{ route('admin.registrations', ['role' => 'buyer', 'status' => $statusFilter]) }}" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'buyer' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                 👤 Buyers
             </a>
@@ -69,15 +72,15 @@
                 
                 <!-- Left: Applicant Details & Role Badge -->
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-700' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700') }}">
-                        {{ $reg['role'] === 'seller' ? '🏬' : ($reg['role'] === 'courier' ? '🛵' : '👤') }}
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-700' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-700' : ($reg['role'] === 'logistics' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700')) }}">
+                        {{ $reg['role'] === 'seller' ? '🏬' : ($reg['role'] === 'courier' ? '🛵' : ($reg['role'] === 'logistics' ? '🏭' : '👤')) }}
                     </div>
 
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
                             <h2 class="text-base font-black text-slate-900">{{ $reg['name'] }}</h2>
-                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-800' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800') }}">
-                                {{ $reg['role'] }} Application
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{ $reg['role'] === 'seller' ? 'bg-purple-100 text-purple-800' : ($reg['role'] === 'courier' ? 'bg-amber-100 text-amber-800' : ($reg['role'] === 'logistics' ? 'bg-indigo-100 text-indigo-800' : 'bg-blue-100 text-blue-800')) }}">
+                                {{ $reg['role'] === 'logistics' ? 'Logistics Hub' : $reg['role'] }} Application
                             </span>
                             @if($reg['status'] === 'pending')
                                 <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
@@ -107,12 +110,12 @@
                             @if(!empty($reg['address']) && $reg['address'] !== 'N/A')
                                 <div class="sm:col-span-2 lg:col-span-3"><strong class="text-slate-900">Residential Address:</strong> {{ $reg['address'] }}</div>
                             @endif
-                            @if(!empty($reg['business_name']) && $reg['role'] === 'seller')
-                                <div><strong class="text-slate-900">Business Name:</strong> <span class="text-purple-700 font-bold">{{ $reg['business_name'] }}</span></div>
+                            @if(!empty($reg['business_name']) && in_array($reg['role'], ['seller', 'logistics']))
+                                <div><strong class="text-slate-900">{{ $reg['role'] === 'logistics' ? 'Facility / Hub Name:' : 'Business Name:' }}</strong> <span class="{{ $reg['role'] === 'logistics' ? 'text-indigo-700' : 'text-purple-700' }} font-bold">{{ $reg['business_name'] }}</span></div>
                             @endif
                             @if(!empty($reg['line_of_business']) && $reg['role'] === 'seller')
                                 <div><strong class="text-slate-900">Line of Business:</strong> <span class="text-indigo-600 font-bold">{{ $reg['line_of_business'] }}</span></div>
-                            @elseif(isset($reg['category']))
+                            @elseif(isset($reg['category']) && $reg['role'] === 'seller')
                                 <div><strong class="text-slate-900">Registered Category:</strong> <span class="text-indigo-600 font-bold">{{ $reg['category'] }}</span></div>
                             @endif
                             @if(isset($reg['vehicle']))

@@ -111,6 +111,27 @@
         <a href="{{ route('register') }}">Sign up</a>
     </div>
 
+    <!-- Quick Portal Demo Logins for Easy Evaluation -->
+    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed #E2E8F0; text-align: center;">
+        <span style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block; margin-bottom: 0.6rem;">
+            ⚡ Quick Portal Demo Logins (1-Click Access)
+        </span>
+        <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ route('demo.login', 'seller') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
+                <span>🏬 Seller Centre</span>
+            </a>
+            <a href="{{ route('demo.login', 'admin') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
+                <span>🛡️ Super Admin</span>
+            </a>
+            <a href="{{ route('demo.login', 'courier') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
+                <span>🛵 Courier Hub</span>
+            </a>
+            <a href="{{ route('demo.login', 'logistics') }}" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 11px; font-weight: 700; background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE; padding: 0.4rem 0.75rem; border-radius: 9999px; text-decoration: none; transition: all 0.15s ease;">
+                <span>🏭 Logistics Hub</span>
+            </a>
+        </div>
+    </div>
+
 @push('scripts')
 <script src="{{ asset('js/auth/login.js') }}"></script>
 @endpush

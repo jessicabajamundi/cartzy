@@ -10,28 +10,75 @@ const totalSteps = 3;
 function selectRole(role) {
     const buyerRadio = document.getElementById('role_buyer');
     const sellerRadio = document.getElementById('role_seller');
+    const logisticsRadio = document.getElementById('role_logistics');
+    const courierRadio = document.getElementById('role_courier');
+
     const buyerOpt = document.getElementById('roleOptionBuyer');
     const sellerOpt = document.getElementById('roleOptionSeller');
+    const courierOpt = document.getElementById('roleOptionCourier');
+
+    const standardRoleWrapper = document.getElementById('standardRoleWrapper');
+    const logisticsModeBanner = document.getElementById('logisticsModeBanner');
+
     const subtitle = document.querySelector('.auth-subtitle');
     const submitBtn = document.getElementById('submitRegBtn');
     const kycSection = document.getElementById('sellerKycSection');
+    const kycHeaderTitle = document.getElementById('kycHeaderTitle');
+    const businessNameLabel = document.getElementById('businessNameLabel');
+    const businessNameInput = document.getElementById('business_name');
+    const lineOfBusinessWrapper = document.getElementById('lineOfBusinessWrapper');
 
-    if (role === 'seller') {
-        if (sellerRadio) sellerRadio.checked = true;
-        if (buyerRadio) buyerRadio.checked = false;
-        if (sellerOpt) sellerOpt.classList.add('selected');
-        if (buyerOpt) buyerOpt.classList.remove('selected');
-        if (subtitle) subtitle.innerText = 'Join Cartzy as a Seller and start selling your products';
-        if (submitBtn) submitBtn.innerText = 'Complete & Submit Application';
+    // Reset all selection states
+    [buyerOpt, sellerOpt, courierOpt].forEach(opt => opt?.classList?.remove('selected'));
+    if (buyerRadio) buyerRadio.checked = false;
+    if (sellerRadio) sellerRadio.checked = false;
+    if (logisticsRadio) logisticsRadio.checked = false;
+    if (courierRadio) courierRadio.checked = false;
+
+    if (role === 'logistics') {
+        if (logisticsRadio) logisticsRadio.checked = true;
+        if (standardRoleWrapper) standardRoleWrapper.style.display = 'none';
+        if (logisticsModeBanner) logisticsModeBanner.style.display = 'flex';
+        if (subtitle) subtitle.innerText = 'Register your Sorting & Fulfillment Hub with cartzy';
+        if (submitBtn) submitBtn.innerText = 'Submit Hub Registration';
         if (kycSection) kycSection.style.display = 'block';
+        if (kycHeaderTitle) kycHeaderTitle.innerHTML = 'Logistics Facility Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Admin Approval Required)</span>';
+        if (businessNameLabel) businessNameLabel.innerHTML = 'Facility / Business Name <span style="color:#ef4444">*</span>';
+        if (businessNameInput) businessNameInput.placeholder = 'e.g. Metro South Sorting & Fulfillment Hub';
+        if (lineOfBusinessWrapper) lineOfBusinessWrapper.style.display = 'none';
+
+        if (typeof currentStep !== 'undefined' && currentStep !== 1) {
+            prevStep(1);
+        } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     } else {
-        if (buyerRadio) buyerRadio.checked = true;
-        if (sellerRadio) sellerRadio.checked = false;
-        if (buyerOpt) buyerOpt.classList.add('selected');
-        if (sellerOpt) sellerOpt.classList.remove('selected');
-        if (subtitle) subtitle.innerText = 'Join Cartzy and start shopping the best electronics';
-        if (submitBtn) submitBtn.innerText = 'Complete & Start Shopping';
-        if (kycSection) kycSection.style.display = 'none';
+        if (standardRoleWrapper) standardRoleWrapper.style.display = 'block';
+        if (logisticsModeBanner) logisticsModeBanner.style.display = 'none';
+
+        if (role === 'seller') {
+            if (sellerRadio) sellerRadio.checked = true;
+            if (sellerOpt) sellerOpt.classList.add('selected');
+            if (subtitle) subtitle.innerText = 'Join cartzy as a Seller and start selling your products';
+            if (submitBtn) submitBtn.innerText = 'Complete & Submit Application';
+            if (kycSection) kycSection.style.display = 'block';
+            if (kycHeaderTitle) kycHeaderTitle.innerHTML = 'Seller Business Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Required for Merchant Account)</span>';
+            if (businessNameLabel) businessNameLabel.innerHTML = 'Business Name <span style="color:#ef4444">*</span>';
+            if (businessNameInput) businessNameInput.placeholder = "e.g. Maria's Electronics Store";
+            if (lineOfBusinessWrapper) lineOfBusinessWrapper.style.display = 'block';
+        } else if (role === 'courier') {
+            if (courierRadio) courierRadio.checked = true;
+            if (courierOpt) courierOpt.classList.add('selected');
+            if (subtitle) subtitle.innerText = 'Register as a delivery courier / rider partner';
+            if (submitBtn) submitBtn.innerText = 'Submit Rider Application';
+            if (kycSection) kycSection.style.display = 'none';
+        } else {
+            if (buyerRadio) buyerRadio.checked = true;
+            if (buyerOpt) buyerOpt.classList.add('selected');
+            if (subtitle) subtitle.innerText = 'Join cartzy and start shopping the best electronics';
+            if (submitBtn) submitBtn.innerText = 'Complete & Start Shopping';
+            if (kycSection) kycSection.style.display = 'none';
+        }
     }
 }
 
@@ -100,8 +147,6 @@ function nextStep(step) {
     if (currentStep === 1) {
         const firstName = document.getElementById('first_name')?.value?.trim();
         const lastName = document.getElementById('last_name')?.value?.trim();
-        const mi = document.getElementById('middle_initial')?.value?.trim() || '';
-        const sex = document.getElementById('sex')?.value;
         const email = document.getElementById('email')?.value?.trim();
 
         if (!firstName) {
@@ -112,17 +157,13 @@ function nextStep(step) {
             document.getElementById('last_name')?.focus();
             return;
         }
-        if (!sex) {
-            document.getElementById('sex')?.focus();
-            return;
-        }
         if (!email) {
             document.getElementById('email')?.focus();
             return;
         }
         const nameField = document.getElementById('name');
         if (nameField) {
-            nameField.value = firstName + (mi ? ' ' + mi : '') + ' ' + lastName;
+            nameField.value = `${firstName} ${lastName}`.trim();
         }
     }
     if (currentStep === 2) {
@@ -148,26 +189,28 @@ function nextStep(step) {
             return;
         }
 
-        // If registering as Seller, validate business fields
+        // If registering as Seller or Logistics, validate business fields
         const chosenRole = document.querySelector('input[name="role"]:checked')?.value;
-        if (chosenRole === 'seller') {
+        if (chosenRole === 'seller' || chosenRole === 'logistics') {
             const businessNameEl = document.getElementById('business_name');
             const businessName = businessNameEl?.value?.trim();
-            const lineOfBusinessEl = document.getElementById('line_of_business');
-            const lineOfBusiness = lineOfBusinessEl?.value;
             if (!businessName) {
                 businessNameEl?.focus();
                 if (businessNameEl) businessNameEl.style.borderColor = '#ef4444';
                 return;
             }
-            if (!lineOfBusiness) {
-                lineOfBusinessEl?.focus();
-                if (lineOfBusinessEl) lineOfBusinessEl.style.borderColor = '#ef4444';
-                return;
-            }
-            // Reset error borders
             if (businessNameEl) businessNameEl.style.borderColor = '';
-            if (lineOfBusinessEl) lineOfBusinessEl.style.borderColor = '';
+
+            if (chosenRole === 'seller') {
+                const lineOfBusinessEl = document.getElementById('line_of_business');
+                const lineOfBusiness = lineOfBusinessEl?.value;
+                if (!lineOfBusiness) {
+                    lineOfBusinessEl?.focus();
+                    if (lineOfBusinessEl) lineOfBusinessEl.style.borderColor = '#ef4444';
+                    return;
+                }
+                if (lineOfBusinessEl) lineOfBusinessEl.style.borderColor = '';
+            }
         }
     }
 

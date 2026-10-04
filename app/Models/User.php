@@ -18,6 +18,7 @@ class User extends Authenticatable
      */
     public const ROLE_ADMIN = 'admin';
     public const ROLE_SELLER = 'seller';
+    public const ROLE_LOGISTICS = 'logistics';
     public const ROLE_COURIER = 'courier';
     public const ROLE_BUYER = 'buyer';
 
@@ -44,6 +45,7 @@ class User extends Authenticatable
         'postal_code',
         'business_name',
         'line_of_business',
+        'dti_permit',
         'id_photo',
         'id_type',
         'id_number',
@@ -94,6 +96,11 @@ class User extends Authenticatable
         return $this->role === self::ROLE_SELLER;
     }
 
+    public function isLogistics(): bool
+    {
+        return $this->role === self::ROLE_LOGISTICS;
+    }
+
     public function isCourier(): bool
     {
         return $this->role === self::ROLE_COURIER;
@@ -112,6 +119,7 @@ class User extends Authenticatable
         return match ($this->role) {
             self::ROLE_ADMIN => 'admin.dashboard',
             self::ROLE_SELLER => 'seller.dashboard',
+            self::ROLE_LOGISTICS => 'logistics.dashboard',
             self::ROLE_COURIER => 'courier.dashboard',
             default => 'home',
         };

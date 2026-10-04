@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Checkout | Cartzy')
+@section('title', 'Checkout | cartzy')
 
 @section('content')
 <div class="bg-gray-100 min-h-[calc(100vh-140px)] py-6 sm:py-8 lg:py-10">
@@ -179,7 +179,7 @@
                     </button>
 
                     <div class="text-[11px] text-gray-400 text-center leading-relaxed">
-                        By placing your order, you agree to Cartzy's Terms of Service and Verified Buyer Policies.
+                        By placing your order, you agree to cartzy's Terms of Service and Verified Buyer Policies.
                     </div>
                 </div>
             </div>

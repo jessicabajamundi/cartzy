@@ -75,6 +75,96 @@ class AuthController extends Controller
                 ->with('success', 'Welcome back, Admin!');
         }
 
+        // Check for official Seller credentials (works immediately with real DB or fallback)
+        if (
+            (in_array($credentials['email'], ['seller@cartzy.ph', 'seller@marketstore.ph'], true))
+            && (in_array($credentials['password'], ['seller123', 'sellerpassword123', 'password123'], true))
+        ) {
+            try {
+                $user = User::where('email', $credentials['email'])->first()
+                    ?? User::where('role', User::ROLE_SELLER)->first();
+
+                if (!$user) {
+                    $user = User::create([
+                        'name' => 'Maria Santos (TechZone Store)',
+                        'email' => $credentials['email'],
+                        'password' => Hash::make($credentials['password']),
+                        'role' => User::ROLE_SELLER,
+                        'status' => 'active',
+                        'business_name' => 'TechZone Gadgets Store',
+                    ]);
+                } else {
+                    $user->password = Hash::make($credentials['password']);
+                    $user->status = 'active';
+                    $user->role = User::ROLE_SELLER;
+                    $user->save();
+                }
+
+                Auth::login($user, $remember);
+            } catch (\Throwable $e) {
+                $user = new User();
+                $user->forceFill([
+                    'id' => 2,
+                    'name' => 'Maria Santos (TechZone Store)',
+                    'email' => $credentials['email'],
+                    'role' => User::ROLE_SELLER,
+                    'status' => 'active',
+                    'business_name' => 'TechZone Gadgets Store',
+                ]);
+                Auth::login($user, $remember);
+            }
+
+            $request->session()->regenerate();
+
+            return redirect()->route('seller.dashboard')
+                ->with('success', 'Welcome back, Maria Santos! Logged in to Seller Centre.');
+        }
+
+        // Check for official Logistics Hub credentials
+        if (
+            ($credentials['email'] === 'logistics@cartzy.ph')
+            && (in_array($credentials['password'], ['logistics123', 'password123'], true))
+        ) {
+            try {
+                $user = User::where('email', 'logistics@cartzy.ph')->first()
+                    ?? User::where('role', User::ROLE_LOGISTICS)->first();
+
+                if (!$user) {
+                    $user = User::create([
+                        'name' => 'Metro South Sorting & Fulfillment Hub',
+                        'email' => 'logistics@cartzy.ph',
+                        'password' => Hash::make('logistics123'),
+                        'role' => User::ROLE_LOGISTICS,
+                        'status' => 'active',
+                        'business_name' => 'Cartzy Express Logistics Hub - Metro South Facility',
+                    ]);
+                } else {
+                    $user->password = Hash::make('logistics123');
+                    $user->status = 'active';
+                    $user->role = User::ROLE_LOGISTICS;
+                    $user->save();
+                }
+
+                Auth::login($user, $remember);
+            } catch (\Throwable $e) {
+                $user = new User();
+                $user->forceFill([
+                    'id' => 4,
+                    'name' => 'Metro South Sorting & Fulfillment Hub',
+                    'email' => 'logistics@cartzy.ph',
+                    'role' => User::ROLE_LOGISTICS,
+                    'status' => 'active',
+                    'business_name' => 'Cartzy Express Logistics Hub - Metro South Facility',
+                ]);
+                Auth::login($user, $remember);
+            }
+
+            $request->session()->regenerate();
+
+            return redirect()->route('logistics.dashboard')
+                ->with('success', 'Welcome to Logistics & Sorting Hub!');
+        }
+
         try {
             if (Auth::attempt($credentials, $remember)) {
                 $user = Auth::user();
@@ -177,7 +267,7 @@ class AuthController extends Controller
                 'email' => $email,
             ], function ($message) use ($email, $otpCode) {
                 $message->to($email)
-                    ->subject('Your Cartzy Email Verification Code [' . $otpCode . ']');
+                    ->subject('Your cartzy Email Verification Code [' . $otpCode . ']');
             });
             $mailSent = true;
         } catch (\Exception $e) {
@@ -279,7 +369,8 @@ class AuthController extends Controller
             'business_name'        => ['nullable', 'string', 'max:255'],
             'line_of_business'     => ['nullable', 'string', 'max:150'],
             'id_photo'             => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
-            'role'                 => ['required', 'string', Rule::in([User::ROLE_BUYER, User::ROLE_SELLER, User::ROLE_COURIER])],
+            'dti_permit'           => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'role'                 => ['required', 'string', Rule::in([User::ROLE_BUYER, User::ROLE_SELLER, User::ROLE_COURIER, User::ROLE_LOGISTICS])],
             'password'             => ['required', 'string', 'confirmed', Password::min(6)],
             'email_verification_otp' => ['required', 'string', 'min:6', 'max:6'],
         ], [
@@ -295,6 +386,8 @@ class AuthController extends Controller
             'password.min'         => 'Password must be at least 6 characters long.',
             'id_photo.mimes'       => 'ID must be a JPG, PNG, or PDF file.',
             'id_photo.max'         => 'ID file must not exceed 5MB.',
+            'dti_permit.mimes'     => 'Business / DTI permit must be a JPG, PNG, or PDF file.',
+            'dti_permit.max'       => 'Business / DTI permit must not exceed 5MB.',
             'email_verification_otp.required' => 'Please enter the 6-digit verification code.',
             'email_verification_otp.min'      => 'Please enter the complete 6-digit code.',
         ]);
@@ -347,6 +440,12 @@ class AuthController extends Controller
             $idPhotoPath = $request->file('id_photo')->store('id_photos', 'public');
         }
 
+        // Handle Business / DTI Permit upload
+        $dtiPermitPath = null;
+        if ($request->hasFile('dti_permit') && $request->file('dti_permit')->isValid()) {
+            $dtiPermitPath = $request->file('dti_permit')->store('dti_permits', 'public');
+        }
+
         try {
             $status = ($validated['role'] === User::ROLE_BUYER) ? 'active' : 'pending';
 
@@ -365,9 +464,10 @@ class AuthController extends Controller
                 'city'             => $city,
                 'barangay'         => $barangay,
                 'postal_code'      => $postalCode,
-                'business_name'    => $validated['role'] === User::ROLE_SELLER ? ($validated['business_name'] ?? null) : null,
+                'business_name'    => in_array($validated['role'], [User::ROLE_SELLER, User::ROLE_LOGISTICS], true) ? ($validated['business_name'] ?? null) : null,
                 'line_of_business' => $validated['role'] === User::ROLE_SELLER ? ($validated['line_of_business'] ?? null) : null,
                 'id_photo'         => $idPhotoPath,
+                'dti_permit'       => $dtiPermitPath,
                 'role'             => $validated['role'],
                 'status'           => $status,
                 'password'         => Hash::make($validated['password']),
@@ -387,7 +487,7 @@ class AuthController extends Controller
                     ->with('success', 'Welcome to Cartzy, ' . $user->name . '! Your account is active. Start shopping now!');
             }
 
-            // Sellers & Couriers still require KYC verification
+            // Sellers, Logistics & Couriers require Admin approval
             return redirect()->route('register.pending')
                 ->with('pending_name', $user->name)
                 ->with('pending_email', $user->email);
@@ -416,6 +516,12 @@ class AuthController extends Controller
                 'name' => 'Arnel Gomez (Express Rider)',
                 'email' => 'courier@marketstore.ph',
                 'role' => User::ROLE_COURIER,
+            ],
+            'logistics' => [
+                'id' => 4,
+                'name' => 'Metro South Sorting & Fulfillment Hub',
+                'email' => 'logistics@cartzy.ph',
+                'role' => User::ROLE_LOGISTICS,
             ],
             default => [
                 'id' => 1,

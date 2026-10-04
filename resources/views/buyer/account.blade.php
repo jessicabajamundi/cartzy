@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Account | Cartzy')
+@section('title', 'My Account | cartzy')
 
 @section('hide_footer', 'true')
 

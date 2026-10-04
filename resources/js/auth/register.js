@@ -21,7 +21,7 @@ function selectRole(role) {
         if (buyerRadio) buyerRadio.checked = false;
         if (sellerOpt) sellerOpt.classList.add('selected');
         if (buyerOpt) buyerOpt.classList.remove('selected');
-        if (subtitle) subtitle.innerText = 'Join Cartzy as a Seller and start selling your products';
+        if (subtitle) subtitle.innerText = 'Join cartzy as a Seller and start selling your products';
         if (submitBtn) submitBtn.innerText = 'Complete & Submit Application';
         if (kycSection) kycSection.style.display = 'block';
     } else {
@@ -29,7 +29,7 @@ function selectRole(role) {
         if (sellerRadio) sellerRadio.checked = false;
         if (buyerOpt) buyerOpt.classList.add('selected');
         if (sellerOpt) sellerOpt.classList.remove('selected');
-        if (subtitle) subtitle.innerText = 'Join Cartzy and start shopping the best electronics';
+        if (subtitle) subtitle.innerText = 'Join cartzy and start shopping the best electronics';
         if (submitBtn) submitBtn.innerText = 'Complete & Start Shopping';
         if (kycSection) kycSection.style.display = 'none';
     }
@@ -100,8 +100,6 @@ function nextStep(step) {
     if (currentStep === 1) {
         const firstName = document.getElementById('first_name')?.value?.trim();
         const lastName = document.getElementById('last_name')?.value?.trim();
-        const mi = document.getElementById('middle_initial')?.value?.trim() || '';
-        const sex = document.getElementById('sex')?.value;
         const email = document.getElementById('email')?.value?.trim();
 
         if (!firstName) {
@@ -112,17 +110,13 @@ function nextStep(step) {
             document.getElementById('last_name')?.focus();
             return;
         }
-        if (!sex) {
-            document.getElementById('sex')?.focus();
-            return;
-        }
         if (!email) {
             document.getElementById('email')?.focus();
             return;
         }
         const nameField = document.getElementById('name');
         if (nameField) {
-            nameField.value = firstName + (mi ? ' ' + mi : '') + ' ' + lastName;
+            nameField.value = `${firstName} ${lastName}`.trim();
         }
     }
     if (currentStep === 2) {
