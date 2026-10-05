@@ -60,6 +60,17 @@
             color: #ffffff;
         }
 
+        /* Utility to hide native scrollbar while keeping smooth scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
         /* ── Compact Product Cards ──────────────────────────────────────── */
 
         /* Explicit Grid Rules for Edge-to-Edge Full Width */

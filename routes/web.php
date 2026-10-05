@@ -12,9 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Public Marketplace Homepage (Buyer facing)
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/category/{slug}', [\App\Http\Controllers\HomeController::class, 'category'])->name('category.show');
 
 // Shopping Cart Routes (Available to all visitors & registered buyers)
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
