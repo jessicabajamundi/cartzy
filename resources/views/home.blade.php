@@ -6,65 +6,8 @@
 <div class="w-full px-3 sm:px-6 lg:px-8 py-6 space-y-8">
 
 
-    <!-- 1. Hero Promo Banner Section (Edge-to-Edge Grid) -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
-        <!-- Main Hero Banner (Left 2 cols) -->
-        <div class="lg:col-span-2 relative rounded-2xl overflow-hidden shadow-lg bg-[#282133] h-72 sm:h-88 lg:h-[380px] flex items-center justify-between p-6 sm:p-10 text-white group border border-[#3E354C]">
-            <div class="space-y-4 max-w-2xl z-10">
-                <span class="inline-block bg-[#A8A0B2] text-[#191421] text-xs font-extrabold uppercase px-3.5 py-1.5 rounded-full tracking-wider shadow-sm">
-                    ✦ NEW SEASON COLLECTION
-                </span>
-                <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight text-white">
-                    Premium Quality Essentials &amp; Exclusive Deals
-                </h1>
-                <p class="text-xs sm:text-base text-[#C9C3D3] font-normal leading-relaxed">
-                    Enjoy up to 60% off select brands, complimentary shipping vouchers, and verified authentic products.
-                </p>
-                <div class="pt-2">
-                    <a href="#shop-now" class="inline-flex items-center gap-2.5 bg-[#A8A0B2] text-[#191421] hover:bg-[#91879E] hover:text-white px-6 py-3 rounded-xl font-bold text-sm shadow-sm transition-all transform active:scale-95">
-                        Shop the Collection
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Background Gradient Texture -->
-            <div class="absolute inset-0 bg-gradient-to-tr from-[#191421] via-[#282133] to-[#3E354C] opacity-95"></div>
-            <!-- Decorative Vector Icon -->
-            <div class="absolute right-4 bottom-4 opacity-10 pointer-events-none transform translate-x-4 translate-y-4">
-                <svg class="w-80 h-80 fill-white" viewBox="0 0 24 24">
-                    <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h2v2c0 .55.45 1 1 1s1-.45 1-1V8h6v2c0 .55.45 1 1 1s1-.45 1-1V8h2v12z"/>
-                </svg>
-            </div>
-            <!-- Lavender glow orb -->
-            <div class="absolute top-0 right-0 w-72 h-72 rounded-full bg-[#A8A0B2]/10 blur-3xl pointer-events-none"></div>
-        </div>
-
-        <!-- 2 Side Banners (Right 1 col) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 h-72 sm:h-88 lg:h-[380px]">
-            <!-- Mini Banner 1: Flexible Payments -->
-            <div class="rounded-2xl overflow-hidden bg-[#F1EFF5] border border-[#E1DDE7] p-6 sm:p-8 text-[#282133] flex flex-col justify-between shadow-sm relative hover:border-[#A8A0B2] hover:shadow-md transition-all">
-                <div>
-                    <span class="bg-white text-[#6F6382] text-[10px] sm:text-[11px] font-bold px-3 py-1 rounded-md uppercase tracking-wider border border-[#E1DDE7]">Flexible Payments</span>
-                    <h3 class="text-lg sm:text-xl font-extrabold mt-2 sm:mt-3 text-[#282133]">0% Interest Installments</h3>
-                    <p class="text-xs sm:text-sm text-[#6F6382] mt-1 sm:mt-1.5 leading-relaxed">Split payments into 3, 6, or 12 convenient monthly terms</p>
-                </div>
-                <a href="#" class="text-xs sm:text-sm font-bold text-[#6F6382] hover:text-[#564B68] hover:underline flex items-center gap-1.5">Learn More &rarr;</a>
-            </div>
-
-            <!-- Mini Banner 2: Express Delivery -->
-            <div class="rounded-2xl overflow-hidden bg-[#564B68] text-white p-6 sm:p-8 flex flex-col justify-between shadow-sm relative hover:bg-[#3E354C] transition-all border border-[#6F6382]">
-                <div>
-                    <span class="bg-[#A8A0B2]/30 text-[#FAF9FB] text-[10px] sm:text-[11px] font-bold px-3 py-1 rounded-md uppercase tracking-wider border border-[#A8A0B2]/40">Express Delivery</span>
-                    <h3 class="text-lg sm:text-xl font-extrabold mt-2 sm:mt-3 text-white">Next Day Nationwide</h3>
-                    <p class="text-xs sm:text-sm text-[#C9C3D3] mt-1 sm:mt-1.5 leading-relaxed">Guaranteed prompt dispatch on verified partner items</p>
-                </div>
-                <a href="#" class="text-xs sm:text-sm font-bold text-[#E1DDE7] hover:text-white hover:underline flex items-center gap-1.5">Explore Express &rarr;</a>
-            </div>
-        </div>
-    </section>
+    <!-- Original editorial collection carousel -->
+    @include('partials.hero-carousel')
 
     <!-- 2. Popular Categories Section (Human-crafted realistic marketplace photography) -->
     <section class="bg-white rounded-2xl p-5 sm:p-7 shadow-2xs border border-gray-200 w-full">
@@ -1663,4 +1606,5 @@
 
 @push('scripts')
 <script src="{{ asset('js/home.js') }}"></script>
+<script src="{{ asset('js/hero-carousel.js') }}"></script>
 @endpush
