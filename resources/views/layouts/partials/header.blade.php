@@ -1,16 +1,21 @@
-<header class="sticky top-0 z-50 bg-white border-b border-[#E1DDE7] shadow-sm w-full">
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
     <!-- Main Navigation & Search Bar -->
-    <div class="w-full px-4 sm:px-6 lg:px-10 py-2.5">
+    <div class="w-full px-4 sm:px-6 lg:px-10 py-2 sm:py-2.5">
         <div class="flex items-center justify-between gap-4 lg:gap-8">
             
             <!-- Brand Logo -->
-            <a href="/" class="flex items-center shrink-0 group" title="cartzy">
+            <a href="/" class="flex items-center shrink-0 group py-0.5" title="cartzy">
                 <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-8.5 sm:h-9.5 w-auto object-contain group-hover:scale-105 transition-transform duration-200">
             </a>
 
             <!-- Search Area -->
-            <div class="flex-1 mx-2 sm:mx-4 flex justify-center">
-                <form id="header-search-form" action="{{ route('home') }}" method="GET" class="relative flex items-center w-full max-w-[650px] border border-[#E1DDE7] rounded-lg overflow-hidden bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#A8A0B2] focus-within:border-[#6F6382] transition">
+            <div class="flex-1 mx-3 sm:mx-6 flex justify-center max-w-[650px]">
+                <form id="header-search-form" action="{{ route('home') }}" method="GET" class="group relative flex items-center w-full bg-[#FAF9FB] hover:bg-[#F5F2F7] focus-within:!bg-white border border-[#E1DDE7] focus-within:border-[#C08B7F] rounded-full p-1 pl-4.5 shadow-[0_1px_3px_rgba(40,33,51,0.03)] focus-within:shadow-[0_4px_20px_rgba(111,99,130,0.12)] focus-within:ring-3 focus-within:ring-[#C08B7F]/20 transition-all duration-200">
+                    <span class="text-gray-400 group-focus-within:text-[#6F6382] mr-2 shrink-0 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                    </span>
                     <input 
                         type="text" 
                         id="header-search-input"
@@ -18,22 +23,22 @@
                         value="{{ request('q') }}"
                         placeholder="Search products, brands, categories..." 
                         autocomplete="off"
-                        class="w-full px-4 py-2.5 text-sm text-[#191421] placeholder-gray-400 focus:outline-none bg-transparent"
+                        class="w-full py-1.5 text-xs sm:text-sm text-[#282133] placeholder-gray-400 focus:outline-none bg-transparent font-medium"
                     >
                     <button 
                         type="button" 
                         id="header-search-clear"
-                        class="hidden text-gray-400 hover:text-[#282133] mr-1.5 text-base leading-none font-bold px-1 py-0.5 rounded transition"
+                        class="hidden text-gray-400 hover:text-[#282133] mr-1.5 text-base leading-none font-bold px-1.5 py-0.5 rounded-full hover:bg-gray-200/60 transition"
                         title="Clear search"
                     >&times;</button>
                     <button 
                         type="submit" 
                         id="header-search-btn"
-                        class="bg-[#6F6382] hover:bg-[#564B68] text-white w-11 h-9 flex items-center justify-center transition-colors shrink-0 m-0.5 rounded-md"
+                        class="bg-gradient-to-r from-[#564B68] via-[#6F6382] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] text-white w-9 h-8 sm:w-10 sm:h-8.5 flex items-center justify-center rounded-full shadow-sm hover:shadow-md transition-all duration-200 shrink-0 transform hover:scale-105 active:scale-95 cursor-pointer"
                         aria-label="Search"
                     >
-                        <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                         </svg>
                     </button>
                 </form>
@@ -44,21 +49,21 @@
             <div class="flex items-center gap-1 shrink-0">
                 
                 @guest
-                    <div class="flex items-center gap-3 mr-1">
+                    <div class="flex items-center gap-2 mr-1">
                         <!-- Login Link -->
-                        <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-gray-700 hover:text-[#564B68] transition group px-2.5 py-1.5 rounded-md hover:bg-[#F6F3F7]">
-                            <svg class="w-4.5 h-4.5 shrink-0" style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-[#3E354C] hover:text-[#564B68] hover:bg-[#F4F1F7] transition px-3 py-1.5 rounded-full text-xs font-bold">
+                            <svg class="w-4 h-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9A3.75 3.75 0 1 1 8.25 9a3.75 3.75 0 0 1 7.5 0ZM3 20.25a9 9 0 0 1 18 0"/>
                             </svg>
-                            <span class="text-xs font-semibold">Login</span>
+                            <span class="text-xs font-bold">Login</span>
                         </a>
 
                         <!-- Sign up Link -->
-                        <a href="{{ route('register') }}" class="flex items-center gap-1.5 text-white bg-[#6F6382] hover:bg-[#564B68] transition px-3.5 py-1.5 rounded-md text-xs font-semibold">
-                            <svg class="shrink-0" style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <a href="{{ route('register') }}" class="flex items-center gap-1.5 text-white bg-gradient-to-r from-[#564B68] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] shadow-sm hover:shadow-md transition-all duration-200 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transform hover:-translate-y-0.5 active:translate-y-0">
+                            <svg class="shrink-0 w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                             </svg>
-                            Sign up
+                            <span>Sign up</span>
                         </a>
                     </div>
                 @endguest
@@ -111,29 +116,29 @@
                 @endauth
 
                 {{-- Notification --}}
-                <button type="button" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Notifications" title="Notifications">
+                <button type="button" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Notifications" title="Notifications">
                     <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
                     </svg>
-                    <span class="absolute top-0.5 right-0.5 bg-[#6F6382] text-white text-[8px] font-bold min-w-[14px] min-h-[14px] rounded-full flex items-center justify-center px-0.5">3</span>
+                    <span class="absolute top-0.5 right-0.5 bg-gradient-to-tr from-[#C08B7F] to-[#D4A69A] text-white text-[8px] font-black min-w-[15px] h-[15px] rounded-full flex items-center justify-center px-0.5 ring-2 ring-white shadow-xs">3</span>
                 </button>
 
                 {{-- Mail --}}
-                <button type="button" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Messages" title="Messages">
+                <button type="button" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Messages" title="Messages">
                     <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/>
                     </svg>
                 </button>
 
                 {{-- Customer Service --}}
-                <a href="#" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Customer Service" title="Customer Service">
+                <a href="#" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Customer Service" title="Customer Service">
                     <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155"/>
                     </svg>
                 </a>
 
                 {{-- Wishlist --}}
-                <a href="#" class="relative flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-500 hover:bg-[#F6F3F7] hover:text-[#564B68] transition" aria-label="Wishlist" title="Wishlist">
+                <a href="#" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Wishlist" title="Wishlist">
                     <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
                     </svg>
@@ -141,17 +146,17 @@
 
                 {{-- Cart --}}
                 <div class="relative group">
-                    <a href="{{ route('cart.index') }}" class="flex items-center justify-center w-8.5 h-8.5 rounded-full text-gray-600 hover:bg-[#F6F3F7] hover:text-[#564B68] transition relative" aria-label="Cart" title="Cart">
+                    <a href="{{ route('cart.index') }}" class="flex items-center justify-center w-9 h-9 rounded-full text-gray-600 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 relative cursor-pointer" aria-label="Cart" title="Cart">
                         <div class="relative">
                             <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
                             </svg>
                             @if(isset($cartCount) && $cartCount > 0)
-                                <span class="absolute -top-1.5 -right-2 bg-[#6F6382] text-white font-bold text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center cart-badge-count shadow-sm">
+                                <span class="absolute -top-1.5 -right-2 bg-gradient-to-tr from-[#564B68] to-[#6F6382] text-white font-black text-[9px] min-w-[15px] h-[15px] rounded-full flex items-center justify-center cart-badge-count ring-2 ring-white shadow-xs">
                                     {{ $cartCount }}
                                 </span>
                             @else
-                                <span class="absolute -top-1.5 -right-2 bg-[#6F6382] text-white font-bold text-[9px] w-3.5 h-3.5 rounded-full items-center justify-center cart-badge-count hidden shadow-sm">
+                                <span class="absolute -top-1.5 -right-2 bg-gradient-to-tr from-[#564B68] to-[#6F6382] text-white font-black text-[9px] min-w-[15px] h-[15px] rounded-full items-center justify-center cart-badge-count hidden ring-2 ring-white shadow-xs">
                                     0
                                 </span>
                             @endif
@@ -220,7 +225,7 @@
     </div>
 
     <!-- Category Navigation Bar (Directly below Logo, Search, and Action Icons) -->
-    <div class="w-full bg-[#FAF9FB] border-t border-[#E1DDE7] px-4 sm:px-6 lg:px-10 py-1.5 text-xs font-semibold relative">
+    <div class="w-full bg-[#FAF9FB] border-t border-[#EAE6F0] px-4 sm:px-6 lg:px-10 py-1.5 text-xs font-semibold relative">
         <div class="flex items-center justify-between gap-2">
             
             <!-- Left: Categories Dropdown Button & Mega Menu -->
@@ -229,11 +234,14 @@
                     type="button" 
                     id="all-categories-btn"
                     onclick="toggleCategoryMenu()"
-                    class="inline-flex items-center gap-1.5 text-gray-900 hover:text-[#564B68] px-3 py-1.5 rounded-lg font-bold transition hover:bg-[#F1EFF5] cursor-pointer select-none text-xs sm:text-sm shrink-0"
+                    class="inline-flex items-center gap-2 text-[#282133] hover:text-[#564B68] px-3.5 py-1.5 rounded-full font-bold transition-all duration-150 bg-white hover:bg-[#F3EFF7] border border-[#E1DDE7] shadow-[0_1px_2px_rgba(40,33,51,0.04)] cursor-pointer select-none text-xs shrink-0 group"
                     aria-expanded="false"
                 >
+                    <svg class="w-3.5 h-3.5 text-[#6F6382] group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+                    </svg>
                     <span class="tracking-wide">Categories</span>
-                    <svg id="cat-chevron" class="w-3.5 h-3.5 opacity-80 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg id="cat-chevron" class="w-3 h-3 text-gray-400 group-hover:text-gray-700 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
@@ -348,27 +356,30 @@
                 <a 
                     href="#daily-discover-section"
                     onclick="filterFeaturedSection('just-for-you')"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-lg font-bold text-gray-900 hover:text-black hover:bg-[#F1EFF5] transition text-xs sm:text-sm shrink-0 flex items-center gap-1.5 cursor-pointer"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-full font-bold text-gray-800 hover:text-[#564B68] hover:bg-[#F3EFF7] transition text-xs shrink-0 flex items-center gap-1.5 cursor-pointer"
                 >
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#6F6382]"></span>
                     <span>Just for You</span>
                 </a>
                 <a 
                     href="#shoes"
                     onclick="filterFeaturedSection('new-in')"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-lg font-semibold text-gray-700 hover:text-black hover:bg-[#F1EFF5] transition text-xs sm:text-sm shrink-0 flex items-center gap-1.5 cursor-pointer"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-full font-bold text-gray-600 hover:text-[#564B68] hover:bg-[#F3EFF7] transition text-xs shrink-0 flex items-center gap-1.5 cursor-pointer"
                 >
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                     <span>New In</span>
                 </a>
                 <a 
                     href="#flash-sale"
                     onclick="filterFeaturedSection('sale')"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-lg font-bold text-red-600 hover:text-red-700 hover:bg-red-50 transition text-xs sm:text-sm shrink-0 flex items-center gap-1.5 cursor-pointer"
+                    class="px-2.5 sm:px-3 py-1.5 rounded-full font-extrabold text-[#BE123C] bg-rose-50/90 hover:bg-rose-100 border border-rose-100 transition text-xs shrink-0 flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 >
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#E11D48] animate-pulse"></span>
                     <span>Sale</span>
                 </a>
             </div>
 
-            <div class="h-4 w-px bg-[#E1DDE7] mx-1 shrink-0 hidden md:block"></div>
+            <div class="h-4 w-px bg-[#E1DDE7] mx-1.5 shrink-0 hidden md:block"></div>
 
             <!-- Center: Horizontally Scrollable Categories -->
             <div class="relative flex-1 min-w-0 flex items-center">
@@ -377,7 +388,7 @@
                     type="button" 
                     onclick="scrollHeaderCategories('left')" 
                     id="header-cat-scroll-left"
-                    class="hidden sm:flex items-center justify-center w-6 h-6 rounded-full bg-white/90 hover:bg-white text-gray-600 hover:text-black border border-[#E1DDE7] shadow-xs shrink-0 mr-1 z-10 transition cursor-pointer"
+                    class="hidden sm:flex items-center justify-center w-6.5 h-6.5 rounded-full bg-white/95 hover:bg-white text-gray-600 hover:text-black border border-[#E1DDE7] shadow-xs shrink-0 mr-1.5 z-10 transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer"
                     aria-label="Scroll left"
                 >
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
@@ -386,7 +397,7 @@
                 <!-- Scrollable Track -->
                 <div 
                     id="header-categories-scroll" 
-                    class="flex-1 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1.5 py-0.5"
+                    class="flex-1 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1 py-0.5"
                     style="scrollbar-width: none; -ms-overflow-style: none;"
                 >
                     @php
@@ -397,7 +408,7 @@
                             href="{{ route('home', ['category' => $cat->slug]) }}"
                             onclick="if(window.filterByCategory) { filterByCategory('{{ $cat->slug }}', '{{ addslashes($cat->name) }}'); return false; }"
                             id="header-nav-cat-{{ $cat->slug }}"
-                            class="header-nav-pill whitespace-nowrap shrink-0 px-2.5 py-1 rounded-md text-gray-700 hover:text-[#282133] hover:bg-[#F1EFF5] transition font-medium text-xs flex items-center gap-1 border border-transparent hover:border-[#E1DDE7]"
+                            class="header-nav-pill whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-gray-600 hover:text-[#282133] hover:bg-white hover:shadow-2xs border border-transparent hover:border-[#E1DDE7] transition font-medium text-xs flex items-center gap-1"
                         >
                             <span>{{ $cat->name }}</span>
                         </a>
@@ -409,7 +420,7 @@
                     type="button" 
                     onclick="scrollHeaderCategories('right')" 
                     id="header-cat-scroll-right"
-                    class="hidden sm:flex items-center justify-center w-6 h-6 rounded-full bg-white/90 hover:bg-white text-gray-600 hover:text-black border border-[#E1DDE7] shadow-xs shrink-0 ml-1 z-10 transition cursor-pointer"
+                    class="hidden sm:flex items-center justify-center w-6.5 h-6.5 rounded-full bg-white/95 hover:bg-white text-gray-600 hover:text-black border border-[#E1DDE7] shadow-xs shrink-0 ml-1.5 z-10 transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer"
                     aria-label="Scroll right"
                 >
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>

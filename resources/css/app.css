@@ -20,6 +20,19 @@
     --color-brand-800: #3E354C;
     --color-brand-900: #282133;
     --color-brand-950: #191421;
+
+    /* ── Rose Gold Accent ── */
+    --color-accent-50: #FFF5F3;
+    --color-accent-100: #FCEAE6;
+    --color-accent-200: #F5CFC7;
+    --color-accent-300: #E8B8AD;
+    --color-accent-400: #D4A69A;
+    --color-accent-500: #C08B7F;
+    --color-accent-600: #A47065;
+    --color-accent-700: #8C5A50;
+    --color-accent-800: #6B3F37;
+    --color-accent-900: #4A2520;
+    --color-accent-950: #2E1410;
 }
 
 :root {
@@ -30,6 +43,15 @@
     --brand-soft: #FAF9FB;
     --brand-light: #F1EFF5;
     --brand-border: #E1DDE7;
+
+    /* ── Rose Gold Accent ── */
+    --accent-soft: #FFF5F3;
+    --accent-light: #FCEAE6;
+    --accent-muted: #F5CFC7;
+    --accent-primary: #D4A69A;
+    --accent-deep: #C08B7F;
+    --accent-dark: #8C5A50;
+    --accent-darkest: #4A2520;
 }
 
 .bg-brand { background-color: var(--brand-primary); }
