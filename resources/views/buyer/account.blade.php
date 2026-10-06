@@ -559,9 +559,9 @@
                     type="text"
                     name="street_address"
                     id="modal_street"
-                    value="{{ old('street_address', $user->street_address) }}"
+                    value="{{ old('street_address', $user->street_address ?? '') }}"
                     required
-                    placeholder="e.g. 1011, Purok 4"
+                    placeholder="House/Unit No., Street Name"
                     class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"
                 >
             </div>
@@ -570,12 +570,13 @@
                 <div>
                     <label class="block font-bold text-gray-800 mb-1" for="modal_region">Region <span class="text-rose-500">*</span></label>
                     <select name="region" id="modal_region" class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs" required>
+                        <option value="" disabled {{ empty($user->region) ? 'selected' : '' }}>Select Region</option>
                         <option value="NCR" {{ $user->region == 'NCR' ? 'selected' : '' }}>NCR – Metro Manila</option>
                         <option value="CAR" {{ $user->region == 'CAR' ? 'selected' : '' }}>CAR – Cordillera</option>
                         <option value="I" {{ $user->region == 'I' ? 'selected' : '' }}>Region I – Ilocos</option>
                         <option value="II" {{ $user->region == 'II' ? 'selected' : '' }}>Region II – Cagayan</option>
                         <option value="III" {{ $user->region == 'III' ? 'selected' : '' }}>Region III – Central Luzon</option>
-                        <option value="IV-A" {{ $user->region == 'IV-A' || empty($user->region) ? 'selected' : '' }}>Region IV-A – CALABARZON</option>
+                        <option value="IV-A" {{ $user->region == 'IV-A' ? 'selected' : '' }}>Region IV-A – CALABARZON</option>
                         <option value="IV-B" {{ $user->region == 'IV-B' ? 'selected' : '' }}>Region IV-B – MIMAROPA</option>
                         <option value="V" {{ $user->region == 'V' ? 'selected' : '' }}>Region V – Bicol</option>
                         <option value="VI" {{ $user->region == 'VI' ? 'selected' : '' }}>Region VI – Western Visayas</option>
@@ -596,7 +597,7 @@
                         type="text"
                         name="province"
                         id="modal_province"
-                        value="{{ old('province', $user->province ?? 'Laguna') }}"
+                        value="{{ old('province', $user->province ?? '') }}"
                         placeholder="Province"
                         class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"
                     >
@@ -610,8 +611,8 @@
                         type="text"
                         name="city"
                         id="modal_city"
-                        value="{{ old('city', $user->city ?? 'Victoria') }}"
-                        placeholder="City"
+                        value="{{ old('city', $user->city ?? '') }}"
+                        placeholder="City / Municipality"
                         class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"
                     >
                 </div>
@@ -622,7 +623,7 @@
                         type="text"
                         name="barangay"
                         id="modal_barangay"
-                        value="{{ old('barangay', $user->barangay ?? 'Masapang') }}"
+                        value="{{ old('barangay', $user->barangay ?? '') }}"
                         placeholder="Barangay"
                         class="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"
                     >
@@ -635,10 +636,10 @@
                     type="text"
                     name="postal_code"
                     id="modal_postal_code"
-                    value="{{ old('postal_code', $user->postal_code ?? '4011') }}"
+                    value="{{ old('postal_code', $user->postal_code ?? '') }}"
                     maxlength="4"
                     inputmode="numeric"
-                    placeholder="e.g. 4011"
+                    placeholder="e.g. 4000"
                     class="w-36 px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"
                 >
             </div>

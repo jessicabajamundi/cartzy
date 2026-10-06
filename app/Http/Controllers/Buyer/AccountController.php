@@ -18,23 +18,10 @@ class AccountController extends Controller
      */
     private function getUser()
     {
-        return Auth::user() ?? User::where('role', 'buyer')->first() ?? new User([
-            'name'           => 'Jess Pambago',
-            'middle_initial' => 'B.',
-            'email'          => 'jessicapambago27@gmail.com',
-            'phone'          => '09773587409',
-            'sex'            => 'Female',
-            'birthday'       => '2005-12-05',
-            'age'            => 20,
-            'street_address' => '1011, Purok 4',
-            'barangay'       => 'Masapang',
-            'city'           => 'Victoria',
-            'province'       => 'Laguna',
-            'region'         => 'IV-A',
-            'postal_code'    => '4011',
-            'address'        => '1011, Purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011',
-            'role'           => 'buyer',
-            'status'         => 'active',
+        return Auth::user() ?? new User([
+            'name'   => 'Guest Buyer',
+            'role'   => 'buyer',
+            'status' => 'active',
         ]);
     }
 
@@ -396,23 +383,70 @@ class AccountController extends Controller
 
     private function getAddressesData($user)
     {
-        $primary = [
-            'id'             => 1,
-            'type'           => 'Home',
-            'recipient_name' => $user->name ?? 'Jess Pambago',
-            'phone'          => $user->phone ?? '09773587409',
-            'full_address'   => $user->address ?? '1011, Purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011',
-            'street'         => $user->street_address ?? '1011, Purok 4',
-            'barangay'       => $user->barangay ?? 'Masapang',
-            'city'           => $user->city ?? 'Victoria',
-            'province'       => $user->province ?? 'Laguna',
-            'region'         => $user->region ?? 'IV-A',
-            'postal_code'    => $user->postal_code ?? '4011',
-            'is_default'     => true,
-            'label'          => 'Default Home Address',
-        ];
+        // 1. Check if user has an address saved on their profile
+        if (!empty($user->address) || !empty($user->street_address)) {
+            $fullAddress = $user->address;
+            if (empty($fullAddress)) {
+                $addressParts = array_filter([
+                    $user->street_address,
+                    $user->barangay ? 'Brgy. ' . $user->barangay : null,
+                    $user->city,
+                    $user->province,
+                    $user->region,
+                    $user->postal_code,
+                ]);
+                $fullAddress = implode(', ', $addressParts);
+            }
 
-        return [$primary];
+            return [
+                [
+                    'id'             => 1,
+                    'type'           => 'Home',
+                    'recipient_name' => $user->name,
+                    'phone'          => $user->phone ?? 'No phone provided',
+                    'full_address'   => $fullAddress,
+                    'street'         => $user->street_address ?? '',
+                    'barangay'       => $user->barangay ?? '',
+                    'city'           => $user->city ?? '',
+                    'province'       => $user->province ?? '',
+                    'region'         => $user->region ?? '',
+                    'postal_code'    => $user->postal_code ?? '',
+                    'is_default'     => true,
+                    'label'          => 'Default Home Address',
+                ]
+            ];
+        }
+
+        // 2. Check if user has records in addresses table
+        if (!empty($user->id) && class_exists(\App\Models\Address::class)) {
+            try {
+                $saved = \App\Models\Address::where('user_id', $user->id)->get();
+                if ($saved->isNotEmpty()) {
+                    return $saved->map(function ($addr) {
+                        return [
+                            'id'             => $addr->id,
+                            'type'           => $addr->label ?: 'Home',
+                            'recipient_name' => $addr->recipient,
+                            'phone'          => $addr->phone,
+                            'full_address'   => $addr->formatted_address,
+                            'street'         => $addr->line1,
+                            'barangay'       => $addr->barangay,
+                            'city'           => $addr->city,
+                            'province'       => $addr->province,
+                            'region'         => '',
+                            'postal_code'    => $addr->postal_code,
+                            'is_default'     => (bool) $addr->is_default,
+                            'label'          => $addr->label ?: 'Address',
+                        ];
+                    })->all();
+                }
+            } catch (\Throwable $e) {
+                // Table might not be populated
+            }
+        }
+
+        // 3. New user without address: return empty list
+        return [];
     }
 
     private function getVouchersData()
