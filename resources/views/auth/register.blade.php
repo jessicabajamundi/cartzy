@@ -1,11 +1,12 @@
 @extends('layouts.auth')
 
 @section('title', 'Sign Up | cartzy')
+@section('auth_visual', 'products')
 
 @section('auth_form')
 
     <h2 class="auth-title">Create your account</h2>
-    <p class="auth-subtitle">Join cartzy and start shopping the best electronics</p>
+    <p class="auth-subtitle">Join cartzy and discover your everyday favorites</p>
 
     <div style="margin-bottom: 20px;">
         <a href="{{ route('auth.google') }}" class="btn-google">
@@ -996,5 +997,4 @@
 @endpush
 
 @endsection
-
 

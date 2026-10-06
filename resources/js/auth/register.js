@@ -29,7 +29,7 @@ function selectRole(role) {
         if (sellerRadio) sellerRadio.checked = false;
         if (buyerOpt) buyerOpt.classList.add('selected');
         if (sellerOpt) sellerOpt.classList.remove('selected');
-        if (subtitle) subtitle.innerText = 'Join cartzy and start shopping the best electronics';
+            if (subtitle) subtitle.innerText = 'Join cartzy and discover your everyday favorites';
         if (submitBtn) submitBtn.innerText = 'Complete & Start Shopping';
         if (kycSection) kycSection.style.display = 'none';
     }

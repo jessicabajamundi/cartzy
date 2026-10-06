@@ -1,6 +1,7 @@
 @extends('layouts.auth')
 
 @section('title', 'Log In | cartzy')
+@section('auth_visual', 'products')
 
 @section('auth_form')
 
@@ -88,7 +89,7 @@
                 <input type="checkbox" name="remember">
                 <span>Remember me</span>
             </label>
-            <a href="#forgot-password" class="forgot-link">Forgot password?</a>
+            <a href="{{ route('password.forgot') }}" class="forgot-link">Forgot password?</a>
         </div>
 
         <button type="submit" class="btn-primary">Sign In to Account</button>
@@ -135,6 +136,16 @@
 
 @push('scripts')
 <script src="{{ asset('js/auth/login.js') }}"></script>
+<script>
+    if (window.location.hash === '#forgot-password') {
+        window.location.replace('{{ route("password.forgot") }}');
+    }
+    window.addEventListener('hashchange', function() {
+        if (window.location.hash === '#forgot-password') {
+            window.location.replace('{{ route("password.forgot") }}');
+        }
+    });
+</script>
 @endpush
 
 @endsection

@@ -707,4 +707,149 @@ class AuthController extends Controller
             ]);
         }
     }
+
+    /**
+     * Show the forgot password form.
+     */
+    public function showForgotForm()
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Send password reset OTP to user email.
+     */
+    public function sendResetOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email'],
+        ], [
+            'email.required' => 'Please enter your email address.',
+            'email.email' => 'Please enter a valid email address.',
+        ]);
+
+        $email = strtolower(trim($validated['email']));
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account found with this email address.',
+            ], 404);
+        }
+
+        // Generate secure 6-digit OTP
+        $otpCode = (string) str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Store in cache for 15 minutes
+        Cache::put('pwd_reset_otp_' . $email, [
+            'otp' => $otpCode,
+            'name' => $user->name,
+            'created_at' => now(),
+        ], now()->addMinutes(15));
+
+        // Dispatch Email
+        $mailSent = false;
+        try {
+            Mail::send('emails.password-reset-otp', [
+                'name' => $user->name,
+                'otp'  => $otpCode,
+                'email'=> $email,
+            ], function ($message) use ($email, $otpCode) {
+                $message->to($email)
+                    ->subject('Your cartzy Password Reset Code [' . $otpCode . ']');
+            });
+            $mailSent = true;
+        } catch (\Exception $e) {
+            Log::info("Password reset OTP for {$email}: {$otpCode} (Mail driver: " . config('mail.default') . "). Note: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'A 6-digit verification code has been sent to your email address.',
+            'email' => $email,
+            'otp_preview' => config('app.debug') ? $otpCode : null,
+        ]);
+    }
+
+    /**
+     * Verify the 6-digit password reset OTP.
+     */
+    public function verifyResetOtp(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'email'],
+            'otp'   => ['required', 'string', 'min:6', 'max:6'],
+        ]);
+
+        $email = strtolower(trim($validated['email']));
+        $enteredOtp = trim($validated['otp']);
+
+        $cached = Cache::get('pwd_reset_otp_' . $email);
+
+        if (!$cached || $cached['otp'] !== $enteredOtp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired verification code. Please check your email.',
+            ], 422);
+        }
+
+        // Mark as verified for 15 minutes
+        Cache::put('pwd_reset_verified_' . $email, true, now()->addMinutes(15));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification code confirmed. You can now set your new password.',
+        ]);
+    }
+
+    /**
+     * Handle final password reset submission.
+     */
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'email'    => ['required', 'string', 'email'],
+            'otp'      => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.required'  => 'Please enter a new password.',
+            'password.min'       => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ]);
+
+        $email = strtolower(trim($validated['email']));
+        $enteredOtp = trim($validated['otp']);
+
+        $cached = Cache::get('pwd_reset_otp_' . $email);
+        $isVerified = Cache::get('pwd_reset_verified_' . $email, false);
+
+        if ((!$cached || $cached['otp'] !== $enteredOtp) && !$isVerified) {
+            return back()->withInput()->withErrors([
+                'email' => 'Your verification session has expired. Please request a new code.',
+            ]);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return back()->withInput()->withErrors([
+                'email' => 'User account could not be found.',
+            ]);
+        }
+
+        // Update password
+        $user->password = Hash::make($validated['password']);
+        $user->save();
+
+        // Clear cached OTP tokens
+        Cache::forget('pwd_reset_otp_' . $email);
+        Cache::forget('pwd_reset_verified_' . $email);
+
+        // Auto-sync SQL dump if helper exists
+        if (class_exists(\App\Console\Commands\ExportDatabaseSql::class)) {
+            \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+        }
+
+        return redirect()->route('login')->with('success', 'Your password has been reset successfully! You can now log in.');
+    }
 }

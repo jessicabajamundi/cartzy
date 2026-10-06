@@ -43,6 +43,10 @@
             max-width: 720px;
         }
 
+        .auth-card-body {
+            width: 100%;
+        }
+
         .auth-logo {
             display: flex;
             justify-content: center;
@@ -390,35 +394,49 @@
             .auth-logo-img { height: 48px; max-width: 200px; }
         }
     </style>
+    @hasSection('auth_visual')
+        <link rel="stylesheet" href="{{ asset('css/auth-split.css') }}">
+    @endif
 </head>
-<body>
+<body class="@hasSection('auth_visual') auth-split-page @endif">
+
+    @hasSection('auth_visual')
+    <main class="auth-shell">
+        @include('partials.auth-visual')
+    @endif
 
     <div class="auth-card">
 
         <div class="auth-top-bar">
-            <a href="{{ route('home') }}" class="btn-back-shop" title="Back to the shop">
+            <a href="{{ route('home') }}" class="btn-back-shop" title="Continue to the shop">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="19" y1="12" x2="5" y2="12"></line>
                     <polyline points="12 19 5 12 12 5"></polyline>
                 </svg>
-                <span>Back to the shop</span>
+                <span>Continue to the shop</span>
             </a>
         </div>
 
-        <a href="/" class="auth-logo" title="cartzy">
-            <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="auth-logo-img">
-        </a>
+        <div class="auth-card-body">
+            <a href="/" class="auth-logo" title="cartzy">
+                <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="auth-logo-img">
+            </a>
 
-        @yield('auth_form')
+            @yield('auth_form')
+        </div>
+
+        <footer class="page-footer">
+            <div class="page-footer-links">
+                <a href="#">About</a><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Help</a>
+            </div>
+            <div>© 2026 cartzy. All rights reserved.</div>
+        </footer>
 
     </div>
 
-    <footer class="page-footer">
-        <div class="page-footer-links">
-            <a href="#">About</a><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Help</a>
-        </div>
-        <div>© 2026 cartzy. All rights reserved.</div>
-    </footer>
+    @hasSection('auth_visual')
+    </main>
+    @endif
 
     @stack('scripts')
 </body>

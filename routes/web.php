@@ -37,6 +37,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/register/otp-status', [AuthController::class, 'checkOtpStatus'])->name('register.otp_status');
     Route::get('/register/pending', [AuthController::class, 'showPendingApproval'])->name('register.pending');
 
+    // Forgot Password & Reset Routes (OTP-based)
+    Route::get('/forgot-password', [AuthController::class, 'showForgotForm'])->name('password.forgot');
+    Route::post('/forgot-password/send-otp', [AuthController::class, 'sendResetOtp'])->name('password.send_otp');
+    Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyResetOtp'])->name('password.verify_otp');
+    Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.submit');
+
     // Google OAuth Routes
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
