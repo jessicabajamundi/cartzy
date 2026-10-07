@@ -32,6 +32,18 @@ class CartController extends Controller
      */
     public function add(Request $request)
     {
+        if (!auth()->check()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'requires_auth' => true,
+                    'redirect' => route('register', ['from' => 'cart']),
+                    'message' => 'Please create an account to add items to your cart.',
+                ], 401);
+            }
+            return redirect()->route('register', ['from' => 'cart'])->with('info', 'Please create an account or sign up to add items to your cart.');
+        }
+
         $validated = $request->validate([
             'id'        => 'required',
             'name'      => 'required|string',

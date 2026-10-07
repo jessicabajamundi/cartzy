@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Buyer;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\OrderPlacement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -70,7 +71,31 @@ class CheckoutController extends Controller
             'delivery_address' => ['required', 'string'],
         ]);
 
-        return redirect()->route('account.purchases')
-            ->with('success', '🎉 Order placed successfully! Your verified buyer order is being prepared for dispatch.');
+        $cartItems = array_values(session('cart', []));
+        if (empty($cartItems)) {
+            return redirect()->route('cart.index')->with('info', 'Your cart is empty. Add some products before checking out!');
+        }
+
+        try {
+            $order = app(OrderPlacement::class)->place(
+                $user,
+                $cartItems,
+                $request->input('payment_method'),
+                $request->input('delivery_address')
+            );
+        } catch (\RuntimeException $e) {
+            return redirect()->route('cart.index')->with('info', $e->getMessage());
+        }
+
+        session()->forget('cart');
+
+        try {
+            \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+        } catch (\Throwable $e) {
+            // SQL dump sync is best-effort; never block a placed order.
+        }
+
+        return redirect()->route('buyer.dashboard', ['tab' => 'orders'])
+            ->with('success', 'Order ' . $order->reference . ' placed successfully! Your order is being prepared for dispatch.');
     }
 }

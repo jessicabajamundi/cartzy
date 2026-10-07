@@ -81,6 +81,18 @@ window.updateCartPopover = function(cartItems, cartCount) {
 
 // ─── Add to Cart ───────────────────────────────────────────────────────────
 window.addToCart = function(id, name, price, image, variation) {
+    const isLoggedIn = (typeof window.isUserLoggedIn !== 'undefined')
+        ? Boolean(window.isUserLoggedIn)
+        : (document.querySelector('meta[name="user-logged-in"]')?.getAttribute('content') === '1');
+
+    const registerUrl = window.registerUrl || document.querySelector('meta[name="register-url"]')?.getAttribute('content') || '/register?from=cart';
+
+    // If user is not logged in / has no account, redirect directly to sign-up
+    if (!isLoggedIn) {
+        window.location.href = registerUrl;
+        return;
+    }
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     fetch('/cart/add', {
         method: 'POST',
@@ -91,12 +103,22 @@ window.addToCart = function(id, name, price, image, variation) {
         },
         body: JSON.stringify({ id, name, price, image, variation, quantity: 1 })
     })
-    .then(res => res.json())
+    .then(async res => {
+        if (res.status === 401) {
+            const errData = await res.json().catch(() => ({}));
+            window.location.href = errData.redirect || registerUrl;
+            return null;
+        }
+        return res.json();
+    })
     .then(data => {
+        if (!data) return;
         if (data.success) {
             showToast('✓ Added: ' + (name.length > 28 ? name.substring(0, 28) + '…' : name), 'success');
             updateCartBadge(data.cartCount);
             updateCartPopover(data.cart, data.cartCount);
+        } else if (data.redirect) {
+            window.location.href = data.redirect;
         } else {
             showToast(data.message || 'Could not add to cart.', 'error');
         }
