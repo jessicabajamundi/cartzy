@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-logged-in" content="{{ Auth::check() ? '1' : '0' }}">
+    <meta name="register-url" content="{{ route('register', ['from' => 'cart']) }}">
 
     <title>@yield('title', 'cartzy')</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -32,6 +34,8 @@
             --brand-border: #E1DDE7;
         }
         body {
+            margin: 0;
+            padding: 0;
             font-family: 'Lato', sans-serif;
             background-color: #FAF9FB;
             color: #191421;
@@ -184,6 +188,10 @@
     @stack('scripts')
 
     <!-- Global Cart JS (available on all pages) -->
+    <script>
+        window.isUserLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
+        window.registerUrl = "{{ route('register', ['from' => 'cart']) }}";
+    </script>
     <script src="{{ asset('js/cart.js') }}"></script>
 </body>
 </html>

@@ -39,7 +39,19 @@ class AppServiceProvider extends ServiceProvider
             } catch (\Throwable $e) {
                 $categories = collect();
             }
-            $view->with('allCategories', $categories);
+            $headerNotifications = collect();
+            $headerUnreadCount = 0;
+            if (\Illuminate\Support\Facades\Auth::check()) {
+                try {
+                    $headerNotifications = \App\Services\NotificationService::getUserNotifications(\Illuminate\Support\Facades\Auth::id());
+                    $headerUnreadCount = $headerNotifications->where('is_read', false)->count();
+                } catch (\Throwable $e) {
+                    $headerNotifications = collect();
+                    $headerUnreadCount = 0;
+                }
+            }
+            $view->with('headerNotifications', $headerNotifications);
+            $view->with('headerUnreadCount', $headerUnreadCount);
         });
     }
 }

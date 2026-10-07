@@ -101,6 +101,7 @@
                                             <span>Rider Hub</span>
                                         </a>
                                     @endif
+                                    <a href="{{ route('buyer.dashboard') }}" class="block px-4 py-2 hover:bg-gray-50 text-[#564B68] font-bold">My Dashboard</a>
                                     <a href="{{ route('account.index') }}" class="block px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium">My Account</a>
                                     <a href="{{ route('account.purchases') }}" class="block px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium">My Purchase</a>
                                 </div>
@@ -115,13 +116,115 @@
                     </div>
                 @endauth
 
-                {{-- Notification --}}
-                <button type="button" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Notifications" title="Notifications">
-                    <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
-                    </svg>
-                    <span class="absolute top-0.5 right-0.5 bg-gradient-to-tr from-[#C08B7F] to-[#D4A69A] text-white text-[8px] font-black min-w-[15px] h-[15px] rounded-full flex items-center justify-center px-0.5 ring-2 ring-white shadow-xs">3</span>
-                </button>
+                {{-- Notifications Dropdown --}}
+                <div class="relative" id="headerNotifDropdownContainer">
+                    <button type="button" 
+                            id="headerNotifBtn"
+                            onclick="toggleHeaderNotifDropdown(event)"
+                            class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" 
+                            aria-label="Notifications" 
+                            title="Notifications">
+                        <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
+                        </svg>
+                        <span id="headerNotifBadge" class="{{ (isset($headerUnreadCount) && $headerUnreadCount > 0) ? '' : 'hidden' }} absolute top-0.5 right-0.5 bg-gradient-to-tr from-[#C08B7F] to-[#D4A69A] text-white text-[8px] font-black min-w-[15px] h-[15px] rounded-full flex items-center justify-center px-0.5 ring-2 ring-white shadow-xs">
+                            {{ $headerUnreadCount ?? 0 }}
+                        </span>
+                    </button>
+
+                    <!-- Notifications Dropdown Popover -->
+                    <div id="headerNotifDropdown" class="hidden absolute right-0 top-full pt-2 w-80 sm:w-96 z-50">
+                        <div class="bg-white text-gray-800 rounded-2xl shadow-2xl border border-[#E1DDE7] overflow-hidden">
+                            {{-- Header --}}
+                            <div class="px-4 py-3 bg-[#FAF9FB] border-b border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-[#282133] text-sm">Notifications</span>
+                                    <span id="headerNotifPill" class="{{ (isset($headerUnreadCount) && $headerUnreadCount > 0) ? '' : 'hidden' }} text-[10px] font-bold bg-[#FFF5F3] text-[#8C5A50] px-2 py-0.5 rounded-full border border-[#C08B7F]/30">
+                                        <span id="headerNotifPillCount">{{ $headerUnreadCount ?? 0 }}</span> unread
+                                    </span>
+                                </div>
+                                @auth
+                                    <button type="button" onclick="markAllNotificationsAsRead(event)" class="text-[11px] font-semibold text-[#8C5A50] hover:underline cursor-pointer">
+                                        Mark all as read
+                                    </button>
+                                @endauth
+                            </div>
+
+                            {{-- Search bar: "search notifications....." --}}
+                            <div class="p-2.5 border-b border-gray-100 bg-[#FAF9FB]/50">
+                                <div class="relative">
+                                    <input type="text" 
+                                           id="headerNotifSearch" 
+                                           placeholder="search notifications....." 
+                                           oninput="filterHeaderNotifications(this.value)"
+                                           class="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-gray-200 bg-white focus:outline-none focus:border-[#C08B7F] focus:ring-2 focus:ring-[#C08B7F]/20 transition placeholder:text-gray-400">
+                                    <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {{-- Notification Items List --}}
+                            <div id="headerNotifList" class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
+                                @auth
+                                    @if(isset($headerNotifications) && count($headerNotifications) > 0)
+                                        @foreach($headerNotifications as $notif)
+                                            <a href="{{ $notif->link ?: route('buyer.dashboard', ['tab' => 'notifications']) }}" 
+                                               onclick="markNotificationAsRead({{ $notif->id }}, this, event)"
+                                               data-notif-id="{{ $notif->id }}"
+                                               data-title="{{ strtolower($notif->title) }}"
+                                               data-message="{{ strtolower($notif->message) }}"
+                                               class="header-notif-item p-3.5 flex items-start gap-3 transition hover:bg-[#FAF9FB] cursor-pointer {{ !$notif->is_read ? 'bg-[#FFF5F3]/50' : '' }}">
+                                                <span class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm {{ match($notif->type) { 'delivery' => 'bg-emerald-100 text-emerald-700', 'payment' => 'bg-amber-100 text-amber-700', 'order' => 'bg-purple-100 text-purple-700', 'review' => 'bg-pink-100 text-pink-700', default => 'bg-gray-100 text-gray-700' } }}">
+                                                    {{ match($notif->type) { 'delivery' => '🚚', 'payment' => '💳', 'order' => '📦', 'review' => '⭐', default => '🔔' } }}
+                                                </span>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center justify-between gap-1">
+                                                        <h4 class="text-xs font-bold text-gray-900 truncate">{{ $notif->title }}</h4>
+                                                        <span class="text-[10px] text-gray-400 shrink-0">{{ $notif->created_at->diffForHumans() }}</span>
+                                                    </div>
+                                                    <p class="text-[11px] text-gray-600 line-clamp-2 mt-0.5">{{ $notif->message }}</p>
+                                                </div>
+                                                @if(!$notif->is_read)
+                                                    <span class="w-2 h-2 rounded-full bg-[#C08B7F] shrink-0 mt-1.5 header-notif-dot"></span>
+                                                @endif
+                                            </a>
+                                        @endforeach
+                                    @else
+                                        <div class="p-8 text-center" id="headerNotifEmptyState">
+                                            <div class="w-12 h-12 bg-[#F6F4F8] text-gray-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                                                🔔
+                                            </div>
+                                            <h4 class="text-xs font-bold text-gray-800">No notifications yet</h4>
+                                            <p class="text-[11px] text-gray-500 mt-0.5">You'll receive notifications here when you receive order updates or activity on your account.</p>
+                                        </div>
+                                    @endif
+                                @else
+                                    <div class="p-8 text-center">
+                                        <div class="w-12 h-12 bg-[#F6F4F8] text-gray-400 rounded-full flex items-center justify-center mx-auto mb-2 text-xl">
+                                            🔔
+                                        </div>
+                                        <h4 class="text-xs font-bold text-gray-800">Sign in to view notifications</h4>
+                                        <p class="text-[11px] text-gray-500 mt-0.5">Stay updated on your orders and special offers.</p>
+                                        <a href="{{ route('login') }}" class="mt-3 inline-block bg-[#564B68] text-white text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-[#3E354C] transition">Sign in</a>
+                                    </div>
+                                @endauth
+                                <div id="headerNotifNoMatch" class="hidden p-6 text-center text-xs text-gray-400 font-medium">
+                                    No notifications matching your search.
+                                </div>
+                            </div>
+
+                            {{-- Footer --}}
+                            @auth
+                                <div class="p-2.5 bg-[#FAF9FB] border-t border-gray-100 text-center">
+                                    <a href="{{ route('buyer.dashboard', ['tab' => 'notifications']) }}" class="text-xs font-bold text-[#564B68] hover:text-[#3E354C] hover:underline transition">
+                                        View all in Dashboard &rarr;
+                                    </a>
+                                </div>
+                            @endauth
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Mail --}}
                 <button type="button" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Messages" title="Messages">
@@ -138,7 +241,7 @@
                 </a>
 
                 {{-- Wishlist --}}
-                <a href="#" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Wishlist" title="Wishlist">
+                <a href="{{ route('buyer.dashboard', ['tab' => 'wishlist']) }}" class="relative flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-[#F3EFF7] hover:text-[#564B68] transition duration-150 cursor-pointer" aria-label="Wishlist" title="Wishlist">
                     <svg style="width:19px;height:19px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
                     </svg>
@@ -430,4 +533,104 @@
         </div>
     </div>
 </header>
+
+<script>
+function toggleHeaderNotifDropdown(e) {
+    if (e) e.stopPropagation();
+    const dropdown = document.getElementById('headerNotifDropdown');
+    if (!dropdown) return;
+    const isHidden = dropdown.classList.contains('hidden');
+    dropdown.classList.toggle('hidden', !isHidden);
+    if (isHidden) {
+        const searchInput = document.getElementById('headerNotifSearch');
+        if (searchInput) {
+            setTimeout(() => searchInput.focus(), 60);
+        }
+    }
+}
+
+function filterHeaderNotifications(term) {
+    const q = (term || '').toLowerCase().trim();
+    const items = document.querySelectorAll('.header-notif-item');
+    let matches = 0;
+    items.forEach(el => {
+        const title = el.getAttribute('data-title') || '';
+        const msg = el.getAttribute('data-message') || '';
+        const match = title.includes(q) || msg.includes(q);
+        el.classList.toggle('hidden', !match);
+        if (match) matches++;
+    });
+    const noMatchEl = document.getElementById('headerNotifNoMatch');
+    if (noMatchEl) {
+        noMatchEl.classList.toggle('hidden', matches > 0 || items.length === 0);
+    }
+}
+
+function markNotificationAsRead(id, el, e) {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    fetch('/notifications/' + id + '/read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (el) {
+            el.classList.remove('bg-[#FFF5F3]/50');
+            const dot = el.querySelector('.header-notif-dot');
+            if (dot) dot.remove();
+        }
+        updateHeaderNotifCount(data.unread ?? 0);
+    })
+    .catch(() => {});
+}
+
+function markAllNotificationsAsRead(e) {
+    if (e) e.stopPropagation();
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    fetch('/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.querySelectorAll('.header-notif-item').forEach(el => {
+            el.classList.remove('bg-[#FFF5F3]/50');
+            const dot = el.querySelector('.header-notif-dot');
+            if (dot) dot.remove();
+        });
+        updateHeaderNotifCount(0);
+    })
+    .catch(() => {});
+}
+
+function updateHeaderNotifCount(unread) {
+    const badge = document.getElementById('headerNotifBadge');
+    const pill = document.getElementById('headerNotifPill');
+    const pillCount = document.getElementById('headerNotifPillCount');
+    if (badge) {
+        badge.textContent = unread;
+        badge.classList.toggle('hidden', unread <= 0);
+    }
+    if (pill) {
+        pill.classList.toggle('hidden', unread <= 0);
+        if (pillCount) pillCount.textContent = unread;
+    }
+}
+
+document.addEventListener('click', function (e) {
+    const container = document.getElementById('headerNotifDropdownContainer');
+    const dropdown = document.getElementById('headerNotifDropdown');
+    if (container && dropdown && !container.contains(e.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+</script>
 
