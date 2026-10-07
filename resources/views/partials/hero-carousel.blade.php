@@ -106,7 +106,7 @@
             </article>
         @endforeach
     </div>
-    <div class="market-hero__footer" data-hero-controls hidden>
+    <div class="market-hero__controls" data-hero-controls hidden>
         <p class="market-hero__caption"><span class="market-hero__caption-mark" aria-hidden="true"></span><span data-hero-current-label>{{ $heroSlides[0]['label'] }}</span></p>
         <div class="market-hero__navigation">
             <span class="market-hero__count" data-hero-count aria-hidden="true">01 / {{ str_pad(count($heroSlides), 2, '0', STR_PAD_LEFT) }}</span>
@@ -129,5 +129,5 @@
 </section>
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/hero-carousel.css') }}">
+<link rel="stylesheet" href="{{ asset('css/hero-carousel.css') }}?v={{ filemtime(public_path('css/hero-carousel.css')) }}">
 @endpush

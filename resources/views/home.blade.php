@@ -3,11 +3,10 @@
 @section('title', 'cartzy')
 
 @section('content')
-<div class="w-full px-3 sm:px-6 lg:px-8 py-6 space-y-8">
-
-
-    <!-- Original editorial collection carousel -->
+    <!-- Full-width Hero Collection Carousel (edge-to-edge, no gaps) -->
     @include('partials.hero-carousel')
+
+    <div class="w-full px-3 sm:px-6 lg:px-8 py-6 space-y-8">
 
     <!-- 2. Popular Categories Section (Human-crafted realistic marketplace photography) -->
     <section class="bg-white rounded-2xl p-5 sm:p-7 shadow-2xs border border-gray-200 w-full">
@@ -143,172 +142,8 @@
         </div>
     </section>
 
-    <!-- 3. Today's Picks — Editorial Curation Strip -->
-    <section id="flash-sale" class="w-full scroll-mt-24">
-        <!-- Two-Row Layout: Featured Hero + 4 Compact Picks -->
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+    @include('partials.picks-carousel')
 
-            <!-- LEFT: Featured Product (Large Editorial Card spanning 2 cols) -->
-            <div class="lg:col-span-2 relative rounded-2xl overflow-hidden bg-[#F7F5F2] border border-[#E8E4DF] group cursor-pointer hover:shadow-lg transition-shadow">
-                <div class="relative aspect-[4/5] overflow-hidden">
-                    <img 
-                        src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=1000&fit=crop&q=85" 
-                        alt="Premium Minimalist Watch" 
-                        class="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
-                    >
-                    <!-- Gradient Overlay -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
-                    
-                    <!-- Badge -->
-                    <div class="absolute top-4 left-4">
-                        <span class="inline-flex items-center gap-1.5 bg-white/95 backdrop-blur-sm text-[11px] font-bold text-gray-900 px-3 py-1.5 rounded-lg shadow-sm tracking-wide">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            EDITOR'S PICK
-                        </span>
-                    </div>
-                    
-                    <!-- Content Overlay -->
-                    <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6 text-white">
-                        <p class="text-[11px] font-medium uppercase tracking-widest text-white/70 mb-1.5">Featured · Accessories</p>
-                        <h3 class="text-lg sm:text-xl font-bold leading-snug mb-2">Classic Analog Timepiece — Sapphire Edition</h3>
-                        <div class="flex items-baseline gap-2.5 mb-3">
-                            <span class="text-xl font-black">₱2,490</span>
-                            <span class="text-sm text-white/50 line-through">₱4,990</span>
-                            <span class="text-[11px] font-bold bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-md">Save 50%</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-[11px] text-white/60">
-                            <span class="flex items-center gap-1">
-                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                4.8 (342 reviews)
-                            </span>
-                            <span>·</span>
-                            <span>Free shipping</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT: 4 Compact Product Cards in 2×2 Grid (spanning 3 cols) -->
-            <div class="lg:col-span-3 grid grid-cols-2 gap-4">
-
-                <!-- Pick 1 -->
-                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden group cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all">
-                    <div class="relative aspect-square overflow-hidden bg-[#FAFAFA]">
-                        <img 
-                            src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop&q=80" 
-                            alt="Wireless Over-Ear Headphones" 
-                            class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                        >
-                        <span class="absolute top-3 left-3 bg-[#282133] text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wide">STAFF PICK</span>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Audio · Electronics</p>
-                        <h4 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 mb-2">Studio-Grade Wireless Headphones</h4>
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-base font-black text-gray-900">₱1,790</span>
-                            <span class="text-xs text-gray-400 line-through">₱3,500</span>
-                        </div>
-                        <div class="flex items-center gap-1 mt-2 text-[10px] text-gray-400">
-                            <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span class="font-semibold text-gray-500">4.9</span>
-                            <span>· 128 sold</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pick 2 -->
-                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden group cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all">
-                    <div class="relative aspect-square overflow-hidden bg-[#FAFAFA]">
-                        <img 
-                            src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=600&h=600&fit=crop&q=80" 
-                            alt="Nike Running Shoes" 
-                            class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                        >
-                        <span class="absolute top-3 left-3 bg-[#282133] text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wide">TRENDING</span>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Footwear · Running</p>
-                        <h4 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 mb-2">Ultralight Performance Runners</h4>
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-base font-black text-gray-900">₱3,290</span>
-                            <span class="text-xs text-gray-400 line-through">₱5,990</span>
-                        </div>
-                        <div class="flex items-center gap-1 mt-2 text-[10px] text-gray-400">
-                            <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span class="font-semibold text-gray-500">4.7</span>
-                            <span>· 89 sold</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pick 3 -->
-                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden group cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all">
-                    <div class="relative aspect-square overflow-hidden bg-[#FAFAFA]">
-                        <img 
-                            src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&h=600&fit=crop&q=80" 
-                            alt="Premium Skincare Set" 
-                            class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                        >
-                    </div>
-                    <div class="p-4">
-                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Beauty · Skincare</p>
-                        <h4 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 mb-2">Vitamin C Brightening Essentials Kit</h4>
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-base font-black text-gray-900">₱899</span>
-                            <span class="text-xs text-gray-400 line-through">₱1,650</span>
-                        </div>
-                        <div class="flex items-center gap-1 mt-2 text-[10px] text-gray-400">
-                            <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span class="font-semibold text-gray-500">4.6</span>
-                            <span>· 256 sold</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pick 4 -->
-                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden group cursor-pointer hover:shadow-lg hover:border-gray-300 transition-all">
-                    <div class="relative aspect-square overflow-hidden bg-[#FAFAFA]">
-                        <img 
-                            src="https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop&q=80" 
-                            alt="Wireless Earbuds" 
-                            class="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                        >
-                        <span class="absolute top-3 left-3 bg-[#282133] text-white text-[10px] font-bold px-2 py-1 rounded-md tracking-wide">BEST VALUE</span>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Audio · Wireless</p>
-                        <h4 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2 mb-2">Active Noise-Cancelling Earbuds Pro</h4>
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-base font-black text-gray-900">₱1,290</span>
-                            <span class="text-xs text-gray-400 line-through">₱2,800</span>
-                        </div>
-                        <div class="flex items-center gap-1 mt-2 text-[10px] text-gray-400">
-                            <svg class="w-3 h-3 text-amber-400 fill-amber-400" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span class="font-semibold text-gray-500">4.8</span>
-                            <span>· 415 sold</span>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Section Header Strip (below the grid, minimal) -->
-        <div class="flex items-center justify-between mt-4 px-1">
-            <div class="flex items-center gap-3">
-                <h2 class="text-sm sm:text-base font-black text-gray-900 tracking-tight uppercase">Today's Picks</h2>
-                <span class="text-[10px] font-semibold text-gray-400 border border-gray-200 px-2 py-0.5 rounded-md">Curated daily</span>
-            </div>
-            <a href="#" class="text-xs font-bold text-gray-500 hover:text-gray-900 transition flex items-center gap-1">
-                View all recommendations
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </a>
-        </div>
-    </section>
-
-
-
-    
     <!-- Active Category Announcement Bar (Dynamically shown when category is filtered) -->
     <div id="category-results-banner" class="hidden bg-[#282133] text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-[#564B68] flex flex-wrap items-center justify-between gap-3 w-full transition-all">
         <div class="flex items-center gap-3">
