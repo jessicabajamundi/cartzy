@@ -36,6 +36,13 @@
         </div>
     </div>
 
+    @if (request('from') === 'cart' || session('info'))
+        <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; background: #FAF5FF; border: 1.5px solid #C08B7F; color: #564B68; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <svg style="width: 20px; height: 20px; flex-shrink: 0; color: #C08B7F;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <span>{{ session('info') ?? 'Please sign up or create an account to add items to your cart!' }}</span>
+        </div>
+    @endif
+
     @if ($errors->any())
         <div class="alert alert-error">
             @foreach ($errors->all() as $error)

@@ -40,131 +40,6 @@ class AuthController extends Controller
 
         $remember = $request->boolean('remember');
 
-        // Check for official Admin credentials (works immediately with real DB user)
-        if ($credentials['email'] === 'administrationa570@gmail.com' && $credentials['password'] === 'caramelmacchiato') {
-            try {
-                $user = User::where('email', 'administrationa570@gmail.com')->first()
-                    ?? User::where('role', User::ROLE_ADMIN)->first();
-
-                if (!$user) {
-                    $user = User::create([
-                        'name' => 'admin',
-                        'email' => 'administrationa570@gmail.com',
-                        'password' => Hash::make('caramelmacchiato'),
-                        'role' => User::ROLE_ADMIN,
-                        'status' => 'active',
-                    ]);
-                }
-
-                Auth::login($user, $remember);
-            } catch (\Throwable $e) {
-                $user = new User();
-                $user->forceFill([
-                    'id' => 5,
-                    'name' => 'admin',
-                    'email' => 'administrationa570@gmail.com',
-                    'role' => User::ROLE_ADMIN,
-                    'status' => 'active',
-                ]);
-                Auth::login($user, $remember);
-            }
-
-            $request->session()->regenerate();
-
-            return redirect()->route('admin.dashboard')
-                ->with('success', 'Welcome back, Admin!');
-        }
-
-        // Check for official Seller credentials (works immediately with real DB or fallback)
-        if (
-            (in_array($credentials['email'], ['seller@cartzy.ph', 'seller@marketstore.ph'], true))
-            && (in_array($credentials['password'], ['seller123', 'sellerpassword123', 'password123'], true))
-        ) {
-            try {
-                $user = User::where('email', $credentials['email'])->first()
-                    ?? User::where('role', User::ROLE_SELLER)->first();
-
-                if (!$user) {
-                    $user = User::create([
-                        'name' => 'Maria Santos (TechZone Store)',
-                        'email' => $credentials['email'],
-                        'password' => Hash::make($credentials['password']),
-                        'role' => User::ROLE_SELLER,
-                        'status' => 'active',
-                        'business_name' => 'TechZone Gadgets Store',
-                    ]);
-                } else {
-                    $user->password = Hash::make($credentials['password']);
-                    $user->status = 'active';
-                    $user->role = User::ROLE_SELLER;
-                    $user->save();
-                }
-
-                Auth::login($user, $remember);
-            } catch (\Throwable $e) {
-                $user = new User();
-                $user->forceFill([
-                    'id' => 2,
-                    'name' => 'Maria Santos (TechZone Store)',
-                    'email' => $credentials['email'],
-                    'role' => User::ROLE_SELLER,
-                    'status' => 'active',
-                    'business_name' => 'TechZone Gadgets Store',
-                ]);
-                Auth::login($user, $remember);
-            }
-
-            $request->session()->regenerate();
-
-            return redirect()->route('seller.dashboard')
-                ->with('success', 'Welcome back, Maria Santos! Logged in to Seller Centre.');
-        }
-
-        // Check for official Logistics Hub credentials
-        if (
-            ($credentials['email'] === 'logistics@cartzy.ph')
-            && (in_array($credentials['password'], ['logistics123', 'password123'], true))
-        ) {
-            try {
-                $user = User::where('email', 'logistics@cartzy.ph')->first()
-                    ?? User::where('role', User::ROLE_LOGISTICS)->first();
-
-                if (!$user) {
-                    $user = User::create([
-                        'name' => 'Metro South Sorting & Fulfillment Hub',
-                        'email' => 'logistics@cartzy.ph',
-                        'password' => Hash::make('logistics123'),
-                        'role' => User::ROLE_LOGISTICS,
-                        'status' => 'active',
-                        'business_name' => 'Cartzy Express Logistics Hub - Metro South Facility',
-                    ]);
-                } else {
-                    $user->password = Hash::make('logistics123');
-                    $user->status = 'active';
-                    $user->role = User::ROLE_LOGISTICS;
-                    $user->save();
-                }
-
-                Auth::login($user, $remember);
-            } catch (\Throwable $e) {
-                $user = new User();
-                $user->forceFill([
-                    'id' => 4,
-                    'name' => 'Metro South Sorting & Fulfillment Hub',
-                    'email' => 'logistics@cartzy.ph',
-                    'role' => User::ROLE_LOGISTICS,
-                    'status' => 'active',
-                    'business_name' => 'Cartzy Express Logistics Hub - Metro South Facility',
-                ]);
-                Auth::login($user, $remember);
-            }
-
-            $request->session()->regenerate();
-
-            return redirect()->route('logistics.dashboard')
-                ->with('success', 'Welcome to Logistics & Sorting Hub!');
-        }
-
         try {
             if (Auth::attempt($credentials, $remember)) {
                 $user = Auth::user();
@@ -187,7 +62,7 @@ class AuthController extends Controller
                     ])->onlyInput('email');
                 }
 
-                if ($user->status === 'suspended') {
+                if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
                     Auth::logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
@@ -499,66 +374,11 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Handle fast demo login without requiring MySQL/XAMPP database.
-     */
+    /** Legacy demo links now use the regular account sign-in flow. */
     public function demoLogin(Request $request, $role = 'admin')
     {
-        $userData = match ($role) {
-            'seller' => [
-                'id' => 2,
-                'name' => 'Maria Santos (TechZone Store)',
-                'email' => 'seller@marketstore.ph',
-                'role' => User::ROLE_SELLER,
-            ],
-            'courier' => [
-                'id' => 3,
-                'name' => 'Arnel Gomez (Express Rider)',
-                'email' => 'courier@marketstore.ph',
-                'role' => User::ROLE_COURIER,
-            ],
-            'logistics' => [
-                'id' => 4,
-                'name' => 'Metro South Sorting & Fulfillment Hub',
-                'email' => 'logistics@cartzy.ph',
-                'role' => User::ROLE_LOGISTICS,
-            ],
-            default => [
-                'id' => 1,
-                'name' => 'admin',
-                'email' => 'administrationa570@gmail.com',
-                'role' => User::ROLE_ADMIN,
-            ],
-        };
-
-        // Authenticate matching user from database
-        try {
-            $user = User::where('email', $userData['email'])->first()
-                ?? User::where('role', $userData['role'])->first();
-
-            if (!$user) {
-                $user = User::create([
-                    'name' => $userData['name'],
-                    'email' => $userData['email'],
-                    'password' => Hash::make('password123'),
-                    'role' => $userData['role'],
-                    'status' => 'active',
-                ]);
-            }
-
-            Auth::login($user);
-        } catch (\Throwable $e) {
-            $user = new User();
-            $user->forceFill($userData);
-            Auth::login($user);
-        }
-
-        $request->session()->regenerate();
-
-        return redirect()->route($user->getDashboardRoute())
-            ->with('success', 'Welcome back, ' . ($user->name ?? 'User') . '!');
+        return redirect()->route('login');
     }
-
     /**
      * Handle logout request.
      */
@@ -675,7 +495,7 @@ class AuthController extends Controller
             }
 
             // Ensure account is not suspended/rejected/pending
-            if ($user->status === 'suspended') {
+            if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
                 return redirect()->route('login')->withErrors([
                     'email' => 'Your account is suspended. Please contact platform support.',
                 ]);
