@@ -1,41 +1,28 @@
-/**
- * Cartzy Admin Dashboard Layout Logic
- * Handles sidebar collapse, persistence, and auto-dismiss alerts
- */
-
-function toggleSidebarCollapse() {
-    const sidebar = document.getElementById('admin-sidebar');
-    if (!sidebar) return;
-    
-    if (window.innerWidth < 1024) {
-        sidebar.classList.toggle('-translate-x-full');
-    } else {
-        sidebar.classList.toggle('is-collapsed');
-        const isMini = sidebar.classList.contains('is-collapsed');
-        localStorage.setItem('admin_sidebar_mini', isMini ? '1' : '0');
-    }
-}
-
+/** Shared admin navigation and confirmation behavior. */
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.innerWidth >= 1024 && localStorage.getItem('admin_sidebar_mini') === '1') {
-        const sidebar = document.getElementById('admin-sidebar');
-        if (sidebar) {
-            sidebar.classList.add('is-collapsed');
+    const sidebar = document.getElementById('admin-sidebar');
+    const toggle = document.querySelector('[data-sidebar-toggle]');
+    const overlay = document.querySelector('[data-sidebar-close]');
+    function setOpen(open) {
+        sidebar?.classList.toggle('is-open', open);
+        toggle?.setAttribute('aria-expanded', String(open));
+        if (overlay) overlay.hidden = !open;
+        if (open) sidebar?.querySelector('a')?.focus();
+    }
+    toggle?.addEventListener('click', () => setOpen(!sidebar?.classList.contains('is-open')));
+    overlay?.addEventListener('click', () => { setOpen(false); toggle?.focus(); });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && sidebar?.classList.contains('is-open')) {
+            setOpen(false);
+            toggle?.focus();
         }
-    }
+    });
+    window.matchMedia('(min-width: 901px)').addEventListener('change', (event) => {
+        if (event.matches) setOpen(false);
+    });
+    document.querySelectorAll('form[data-confirm]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+        });
+    });
 });
-
-function dismissAlert(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(-10px)';
-        setTimeout(() => el.remove(), 700);
-    }
-}
-
-// Auto-dismiss alert popup after exactly 10 seconds (10,000ms)
-setTimeout(() => {
-    dismissAlert('flash-alert-success');
-    dismissAlert('flash-alert-info');
-}, 10000);

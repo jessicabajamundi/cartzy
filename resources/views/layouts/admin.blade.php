@@ -1,483 +1,57 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+<!doctype html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>@yield('title', 'Admin Platform Dashboard | cartzy')</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <style>
-        body {
-            font-family: 'Lato', sans-serif;
-            background-color: #f8fafc;
-        }
-        h1, h2, h3, h4, .font-heading {
-            font-family: 'Cormorant Garamond', Georgia, serif;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 5px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 9999px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* Collapsed Mini Sidebar (Icon Only) */
-        #admin-sidebar.is-collapsed {
-            width: 5rem !important; /* 80px */
-        }
-        #admin-sidebar.is-collapsed .sidebar-full-only {
-            display: none !important;
-        }
-        #admin-sidebar.is-collapsed .sidebar-mini-only {
-            display: flex !important;
-        }
-        #admin-sidebar.is-collapsed .nav-item {
-            justify-content: center !important;
-            padding: 0.85rem 0.5rem !important;
-        }
-        #admin-sidebar.is-collapsed .brand-header {
-            justify-content: center !important;
-            padding: 1.25rem 0.5rem !important;
-        }
-        #admin-sidebar.is-collapsed .user-card-full {
-            display: none !important;
-        }
-        #admin-sidebar.is-collapsed .user-card-mini {
-            display: flex !important;
-        }
-        #admin-sidebar.is-collapsed .sidebar-section-divider {
-            height: 1px;
-            background-color: #e2e8f0;
-            margin: 0.6rem auto !important;
-            width: 1.75rem !important;
-            padding: 0 !important;
-        }
-    </style>
+    <title>@yield('page_title', 'Overview') · Cartzy Admin</title>
+    <link rel="icon" href="{{ asset('images/favicon.png') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
     @stack('styles')
 </head>
-<body class="h-screen bg-slate-50 text-slate-900 antialiased flex flex-col overflow-hidden selection:bg-[#A8A0B2] selection:text-white">
-
-    <!-- Top Mobile Header -->
-    <div class="lg:hidden bg-slate-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-50 border-b border-slate-800 shadow-sm shrink-0">
-        <div class="flex items-center gap-3">
-            <button type="button" onclick="document.getElementById('admin-sidebar').classList.toggle('-translate-x-full')" class="p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                </svg>
-            </button>
-            <div class="flex items-center gap-2">
-                <span class="w-8 h-8 rounded-lg bg-[#6F6382] text-white flex items-center justify-center font-black text-sm">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                </span>
-                <span class="font-bold text-sm tracking-wide">SUPER ADMIN</span>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg text-slate-200 border border-slate-700">Dashboard</a>
-        </div>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<button class="sidebar-overlay" data-sidebar-close aria-label="Close navigation" hidden></button>
+<aside class="admin-sidebar" id="admin-sidebar" aria-label="Admin navigation">
+    <a class="brand" href="{{ route('admin.dashboard') }}"><img src="{{ asset('images/logo-transparent.png') }}" alt="Cartzy"><span>ADMIN WORKSPACE</span></a>
+    <nav>
+        @php
+            $groups = [
+                'Workspace' => ['dashboard' => ['Overview', 'grid'], 'registrations' => ['Registrations', 'file'], 'users' => ['User accounts', 'users']],
+                'Operations' => ['compliance' => ['Product compliance', 'box'], 'disputes' => ['Disputes', 'shield'], 'commission' => ['Commission', 'wallet'], 'reports' => ['Reports', 'chart']],
+                'Administration' => ['chat' => ['Messages', 'message'], 'settings' => ['Platform settings', 'settings'], 'account' => ['My account', 'user']],
+            ];
+        @endphp
+        @foreach ($groups as $group => $links)
+            <p class="nav-label">{{ $group }}</p>
+            @foreach ($links as $route => [$label, $icon])
+                <a class="nav-link {{ request()->routeIs('admin.'.$route) ? 'active' : '' }}" href="{{ route('admin.'.$route) }}" @if(request()->routeIs('admin.'.$route)) aria-current="page" @endif>
+                    @include('admin.partials.icon', ['name' => $icon]) <span>{{ $label }}</span>
+                </a>
+            @endforeach
+        @endforeach
+    </nav>
+    <div class="sidebar-user">
+        <span class="avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+        <div><strong>{{ auth()->user()->name }}</strong><small>Administrator</small></div>
+        <form method="POST" action="{{ route('logout') }}">@csrf<button class="icon-button" aria-label="Sign out" title="Sign out">@include('admin.partials.icon', ['name' => 'logout'])</button></form>
     </div>
-
-    <div class="flex flex-1 h-full min-h-0 overflow-hidden">
-        
-        <!-- Sidebar Navigation -->
-        <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-40 w-80 bg-white text-slate-700 transform -translate-x-full lg:translate-x-0 transition-all duration-200 ease-in-out flex flex-col border-r border-slate-200 shadow-2xl lg:static lg:h-full lg:shadow-none shrink-0 overflow-hidden">
-            
-            <!-- Brand / Logo Area (Pinned Top) -->
-            <div class="brand-header p-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-white z-20 transition-all">
-                <!-- Full Sidebar Brand Logo -->
-                <div class="sidebar-full-only flex items-center justify-between w-full">
-                    <a href="{{ route('admin.dashboard') }}" class="flex flex-col gap-2 group">
-                        <div class="bg-white px-3.5 py-2 rounded-2xl shadow-md inline-flex items-center justify-center group-hover:scale-[1.02] transition-transform w-fit">
-                            <img src="{{ asset('images/logo.png') }}" alt="cartzy logo" class="h-9 w-auto object-contain">
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[11px] font-black uppercase tracking-wider text-[#564B68] bg-[#F1EFF5] px-2.5 py-0.5 rounded-lg border border-[#E1DDE7] inline-flex items-center gap-1.5 shadow-xs">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                ADMIN CONTROL
-                            </span>
-                        </div>
-                    </a>
-                    <button type="button" onclick="toggleSidebarCollapse()" title="Collapse sidebar" class="p-2.5 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 active:scale-95 rounded-xl transition flex items-center justify-center border border-slate-200 group relative shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                        <span class="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                            Collapse sidebar
-                        </span>
-                    </button>
-                </div>
-
-                <!-- Mini Collapsed Sidebar Logo & Toggle -->
-                <div class="sidebar-mini-only hidden flex-col items-center gap-2.5 w-full py-1">
-                    <a href="{{ route('admin.dashboard') }}" class="bg-white p-1.5 rounded-xl shadow-md flex items-center justify-center hover:scale-105 transition" title="cartzy E-Commerce">
-                        <img src="{{ asset('images/favicon.png') }}" alt="cartzy" class="w-7 h-7 object-contain">
-                    </a>
-                    <button type="button" onclick="toggleSidebarCollapse()" title="Expand sidebar" class="p-2 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 active:scale-95 rounded-xl transition flex items-center justify-center border border-slate-200 group relative">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                        <span class="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                            Expand sidebar
-                        </span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Navigation Links (Smoothly Scrollable) -->
-            <div class="flex-1 overflow-y-auto sidebar-scroll min-h-0 px-3 py-4 space-y-1.5 text-[15px]">
-                
-                <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-2 pb-1 text-xs font-black uppercase tracking-wider text-slate-400 block">CORE OVERVIEW</span>
-                </div>
-
-                <!-- 1. Dashboard -->
-                <a href="{{ route('admin.dashboard') }}" title="Dashboard & Overview" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.dashboard') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    <span class="tracking-wide sidebar-full-only truncate">Dashboard & Overview</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Dashboard & Overview
-                    </span>
-                </a>
-
-                <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-xs font-black uppercase tracking-wider text-slate-400 block">ACCOUNT & USER CONTROL</span>
-                </div>
-
-                <!-- 2. Manage Registrations -->
-                <a href="{{ route('admin.registrations') }}" title="Account Registrations (KYC)" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.registrations*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <div class="flex items-center gap-3.5 truncate">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                        <span class="tracking-wide sidebar-full-only truncate">Account Registrations</span>
-                    </div>
-                    <span class="sidebar-full-only bg-amber-500 text-slate-950 text-xs font-black px-2.5 py-1 rounded-full shadow-xs">KYC</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-800 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Account Registrations (KYC)
-                    </span>
-                </a>
-
-                <!-- 3. Manage User Accounts -->
-                <a href="{{ route('admin.users') }}" title="User Accounts" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.users*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <span class="tracking-wide sidebar-full-only truncate">User Accounts</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        User Accounts
-                    </span>
-                </a>
-
-                <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-xs font-black uppercase tracking-wider text-slate-400 block">COMPLIANCE & GOVERNANCE</span>
-                </div>
-
-                <!-- 4. Monitor Seller Compliance -->
-                <a href="{{ route('admin.compliance') }}" title="Seller Compliance" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.compliance*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <div class="flex items-center gap-3.5 truncate">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                        <span class="tracking-wide sidebar-full-only truncate">Seller Compliance</span>
-                    </div>
-                    <span class="sidebar-full-only bg-rose-50 text-rose-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-rose-200">Audit</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Seller Compliance (Audit)
-                    </span>
-                </a>
-
-                <!-- 5. Manage Complaints & Disputes -->
-                <a href="{{ route('admin.disputes') }}" title="Complaints & Disputes" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.disputes*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <div class="flex items-center gap-3.5 truncate">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
-                        <span class="tracking-wide sidebar-full-only truncate">Complaints & Disputes</span>
-                    </div>
-                    <span class="sidebar-full-only bg-amber-50 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-200">3-Way</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Complaints & Disputes
-                    </span>
-                </a>
-
-                <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-xs font-black uppercase tracking-wider text-slate-400 block">FINANCE & ANALYTICS</span>
-                </div>
-
-                <!-- 6. Manage Commission (10%) -->
-                <a href="{{ route('admin.commission') }}" title="Platform Commission" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.commission*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <div class="flex items-center gap-3.5 truncate">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="tracking-wide sidebar-full-only truncate">Platform Commission</span>
-                    </div>
-                    <span class="sidebar-full-only bg-emerald-50 text-emerald-700 text-xs font-black px-2.5 py-1 rounded-lg border border-emerald-200">10%</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Platform Commission (10%)
-                    </span>
-                </a>
-
-                <!-- 7. Generate Reports -->
-                <a href="{{ route('admin.reports') }}" title="Generate Reports" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.reports*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    <span class="tracking-wide sidebar-full-only truncate">Generate Reports</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Generate Reports
-                    </span>
-                </a>
-
-                <div class="sidebar-section-divider">
-                    <span class="sidebar-full-only px-3 pt-4 pb-1 text-xs font-black uppercase tracking-wider text-slate-400 block">COMMUNICATION & SYSTEM</span>
-                </div>
-
-                <!-- 8. Chat / Messaging -->
-                <a href="{{ route('admin.chat') }}" title="Chat & Messaging" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.chat*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <div class="flex items-center gap-3.5 truncate">
-                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
-                        <span class="tracking-wide sidebar-full-only truncate">Chat & Messaging</span>
-                    </div>
-                    <span class="sidebar-full-only w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Chat & Messaging
-                    </span>
-                </a>
-
-                <!-- 9. Manage Platform Settings -->
-                <a href="{{ route('admin.settings') }}" title="Platform Settings" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.settings*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="tracking-wide sidebar-full-only truncate">Platform Settings</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Platform Settings
-                    </span>
-                </a>
-
-                <!-- 10. Account Management -->
-                <a href="{{ route('admin.account') }}" title="Account Profile" class="nav-item flex items-center gap-3.5 px-4 py-3.5 rounded-2xl font-bold transition group relative {{ request()->routeIs('admin.account*') ? 'bg-[#6F6382] text-white shadow-lg shadow-[#6F6382]/40' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    <span class="tracking-wide sidebar-full-only truncate">Account Profile</span>
-                    <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                        Account Profile
-                    </span>
-                </a>
-            </div>
-
-            <!-- User Footer & Floating Quick Logout Card (Pinned Bottom) -->
-            <div class="p-3 border-t border-slate-200 bg-white/95 backdrop-blur-md shrink-0 sticky bottom-0 z-20">
-                <!-- Full Card -->
-                <div class="user-card-full flex items-center justify-between p-2.5 px-3 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm hover:border-slate-300 transition">
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        @if(Auth::user() && Auth::user()->avatar)
-                            <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-700 shrink-0">
-                        @else
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md">
-                                {{ strtoupper(substr(Auth::user()->name ?? 'AD', 0, 2)) }}
-                            </div>
-                        @endif
-                        <div class="truncate">
-                            <div class="font-bold text-slate-800 text-sm truncate leading-tight">{{ Auth::user()->name ?? 'Jessica Bajamundi' }}</div>
-                            <div class="text-xs text-slate-500 flex items-center gap-1.5 font-medium mt-0.5">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50"></span>
-                                Super Admin
-                            </div>
-                        </div>
-                    </div>
-                    <form action="{{ route('logout') }}" method="POST" class="shrink-0 m-0">
-                        @csrf
-                        <button type="submit" title="Quick Logout" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 active:scale-95 rounded-xl transition flex items-center justify-center group" aria-label="Logout">
-                            <svg class="w-5 h-5 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Mini Collapsed Card -->
-                <div class="user-card-mini hidden flex flex-col items-center gap-2.5 py-1">
-                    @if(Auth::user() && Auth::user()->avatar)
-                        <img src="{{ Auth::user()->avatar }}" alt="{{ Auth::user()->name }}" class="w-10 h-10 rounded-full object-cover border border-slate-700 shadow-md" title="{{ Auth::user()->name ?? 'Admin' }}">
-                    @else
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center font-black text-sm shadow-md" title="{{ Auth::user()->name ?? 'Admin' }}">
-                            {{ strtoupper(substr(Auth::user()->name ?? 'AD', 0, 2)) }}
-                        </div>
-                    @endif
-                    <form action="{{ route('logout') }}" method="POST" class="shrink-0 m-0">
-                        @csrf
-                        <button type="submit" title="Logout" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 active:scale-95 rounded-xl transition flex items-center justify-center group relative">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                            </svg>
-                            <span class="absolute left-full ml-3 top-1/2 -translate-y-1/2 hidden group-hover:block bg-slate-900 text-white text-xs font-semibold px-2 py-1 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                                Logout
-                            </span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-        </aside>
-
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-            
-            <!-- Top Navbar for Admin -->
-            <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xs">
-                
-                <div class="flex items-center gap-3">
-                    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                        @yield('page_title', 'Platform Management')
-                    </h2>
-                </div>
-
-                <!-- Right Actions: Notifications, Storefront Link, Quick Status -->
-                <div class="flex items-center gap-3">
-                    
-                    <a href="/" target="_blank" class="hidden sm:flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg transition border border-slate-200">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        <span>View Storefront</span>
-                        <span class="text-slate-400">&rarr;</span>
-                    </a>
-
-                    <!-- Notification Bell Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button onclick="document.getElementById('notif-panel').classList.toggle('hidden')" class="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition border border-slate-200">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                            <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 border-2 border-white rounded-full"></span>
-                        </button>
-
-                        <!-- Notification Dropdown Panel -->
-                        <div id="notif-panel" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden text-xs">
-                            <div class="p-3.5 bg-slate-900 text-white flex items-center justify-between">
-                                <div class="font-bold flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                    <span>Notifications</span>
-                                    <span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">4 New</span>
-                                </div>
-                                <span class="text-[11px] text-slate-400">Live Platform Feed</span>
-                            </div>
-                            <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
-                                <a href="{{ route('admin.registrations') }}" class="p-3 hover:bg-slate-50 flex items-start gap-3 transition">
-                                    <span class="p-1.5 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                    </span>
-                                    <div>
-                                        <div class="font-bold text-slate-900">New Seller KYC Submission</div>
-                                        <p class="text-slate-500 text-[11px] mt-0.5">TechZone Gadgets submitted DTI & BIR 2303 for verification.</p>
-                                        <span class="text-[10px] text-slate-400 font-medium">10 mins ago</span>
-                                    </div>
-                                </a>
-                                <a href="{{ route('admin.disputes') }}" class="p-3 hover:bg-slate-50 flex items-start gap-3 transition">
-                                    <span class="p-1.5 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-                                    </span>
-                                    <div>
-                                        <div class="font-bold text-slate-900">Dispute Escalated</div>
-                                        <p class="text-slate-500 text-[11px] mt-0.5">Buyer #BY-9021 filed dispute: Item Damaged during Transit.</p>
-                                        <span class="text-[10px] text-slate-400 font-medium">35 mins ago</span>
-                                    </div>
-                                </a>
-                                <a href="{{ route('admin.compliance') }}" class="p-3 hover:bg-slate-50 flex items-start gap-3 transition">
-                                    <span class="p-1.5 bg-[#F1EFF5] text-[#6F6382] rounded-lg border border-[#E1DDE7] flex items-center justify-center">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                    </span>
-                                    <div>
-                                        <div class="font-bold text-slate-900">Seller Compliance Alert</div>
-                                        <p class="text-slate-500 text-[11px] mt-0.5">ShoeHaven listed "Replica Sneakers" under Footwear.</p>
-                                        <span class="text-[10px] text-slate-400 font-medium">2 hours ago</span>
-                                    </div>
-                                </a>
-                            </div>
-                            <div class="p-2.5 bg-slate-50 text-center border-t border-slate-100">
-                                <a href="{{ route('admin.dashboard') }}" class="text-[#6F6382] font-bold hover:underline text-[11px]">View All Dashboard Alerts &rarr;</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Super Admin Badge -->
-                    <div class="hidden sm:flex items-center gap-2.5 pl-3 border-l border-slate-200">
-                        <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-xs">
-                            AD
-                        </div>
-                        <div class="text-left leading-tight">
-                            <div class="text-xs font-bold text-slate-900">{{ Auth::user()->name ?? 'admin' }}</div>
-                            <div class="text-[10px] text-slate-500">Super Administrator</div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </header>
-
-            <!-- Flash Session Alerts (Auto-dismisses in 10 seconds) -->
-            <div class="px-4 sm:px-8 pt-4">
-                @if(session('success'))
-                    <div id="flash-alert-success" class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center justify-between shadow-2xs transition-all duration-700">
-                        <div class="flex items-center gap-2.5">
-                            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span class="font-bold text-sm">{{ session('success') }}</span>
-                        </div>
-                        <button onclick="dismissAlert('flash-alert-success')" class="text-emerald-600 hover:text-emerald-900 font-bold text-sm">✕</button>
-                    </div>
-                @endif
-
-                @if(session('info'))
-                    <div id="flash-alert-info" class="mb-4 p-4 bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs rounded-xl flex items-center justify-between shadow-2xs transition-all duration-700">
-                        <div class="flex items-center gap-2.5">
-                            <svg class="w-5 h-5 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span class="font-bold text-sm">{{ session('info') }}</span>
-                        </div>
-                        <button onclick="dismissAlert('flash-alert-info')" class="text-indigo-600 hover:text-indigo-900 font-bold text-sm">✕</button>
-                    </div>
-                @endif
-            </div>
-
-            <!-- Page Content Injection -->
-            <main class="flex-1 px-4 sm:px-8 py-6">
-                @yield('content')
-            </main>
-
-            <!-- Admin Footer -->
-            <footer class="bg-white border-t border-slate-200 px-4 sm:px-8 py-4 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
-                <div>
-                    &copy; 2026 <strong>cartzy E-Commerce Platform</strong> &bull; Super Admin Center
-                </div>
-                <div class="flex items-center gap-4 text-[11px] font-medium text-slate-600">
-                    <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 10% Commission Engine Active</span>
-                    <span>&bull;</span>
-                    <span>XAMPP-Free Demo Mode Ready</span>
-                </div>
-            </footer>
-
-        </div>
-
-    </div>
-
-    <script src="{{ asset('js/admin/admin.js') }}"></script>
-
-    @stack('scripts')
+</aside>
+<div class="admin-shell">
+    <header class="topbar">
+        <div class="topbar-title"><button type="button" class="icon-button mobile-toggle" data-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open navigation">@include('admin.partials.icon', ['name' => 'menu'])</button><span>Administration <span class="crumb">/</span> <strong>@yield('page_title', 'Overview')</strong></span></div>
+        <a class="button subtle" href="{{ route('home') }}">View storefront @include('admin.partials.icon', ['name' => 'arrow'])</a>
+    </header>
+    <main id="main-content">
+        <div class="page-heading"><div><p class="eyebrow">CARTZY / ADMIN</p><h1>@yield('page_title', 'Overview')</h1><p class="muted">@yield('page_description', 'Manage your marketplace with confidence.')</p></div><span class="date-label">{{ now()->timezone('Asia/Manila')->format('D, M j, Y') }}</span></div>
+        @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
+        @if(session('info'))<div class="notice" role="status">{{ session('info') }}</div>@endif
+        @if($errors->any())<div class="notice danger" role="alert"><strong>Please check the following:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+        @yield('content')
+        <footer class="page-footer">Cartzy administration <span>All figures reflect recorded marketplace activity.</span></footer>
+    </main>
+</div>
+<script src="{{ asset('js/admin/admin.js') }}?v={{ filemtime(public_path('js/admin/admin.js')) }}" defer></script>
+@stack('scripts')
 </body>
 </html>
