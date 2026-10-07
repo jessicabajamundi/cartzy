@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Buyer\AccountController;
 use App\Http\Controllers\Buyer\CartController;
 use App\Http\Controllers\Buyer\CheckoutController;
+use App\Http\Controllers\Buyer\DashboardController as BuyerDashboardController;
 use App\Http\Controllers\Courier\DashboardController as CourierDashboardController;
 use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Models\User;
@@ -52,7 +53,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout.get');
 
-// Super Admin Management Portal Routes (With automatic fallback demo auth if MySQL is offline)
+// Admin portal: authenticated database accounts only.
 Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function () {
     
     // 1. Dashboard & Overview
@@ -70,9 +71,12 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
         // 4. Monitor Seller Compliance
         Route::get('/compliance', [AdminPortalController::class, 'compliance'])->name('compliance');
         Route::post('/compliance/{id}/action', [AdminPortalController::class, 'handleComplianceAction'])->name('compliance.action');
+        Route::post('/compliance/sellers/{id}/warning', [AdminPortalController::class, 'issueSellerWarning'])->name('compliance.seller.warning');
+        Route::post('/compliance/sellers/{id}/suspend', [AdminPortalController::class, 'suspendSeller'])->name('compliance.seller.suspend');
 
         // 5. Manage Complaints and Disputes
-        Route::get('/disputes', [AdminPortalController::class, 'disputes'])->name('disputes');
+          Route::get('/disputes', [AdminPortalController::class, 'disputes'])->name('disputes');
+          Route::post('/disputes', [AdminPortalController::class, 'storeDispute'])->name('disputes.store');
         Route::post('/disputes/{id}/resolve', [AdminPortalController::class, 'resolveDispute'])->name('disputes.resolve');
 
         // 6. Manage Commission (10%)
@@ -98,6 +102,15 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
 // Authenticated Routes for Buyer, Seller & Courier
 Route::middleware('auth')->group(function () {
     
+    // Buyer Dashboard
+    Route::get('/dashboard', [BuyerDashboardController::class, 'index'])->name('buyer.dashboard');
+    Route::post('/wishlist/toggle', [BuyerDashboardController::class, 'toggleWishlist'])->name('wishlist.toggle');
+    Route::post('/wishlist/remove', [BuyerDashboardController::class, 'removeWishlist'])->name('wishlist.remove');
+    Route::post('/reviews', [BuyerDashboardController::class, 'submitReview'])->name('reviews.store');
+    Route::post('/orders/{reference}/pay', [BuyerDashboardController::class, 'payOrder'])->name('orders.pay');
+    Route::post('/notifications/{id}/read', [BuyerDashboardController::class, 'markNotificationRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [BuyerDashboardController::class, 'markAllNotificationsRead'])->name('notifications.markAllRead');
+
     // Buyer / User Account Portal
     Route::prefix('user')->name('account.')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('index');
@@ -116,8 +129,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
     Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
 
-    // Seller Centre Routes (With automatic fallback demo auth if MySQL is offline)
-    Route::middleware('seller.demo')->prefix('seller')->name('seller.')->group(function () {
+    // Seller portal uses the authenticated account.
+    Route::middleware('role:seller')->prefix('seller')->name('seller.')->group(function () {
         // 1. Dashboard Overview (Stats, Charts)
         Route::get('/', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard']);
         Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard'])->name('dashboard');
@@ -167,7 +180,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Logistics / Sorting Center Portal Routes
-Route::middleware('logistics.demo')->prefix('logistics')->name('logistics.')->group(function () {
+Route::middleware(['auth', 'role:logistics'])->prefix('logistics')->name('logistics.')->group(function () {
     // 1. Dashboard
     Route::get('/', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard']);
     Route::get('/dashboard', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard'])->name('dashboard');

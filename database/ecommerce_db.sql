@@ -1,7 +1,7 @@
 -- ==========================================================
 -- Cartzy Live Database Dump / Schema
 -- Database: `ecommerce_db`
--- Auto-synced at: 2026-09-23 02:11:29
+-- Auto-synced at: 2026-10-07 09:27:16
 -- ==========================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -38,6 +38,25 @@ CREATE TABLE `addresses` (
 INSERT INTO `addresses` (`id`, `user_id`, `label`, `recipient`, `phone`, `line1`, `barangay`, `city`, `province`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES
 ('1', '1', 'Default Address', 'jess Pambago', '09773587409', '1011, purok 4', 'Masapang', 'Victoria', 'Laguna', '4011', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
 ('2', '4', 'Default Address', 'Pajavera, Nhieckaella Ashley R.', '09152608445', 'St. Burol', 'Magdapio', 'Pagsanjan', 'Laguna', '4008', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+
+-- --------------------------------------------------------
+-- Table structure for table `app_notifications`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `app_notifications`;
+CREATE TABLE `app_notifications` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `type` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'order',
+  `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `link` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `app_notifications_user_id_foreign` (`user_id`),
+  CONSTRAINT `app_notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for table `cache`
@@ -121,16 +140,32 @@ CREATE TABLE `categories` (
   UNIQUE KEY `categories_slug_unique` (`slug`),
   KEY `categories_parent_id_foreign` (`parent_id`),
   CONSTRAINT `categories_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `categories` (6 rows)
+-- Dumping data for table `categories` (22 rows)
 INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES
-('1', NULL, 'Electronics', 'electronics', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('2', '1', 'Headphones & Audio', 'audio-headphones', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('3', '1', 'Smart Watches & Wearables', 'smart-wearables', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('4', NULL, 'Fashion & Apparel', 'fashion', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('5', '4', 'Sneakers & Footwear', 'sneakers-footwear', '1', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('6', '4', 'Bags & Accessories', 'bags-accessories', '2', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+('1', NULL, 'Women Clothing', 'women-clothing', '1', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('2', NULL, 'Beachwear', 'beachwear', '2', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('3', NULL, 'Kids', 'kids', '3', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('4', NULL, 'Curve', 'curve', '4', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('5', NULL, 'Men Clothing', 'men-clothing', '5', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('6', NULL, 'Shoes', 'shoes', '6', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('7', NULL, 'Jewelry & Accessories', 'jewelry-accessories', '7', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('8', NULL, 'Underwear & Sleepwear', 'underwear-sleepwear', '8', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('9', NULL, 'Baby & Maternity', 'baby-maternity', '9', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('10', NULL, 'Bags & Luggage', 'bags-luggage', '10', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('11', NULL, 'Home & Living', 'home-living', '11', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('12', NULL, 'Beauty & Health', 'beauty-health', '12', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('13', NULL, 'Sports & Outdoors', 'sports-outdoors', '13', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('14', NULL, 'Home Textiles', 'home-textiles', '14', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('15', NULL, 'Cell Phones & Accessories', 'cell-phones-accessories', '15', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('16', NULL, 'Electronics', 'electronics', '16', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('17', NULL, 'Tools & Home Improvement', 'tools-home-improvement', '17', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('18', NULL, 'Toys & Games', 'toys-games', '18', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('19', NULL, 'Pet Supplies', 'pet-supplies', '19', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('20', NULL, 'Appliances', 'appliances', '20', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('21', NULL, 'Office & School Supplies', 'office-school-supplies', '21', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('22', NULL, 'Automotive', 'automotive', '22', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23');
 
 -- --------------------------------------------------------
 -- Table structure for table `delivery_events`
@@ -237,9 +272,9 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `migrations` (18 rows)
+-- Dumping data for table `migrations` (22 rows)
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 ('1', '0001_01_01_000000_create_users_table', '1'),
 ('2', '0001_01_01_000001_create_cache_table', '1'),
@@ -258,7 +293,11 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 ('15', '2026_09_21_000006_create_categories_table', '6'),
 ('16', '2026_09_21_000007_create_products_variants_images_tables', '6'),
 ('17', '2026_09_21_000008_create_carts_and_cart_items_tables', '6'),
-('18', '2026_09_21_000009_create_orders_and_fulfillment_tables', '6');
+('18', '2026_09_21_000009_create_orders_and_fulfillment_tables', '6'),
+('19', '2026_09_25_040805_add_seller_business_fields_to_users_table', '7'),
+('20', '2026_10_04_000001_add_dti_permit_to_users_table', '8'),
+('21', '2026_10_07_000001_create_wishlists_and_reviews_tables', '9'),
+('22', '2026_10_07_000002_create_app_notifications_table', '10');
 
 -- --------------------------------------------------------
 -- Table structure for table `order_items`
@@ -410,6 +449,28 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `slug`, `description`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
 ('1', '1', '2', 'ANC Pro Wireless Noise Cancelling Earphones', 'anc-pro-wireless-noise-cancelling-earphones', 'High-fidelity audio with active noise cancellation, 32-hour battery life, and ultra-low latency gaming mode.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
 ('2', '1', '3', 'Smart Fitness Tracker Watch with Blood Oxygen & Heart Rate', 'smart-fitness-tracker-watch-blood-oxygen', 'Track your vitals 24/7 with AMOLED display, IP68 water resistance, and 14-day standby time.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+
+-- --------------------------------------------------------
+-- Table structure for table `reviews`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `reviews`;
+CREATE TABLE `reviews` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `order_item_id` bigint unsigned NOT NULL,
+  `product_id` bigint unsigned NOT NULL,
+  `rating` tinyint unsigned NOT NULL,
+  `comment` text COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `reviews_user_id_order_item_id_unique` (`user_id`,`order_item_id`),
+  KEY `reviews_order_item_id_foreign` (`order_item_id`),
+  KEY `reviews_product_id_foreign` (`product_id`),
+  CONSTRAINT `reviews_order_item_id_foreign` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `reviews_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `reviews_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for table `riders`
@@ -610,6 +671,9 @@ CREATE TABLE `users` (
   `city` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `barangay` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `postal_code` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `business_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dti_permit` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `line_of_business` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `role` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'buyer',
@@ -622,19 +686,39 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
   UNIQUE KEY `users_google_id_unique` (`google_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `users` (10 rows)
-INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES
-('1', 'jess Pambago', NULL, 'Female', '2005-12-05', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessicapambago27@gmail.com', '102943877745797449792', '09773587409', '1011, purok 4', '1011, purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011', 'IV-A', 'Laguna', 'Victoria', 'Masapang', '4011', '2026-09-19 09:39:48', '$2y$12$3nOKEW1najIzdZqV2g.KSOp2TnIrXnnwN.m.cXjZeU9htWcSh28tW', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocKRnO3z--zfu4NoW4iXG9RuYJ4W7Hc5Ty8Q9LfGYo8PptOyDiQ=s96-c', 'active', '0', 'cIefcZoTZwKBRVMUInfSpn5nGIlXEmIc7rL5lcF9TS9RGkFeUmDLIr9KbIf7', '2026-09-06 10:07:45', '2026-09-19 09:39:48'),
-('2', 'Jessie Bajamundi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bajamundijessie2@gmail.com', '105267381396672766135', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T1E7WJ09XHkR69TZhisBfuxO87Qu4x8gfTpp3e1iHINstiNoyAz/y', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJpogT-VfJhnw40Xyj5tD46nnZ8k-cTondgVTm5pl7QXgtv-FE=s96-c', 'active', '0', 'UyY0OQ7Jb0ucp8Xl5kNmhb9va56wxMFudR9dXmLRwJhMmNPFvswsit0vUbWy', '2026-09-19 09:38:11', '2026-09-19 09:38:11'),
-('3', 'Leonardo, Tiffany Joy O.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'tiffany.leonardolspu@gmail.com', '102856395965406016321', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2rPlMMwYfnaULGFzuFg7FOJSONDLg43g3jm/W13JnB9onE.Bl3qb2', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJIBmZGdR_My3EM3rpyD5hHikz_j0zobdBv9aAD8Ts4A9fNJQzz=s96-c', 'active', '0', 'phoKm8Bx9yeXpLw8bmOdmOmGZFS6NH8VXoDHbBFMotWrp6uoVeNORb46J1Ax', '2026-09-19 10:08:30', '2026-09-19 10:08:30'),
-('4', 'Pajavera, Nhieckaella Ashley R.', NULL, NULL, '2005-11-14', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'nhieckaella05@gmail.com', '109760982595777107804', '09152608445', 'St. Burol', 'St. Burol, Brgy. Magdapio, Pagsanjan, Laguna, IV-A, 4008', 'IV-A', 'Laguna', 'Pagsanjan', 'Magdapio', '4008', NULL, '$2y$12$1rq7GlIrNoH9D8/5.maRFeJpY7YL7dtXCSG7IW0ETH.ZnmrTJuPoK', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLp_Yq1EHEIBYc28poVjnMKVg-6M7ZvC0FVN-PMoSsQMcZQcJpw=s96-c', 'active', '0', '3nj4tC6v9kUD0XpA9JVCiMozO0Sq1W1gp7pdvfTfXHXGTR1Zb0ePtx1dipzO', '2026-09-19 10:08:50', '2026-09-19 13:21:10'),
-('5', 'admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'administrationa570@gmail.com', NULL, '09170000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$K.ZOCaZwXJ/eeTCXb4Qj.u.enxvmlXYylGlLZ2D4NRBNmK2QguLOy', 'admin', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45'),
-('6', 'Official Tech Store', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'seller@shopee.ph', NULL, '09171112222', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$MVeFMiwQGc70AodeiKOJreP/U/KKFmuMHjLdvTMvHrHZDS8BEbBwW', 'seller', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45'),
-('7', 'SPX Rider - Juan', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'courier@shopee.ph', NULL, '09173334444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T2HrurgfgDtHGEQdJ37fV.kZS64ItiJx7PVRZVMy.InsNuCbPv4Oi', 'courier', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
-('8', 'Maria Dela Cruz', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'buyer@shopee.ph', NULL, '09175556666', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$6TEzJ1W3R1rvfGcDjJT0EujRLAaHR.qJs3En7aRtwnI2PTHkUlSDC', 'buyer', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
-('9', 'Del Mundo, Jan Reyben, D.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'reybendelmundo2005@gmail.com', '100001932505618334922', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$nIUFGFX5nFSwpK89mDQOlu7MNR.bgexpjXwiQW8m7Du7KcPoLIPFC', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLqMeWtsRY85r-QPVe8hW6nuusyr01ufXW6Au2Kj21L0MeXLdTc=s96-c', 'active', '0', 'lUE7PfMWYcaphZThZNE9J6nKB30rzR35fP9EdpcwoK2dk6NmyN5KIR1OnXHB', '2026-09-19 10:22:32', '2026-09-19 10:22:32'),
-('10', 'Pambago, Jessica B.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessica.p.bajamundi@gmail.com', '105023496569977781629', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$FKxTiUCZPSseqM/aXmkcO.2CQNKw.WuJl3Tg5ZIVH12mIsvADwQLu', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLySMhHn9faFZJycPSeuiPaf_czFDlfAJT3lJi9SexiP_SZ8Cml=s96-c', 'active', '0', NULL, '2026-09-23 02:11:29', '2026-09-23 02:11:29');
+-- Dumping data for table `users` (11 rows)
+INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `business_name`, `dti_permit`, `line_of_business`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES
+('1', 'jess Pambago', NULL, 'Female', '2005-12-05', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessicapambago27@gmail.com', '102943877745797449792', '09773587409', '1011, purok 4', '1011, purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011', 'IV-A', 'Laguna', 'Victoria', 'Masapang', '4011', NULL, NULL, NULL, '2026-09-19 09:39:48', '$2y$12$3nOKEW1najIzdZqV2g.KSOp2TnIrXnnwN.m.cXjZeU9htWcSh28tW', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocKRnO3z--zfu4NoW4iXG9RuYJ4W7Hc5Ty8Q9LfGYo8PptOyDiQ=s96-c', 'active', '0', 'EB2rd27b7ZX1drhKddrYRIscH45FPQyBmAudrAz2FfE3gEjxYXVIxKnjmCyE', '2026-09-06 10:07:45', '2026-09-19 09:39:48'),
+('2', 'Jessie Bajamundi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bajamundijessie2@gmail.com', '105267381396672766135', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T1E7WJ09XHkR69TZhisBfuxO87Qu4x8gfTpp3e1iHINstiNoyAz/y', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJpogT-VfJhnw40Xyj5tD46nnZ8k-cTondgVTm5pl7QXgtv-FE=s96-c', 'active', '0', 'UyY0OQ7Jb0ucp8Xl5kNmhb9va56wxMFudR9dXmLRwJhMmNPFvswsit0vUbWy', '2026-09-19 09:38:11', '2026-09-19 09:38:11'),
+('3', 'Leonardo, Tiffany Joy O.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'tiffany.leonardolspu@gmail.com', '102856395965406016321', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2rPlMMwYfnaULGFzuFg7FOJSONDLg43g3jm/W13JnB9onE.Bl3qb2', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJIBmZGdR_My3EM3rpyD5hHikz_j0zobdBv9aAD8Ts4A9fNJQzz=s96-c', 'active', '0', 'XFRqpG7uRMEKMsl83tNlvNJth2EcYJzKeRj8M5xbZerKBOl8njvEBcVmxr29', '2026-09-19 10:08:30', '2026-09-19 10:08:30'),
+('4', 'Pajavera, Nhieckaella Ashley R.', NULL, NULL, '2005-11-14', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'nhieckaella05@gmail.com', '109760982595777107804', '09152608445', 'St. Burol', 'St. Burol, Brgy. Magdapio, Pagsanjan, Laguna, IV-A, 4008', 'IV-A', 'Laguna', 'Pagsanjan', 'Magdapio', '4008', NULL, NULL, NULL, NULL, '$2y$12$1rq7GlIrNoH9D8/5.maRFeJpY7YL7dtXCSG7IW0ETH.ZnmrTJuPoK', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLp_Yq1EHEIBYc28poVjnMKVg-6M7ZvC0FVN-PMoSsQMcZQcJpw=s96-c', 'active', '0', '3nj4tC6v9kUD0XpA9JVCiMozO0Sq1W1gp7pdvfTfXHXGTR1Zb0ePtx1dipzO', '2026-09-19 10:08:50', '2026-09-19 13:21:10'),
+('5', 'admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'administrationa570@gmail.com', NULL, '09170000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$K.ZOCaZwXJ/eeTCXb4Qj.u.enxvmlXYylGlLZ2D4NRBNmK2QguLOy', 'admin', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45'),
+('6', 'Official Tech Store', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'seller@shopee.ph', NULL, '09171112222', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2ziGBNBXL5F54/ky87PlK.e8jLoj7laH6f8b10gU7zbvsE2gwE1ca', 'seller', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-10-02 10:12:52'),
+('7', 'SPX Rider - Juan', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'courier@shopee.ph', NULL, '09173334444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T2HrurgfgDtHGEQdJ37fV.kZS64ItiJx7PVRZVMy.InsNuCbPv4Oi', 'courier', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
+('8', 'Maria Dela Cruz', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'buyer@shopee.ph', NULL, '09175556666', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$6TEzJ1W3R1rvfGcDjJT0EujRLAaHR.qJs3En7aRtwnI2PTHkUlSDC', 'buyer', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
+('9', 'Del Mundo, Jan Reyben, D.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'reybendelmundo2005@gmail.com', '100001932505618334922', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$nIUFGFX5nFSwpK89mDQOlu7MNR.bgexpjXwiQW8m7Du7KcPoLIPFC', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLqMeWtsRY85r-QPVe8hW6nuusyr01ufXW6Au2Kj21L0MeXLdTc=s96-c', 'active', '0', 'V09p9bMq7wXUgFymVEnEYiPnh7YlW22Gmj2VeWy7BLNzFl2jtKIgGXAYuhon', '2026-09-19 10:22:32', '2026-09-19 10:22:32'),
+('10', 'Jessica Pambago', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessica.p.bajamundi@gmail.com', '105023496569977781629', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$FKxTiUCZPSseqM/aXmkcO.2CQNKw.WuJl3Tg5ZIVH12mIsvADwQLu', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLySMhHn9faFZJycPSeuiPaf_czFDlfAJT3lJi9SexiP_SZ8Cml=s96-c', 'active', '0', 'tHpTftqcBoQoQJIjQmDA31WDxltgTarv3lJsS7jnj2jYRf1QYtRvab1dyQfD', '2026-09-23 02:11:29', '2026-10-07 09:27:16'),
+('11', 'Metro South Sorting & Fulfillment Hub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'logistics@cartzy.ph', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$cOiZVv5Qz/eNPV68uwG3quimoGQmgy0cTA/GijiXUfHnhSP1mmO5W', 'logistics', NULL, 'active', '0', NULL, '2026-10-04 06:06:10', '2026-10-04 06:06:10');
+
+-- --------------------------------------------------------
+-- Table structure for table `wishlists`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `wishlists`;
+CREATE TABLE `wishlists` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned NOT NULL,
+  `ref` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `price_minor` bigint unsigned NOT NULL,
+  `image` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `variation` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wishlists_user_id_ref_unique` (`user_id`,`ref`),
+  CONSTRAINT `wishlists_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 COMMIT;
