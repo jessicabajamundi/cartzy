@@ -104,7 +104,7 @@
                                     <form method="POST" action="{{ route('admin.compliance.seller.suspend', $product->seller_id) }}" data-confirm="Are you sure you want to suspend this seller account and deactivate all their listings?">
                                         @csrf
                                         <input type="hidden" name="reason" value="Policy violation on product #{{ $product->id }} ({{ $product->name }})">
-                                        <button type="submit" class="button" style="width: 100%; background: #b91c1c; border-color: #b91c1c; font-size: 11px; justify-content: center;">
+                                        <button type="submit" class="button danger" style="width: 100%; font-size: 11px; justify-content: center;">
                                             Suspend Seller Account
                                         </button>
                                     </form>

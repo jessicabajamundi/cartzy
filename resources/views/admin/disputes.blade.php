@@ -49,16 +49,16 @@
             </div>
 
             <div style="margin: 12px 0;">
-                <strong style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #495162;">Complaint Details:</strong>
+                <strong style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-hover);">Complaint Details:</strong>
                 <p class="preserve-lines" style="margin-top: 4px;">{{ $dispute->description }}</p>
             </div>
 
             {{-- Coordinated Parties: Buyer, Seller, Courier --}}
-            <div style="background: #fbfafc; border: 1px solid #ede8f2; border-radius: 8px; padding: 14px 16px; margin: 16px 0;">
+            <div style="background: var(--canvas); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin: 16px 0;">
                 <span class="eyebrow" style="margin-bottom: 8px; display: block;">Coordinate with Parties</span>
                 <div style="display: flex; flex-wrap: wrap; gap: 12px;">
                     {{-- Buyer Card --}}
-                    <div style="flex: 1; min-width: 170px; background: #fff; border: 1px solid #e2dede; border-radius: 6px; padding: 10px 12px;">
+                    <div style="flex: 1; min-width: 170px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <span class="badge" style="font-size: 9px;">Buyer</span>
                             @if($order?->buyer_id)
@@ -73,7 +73,7 @@
                     @if($order && $order->sellerOrders->isNotEmpty())
                         @foreach($order->sellerOrders as $so)
                             @if($so->seller)
-                            <div style="flex: 1; min-width: 170px; background: #fff; border: 1px solid #e2dede; border-radius: 6px; padding: 10px 12px;">
+                            <div style="flex: 1; min-width: 170px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                     <span class="badge" style="font-size: 9px;">Seller</span>
                                     @if($so->seller->user_id)
@@ -86,7 +86,7 @@
                             @endif
                         @endforeach
                     @else
-                        <div style="flex: 1; min-width: 170px; background: #fff; border: 1px solid #e2dede; border-radius: 6px; padding: 10px 12px;">
+                        <div style="flex: 1; min-width: 170px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;">
                             <span class="badge" style="font-size: 9px; margin-bottom: 4px; display: inline-block;">Seller</span>
                             <p class="muted" style="font-size: 11px;">Store assigned to order</p>
                         </div>
@@ -100,7 +100,7 @@
                         @foreach($order->sellerOrders as $so)
                             @if($so->shipment)
                                 @php $foundCourier = true; @endphp
-                                <div style="flex: 1; min-width: 170px; background: #fff; border: 1px solid #e2dede; border-radius: 6px; padding: 10px 12px;">
+                                <div style="flex: 1; min-width: 170px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                                         <span class="badge" style="font-size: 9px;">Courier</span>
                                         @if(optional($so->shipment->rider)->user_id)
@@ -116,7 +116,7 @@
                         @endforeach
                     @endif
                     @if(!$foundCourier)
-                        <div style="flex: 1; min-width: 170px; background: #fff; border: 1px solid #e2dede; border-radius: 6px; padding: 10px 12px;">
+                        <div style="flex: 1; min-width: 170px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;">
                             <span class="badge" style="font-size: 9px; margin-bottom: 4px; display: inline-block;">Courier</span>
                             <p class="muted" style="font-size: 11px;">No courier dispatched yet</p>
                         </div>

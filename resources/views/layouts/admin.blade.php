@@ -40,7 +40,10 @@
 <div class="admin-shell">
     <header class="topbar">
         <div class="topbar-title"><button type="button" class="icon-button mobile-toggle" data-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open navigation">@include('admin.partials.icon', ['name' => 'menu'])</button><span>Administration <span class="crumb">/</span> <strong>@yield('page_title', 'Overview')</strong></span></div>
-        <a class="button subtle" href="{{ route('home') }}">View storefront @include('admin.partials.icon', ['name' => 'arrow'])</a>
+        <div class="topbar-actions">
+            <a class="button subtle" href="{{ route('home') }}">View storefront @include('admin.partials.icon', ['name' => 'arrow'])</a>
+            <a class="topbar-account" href="{{ route('admin.account') }}" aria-label="My account"><span class="avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span></a>
+        </div>
     </header>
     <main id="main-content">
         <div class="page-heading"><div><p class="eyebrow">CARTZY / ADMIN</p><h1>@yield('page_title', 'Overview')</h1><p class="muted">@yield('page_description', 'Manage your marketplace with confidence.')</p></div><span class="date-label">{{ now()->timezone('Asia/Manila')->format('D, M j, Y') }}</span></div>
