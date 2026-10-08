@@ -22,15 +22,25 @@ class SellerOrder extends Model
     ];
 
     protected $casts = [
-        'subtotal_minor'     => 'integer',
+        'subtotal_minor' => 'integer',
         'shipping_fee_minor' => 'integer',
-        'commission_minor'   => 'integer',
-        'delivered_at'       => 'datetime',
+        'commission_minor' => 'integer',
+        'delivered_at' => 'datetime',
     ];
 
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(SellerMessage::class);
+    }
+
+    public function latestMessage()
+    {
+        return $this->hasOne(SellerMessage::class)->latestOfMany();
     }
 
     public function seller()
