@@ -421,7 +421,7 @@
                                 <div data-title="{{ strtolower($n['title']) }}"
                                      data-message="{{ strtolower($n['message']) }}"
                                      data-notif-id="{{ $n['id'] ?? '' }}"
-                                     onclick="if({{ $n['id'] ?? 'null' }}) markNotificationAsRead({{ $n['id'] }}, this)"
+                                     onclick="markNotificationAsRead({{ $n['id'] ?? 'null' }}, this)"
                                      class="dash-notif-row flex gap-4 p-5 transition hover:bg-[#FAF9FB] cursor-pointer {{ $n['unread'] ? 'bg-[#FFF5F3]/70' : '' }}">
                                     <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F1EFF5] text-lg">{{ ['delivery' => '🚚', 'payment' => '💳', 'order' => '📦', 'review' => '⭐'][$n['type']] ?? '🔔' }}</span>
                                     <div class="min-w-0 flex-1">
@@ -464,6 +464,9 @@
                                     <div class="min-w-0 flex-1">
                                         <p class="text-sm font-bold text-gray-900">{{ $r['product'] }}</p>
                                         <p class="text-xs text-gray-500">{{ $r['store'] }} · {{ $r['order'] }}</p>
+                                        @if(!empty($r['seller_reply']))
+                                            <div class="mt-3 rounded-xl bg-[#F6F4F8] p-3 text-sm text-gray-700"><strong>Seller response</strong><p class="mt-1 whitespace-pre-wrap">{{ $r['seller_reply'] }}</p></div>
+                                        @endif
                                         @if($r['rating'])
                                             <p class="mt-2 text-lg tracking-wide text-amber-400">{{ str_repeat('★', $r['rating']) }}<span class="text-gray-300">{{ str_repeat('★', 5 - $r['rating']) }}</span></p>
                                             <p class="text-sm text-gray-600">“{{ $r['comment'] }}”</p>
@@ -637,6 +640,10 @@
     filterOrders('all');
     const start = location.hash.replace('#', '') || @json($tab);
     show(start, false);
+
+    window.addEventListener('hashchange', () => {
+        show(location.hash.replace('#', '') || 'overview', false);
+    });
 })();
 
 window.removeFromWishlist = function (ref) {
@@ -679,6 +686,8 @@ window.moveToCart = function (ref, id, name, price, image, variation) {
             window.location.href = '{{ route('buyer.dashboard', ['tab' => 'cart']) }}';
         }, 500);
     });
+};
+
 window.filterDashNotifications = function (term) {
     const q = (term || '').toLowerCase().trim();
     const rows = document.querySelectorAll('.dash-notif-row');

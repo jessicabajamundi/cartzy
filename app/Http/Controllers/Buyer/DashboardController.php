@@ -226,6 +226,7 @@ class DashboardController extends Controller
 
         return [
             'id'       => $order->reference,
+            'seller_order_id' => $so->id,
             'store'    => $so->seller->name ?? 'Cartzy Seller',
             'status'   => $this->dashboardStatus($so),
             'date'     => $order->created_at->format('M d, Y'),
@@ -269,6 +270,7 @@ class DashboardController extends Controller
                     'image'   => $this->imageUrl(optional(optional($item->product)->coverImage)->path),
                     'rating'  => $review->rating ?? null,
                     'comment' => $review->comment ?? null,
+                    'seller_reply' => $review->seller_reply ?? null,
                 ];
             }
         }

@@ -7,7 +7,6 @@ use App\Http\Controllers\Buyer\CartController;
 use App\Http\Controllers\Buyer\CheckoutController;
 use App\Http\Controllers\Buyer\DashboardController as BuyerDashboardController;
 use App\Http\Controllers\Courier\DashboardController as CourierDashboardController;
-use App\Http\Controllers\Seller\DashboardController as SellerDashboardController;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -135,7 +134,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard']);
         Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard'])->name('dashboard');
 
-        // 2. Order Management & Notifications
+        // 2. Order management and packing slips
         Route::get('/orders', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orders'])->name('orders');
         Route::post('/orders/{id}/pack', [\App\Http\Controllers\Seller\SellerPortalController::class, 'packOrder'])->name('orders.pack');
         Route::get('/orders/{id}/waybill', [\App\Http\Controllers\Seller\SellerPortalController::class, 'printWaybill'])->name('orders.waybill');
@@ -144,33 +143,35 @@ Route::middleware('auth')->group(function () {
         Route::get('/courier', [\App\Http\Controllers\Seller\SellerPortalController::class, 'courier'])->name('courier');
         Route::post('/courier/{id}/schedule', [\App\Http\Controllers\Seller\SellerPortalController::class, 'schedulePickup'])->name('courier.schedule');
 
-        // 4. Delivery Confirmations (Customer received order)
+        // 4. Recorded delivery history
         Route::get('/deliveries', [\App\Http\Controllers\Seller\SellerPortalController::class, 'deliveries'])->name('deliveries');
-        Route::post('/deliveries/{id}/confirm', [\App\Http\Controllers\Seller\SellerPortalController::class, 'markDelivered'])->name('deliveries.confirm');
 
         // 5. Handle Customer Feedback
         Route::get('/feedback', [\App\Http\Controllers\Seller\SellerPortalController::class, 'feedback'])->name('feedback');
         Route::post('/feedback/{id}/reply', [\App\Http\Controllers\Seller\SellerPortalController::class, 'replyFeedback'])->name('feedback.reply');
 
-        // 6. Manage Inventory (Products, Stock, Vouchers & Discounts)
+        // 6. Products, variants, stock and visibility
         Route::get('/inventory', [\App\Http\Controllers\Seller\SellerPortalController::class, 'inventory'])->name('inventory');
         Route::post('/inventory/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addProduct'])->name('inventory.add');
         Route::post('/inventory/{id}/update', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProduct'])->name('inventory.update');
         Route::post('/inventory/{id}/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'toggleArchiveProduct'])->name('inventory.archive');
-        Route::post('/inventory/vouchers/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addVoucher'])->name('inventory.vouchers.add');
 
-        // 7. Generate Report (Financial, Profit with From-To Date Pickers)
+        // 7. Paid sales reports and CSV export
         Route::get('/reports', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reports'])->name('reports');
 
         // 8. Chat / Messaging
-        Route::get('/chat', [\App\Http\Controllers\Seller\SellerPortalController::class, 'chat'])->name('chat');
-        Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Seller\SellerPortalController::class, 'sendMessage'])->name('chat.send');
+        Route::get('/chat', [\App\Http\Controllers\Seller\MessageController::class, 'index'])->name('chat');
+        Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Seller\MessageController::class, 'send'])->middleware('throttle:30,1')->name('chat.send');
 
-        // 9. Account Management (Store Profile, Pickup Address, Payout)
+        // 9. Store profile and pickup address
         Route::get('/account', [\App\Http\Controllers\Seller\SellerPortalController::class, 'account'])->name('account');
         Route::post('/account/profile', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProfile'])->name('account.profile');
         Route::post('/account/address', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateAddress'])->name('account.address');
-        Route::post('/account/withdraw', [\App\Http\Controllers\Seller\SellerPortalController::class, 'withdrawFunds'])->name('account.withdraw');
+    });
+
+    Route::middleware('role:buyer')->group(function () {
+        Route::get('/buyer/messages', [\App\Http\Controllers\Seller\MessageController::class, 'index'])->name('buyer.messages');
+        Route::post('/buyer/messages/{contactId}', [\App\Http\Controllers\Seller\MessageController::class, 'send'])->middleware('throttle:30,1')->name('buyer.messages.send');
     });
 
     // Courier / Rider Hub Routes
