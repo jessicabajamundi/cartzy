@@ -20,6 +20,18 @@ class MessageController extends Controller
 
     public function index(Request $request)
     {
+        if (!$request->user()->isSeller()) {
+            $request->merge(['tab' => 'messages']);
+            $request->query->set('tab', 'messages');
+
+            return app(\App\Http\Controllers\Buyer\DashboardController::class)->index($request);
+        }
+
+        return view('seller.chat', $this->inboxData($request));
+    }
+
+    public function inboxData(Request $request): array
+    {
         $request->validate(['contact' => 'nullable|integer', 'search' => 'nullable|string|max:150']);
         $query = $this->threads($request);
         if ($request->filled('search')) {
@@ -40,7 +52,7 @@ class MessageController extends Controller
             });
         }
 
-        return view('seller.chat', ['shop' => $request->user()->seller, 'contacts' => $contacts, 'current' => $current, 'messages' => $messages, 'isSeller' => $request->user()->isSeller()]);
+        return ['shop' => $request->user()->seller, 'contacts' => $contacts, 'current' => $current, 'messages' => $messages, 'isSeller' => $request->user()->isSeller()];
     }
 
     public function send(Request $request, int $contactId)

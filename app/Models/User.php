@@ -52,6 +52,7 @@ class User extends Authenticatable
         'id_status',
         'id_rejection_reason',
         'id_verified_at',
+        'email_verified_at',
         'password',
         'role',
         'avatar',
@@ -81,6 +82,22 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_suspended' => 'boolean',
         ];
+    }
+
+    /**
+     * Get resolved avatar URL (supports external OAuth URLs and local storage uploads)
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (empty($this->avatar)) {
+            return null;
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        return asset('storage/' . $this->avatar);
     }
 
     /**

@@ -5,7 +5,7 @@
      • Palette 2: Warm Rose Gold & Blush (Accent Glow: #8C5A50, #C08B7F, #D4A69A, #F5CFC7, #FFF5F3)
    ═══════════════════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 .page-heading.overview-heading { flex-wrap: wrap; margin-bottom: 14px; }
 .overview-actions { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
@@ -19,7 +19,6 @@
 .preparation-notice small { display: block; margin-top: 3px; font-size: 11px; }
 .notice-action { font-size: 12px; font-weight: 600; white-space: nowrap; }
 .sales-chart-scroll { overflow-x: auto; padding-bottom: 6px; }
-#add-product { scroll-margin-top: 85px; }
 @media (max-width: 700px) {
     .overview-actions { width: 100%; }
     .period-filter { width: 100%; }
@@ -93,9 +92,10 @@ body {
     margin: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 14px;
-    line-height: 1.55;
+    line-height: 1.6;
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -136,21 +136,24 @@ h1, h2, h3, p {
 h1 {
     font-size: 28px;
     line-height: 1.25;
-    letter-spacing: -0.8px;
+    letter-spacing: -0.035em;
     font-weight: 700;
     color: var(--brand-ink);
 }
 
 h2 {
     font-size: 17px;
-    letter-spacing: -0.3px;
-    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+    font-weight: 600;
     color: var(--brand-ink);
 }
 
 h3 {
     font-size: 15px;
     font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.45;
     color: var(--brand-ink);
 }
 
@@ -300,7 +303,7 @@ strong {
 .nav-link.active {
     background: linear-gradient(90deg, var(--brand-light) 0%, var(--rose-soft) 100%);
     color: var(--brand-ink);
-    font-weight: 700;
+    font-weight: 600;
     box-shadow: inset 3px 0 0 var(--rose-primary);
 }
 
@@ -490,17 +493,18 @@ main {
 }
 
 .eyebrow {
-    font-size: 10px;
-    letter-spacing: 1.8px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
     color: var(--rose-deep);
-    font-weight: 800;
+    font-weight: 600;
     margin-bottom: 6px;
     text-transform: uppercase;
 }
 
 .subtitle {
     color: var(--muted);
-    font-size: 13.5px;
+    font-size: 14px;
+    line-height: 1.65;
     margin-top: 6px;
 }
 
@@ -549,8 +553,8 @@ main {
     justify-content: space-between;
     align-items: center;
     color: var(--muted);
-    font-size: 12.5px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
 }
 
 .metric-top .icon {
@@ -558,9 +562,9 @@ main {
 }
 
 .metric-value {
-    font-size: 28px;
-    letter-spacing: -0.8px;
-    font-weight: 700;
+    font-size: 30px;
+    letter-spacing: -0.04em;
+    font-weight: 600;
     margin: 12px 0 6px;
     line-height: 1.25;
     color: var(--brand-ink);
@@ -569,7 +573,8 @@ main {
 }
 
 .metric small {
-    font-size: 11px;
+    font-size: 12px;
+    line-height: 1.5;
     color: var(--muted);
 }
 
@@ -1004,8 +1009,8 @@ td small {
 
 label {
     display: block;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--brand-ink);
 }
 
@@ -1016,7 +1021,9 @@ input, select, textarea {
     border: 1px solid var(--brand-border);
     border-radius: var(--radius-sm);
     color: var(--brand-ink);
-    font-size: 12.5px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
     transition: var(--transition);
 }
 
@@ -1113,6 +1120,13 @@ input:focus, select:focus, textarea:focus {
     gap: 12px;
     align-items: center;
     min-width: 190px;
+}
+
+.product-row small {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.55;
 }
 
 .product-image {
@@ -1626,6 +1640,62 @@ details.panel {
     .inbox-search h2 {
         margin-bottom: 8px;
     }
+}
+
+body.product-modal-open {
+    overflow: hidden;
+}
+.product-modal {
+    width: min(860px, calc(100% - 32px));
+    max-width: none;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 24px 80px rgba(25, 20, 38, 0.24);
+    overflow: hidden;
+}
+.product-modal[open] {
+    display: flex;
+    flex-direction: column;
+}
+.product-modal::backdrop {
+    background: rgba(25, 20, 38, 0.5);
+    backdrop-filter: blur(3px);
+}
+.product-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--line);
+}
+.product-modal-header h2 { margin: 0 0 6px; font-size: 22px; }
+.product-modal-header p { margin: 0; font-size: 14px; }
+.product-modal-header .icon-button { flex-shrink: 0; }
+.product-modal-header, .product-modal-footer { flex-shrink: 0; }
+.product-modal-body { padding: 24px 28px; overflow-y: auto; min-height: 0; }
+.product-modal .form-grid > label { min-width: 0; }
+.product-modal input[type="file"] { max-width: 100%; }
+.product-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 18px 28px;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+}
+@media (max-width: 640px) {
+    .product-modal { width: calc(100% - 24px); max-height: calc(100dvh - 24px); border-radius: 14px; }
+    .product-modal-header, .product-modal-body { padding: 20px; }
+    .product-modal .form-grid { grid-template-columns: 1fr; }
+    .product-modal-footer { padding: 16px 20px; }
+    .product-modal-footer .button { flex: 1; }
 }
 
 @media print {

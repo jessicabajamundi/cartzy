@@ -206,8 +206,16 @@ class SellerPortalController extends Controller
 
     public function addProduct(Request $request)
     {
+        $user = Auth::user();
         $shop = $this->shop();
         abort_unless($shop, 422, 'Save your store profile first.');
+
+        if ($user->status !== 'active' || !$shop->isApproved()) {
+            return back()->withErrors([
+                'name' => 'Your seller account is currently pending administrator approval. You cannot sell or add products until approved by the admin.',
+            ]);
+        }
+
         $data = $request->validate([
             'name' => 'required|string|max:255', 'description' => 'nullable|string|max:5000',
             'category_id' => ['required', Rule::exists('categories', 'id')->where('is_active', true)],
@@ -238,6 +246,14 @@ class SellerPortalController extends Controller
 
     public function updateProduct(Request $request, int $id)
     {
+        $user = Auth::user();
+        $shop = $this->shop();
+        if ($user->status !== 'active' || !$shop?->isApproved()) {
+            return back()->withErrors([
+                'name' => 'Your seller account is currently pending administrator approval. Product changes are locked until approved.',
+            ]);
+        }
+
         $product = $this->productsQuery()->findOrFail($id);
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -266,6 +282,14 @@ class SellerPortalController extends Controller
 
     public function toggleArchiveProduct(int $id)
     {
+        $user = Auth::user();
+        $shop = $this->shop();
+        if ($user->status !== 'active' || !$shop?->isApproved()) {
+            return back()->withErrors([
+                'name' => 'Your seller account is currently pending administrator approval.',
+            ]);
+        }
+
         DB::transaction(function () use ($id) {
             $product = $this->productsQuery()->lockForUpdate()->findOrFail($id);
             $product->update(['is_active' => ! $product->is_active]);
@@ -304,31 +328,136 @@ class SellerPortalController extends Controller
 
     public function updateProfile(Request $request)
     {
-        $data = $request->validate(['store_name' => 'required|string|max:255', 'description' => 'nullable|string|max:5000', 'phone' => 'nullable|string|max:30']);
-        DB::transaction(function () use ($data) {
+        $data = $request->validate([
+            'store_name'       => 'required|string|max:255',
+            'description'      => 'nullable|string|max:5000',
+            'phone'            => 'nullable|string|max:30',
+            'line_of_business' => 'nullable|string|max:150',
+            'first_name'       => 'nullable|string|max:120',
+            'last_name'        => 'nullable|string|max:120',
+            'middle_initial'   => 'nullable|string|max:5',
+            'sex'              => 'nullable|string|in:Male,Female,Prefer not to say',
+            'birthday'         => 'nullable|date|before:today',
+            'id_type'          => 'nullable|string|max:100',
+            'id_number'        => 'nullable|string|max:100',
+            'id_photo'         => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'dti_permit'       => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        DB::transaction(function () use ($request, $data) {
             $user = Auth::user();
             $user->newQuery()->whereKey($user->id)->lockForUpdate()->firstOrFail();
             $shop = $user->seller()->first();
-            if ($shop) {
-                $shop->update(['name' => $data['store_name'], 'description' => $data['description'] ?? null]);
-            } else {
-                $user->seller()->create(['name' => $data['store_name'], 'description' => $data['description'] ?? null, 'slug' => Str::slug($data['store_name']).'-'.Str::lower(Str::random(10)), 'status' => $user->status === 'active' && $user->isIdVerified() ? 'approved' : 'pending']);
+
+            // Auto-calculate age if birthday updated
+            $age = $user->age;
+            if (!empty($data['birthday'])) {
+                $age = max(0, (int) \Carbon\Carbon::parse($data['birthday'])->age);
             }
-            $user->update(['business_name' => $data['store_name'], 'phone' => $data['phone'] ?? null]);
+
+            // Name combination if first_name / last_name submitted
+            $fullName = $user->name;
+            if (!empty($data['first_name']) || !empty($data['last_name'])) {
+                $combined = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
+                if ($combined) {
+                    $fullName = $combined;
+                }
+            }
+
+            $userUpdate = [
+                'name'             => $fullName,
+                'middle_initial'   => array_key_exists('middle_initial', $data) ? $data['middle_initial'] : $user->middle_initial,
+                'sex'              => array_key_exists('sex', $data) ? $data['sex'] : $user->sex,
+                'birthday'         => array_key_exists('birthday', $data) ? $data['birthday'] : $user->birthday,
+                'age'              => $age,
+                'phone'            => $data['phone'] ?? $user->phone,
+                'business_name'    => $data['store_name'],
+                'line_of_business' => $data['line_of_business'] ?? $user->line_of_business,
+            ];
+
+            if (!empty($data['id_type'])) {
+                $userUpdate['id_type'] = $data['id_type'];
+            }
+            if (isset($data['id_number'])) {
+                $userUpdate['id_number'] = $data['id_number'];
+            }
+
+            if ($request->hasFile('id_photo') && $request->file('id_photo')->isValid()) {
+                $userUpdate['id_photo'] = $request->file('id_photo')->store('id_documents', 'public');
+                $userUpdate['id_status'] = 'pending';
+                $userUpdate['id_rejection_reason'] = null;
+            }
+
+            if ($request->hasFile('dti_permit') && $request->file('dti_permit')->isValid()) {
+                $userUpdate['dti_permit'] = $request->file('dti_permit')->store('dti_permits', 'public');
+            }
+
+            $user->update($userUpdate);
+
+            if ($shop) {
+                $shop->update([
+                    'name'        => $data['store_name'],
+                    'description' => $data['description'] ?? null,
+                ]);
+            } else {
+                $user->seller()->create([
+                    'name'        => $data['store_name'],
+                    'description' => $data['description'] ?? null,
+                    'slug'        => Str::slug($data['store_name']) . '-' . Str::lower(Str::random(10)),
+                    'status'      => $user->status === 'active' && $user->isIdVerified() ? 'approved' : 'pending',
+                ]);
+            }
         });
 
-        return back()->with('success', 'Store profile saved.');
+        \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+
+        return back()->with('success', 'Store profile and account details saved.');
     }
 
     public function updateAddress(Request $request)
     {
         $shop = $this->shop();
         abort_unless($shop, 422, 'Save your store profile first.');
-        $data = $request->validate(['recipient' => 'required|string|max:255', 'phone' => 'required|string|max:30', 'line1' => 'required|string|max:500', 'barangay' => 'required|string|max:255', 'city' => 'required|string|max:255', 'province' => 'required|string|max:255', 'postal_code' => 'required|string|max:15']);
+        $data = $request->validate([
+            'recipient'   => 'required|string|max:255',
+            'phone'       => 'required|string|max:30',
+            'line1'       => 'required|string|max:500',
+            'barangay'    => 'required|string|max:255',
+            'city'        => 'required|string|max:255',
+            'province'    => 'required|string|max:255',
+            'postal_code' => 'required|string|max:15',
+            'region'      => 'nullable|string|max:100',
+        ]);
+
         DB::transaction(function () use ($shop, $data) {
-            $address = Auth::user()->addresses()->updateOrCreate(['id' => $shop->pickup_address_id], $data + ['label' => 'Shop pickup']);
+            $user = Auth::user();
+            $address = $user->addresses()->updateOrCreate(
+                ['id' => $shop->pickup_address_id],
+                [
+                    'recipient'   => $data['recipient'],
+                    'phone'       => $data['phone'],
+                    'line1'       => $data['line1'],
+                    'barangay'    => $data['barangay'],
+                    'city'        => $data['city'],
+                    'province'    => $data['province'],
+                    'postal_code' => $data['postal_code'],
+                    'label'       => 'Shop pickup',
+                ]
+            );
             $shop->update(['pickup_address_id' => $address->id]);
+
+            $user->update([
+                'street_address' => $data['line1'],
+                'region'         => $data['region'] ?? $user->region,
+                'province'       => $data['province'],
+                'city'           => $data['city'],
+                'barangay'       => $data['barangay'],
+                'postal_code'    => $data['postal_code'],
+                'address'        => $address->formatted_address,
+            ]);
         });
+
+        \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
 
         return back()->with('success', 'Pickup address saved.');
     }

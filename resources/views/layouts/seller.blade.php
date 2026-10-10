@@ -5,6 +5,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('page_title', 'Seller centre') · cartzy</title>
     <link rel="icon" href="{{ asset('images/favicon.png') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ asset('css/seller.css') }}?v={{ filemtime(public_path('css/seller.css')) }}">
 </head>
 <body>
@@ -32,7 +34,16 @@
         <main id="main">
             @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="notice error" role="alert"><strong>Please check your entries.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-            @if($sellerMode && !$shop && !request()->routeIs('seller.account*'))<div class="notice">Finish setting up your store to start managing products. <a href="{{ route('seller.account') }}">Set up store &rarr;</a></div>@endif
+            @if($sellerMode && (auth()->user()->status !== 'active' || ($shop && !$shop->isApproved())))
+                <div class="notice" style="background: #FFFBEB; border: 1.5px solid #FDE68A; color: #92400E; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px;">
+                    <div>
+                        <strong>Account Pending Admin Approval:</strong> Your seller account is currently under review by our administration team. You will be able to sell products once your account has been approved.
+                    </div>
+                    <a href="{{ route('seller.account') }}" class="button small" style="white-space: nowrap;">Check status &rarr;</a>
+                </div>
+            @elseif($sellerMode && !$shop && !request()->routeIs('seller.account*'))
+                <div class="notice">Finish setting up your store to start managing products. <a href="{{ route('seller.account') }}">Set up store &rarr;</a></div>
+            @endif
             @yield('content')
         </main>
         <footer class="page-footer">cartzy {{ $sellerMode ? 'Seller Centre' : 'Messages' }} <span>Built for your everyday business.</span></footer>

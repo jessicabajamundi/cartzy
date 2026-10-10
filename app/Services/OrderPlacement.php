@@ -11,7 +11,6 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariant;
-use App\Models\Seller;
 use App\Models\SellerOrder;
 use App\Models\Shipment;
 use App\Models\User;
@@ -38,11 +37,12 @@ class OrderPlacement
         }
 
         return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress) {
-            $seller = Seller::query()->orderBy('id')->first();
+            $defaultAddress = \App\Models\Address::where('user_id', $buyer->id)->where('is_default', true)->first();
+            $useDefaultContact = $defaultAddress && $defaultAddress->formatted_address === $deliveryAddress;
             $provider = LogisticsProvider::query()->orderBy('id')->first();
 
-            if (!$seller || !$provider) {
-                throw new RuntimeException('The marketplace is not ready to take orders yet (no seller or courier configured).');
+            if (!$provider) {
+                throw new RuntimeException('The marketplace is not ready to take orders yet (no courier configured).');
             }
 
             $category = Category::firstOrCreate(
@@ -54,6 +54,7 @@ class OrderPlacement
             $subtotalMinor = 0;
 
             foreach ($cartItems as $item) {
+                $seller = app(CatalogStores::class)->storeFor((string) $item['id']);
                 $variation = $item['variation'] ?? 'Standard';
                 $priceMinor = (int) round(((float) $item['price']) * 100);
                 $qty = max(1, (int) ($item['quantity'] ?? 1));
@@ -67,6 +68,11 @@ class OrderPlacement
                         'is_active'   => true,
                     ]
                 );
+
+                // Correct catalog products previously attached to the first registered seller.
+                if ($product->seller_id !== $seller->id) {
+                    $product->update(['seller_id' => $seller->id]);
+                }
 
                 if (!empty($item['image']) && !$product->images()->exists()) {
                     ProductImage::forceCreate(['product_id' => $product->id, 'path' => $item['image'], 'position' => 0]);
@@ -83,14 +89,15 @@ class OrderPlacement
                     ]
                 );
 
-                $lines[] = compact('product', 'variant', 'priceMinor', 'qty');
+                $lines[] = compact('product', 'variant', 'priceMinor', 'qty', 'seller');
                 $subtotalMinor += $priceMinor * $qty;
             }
 
             $shippingMinor = (int) round(self::SHIPPING_FEE * 100);
             $discountMinor = $subtotalMinor >= 100000 ? 5000 : 0;
             $totalMinor = max(0, $subtotalMinor + $shippingMinor - $discountMinor);
-            $isCod = strtoupper($paymentMethod) === 'COD';
+            $isCod = in_array(strtoupper(trim((string) $paymentMethod)), ['COD', 'CASH ON DELIVERY'], true);
+            $normalizedMethod = $isCod ? 'COD' : 'GCash';
 
             $order = Order::create([
                 'buyer_id'         => $buyer->id,
@@ -99,57 +106,64 @@ class OrderPlacement
                 'payment_method'   => $isCod ? 'cod' : 'wallet',
                 'payment_status'   => 'pending',
                 'shipping_address' => [
-                    'recipient' => $buyer->name,
-                    'phone'     => $buyer->phone,
+                    'recipient' => $useDefaultContact ? $defaultAddress->recipient : $buyer->name,
+                    'phone'     => $useDefaultContact ? $defaultAddress->phone : $buyer->phone,
                     'address'   => $deliveryAddress,
                 ],
             ]);
 
-            $sellerOrder = SellerOrder::create([
-                'order_id'              => $order->id,
-                'seller_id'             => $seller->id,
-                'logistics_provider_id' => $provider->id,
-                'subtotal_minor'        => $subtotalMinor,
-                'shipping_fee_minor'    => $shippingMinor,
-                'commission_minor'      => (int) round($subtotalMinor * ($seller->commission_bps ?? 0) / 10000),
-                'status'                => 'pending',
-            ]);
+            $groups = collect($lines)->groupBy(fn ($line) => $line['seller']->id);
+            // The checkout shipping voucher reduces shipping, shared across stores.
+            $netShipping = $shippingMinor - $discountMinor;
+            $groupIndex = 0;
+            foreach ($groups as $groupLines) {
+                $seller = $groupLines->first()['seller'];
+                $groupSubtotal = $groupLines->sum(fn ($line) => $line['priceMinor'] * $line['qty']);
+                $groupShipping = intdiv($netShipping, $groups->count()) + ($groupIndex++ < $netShipping % $groups->count() ? 1 : 0);
+                $sellerOrder = SellerOrder::create([
+                    'order_id'              => $order->id,
+                    'seller_id'             => $seller->id,
+                    'logistics_provider_id' => $provider->id,
+                    'subtotal_minor'        => $groupSubtotal,
+                    'shipping_fee_minor'    => $groupShipping,
+                    'commission_minor'      => (int) round($groupSubtotal * ($seller->commission_bps ?? 0) / 10000),
+                    'status'                => 'pending',
+                ]);
 
-            foreach ($lines as $l) {
-                OrderItem::create([
-                    'seller_order_id'    => $sellerOrder->id,
-                    'product_id'         => $l['product']->id,
-                    'product_variant_id' => $l['variant']->id,
-                    'product_name'       => $l['product']->name,
-                    'variant_name'       => $l['variant']->name,
-                    'unit_price_minor'   => $l['priceMinor'],
-                    'quantity'           => $l['qty'],
+                foreach ($groupLines as $l) {
+                    OrderItem::create([
+                        'seller_order_id'    => $sellerOrder->id,
+                        'product_id'         => $l['product']->id,
+                        'product_variant_id' => $l['variant']->id,
+                        'product_name'       => $l['product']->name,
+                        'variant_name'       => $l['variant']->name,
+                        'unit_price_minor'   => $l['priceMinor'],
+                        'quantity'           => $l['qty'],
+                    ]);
+                }
+
+                $shipment = Shipment::create([
+                    'seller_order_id'       => $sellerOrder->id,
+                    'logistics_provider_id' => $provider->id,
+                    'tracking_code'         => 'CTZ-' . strtoupper(Str::random(10)),
+                    'status'                => 'unassigned',
+                    'fee_minor'             => $groupShipping,
+                    'cod_amount_minor'      => $isCod ? $groupSubtotal + $groupShipping : 0,
+                ]);
+
+                DeliveryEvent::create([
+                    'shipment_id' => $shipment->id,
+                    'status'      => 'order_placed',
+                    'attempt'     => 1,
+                    'user_id'     => $buyer->id,
+                    'note'        => 'Order placed by buyer.',
+                    'occurred_at' => now(),
                 ]);
             }
 
             Payment::create([
-                'order_id'     => $order->id,
-                'method'       => $paymentMethod,
-                'amount_minor' => $totalMinor,
-                'status'       => 'pending',
-            ]);
-
-            $shipment = Shipment::create([
-                'seller_order_id'       => $sellerOrder->id,
-                'logistics_provider_id' => $provider->id,
-                'tracking_code'         => 'CTZ-' . strtoupper(Str::random(10)),
-                'status'                => 'unassigned',
-                'fee_minor'             => $shippingMinor,
-                'cod_amount_minor'      => $isCod ? $totalMinor : 0,
-            ]);
-
-            DeliveryEvent::create([
-                'shipment_id' => $shipment->id,
-                'status'      => 'order_placed',
-                'attempt'     => 1,
-                'user_id'     => $buyer->id,
-                'note'        => 'Order placed by buyer.',
-                'occurred_at' => now(),
+                'order_id' => $order->id, 'method' => $normalizedMethod,
+                'amount_minor' => $totalMinor, 'status' => 'pending',
             ]);
 
             NotificationService::notify(

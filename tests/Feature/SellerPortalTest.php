@@ -103,7 +103,7 @@ class SellerPortalTest extends TestCase
             ->assertViewHas('reportDates', ['from_date' => '2026-10-01', 'to_date' => '2026-10-08']);
         $this->get('/seller/orders?status=to_prepare')->assertOk()
             ->assertViewHas('orders', fn ($orders) => $orders->total() === 3);
-        $this->get('/seller/inventory?create=1')->assertOk()->assertSee('id="add-product" class="panel"  open', false);
+        $this->get('/seller/inventory?create=1')->assertOk()->assertSee('<dialog id="add-product"', false)->assertSee('data-auto-open="true"', false);
         $this->get('/seller/dashboard?period=invalid')->assertSessionHasErrors('period');
         $this->travelBack();
     }
@@ -113,7 +113,7 @@ class SellerPortalTest extends TestCase
         $shop = $this->shop();
         $product = $this->product($shop);
         $second = $product->variants()->create(['sku' => 'SECOND', 'name' => 'Large', 'price_minor' => 15000, 'stock' => 10, 'is_active' => true]);
-        $this->actingAs($shop->user)->get('/seller/inventory?tab=low_stock')->assertOk()->assertSee($product->name);
+        $this->actingAs($shop->user)->get('/seller/inventory?tab=low_stock')->assertOk()->assertSee($product->name)->assertSee('data-auto-open="false"', false);
         $this->post('/seller/inventory/add', ['name' => 'New saved item', 'category_id' => $product->category_id, 'sku' => 'NEW-SKU', 'price' => '12.34', 'stock' => 6])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('product_variants', ['sku' => 'NEW-SKU', 'price_minor' => 1234, 'stock' => 6]);
         $this->post('/seller/inventory/'.$product->id.'/update', ['name' => 'Updated item', 'variants' => [['id' => $second->id, 'price' => '25.45', 'stock' => 20]]])->assertSessionHasNoErrors();
@@ -122,7 +122,8 @@ class SellerPortalTest extends TestCase
         $this->post('/seller/inventory/'.$product->id.'/archive')->assertSessionHasNoErrors();
         $this->assertFalse($product->fresh()->is_active);
         $this->post('/seller/inventory/add', ['name' => 'Invalid', 'category_id' => $product->category_id, 'sku' => 'BAD', 'price' => -1, 'stock' => -2])->assertSessionHasErrors(['price', 'stock']);
-        $this->get('/seller/inventory?search=does-not-exist')->assertOk()->assertDontSee('Updated item');
+        $this->get('/seller/inventory?search=does-not-exist')->assertOk()->assertDontSee('Updated item')
+            ->assertSee('data-auto-open="true"', false)->assertSee('value="Invalid"', false);
     }
 
     public function test_other_sellers_cannot_read_or_modify_orders_products_or_conversations(): void
@@ -180,10 +181,23 @@ class SellerPortalTest extends TestCase
         $this->actingAs($shop->user)->get('/seller/chat?contact='.$order->id)->assertOk()->assertSee('When will this ship?');
         $this->assertNotNull($message->fresh()->read_at);
         $this->post('/seller/chat/'.$order->id.'/send', ['message' => 'We will prepare your order today.'])->assertRedirect();
-        $this->actingAs($buyer)->get('/buyer/messages?contact='.$order->id)->assertOk()->assertSee('We will prepare your order today.');
+        $this->actingAs($buyer)->get('/buyer/messages?contact='.$order->id)->assertOk()->assertSee('We will prepare your order today.')
+            ->assertViewIs('buyer.dashboard')->assertViewHas('tab', 'messages')
+            ->assertSee('data-buyer-inbox', false)->assertSee('Back to My Orders')
+            ->assertSee('Dashboard navigation')->assertDontSee('css/seller.css')->assertDontSee('Seller workspace');
+        $this->get('/dashboard?tab=messages&contact='.$order->id)->assertOk()->assertSee('We will prepare your order today.');
+        $this->assertSame('buyer', $buyer->fresh()->role);
         $this->post('/buyer/messages/'.$order->id, ['message' => '   '])->assertSessionHasErrors('message');
         $this->actingAs(User::factory()->create(['role' => 'buyer']))->get('/buyer/messages?contact='.$order->id)->assertNotFound();
         $this->assertDatabaseCount('seller_messages', 2);
+    }
+
+    public function test_buyer_inbox_empty_and_search_states_use_buyer_dashboard(): void
+    {
+        $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active']);
+        $this->actingAs($buyer)->get('/buyer/messages')->assertOk()->assertViewIs('buyer.dashboard')
+            ->assertSee('Your conversations start here')->assertDontSee('css/seller.css');
+        $this->get('/buyer/messages?search=Unknown')->assertOk()->assertSee('No conversations found.');
     }
 
     public function test_profile_address_and_review_reply_persist(): void

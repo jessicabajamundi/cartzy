@@ -8,9 +8,16 @@
         <p class="subtitle">Keep product details, target audience, badges, prices, and available stock up to date.</p>
     </div>
     <div>
-        <button type="button" class="button" onclick="const el = document.getElementById('add-product'); el.open = !el.open; if(el.open) el.scrollIntoView({behavior: 'smooth'});">
-            + Add product
-        </button>
+        @if(auth()->user()->status !== 'active' || !$shop || !$shop->isApproved())
+            <button type="button" class="button" disabled style="opacity:0.65; cursor:not-allowed; background:#9ca3af; display:inline-flex; align-items:center; gap:6px;" title="Administrator approval is required before you can sell or add products.">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span>Add product (Pending approval)</span>
+            </button>
+        @else
+            <button type="button" class="button" id="add-product-trigger" aria-haspopup="dialog" aria-controls="add-product">
+                + Add product
+            </button>
+        @endif
     </div>
 </div>
 
@@ -92,15 +99,39 @@
     </div>
 @endif
 
-<details id="add-product" class="panel" @if(request('create') || ($errors->any() && !old('variants'))) open @endif>
-    <summary style="display: none;"></summary>
-    <div class="panel-body">
+<dialog id="add-product" class="product-modal" aria-labelledby="add-product-title" aria-describedby="add-product-description" data-auto-open="{{ !session('success') && (request('create') || ($errors->any() && !old('editing_product'))) ? 'true' : 'false' }}">
+    <header class="product-modal-header">
+        <div>
+            <h2 id="add-product-title">Add product</h2>
+            <p id="add-product-description" class="muted">Add product details, pricing, and stock to your catalog.</p>
+        </div>
+        <button type="button" class="icon-button" data-close-product aria-label="Close add product">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+    </header>
+    <div class="product-modal-body">
+        @if($errors->any() && !old('editing_product'))
+            <div class="notice error" role="alert">
+                <strong>Please check your entries.</strong>
+                <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
+        @endif
         @if(!$shop)
             <p>Save your <a href="{{ route('seller.account') }}">store profile</a> first.</p>
+        @elseif(auth()->user()->status !== 'active' || !$shop->isApproved())
+            <div class="notice" style="background: #FFFBEB; border: 1.5px solid #FDE68A; color: #92400E; padding: 18px; border-radius: 10px;">
+                <h3 style="color: #92400E; margin-bottom: 6px; font-size: 1rem;">Account Pending Administrator Approval</h3>
+                <p style="margin: 0; line-height: 1.5; font-size: 0.88rem;">
+                    Your seller account is currently under review by our administration team. You will be able to add and sell products once your account has been approved by the administrator.
+                </p>
+                <div style="margin-top: 14px;">
+                    <a href="{{ route('seller.account') }}" class="button small">Check verification status &rarr;</a>
+                </div>
+            </div>
         @elseif($categories->isEmpty())
             <p class="muted">An administrator needs to add an active product category before you can create products.</p>
         @else
-            <form action="{{ route('seller.inventory.add') }}" method="POST" enctype="multipart/form-data" class="form-grid">
+            <form id="add-product-form" action="{{ route('seller.inventory.add') }}" method="POST" enctype="multipart/form-data" class="form-grid">
                 @csrf
                 <label>Product name
                     <input name="name" value="{{ old('name') }}" required maxlength="255" placeholder="e.g. Wireless Noise-Cancelling Headphones">
@@ -115,12 +146,12 @@
                     </select>
                 </label>
 
-                <label>Gender / Target audience <small class="muted">· Sino ang pwedeng gumamit</small>
+                <label>Gender / Target audience <small class="muted">· Suitable for</small>
                     <select name="gender">
-                        <option value="unisex" @selected(old('gender', 'unisex') === 'unisex')>Unisex (Panglahat)</option>
-                        <option value="men" @selected(old('gender') === 'men')>Men (Pang-lalaki)</option>
-                        <option value="women" @selected(old('gender') === 'women')>Women (Pang-babae)</option>
-                        <option value="kids" @selected(old('gender') === 'kids')>Kids (Pang-bata)</option>
+                        <option value="unisex" @selected(old('gender', 'unisex') === 'unisex')>Unisex (All)</option>
+                        <option value="men" @selected(old('gender') === 'men')>Men</option>
+                        <option value="women" @selected(old('gender') === 'women')>Women</option>
+                        <option value="kids" @selected(old('gender') === 'kids')>Kids</option>
                     </select>
                 </label>
 
@@ -156,14 +187,16 @@
                     <textarea name="description" maxlength="5000" placeholder="Describe key features, materials, and product details...">{{ old('description') }}</textarea>
                 </label>
 
-                <div class="full" style="display: flex; gap: 10px; align-items: center;">
-                    <button class="button" type="submit">Create product</button>
-                    <button type="button" class="button secondary" onclick="document.getElementById('add-product').open = false;">Cancel</button>
-                </div>
             </form>
         @endif
     </div>
-</details>
+    <footer class="product-modal-footer">
+        <button type="button" class="button secondary" data-close-product>Cancel</button>
+        @if($shop && auth()->user()->status === 'active' && $shop->isApproved() && $categories->isNotEmpty())
+            <button class="button" type="submit" form="add-product-form">Create product</button>
+        @endif
+    </footer>
+</dialog>
 
 <form class="filters" method="GET">
     <label>Search products
@@ -264,10 +297,10 @@
                         <label>Gender / Target audience
                             @php($curGender = old('editing_product') == $product->id ? old('gender', $product->gender) : ($product->gender ?? 'unisex'))
                             <select name="gender">
-                                <option value="unisex" @selected($curGender === 'unisex')>Unisex (All / Panglahat)</option>
-                                <option value="men" @selected($curGender === 'men')>Men (Pang-lalaki)</option>
-                                <option value="women" @selected($curGender === 'women')>Women (Pang-babae)</option>
-                                <option value="kids" @selected($curGender === 'kids')>Kids (Pang-bata)</option>
+                                <option value="unisex" @selected($curGender === 'unisex')>Unisex (All)</option>
+                                <option value="men" @selected($curGender === 'men')>Men</option>
+                                <option value="women" @selected($curGender === 'women')>Women</option>
+                                <option value="kids" @selected($curGender === 'kids')>Kids</option>
                             </select>
                         </label>
 
@@ -339,3 +372,7 @@
     @include('seller.partials.pagination',['paginator'=>$products])
 </section>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/seller-inventory.js') }}?v={{ filemtime(public_path('js/seller-inventory.js')) }}"></script>
+@endpush

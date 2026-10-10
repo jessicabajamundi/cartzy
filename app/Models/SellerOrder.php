@@ -9,6 +9,16 @@ class SellerOrder extends Model
 {
     use HasFactory;
 
+    public const CANCELLATION_REASONS = [
+        'I changed my mind',
+        'I selected the wrong item or variation',
+        'I entered the wrong delivery address',
+        'I placed a duplicate order',
+        'I want to change my payment method',
+        'The order is taking too long to prepare',
+        'Other reason',
+    ];
+
     protected $fillable = [
         'order_id',
         'seller_id',
@@ -31,6 +41,13 @@ class SellerOrder extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function canBeCancelledByBuyer(): bool
+    {
+        return in_array($this->status, ['pending', 'accepted', 'packed', 'ready_to_ship'], true)
+            && (!$this->shipment || (in_array($this->shipment->status, ['unassigned', 'assigned'], true)
+                && !$this->shipment->cod_collected));
     }
 
     public function messages()

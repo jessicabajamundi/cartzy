@@ -107,6 +107,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/wishlist/remove', [BuyerDashboardController::class, 'removeWishlist'])->name('wishlist.remove');
     Route::post('/reviews', [BuyerDashboardController::class, 'submitReview'])->name('reviews.store');
     Route::post('/orders/{reference}/pay', [BuyerDashboardController::class, 'payOrder'])->name('orders.pay');
+    Route::post('/seller-orders/{id}/cancel', [BuyerDashboardController::class, 'cancelOrder'])->name('orders.cancel');
     Route::post('/notifications/{id}/read', [BuyerDashboardController::class, 'markNotificationRead'])->name('notifications.read');
     Route::post('/notifications/mark-all-read', [BuyerDashboardController::class, 'markAllNotificationsRead'])->name('notifications.markAllRead');
 
@@ -119,6 +120,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/account/verify-id', [AccountController::class, 'submitIdVerification'])->name('id.submit');
         Route::post('/account/password', [AccountController::class, 'updatePassword'])->name('password.update');
         Route::post('/account/address', [AccountController::class, 'updateAddress'])->name('address.update');
+        Route::post('/account/addresses/save', [\App\Http\Controllers\Buyer\SettingsController::class, 'saveAddress'])->name('addresses.save');
+        Route::post('/account/addresses/{address}/default', [\App\Http\Controllers\Buyer\SettingsController::class, 'defaultAddress'])->name('addresses.default');
+        Route::delete('/account/addresses/{address}', [\App\Http\Controllers\Buyer\SettingsController::class, 'deleteAddress'])->name('addresses.delete');
+        Route::post('/account/devices/logout', [\App\Http\Controllers\Buyer\SettingsController::class, 'logoutOtherDevices'])->middleware('throttle:6,1')->name('devices.logout');
         Route::get('/account/purchases', [AccountController::class, 'purchases'])->name('purchases');
         Route::get('/account/cards', [AccountController::class, 'cards'])->name('cards');
         Route::get('/account/addresses', [AccountController::class, 'addresses'])->name('addresses');
