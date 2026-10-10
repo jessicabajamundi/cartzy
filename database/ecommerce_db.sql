@@ -1,7 +1,7 @@
 -- ==========================================================
 -- Cartzy Live Database Dump / Schema
 -- Database: `ecommerce_db`
--- Auto-synced at: 2026-10-07 09:27:16
+-- Auto-synced at: 2026-10-10 09:14:48
 -- ==========================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -32,12 +32,49 @@ CREATE TABLE `addresses` (
   PRIMARY KEY (`id`),
   KEY `addresses_user_id_foreign` (`user_id`),
   CONSTRAINT `addresses_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `addresses` (2 rows)
+-- Dumping data for table `addresses` (3 rows)
 INSERT INTO `addresses` (`id`, `user_id`, `label`, `recipient`, `phone`, `line1`, `barangay`, `city`, `province`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES
 ('1', '1', 'Default Address', 'jess Pambago', '09773587409', '1011, purok 4', 'Masapang', 'Victoria', 'Laguna', '4011', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('2', '4', 'Default Address', 'Pajavera, Nhieckaella Ashley R.', '09152608445', 'St. Burol', 'Magdapio', 'Pagsanjan', 'Laguna', '4008', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+('2', '4', 'Default Address', 'Pajavera, Nhieckaella Ashley R.', '09152608445', 'St. Burol', 'Magdapio', 'Pagsanjan', 'Laguna', '4008', '1', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('5', '10', 'Home', 'Jessica Pambago', '09773587409', '1011, purok 4', 'Masapang', 'Victoria', 'Laguna', '4011', '1', '2026-10-10 06:04:29', '2026-10-10 06:04:29');
+
+-- --------------------------------------------------------
+-- Table structure for table `admin_audit_logs`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `admin_audit_logs`;
+CREATE TABLE `admin_audit_logs` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint unsigned DEFAULT NULL,
+  `action` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `admin_audit_logs_user_id_foreign` (`user_id`),
+  CONSTRAINT `admin_audit_logs_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `admin_disputes`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `admin_disputes`;
+CREATE TABLE `admin_disputes` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `order_id` bigint unsigned NOT NULL,
+  `subject` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'open',
+  `admin_notes` text COLLATE utf8mb4_unicode_ci,
+  `resolved_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `admin_disputes_order_id_foreign` (`order_id`),
+  KEY `admin_disputes_status_index` (`status`),
+  CONSTRAINT `admin_disputes_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- Table structure for table `app_notifications`
@@ -56,7 +93,11 @@ CREATE TABLE `app_notifications` (
   PRIMARY KEY (`id`),
   KEY `app_notifications_user_id_foreign` (`user_id`),
   CONSTRAINT `app_notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `app_notifications` (1 rows)
+INSERT INTO `app_notifications` (`id`, `user_id`, `type`, `title`, `message`, `link`, `is_read`, `created_at`, `updated_at`) VALUES
+('1', '10', 'order', 'Order Placed', 'Your order ORD-2026-53254 was successfully placed.', 'http://cartzyy.shop/dashboard?tab=orders', '1', '2026-10-10 06:21:01', '2026-10-10 06:21:08');
 
 -- --------------------------------------------------------
 -- Table structure for table `cache`
@@ -140,9 +181,9 @@ CREATE TABLE `categories` (
   UNIQUE KEY `categories_slug_unique` (`slug`),
   KEY `categories_parent_id_foreign` (`parent_id`),
   CONSTRAINT `categories_parent_id_foreign` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `categories` (22 rows)
+-- Dumping data for table `categories` (23 rows)
 INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_active`, `created_at`, `updated_at`) VALUES
 ('1', NULL, 'Women Clothing', 'women-clothing', '1', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
 ('2', NULL, 'Beachwear', 'beachwear', '2', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
@@ -165,7 +206,8 @@ INSERT INTO `categories` (`id`, `parent_id`, `name`, `slug`, `position`, `is_act
 ('19', NULL, 'Pet Supplies', 'pet-supplies', '19', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
 ('20', NULL, 'Appliances', 'appliances', '20', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
 ('21', NULL, 'Office & School Supplies', 'office-school-supplies', '21', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
-('22', NULL, 'Automotive', 'automotive', '22', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23');
+('22', NULL, 'Automotive', 'automotive', '22', '1', '2026-10-04 05:54:23', '2026-10-04 05:54:23'),
+('23', NULL, 'General', 'general', '0', '1', '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `delivery_events`
@@ -187,7 +229,11 @@ CREATE TABLE `delivery_events` (
   KEY `delivery_events_user_id_foreign` (`user_id`),
   CONSTRAINT `delivery_events_shipment_id_foreign` FOREIGN KEY (`shipment_id`) REFERENCES `shipments` (`id`) ON DELETE CASCADE,
   CONSTRAINT `delivery_events_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `delivery_events` (1 rows)
+INSERT INTO `delivery_events` (`id`, `shipment_id`, `status`, `attempt`, `user_id`, `note`, `photo_path`, `occurred_at`, `created_at`, `updated_at`) VALUES
+('1', '1', 'order_placed', '1', '10', 'Order placed by buyer.', NULL, '2026-10-10 06:21:01', '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `failed_jobs`
@@ -272,9 +318,9 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `migrations` (22 rows)
+-- Dumping data for table `migrations` (25 rows)
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 ('1', '0001_01_01_000000_create_users_table', '1'),
 ('2', '0001_01_01_000001_create_cache_table', '1'),
@@ -297,7 +343,10 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 ('19', '2026_09_25_040805_add_seller_business_fields_to_users_table', '7'),
 ('20', '2026_10_04_000001_add_dti_permit_to_users_table', '8'),
 ('21', '2026_10_07_000001_create_wishlists_and_reviews_tables', '9'),
-('22', '2026_10_07_000002_create_app_notifications_table', '10');
+('22', '2026_10_07_000002_create_app_notifications_table', '10'),
+('23', '2026_10_07_000003_create_admin_management_tables', '11'),
+('24', '2026_10_08_000001_add_seller_communication', '12'),
+('25', '2026_10_08_000002_add_gender_and_badge_to_products_table', '13');
 
 -- --------------------------------------------------------
 -- Table structure for table `order_items`
@@ -321,7 +370,11 @@ CREATE TABLE `order_items` (
   CONSTRAINT `order_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_items_product_variant_id_foreign` FOREIGN KEY (`product_variant_id`) REFERENCES `product_variants` (`id`) ON DELETE CASCADE,
   CONSTRAINT `order_items_seller_order_id_foreign` FOREIGN KEY (`seller_order_id`) REFERENCES `seller_orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `order_items` (1 rows)
+INSERT INTO `order_items` (`id`, `seller_order_id`, `product_id`, `product_variant_id`, `product_name`, `variant_name`, `unit_price_minor`, `quantity`, `created_at`, `updated_at`) VALUES
+('1', '1', '3', '4', 'Ceramic Coffee Mug Saucer Set', 'White', '28000', '1', '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `orders`
@@ -341,7 +394,11 @@ CREATE TABLE `orders` (
   UNIQUE KEY `orders_reference_unique` (`reference`),
   KEY `orders_buyer_id_foreign` (`buyer_id`),
   CONSTRAINT `orders_buyer_id_foreign` FOREIGN KEY (`buyer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `orders` (1 rows)
+INSERT INTO `orders` (`id`, `buyer_id`, `reference`, `total_minor`, `payment_method`, `payment_status`, `shipping_address`, `created_at`, `updated_at`) VALUES
+('1', '10', 'ORD-2026-53254', '34000', 'wallet', 'pending', '{\"phone\": \"09773587409\", \"address\": \"1011, purok 4, Brgy. Masapang, Victoria, Laguna, 4011\", \"recipient\": \"Jessica Pambago\"}', '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `password_reset_tokens`
@@ -370,6 +427,35 @@ CREATE TABLE `payments` (
   PRIMARY KEY (`id`),
   KEY `payments_order_id_foreign` (`order_id`),
   CONSTRAINT `payments_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `payments` (1 rows)
+INSERT INTO `payments` (`id`, `order_id`, `method`, `amount_minor`, `status`, `provider_ref`, `created_at`, `updated_at`) VALUES
+('1', '1', 'GCash', '34000', 'pending', NULL, '2026-10-10 06:21:01', '2026-10-10 06:21:01');
+
+-- --------------------------------------------------------
+-- Table structure for table `platform_announcements`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `platform_announcements`;
+CREATE TABLE `platform_announcements` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `target` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table structure for table `platform_settings`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `platform_settings`;
+CREATE TABLE `platform_settings` (
+  `key` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `value` text COLLATE utf8mb4_unicode_ci,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -386,12 +472,13 @@ CREATE TABLE `product_images` (
   PRIMARY KEY (`id`),
   KEY `product_images_product_id_foreign` (`product_id`),
   CONSTRAINT `product_images_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `product_images` (2 rows)
+-- Dumping data for table `product_images` (3 rows)
 INSERT INTO `product_images` (`id`, `product_id`, `path`, `position`, `created_at`, `updated_at`) VALUES
 ('1', '1', 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('2', '2', 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+('2', '2', 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&h=600&fit=crop&q=80', '0', '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('3', '3', 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=500&h=500&fit=crop&q=80', '0', '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `product_variants`
@@ -414,13 +501,14 @@ CREATE TABLE `product_variants` (
   UNIQUE KEY `product_variants_sku_unique` (`sku`),
   KEY `product_variants_product_id_foreign` (`product_id`),
   CONSTRAINT `product_variants_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `product_variants` (3 rows)
+-- Dumping data for table `product_variants` (4 rows)
 INSERT INTO `product_variants` (`id`, `product_id`, `sku`, `name`, `options`, `price_minor`, `stock`, `weight_grams`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
 ('1', '1', 'ANC-BLK', 'Matte Black', '{\"color\": \"Black\"}', '89000', '50', '250', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
 ('2', '1', 'ANC-WHT', 'Glossy White', '{\"color\": \"White\"}', '89000', '40', '250', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('3', '2', 'FIT-SMT-01', 'Midnight Black / Standard Strap', '{\"size\": \"Standard\", \"color\": \"Black\"}', '129900', '35', '180', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+('3', '2', 'FIT-SMT-01', 'Midnight Black / Standard Strap', '{\"size\": \"Standard\", \"color\": \"Black\"}', '129900', '35', '180', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('4', '3', 'CAT-5-25a817', 'White', NULL, '28000', '999', '0', '1', NULL, '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `products`
@@ -433,6 +521,8 @@ CREATE TABLE `products` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `slug` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text COLLATE utf8mb4_unicode_ci,
+  `gender` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT 'unisex',
+  `badge` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
   `deleted_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -443,12 +533,13 @@ CREATE TABLE `products` (
   KEY `products_category_id_is_active_index` (`category_id`,`is_active`),
   CONSTRAINT `products_category_id_foreign` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE,
   CONSTRAINT `products_seller_id_foreign` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `products` (2 rows)
-INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `slug`, `description`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
-('1', '1', '2', 'ANC Pro Wireless Noise Cancelling Earphones', 'anc-pro-wireless-noise-cancelling-earphones', 'High-fidelity audio with active noise cancellation, 32-hour battery life, and ultra-low latency gaming mode.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
-('2', '1', '3', 'Smart Fitness Tracker Watch with Blood Oxygen & Heart Rate', 'smart-fitness-tracker-watch-blood-oxygen', 'Track your vitals 24/7 with AMOLED display, IP68 water resistance, and 14-day standby time.', '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+-- Dumping data for table `products` (3 rows)
+INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `slug`, `description`, `gender`, `badge`, `is_active`, `deleted_at`, `created_at`, `updated_at`) VALUES
+('1', '1', '2', 'ANC Pro Wireless Noise Cancelling Earphones', 'anc-pro-wireless-noise-cancelling-earphones', 'High-fidelity audio with active noise cancellation, 32-hour battery life, and ultra-low latency gaming mode.', 'unisex', NULL, '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '1', '3', 'Smart Fitness Tracker Watch with Blood Oxygen & Heart Rate', 'smart-fitness-tracker-watch-blood-oxygen', 'Track your vitals 24/7 with AMOLED display, IP68 water resistance, and 14-day standby time.', 'unisex', NULL, '1', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('3', '2', '23', 'Ceramic Coffee Mug Saucer Set', 'catalog-5', NULL, 'unisex', NULL, '1', NULL, '2026-10-10 06:21:01', '2026-10-10 06:38:23');
 
 -- --------------------------------------------------------
 -- Table structure for table `reviews`
@@ -463,6 +554,8 @@ CREATE TABLE `reviews` (
   `comment` text COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
+  `seller_reply` text COLLATE utf8mb4_unicode_ci,
+  `replied_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `reviews_user_id_order_item_id_unique` (`user_id`,`order_item_id`),
   KEY `reviews_order_item_id_foreign` (`order_item_id`),
@@ -546,6 +639,25 @@ INSERT INTO `roles` (`id`, `name`, `created_at`, `updated_at`) VALUES
 ('5', 'admin', '2026-09-21 06:03:56', '2026-09-21 06:03:56');
 
 -- --------------------------------------------------------
+-- Table structure for table `seller_messages`
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS `seller_messages`;
+CREATE TABLE `seller_messages` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `seller_order_id` bigint unsigned NOT NULL,
+  `sender_id` bigint unsigned NOT NULL,
+  `body` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `seller_messages_sender_id_foreign` (`sender_id`),
+  KEY `seller_messages_seller_order_id_created_at_index` (`seller_order_id`,`created_at`),
+  CONSTRAINT `seller_messages_seller_order_id_foreign` FOREIGN KEY (`seller_order_id`) REFERENCES `seller_orders` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `seller_messages_sender_id_foreign` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 -- Table structure for table `seller_orders`
 -- --------------------------------------------------------
 DROP TABLE IF EXISTS `seller_orders`;
@@ -569,7 +681,11 @@ CREATE TABLE `seller_orders` (
   CONSTRAINT `seller_orders_logistics_provider_id_foreign` FOREIGN KEY (`logistics_provider_id`) REFERENCES `logistics_providers` (`id`) ON DELETE SET NULL,
   CONSTRAINT `seller_orders_order_id_foreign` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `seller_orders_seller_id_foreign` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `seller_orders` (1 rows)
+INSERT INTO `seller_orders` (`id`, `order_id`, `seller_id`, `logistics_provider_id`, `subtotal_minor`, `shipping_fee_minor`, `commission_minor`, `status`, `delivered_at`, `note`, `created_at`, `updated_at`) VALUES
+('1', '1', '2', '1', '28000', '6000', '0', 'pending', NULL, NULL, '2026-10-10 06:21:01', '2026-10-10 06:38:26');
 
 -- --------------------------------------------------------
 -- Table structure for table `sellers`
@@ -595,11 +711,21 @@ CREATE TABLE `sellers` (
   KEY `sellers_pickup_address_id_foreign` (`pickup_address_id`),
   CONSTRAINT `sellers_pickup_address_id_foreign` FOREIGN KEY (`pickup_address_id`) REFERENCES `addresses` (`id`) ON DELETE SET NULL,
   CONSTRAINT `sellers_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `sellers` (1 rows)
+-- Dumping data for table `sellers` (11 rows)
 INSERT INTO `sellers` (`id`, `user_id`, `name`, `slug`, `description`, `logo_path`, `banner_path`, `status`, `rejection_reason`, `commission_bps`, `pickup_address_id`, `created_at`, `updated_at`) VALUES
-('1', '6', 'TechZone Official Mall', 'techzone-official-mall', 'Your premier destination for authentic wireless earbuds, smartwatches, and premium accessories.', 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=200&h=200&fit=crop&q=80', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=400&fit=crop&q=80', 'approved', NULL, '800', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57');
+('1', '6', 'TechZone Official Mall', 'techzone-official-mall', 'Your premier destination for authentic wireless earbuds, smartwatches, and premium accessories.', 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=200&h=200&fit=crop&q=80', 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=400&fit=crop&q=80', 'approved', NULL, '800', NULL, '2026-09-21 06:03:57', '2026-09-21 06:03:57'),
+('2', '12', 'Hearth & Home', 'catalog-hearth-home', 'Catalog store for Hearth & Home.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:23', '2026-10-10 06:38:23'),
+('3', '13', 'Circuit Hub', 'catalog-circuit-hub', 'Catalog store for Circuit Hub.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:23', '2026-10-10 06:38:23'),
+('4', '14', 'Sole Street', 'catalog-sole-street', 'Catalog store for Sole Street.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:24', '2026-10-10 06:38:24'),
+('5', '15', 'Everyday Style', 'catalog-everyday-style', 'Catalog store for Everyday Style.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:24', '2026-10-10 06:38:24'),
+('6', '16', 'Bloom Beauty', 'catalog-bloom-beauty', 'Catalog store for Bloom Beauty.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:24', '2026-10-10 06:38:24'),
+('7', '17', 'Little Sprouts', 'catalog-little-sprouts', 'Catalog store for Little Sprouts.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:25', '2026-10-10 06:38:25'),
+('8', '18', 'Handy Home Tools', 'catalog-handy-home', 'Catalog store for Handy Home Tools.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:25', '2026-10-10 06:38:25'),
+('9', '19', 'Happy Paws', 'catalog-happy-paws', 'Catalog store for Happy Paws.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:26', '2026-10-10 06:38:26'),
+('10', '20', 'Paper & Palette', 'catalog-paper-palette', 'Catalog store for Paper & Palette.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:26', '2026-10-10 06:38:26'),
+('11', '21', 'Auto Essentials', 'catalog-auto-essentials', 'Catalog store for Auto Essentials.', NULL, NULL, 'approved', NULL, '0', NULL, '2026-10-10 06:38:26', '2026-10-10 06:38:26');
 
 -- --------------------------------------------------------
 -- Table structure for table `sessions`
@@ -642,7 +768,11 @@ CREATE TABLE `shipments` (
   CONSTRAINT `shipments_logistics_provider_id_foreign` FOREIGN KEY (`logistics_provider_id`) REFERENCES `logistics_providers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `shipments_rider_id_foreign` FOREIGN KEY (`rider_id`) REFERENCES `riders` (`id`) ON DELETE SET NULL,
   CONSTRAINT `shipments_seller_order_id_foreign` FOREIGN KEY (`seller_order_id`) REFERENCES `seller_orders` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Dumping data for table `shipments` (1 rows)
+INSERT INTO `shipments` (`id`, `seller_order_id`, `logistics_provider_id`, `rider_id`, `tracking_code`, `status`, `fee_minor`, `cod_amount_minor`, `cod_collected`, `attempts`, `created_at`, `updated_at`) VALUES
+('1', '1', '1', NULL, 'CTZ-VEM2ANKBMO', 'unassigned', '6000', '0', '0', '0', '2026-10-10 06:21:01', '2026-10-10 06:21:01');
 
 -- --------------------------------------------------------
 -- Table structure for table `users`
@@ -686,21 +816,31 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `users_email_unique` (`email`),
   UNIQUE KEY `users_google_id_unique` (`google_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Dumping data for table `users` (11 rows)
+-- Dumping data for table `users` (21 rows)
 INSERT INTO `users` (`id`, `name`, `middle_initial`, `sex`, `birthday`, `age`, `id_photo`, `id_type`, `id_number`, `id_status`, `id_rejection_reason`, `id_verified_at`, `email`, `google_id`, `phone`, `street_address`, `address`, `region`, `province`, `city`, `barangay`, `postal_code`, `business_name`, `dti_permit`, `line_of_business`, `email_verified_at`, `password`, `role`, `avatar`, `status`, `is_suspended`, `remember_token`, `created_at`, `updated_at`) VALUES
 ('1', 'jess Pambago', NULL, 'Female', '2005-12-05', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessicapambago27@gmail.com', '102943877745797449792', '09773587409', '1011, purok 4', '1011, purok 4, Brgy. Masapang, Victoria, Laguna, IV-A, 4011', 'IV-A', 'Laguna', 'Victoria', 'Masapang', '4011', NULL, NULL, NULL, '2026-09-19 09:39:48', '$2y$12$3nOKEW1najIzdZqV2g.KSOp2TnIrXnnwN.m.cXjZeU9htWcSh28tW', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocKRnO3z--zfu4NoW4iXG9RuYJ4W7Hc5Ty8Q9LfGYo8PptOyDiQ=s96-c', 'active', '0', 'EB2rd27b7ZX1drhKddrYRIscH45FPQyBmAudrAz2FfE3gEjxYXVIxKnjmCyE', '2026-09-06 10:07:45', '2026-09-19 09:39:48'),
-('2', 'Jessie Bajamundi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bajamundijessie2@gmail.com', '105267381396672766135', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T1E7WJ09XHkR69TZhisBfuxO87Qu4x8gfTpp3e1iHINstiNoyAz/y', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJpogT-VfJhnw40Xyj5tD46nnZ8k-cTondgVTm5pl7QXgtv-FE=s96-c', 'active', '0', 'UyY0OQ7Jb0ucp8Xl5kNmhb9va56wxMFudR9dXmLRwJhMmNPFvswsit0vUbWy', '2026-09-19 09:38:11', '2026-09-19 09:38:11'),
-('3', 'Leonardo, Tiffany Joy O.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'tiffany.leonardolspu@gmail.com', '102856395965406016321', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2rPlMMwYfnaULGFzuFg7FOJSONDLg43g3jm/W13JnB9onE.Bl3qb2', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJIBmZGdR_My3EM3rpyD5hHikz_j0zobdBv9aAD8Ts4A9fNJQzz=s96-c', 'active', '0', 'XFRqpG7uRMEKMsl83tNlvNJth2EcYJzKeRj8M5xbZerKBOl8njvEBcVmxr29', '2026-09-19 10:08:30', '2026-09-19 10:08:30'),
-('4', 'Pajavera, Nhieckaella Ashley R.', NULL, NULL, '2005-11-14', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'nhieckaella05@gmail.com', '109760982595777107804', '09152608445', 'St. Burol', 'St. Burol, Brgy. Magdapio, Pagsanjan, Laguna, IV-A, 4008', 'IV-A', 'Laguna', 'Pagsanjan', 'Magdapio', '4008', NULL, NULL, NULL, NULL, '$2y$12$1rq7GlIrNoH9D8/5.maRFeJpY7YL7dtXCSG7IW0ETH.ZnmrTJuPoK', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLp_Yq1EHEIBYc28poVjnMKVg-6M7ZvC0FVN-PMoSsQMcZQcJpw=s96-c', 'active', '0', '3nj4tC6v9kUD0XpA9JVCiMozO0Sq1W1gp7pdvfTfXHXGTR1Zb0ePtx1dipzO', '2026-09-19 10:08:50', '2026-09-19 13:21:10'),
+('2', 'Jessie Bajamundi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bajamundijessie2@gmail.com', '105267381396672766135', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-10 05:27:55', '$2y$12$T1E7WJ09XHkR69TZhisBfuxO87Qu4x8gfTpp3e1iHINstiNoyAz/y', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJpogT-VfJhnw40Xyj5tD46nnZ8k-cTondgVTm5pl7QXgtv-FE=s96-c', 'active', '0', 'UyY0OQ7Jb0ucp8Xl5kNmhb9va56wxMFudR9dXmLRwJhMmNPFvswsit0vUbWy', '2026-09-19 09:38:11', '2026-10-10 05:27:55'),
+('3', 'Leonardo, Tiffany Joy O.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'tiffany.leonardolspu@gmail.com', '102856395965406016321', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-10 05:27:55', '$2y$12$2rPlMMwYfnaULGFzuFg7FOJSONDLg43g3jm/W13JnB9onE.Bl3qb2', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocJIBmZGdR_My3EM3rpyD5hHikz_j0zobdBv9aAD8Ts4A9fNJQzz=s96-c', 'active', '0', 'XFRqpG7uRMEKMsl83tNlvNJth2EcYJzKeRj8M5xbZerKBOl8njvEBcVmxr29', '2026-09-19 10:08:30', '2026-10-10 05:27:55'),
+('4', 'Pajavera, Nhieckaella Ashley R.', NULL, NULL, '2005-11-14', '20', NULL, NULL, NULL, 'unverified', NULL, NULL, 'nhieckaella05@gmail.com', '109760982595777107804', '09152608445', 'St. Burol', 'St. Burol, Brgy. Magdapio, Pagsanjan, Laguna, IV-A, 4008', 'IV-A', 'Laguna', 'Pagsanjan', 'Magdapio', '4008', NULL, NULL, NULL, '2026-10-10 05:27:55', '$2y$12$1rq7GlIrNoH9D8/5.maRFeJpY7YL7dtXCSG7IW0ETH.ZnmrTJuPoK', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLp_Yq1EHEIBYc28poVjnMKVg-6M7ZvC0FVN-PMoSsQMcZQcJpw=s96-c', 'active', '0', '3nj4tC6v9kUD0XpA9JVCiMozO0Sq1W1gp7pdvfTfXHXGTR1Zb0ePtx1dipzO', '2026-09-19 10:08:50', '2026-10-10 05:27:55'),
 ('5', 'admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'administrationa570@gmail.com', NULL, '09170000000', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$K.ZOCaZwXJ/eeTCXb4Qj.u.enxvmlXYylGlLZ2D4NRBNmK2QguLOy', 'admin', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-09-19 10:14:45'),
 ('6', 'Official Tech Store', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'seller@shopee.ph', NULL, '09171112222', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$2ziGBNBXL5F54/ky87PlK.e8jLoj7laH6f8b10gU7zbvsE2gwE1ca', 'seller', NULL, 'active', '0', NULL, '2026-09-19 10:14:45', '2026-10-02 10:12:52'),
 ('7', 'SPX Rider - Juan', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'courier@shopee.ph', NULL, '09173334444', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$T2HrurgfgDtHGEQdJ37fV.kZS64ItiJx7PVRZVMy.InsNuCbPv4Oi', 'courier', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
 ('8', 'Maria Dela Cruz', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'buyer@shopee.ph', NULL, '09175556666', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$6TEzJ1W3R1rvfGcDjJT0EujRLAaHR.qJs3En7aRtwnI2PTHkUlSDC', 'buyer', NULL, 'active', '0', NULL, '2026-09-19 10:14:46', '2026-09-19 10:14:46'),
-('9', 'Del Mundo, Jan Reyben, D.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'reybendelmundo2005@gmail.com', '100001932505618334922', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$nIUFGFX5nFSwpK89mDQOlu7MNR.bgexpjXwiQW8m7Du7KcPoLIPFC', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLqMeWtsRY85r-QPVe8hW6nuusyr01ufXW6Au2Kj21L0MeXLdTc=s96-c', 'active', '0', 'V09p9bMq7wXUgFymVEnEYiPnh7YlW22Gmj2VeWy7BLNzFl2jtKIgGXAYuhon', '2026-09-19 10:22:32', '2026-09-19 10:22:32'),
-('10', 'Jessica Pambago', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'jessica.p.bajamundi@gmail.com', '105023496569977781629', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$FKxTiUCZPSseqM/aXmkcO.2CQNKw.WuJl3Tg5ZIVH12mIsvADwQLu', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLySMhHn9faFZJycPSeuiPaf_czFDlfAJT3lJi9SexiP_SZ8Cml=s96-c', 'active', '0', 'tHpTftqcBoQoQJIjQmDA31WDxltgTarv3lJsS7jnj2jYRf1QYtRvab1dyQfD', '2026-09-23 02:11:29', '2026-10-07 09:27:16'),
-('11', 'Metro South Sorting & Fulfillment Hub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'logistics@cartzy.ph', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$cOiZVv5Qz/eNPV68uwG3quimoGQmgy0cTA/GijiXUfHnhSP1mmO5W', 'logistics', NULL, 'active', '0', NULL, '2026-10-04 06:06:10', '2026-10-04 06:06:10');
+('9', 'Del Mundo, Jan Reyben, D.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'reybendelmundo2005@gmail.com', '100001932505618334922', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-10-10 05:27:55', '$2y$12$nIUFGFX5nFSwpK89mDQOlu7MNR.bgexpjXwiQW8m7Du7KcPoLIPFC', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLqMeWtsRY85r-QPVe8hW6nuusyr01ufXW6Au2Kj21L0MeXLdTc=s96-c', 'active', '0', '3a1bhb0wBMKcX3dLe0qGkaDiceCgm2xWMAd90WHS82Isz7VcrdaclmXHK3tI', '2026-09-19 10:22:32', '2026-10-10 05:27:55'),
+('10', 'Jessica Pambago', NULL, NULL, NULL, NULL, NULL, 'National ID', '1234-5678-9012', 'verified', NULL, '2026-10-10 05:54:17', 'jessica.p.bajamundi@gmail.com', '105023496569977781629', NULL, '1011, purok 4', '1011, purok 4, Brgy. Masapang, Victoria, Laguna, 4011', 'IV-A', 'Laguna', 'Victoria', 'Masapang', '4011', NULL, NULL, NULL, '2026-10-10 05:27:55', '$2y$12$FKxTiUCZPSseqM/aXmkcO.2CQNKw.WuJl3Tg5ZIVH12mIsvADwQLu', 'buyer', 'https://lh3.googleusercontent.com/a/ACg8ocLySMhHn9faFZJycPSeuiPaf_czFDlfAJT3lJi9SexiP_SZ8Cml=s96-c', 'active', '0', 'nSMiEuPB5M1GgDnTQP7YZK2V3gGWrf6kitC9gAeNdv8cxurzW0wvSVsN1bt9', '2026-09-23 02:11:29', '2026-10-10 06:04:25'),
+('11', 'Metro South Sorting & Fulfillment Hub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'logistics@cartzy.ph', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$cOiZVv5Qz/eNPV68uwG3quimoGQmgy0cTA/GijiXUfHnhSP1mmO5W', 'logistics', NULL, 'active', '0', NULL, '2026-10-04 06:06:10', '2026-10-04 06:06:10'),
+('12', 'Hearth & Home', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'hearth-home@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$qf.mju.fJHzAFIQYZcVLkuVq5YhDQg6aZVpUYzY7Eves1I1gcwivi', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:23', '2026-10-10 06:38:23'),
+('13', 'Circuit Hub', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'circuit-hub@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$Q/sFeuONs0jpEdPIRQ3FH.I1fwlkr6A1icLVXPodJthhGABSLpefG', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:23', '2026-10-10 06:38:23'),
+('14', 'Sole Street', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'sole-street@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$lTSUOasrhgNjVlNie57k1utm79FmnPRW2B0O/Iv5VHzpeAnMXwCwW', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:24', '2026-10-10 06:38:24'),
+('15', 'Everyday Style', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'everyday-style@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$pfQq.obJAtYIHXVtvNUkW.jaFoxDAPZv/rS3y4JLZ8PQNlJlJeCZK', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:24', '2026-10-10 06:38:24'),
+('16', 'Bloom Beauty', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'bloom-beauty@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$ompIsf33MQBqKenSK8XwTeoGBzXdEZ.zq5ZJE8FFCkgb/YFQQBUS2', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:24', '2026-10-10 06:38:24'),
+('17', 'Little Sprouts', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'little-sprouts@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$LtfJJ4bC.eF7dALPove4t.O9oW6iAzsFYtcDdGYr2JsK33kGQdJom', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:25', '2026-10-10 06:38:25'),
+('18', 'Handy Home Tools', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'handy-home@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$m/vzgJWSgvXBTKhJYRKGdeSizOnfQW5DSilMYReFN86C5/NsKSXd6', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:25', '2026-10-10 06:38:25'),
+('19', 'Happy Paws', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'happy-paws@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$9zG2Frwk3pc97ABtlmD4c.ngVUqUE.09Aq0y.scA7twIRRIVCimJK', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:26', '2026-10-10 06:38:26'),
+('20', 'Paper & Palette', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'paper-palette@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$JwhY0ovUbhkQoZq8Gd7/B.Nv9NMrNw4tVEWLOPePhmw3/xrENSZIu', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:26', '2026-10-10 06:38:26'),
+('21', 'Auto Essentials', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'unverified', NULL, NULL, 'auto-essentials@catalog.cartzy.invalid', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '$2y$12$/X0tdSCsO8lYbXtK9NuSoeXh2F6OKL02//c.iRY0dP9Z7MZghSprm', 'seller', NULL, 'active', '0', NULL, '2026-10-10 06:38:26', '2026-10-10 06:38:26');
 
 -- --------------------------------------------------------
 -- Table structure for table `wishlists`
