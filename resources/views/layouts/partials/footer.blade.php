@@ -106,8 +106,8 @@
                 <h5 class="font-bold text-gray-900 uppercase tracking-wider mb-4 text-sm">ACCOUNT</h5>
                 <ul class="space-y-3 text-sm">
                     @auth
-                        <li><a href="{{ route('account.index') }}" class="text-gray-500 hover:text-black transition">My profile</a></li>
-                        <li><a href="{{ route('account.purchases') }}" class="text-gray-500 hover:text-black transition">My purchases</a></li>
+                        <li><a href="{{ route('buyer.dashboard', ['tab' => 'profile']) }}" class="text-gray-500 hover:text-black transition">My profile</a></li>
+                        <li><a href="{{ route('buyer.dashboard', ['tab' => 'orders']) }}" class="text-gray-500 hover:text-black transition">My purchases</a></li>
                     @else
                         <li><a href="{{ route('login') }}" class="text-gray-500 hover:text-black transition">Log in</a></li>
                         <li><a href="{{ route('register') }}" class="text-gray-500 hover:text-black transition">Create account</a></li>

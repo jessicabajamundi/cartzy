@@ -1,0 +1,45 @@
+/* One frame treatment for catalog products, curated picks, and category cards. */
+.storefront-cards :is(.product-card, .collection-card, .pick-lane),
+.product-card {
+    border: 1.5px solid #b76e79 !important;
+    background-color: #fff;
+    box-shadow: 0 3px 10px rgb(183 110 121 / 7%);
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+.storefront-cards .product-card,
+.storefront-cards .pick-lane,
+.product-card {
+    border-radius: 16px;
+}
+
+.storefront-cards .collection-card__body {
+    border-top: 1px solid rgb(183 110 121 / 20%);
+    background: #fff;
+}
+
+.storefront-cards .collection-card__arrow {
+    border: 1px solid #b76e79;
+    background-color: #f9f6fb;
+}
+
+@media (hover: hover) {
+    .storefront-cards :is(.product-card, .collection-card, .pick-lane):hover,
+    .product-card:hover {
+        border-color: #9e5863 !important;
+        box-shadow: 0 8px 22px rgb(183 110 121 / 14%);
+    }
+}
+
+.storefront-cards :is(.product-card, .collection-card, .pick-lane):focus-within,
+.product-card:focus-within {
+    border-color: #9e5863 !important;
+    box-shadow: 0 0 0 3px rgb(183 110 121 / 20%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .storefront-cards :is(.product-card, .collection-card, .pick-lane),
+    .product-card {
+        transition: none;
+    }
+}

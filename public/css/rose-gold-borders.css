@@ -1,0 +1,17 @@
+/* Rose gold borders for product and storefront cards */
+:root {
+    --border-rose-gold: #b76e79;
+    --border-rose-gold-active: #9e5863;
+}
+
+.product-card,
+.collection-card,
+.pick-lane {
+    border-color: #b76e79 !important;
+}
+
+.product-card:hover,
+.collection-card:hover,
+.pick-lane:hover {
+    border-color: #9e5863 !important;
+}

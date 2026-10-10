@@ -117,6 +117,12 @@
         }
 
         /* Clamp image height for a tighter square */
+        .product-card {
+            border: 1.5px solid #b76e79 !important;
+        }
+        .product-card:hover {
+            border-color: #9e5863 !important;
+        }
         .product-card .relative.aspect-square {
             max-height: 125px;
         }
@@ -169,6 +175,8 @@
         }
     </style>
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('css/rose-gold-borders.css') }}?v={{ filemtime(public_path('css/rose-gold-borders.css')) }}">
+
 </head>
 <body class="min-h-screen flex flex-col text-neutral-900 antialiased selection:bg-[#A8A0B2] selection:text-white">
 

@@ -24,7 +24,7 @@
 
 <section id="flash-sale" class="picks" data-picks-board aria-labelledby="picks-title">
     <header class="picks__header">
-        <div><h2 id="picks-title" class="picks__title">Today's picks<span>.</span></h2><p class="picks__intro">Four ways to find your next favourite.</p></div>
+        <div><p class="picks__eyebrow">THE CARTZY EDIT</p><h2 id="picks-title" class="picks__title">Today's <em>picks.</em></h2><p class="picks__intro">Little discoveries. Everyday favorites.</p></div>
         <div class="picks__header-actions">
             <button class="picks__rotation" type="button" data-picks-pause hidden aria-label="Pause automatic product rotation"><span data-picks-pause-icon aria-hidden="true">Ⅱ</span><span data-picks-pause-label>Pause</span></button>
             <a class="picks__browse" href="#daily-discover-section">View all products <span aria-hidden="true">↗</span></a>
@@ -33,7 +33,7 @@
     <div class="picks__grid">
         @foreach ($pickGroups as $group)
             <section class="pick-lane pick-lane--{{ $group['key'] }}" data-pick-lane data-pick-interval="{{ 6500 + $loop->index * 1100 }}" role="region" aria-roledescription="carousel" aria-labelledby="pick-{{ $group['key'] }}-title">
-                <header class="pick-lane__header"><h3 id="pick-{{ $group['key'] }}-title"><span aria-hidden="true"></span>{{ $group['label'] }}</h3><p>{{ $group['note'] }}</p></header>
+                <header class="pick-lane__header"><span class="pick-lane__number" aria-hidden="true">{{ str_pad($loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><div><h3 id="pick-{{ $group['key'] }}-title"><span aria-hidden="true"></span>{{ $group['label'] }}</h3><p>{{ $group['note'] }}</p></div></header>
                 <div class="pick-lane__viewport">
                     <div class="pick-lane__track" id="pick-{{ $group['key'] }}-slides" data-pick-track aria-live="off">
                         @foreach ($group['items'] as $item)
@@ -56,7 +56,7 @@
     </div>
 </section>
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/picks-carousel.css') }}">
+<link rel="stylesheet" href="{{ asset('css/picks-carousel.css') }}?v={{ filemtime(public_path('css/picks-carousel.css')) }}">
 @endpush
 @push('scripts')
 <script src="{{ asset('js/picks-carousel.js') }}" defer></script>

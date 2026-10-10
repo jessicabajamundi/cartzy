@@ -60,15 +60,16 @@
 .market-hero__caption-mark { width: 22px; height: 2px; background: linear-gradient(90deg, var(--hero-rose), var(--brand-primary, #a8a0b2)); }
 .market-hero__navigation { display: flex; align-items: center; gap: 7px; }
 .market-hero__count { margin-right: 14px; color: var(--hero-accent); white-space: nowrap; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.14em; }
-.market-hero button { display: inline-grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; padding: 0; color: var(--hero-ink); border: 1px solid transparent; cursor: pointer; }
+.market-hero button { display: inline-grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; padding: 0; color: var(--hero-ink); border: 0; cursor: pointer; }
 .market-hero .market-hero__arrow { border: 1px solid #d4a69a66; border-radius: 50%; background: #fff9f7; transition: background 180ms, border-color 180ms; }
 .market-hero__arrow:hover { background: var(--accent-light, #fceae6); border-color: var(--hero-rose); }
-.market-hero__dots { display: flex; align-items: center; padding: 0 4px; }
-.market-hero .market-hero__dot { width: 28px; background: transparent; }
-.market-hero__dot span { width: 5px; height: 5px; border-radius: 8px; background: #b8a9af; transition: width 220ms, background 220ms; }
+.market-hero__dots { display: flex; align-items: center; padding: 0 4px; border: none !important; }
+.market-hero .market-hero__dot { width: 28px; background: transparent; border: 0 !important; outline: none !important; box-shadow: none !important; }
+.market-hero .market-hero__dot:focus, .market-hero .market-hero__dot:focus-visible { border: 0 !important; outline: none !important; box-shadow: none !important; }
+.market-hero__dot span { width: 5px; height: 5px; border-radius: 8px; background: #b8a9af; transition: width 220ms, background 220ms; border: 0 !important; }
 .market-hero__dot[aria-current='true'] span { width: 20px; background: var(--hero-accent); }
 .market-hero__dot:hover span { background: var(--hero-accent); }
-.market-hero a:focus-visible, .market-hero button:focus-visible { outline: 2px solid var(--hero-accent); outline-offset: 3px; }
+.market-hero a:focus-visible, .market-hero .market-hero__arrow:focus-visible { outline: 2px solid var(--hero-accent); outline-offset: 3px; }
 .market-hero__sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 @media (max-width: 1023px) and (min-width: 701px) {
     .market-hero__copy { width: 60%; }

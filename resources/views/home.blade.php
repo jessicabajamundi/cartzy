@@ -6,174 +6,16 @@
     <!-- Full-width Hero Collection Carousel (edge-to-edge, no gaps) -->
     @include('partials.hero-carousel')
 
-    <div class="w-full px-3 sm:px-6 lg:px-8 py-6 space-y-8">
+    <div class="storefront-cards w-full px-3 sm:px-6 lg:px-8 py-6 space-y-8">
 
-    <!-- 2. Popular Categories Section (Human-crafted realistic marketplace photography) -->
-    <section class="bg-white rounded-2xl p-5 sm:p-7 shadow-2xs border border-gray-200 w-full">
-        <!-- Section Header -->
-        <div class="flex items-center justify-between mb-5 sm:mb-6 pb-3 border-b border-gray-100">
-            <div>
-                <p class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-400">Curated Collections</p>
-                <h2 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mt-0.5">
-                    POPULAR CATEGORIES
-                </h2>
-            </div>
-            <a href="#all-categories" onclick="if(window.toggleCategoryMenu){ toggleCategoryMenu(); return false; }" class="text-xs sm:text-sm font-bold text-gray-700 hover:text-black hover:underline flex items-center gap-1 group">
-                <span>See All Categories</span>
-                <span class="group-hover:translate-x-0.5 transition-transform font-mono">&rarr;</span>
-            </a>
-        </div>
-
-        <!-- 8-Column Grid: Popular Categories -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-4 w-full">
-
-            <!-- Category 1: Mobiles & Gadgets -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('cell-phones-accessories', 'Cell Phones & Accessories')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&q=80"
-                        alt="Mobiles & Gadgets"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Mobiles &amp; Gadgets</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">3.4k+ items</span>
-            </a>
-
-            <!-- Category 2: Men's Fashion -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('men-clothing', 'Men Clothing')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=300&h=300&fit=crop&q=80"
-                        alt="Men's Fashion"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Men's Fashion</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">2.8k+ items</span>
-            </a>
-
-            <!-- Category 3: Women's Fashion -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('women-clothing', 'Women Clothing')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=300&h=300&fit=crop&q=80"
-                        alt="Women's Fashion"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Women's Fashion</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">4.2k+ items</span>
-            </a>
-
-            <!-- Category 4: Shoes & Sneakers -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('shoes', 'Shoes')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1552346154-21d32810aba3?w=300&h=300&fit=crop&q=80"
-                        alt="Shoes & Sneakers"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Shoes &amp; Sneakers</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">1.9k+ items</span>
-            </a>
-
-            <!-- Category 5: Beauty & Skincare -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('beauty-health', 'Beauty & Health')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop&q=80"
-                        alt="Beauty & Skincare"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Beauty &amp; Skincare</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">2.5k+ items</span>
-            </a>
-
-            <!-- Category 6: Home & Living -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('home-living', 'Home & Living')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=300&h=300&fit=crop&q=80"
-                        alt="Home & Living"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Home &amp; Living</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">1.6k+ items</span>
-            </a>
-
-            <!-- Category 7: Laptops & Computers -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('electronics', 'Electronics')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=300&h=300&fit=crop&q=80"
-                        alt="Laptops & Computers"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Laptops &amp; Tech</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">980+ items</span>
-            </a>
-
-            <!-- Category 8: Audio & Headphones -->
-            <a href="javascript:void(0)" onclick="if(window.filterByCategory) filterByCategory('electronics', 'Electronics')" class="group flex flex-col items-center text-center p-2 rounded-2xl hover:bg-gray-50 transition-all">
-                <div class="w-full max-w-[110px] aspect-square rounded-2xl overflow-hidden bg-gray-100 border border-gray-200/90 group-hover:border-black/40 group-hover:shadow-md transition-all relative">
-                    <img
-                        src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&q=80"
-                        alt="Audio & Headphones"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                    >
-                </div>
-                <span class="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-black mt-2.5 leading-tight truncate w-full">Audio &amp; Sound</span>
-                <span class="text-[10px] sm:text-[11px] text-gray-400 font-medium mt-0.5">1.2k+ items</span>
-            </a>
-
-        </div>
-    </section>
+    @include('partials.shop-categories')
 
     @include('partials.picks-carousel')
 
-    <!-- Active Category Announcement Bar (Dynamically shown when category is filtered) -->
-    <div id="category-results-banner" class="hidden bg-[#282133] text-white rounded-2xl p-4 sm:p-5 shadow-sm border border-[#564B68] flex flex-wrap items-center justify-between gap-3 w-full transition-all">
-        <div class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#A8A0B2] shrink-0 border border-white/10">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/>
-                </svg>
-            </span>
-            <div>
-                <p class="text-[11px] text-[#C9C3D3] font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <span>Department Filter</span>
-                    <span class="w-1 h-1 rounded-full bg-[#A8A0B2]"></span>
-                    <span>Database Synchronized</span>
-                </p>
-                <h3 class="text-sm sm:text-base font-extrabold text-white">
-                    Showing items in <span id="category-banner-name" class="text-[#A8A0B2] font-black underline underline-offset-4"></span> (<span id="category-banner-count" class="font-mono text-emerald-400 font-bold">0</span> products)
-                </h3>
-            </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <button type="button" onclick="clearCategoryFilter()" class="bg-[#FAF9FB] hover:bg-white text-[#282133] text-xs font-bold px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer">
-                <span>✕</span>
-                <span>Clear Category Filter</span>
-            </button>
-        </div>
-    </div>
+    @include('partials.category-filter-banner')
 
     <!-- Quick Category Filter Bar for Catalog -->
-    <div class="bg-white p-3 rounded-2xl border border-[#E1DDE7] shadow-2xs flex items-center justify-between gap-3 overflow-x-auto no-scrollbar w-full">
+    <div id="department-filter-bar" class="bg-white p-3 rounded-2xl border border-[#E1DDE7] shadow-2xs flex items-center justify-between gap-3 overflow-x-auto no-scrollbar w-full">
         <div class="flex items-center gap-2 shrink-0 text-xs font-bold text-[#564B68]">
             <svg class="w-4 h-4 text-[#6F6382]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.539.092 1.002.434 1.258.924.321.616.486 1.309.486 2.016 0 2.257-.96 4.31-2.525 5.75L15 15.75V21l-6-3v-2.25l-4.293-4.293A7.957 7.957 0 0 1 2.173 5.75c0-.707.165-1.4.486-2.016.256-.49.719-.832 1.258-.924A48.27 48.27 0 0 1 12 3Z"/></svg>
             <span class="hidden sm:inline">Department:</span>
@@ -1442,4 +1284,8 @@
 @push('scripts')
 <script src="{{ asset('js/home.js') }}"></script>
 <script src="{{ asset('js/hero-carousel.js') }}"></script>
+@endpush
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/storefront-cards.css') }}?v={{ filemtime(public_path('css/storefront-cards.css')) }}">
 @endpush
