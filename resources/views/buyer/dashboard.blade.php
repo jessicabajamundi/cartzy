@@ -15,14 +15,13 @@
     $navItems = [
         ['overview',      'Overview',          'M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10'],
         ['orders',        'My Orders',         'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
+        ['messages',      'Messages',          'M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z'],
         ['cart',          'Cart',              'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z'],
         ['wishlist',      'Wishlist',          'M4.3 6.3a4.5 4.5 0 016.4 0L12 7.6l1.3-1.3a4.5 4.5 0 116.4 6.4L12 20.4l-7.7-7.7a4.5 4.5 0 010-6.4z'],
         ['history',       'Order History',     'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
         ['track',         'Track Order',       'M17.7 16.7L13.4 20.9a2 2 0 01-2.8 0l-4.2-4.2a8 8 0 1111.3 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z'],
         ['notifications', 'Notifications',     'M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0'],
         ['reviews',       'Reviews & Ratings', 'M11.5 3.3a.6.6 0 011 0l2.3 4.7 5.2.8c.5.1.8.7.4 1.1l-3.8 3.7.9 5.2c.1.5-.4.9-.9.6L12 17l-4.6 2.4c-.5.3-1-.1-.9-.6l.9-5.2-3.8-3.7c-.4-.4-.1-1 .4-1.1l5.2-.8 2.3-4.7z'],
-        ['profile',       'My Profile',        'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
-        ['addresses',     'Addresses',         'M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V10z'],
         ['settings',      'Account Settings',  'M12 15a3 3 0 100-6 3 3 0 000 6zm7.4-3a7.4 7.4 0 00-.1-1.2l2-1.6-2-3.4-2.4 1a7.5 7.5 0 00-2-1.2L14.5 3h-4l-.4 2.6a7.5 7.5 0 00-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 000 2.4l-2 1.6 2 3.4 2.4-1a7.5 7.5 0 002 1.2l.4 2.6h4l.4-2.6a7.5 7.5 0 002-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z'],
     ];
     $badges = ['orders' => count($orders), 'cart' => $cartCount, 'wishlist' => count($wishlist), 'notifications' => $unread];
@@ -35,18 +34,19 @@
 <div class="bg-[#F6F4F8] min-h-[calc(100vh-72px)]">
 
     {{-- Hero welcome band --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-[#282133] via-[#3E354C] to-[#564B68] text-white">
-        <div class="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#C08B7F]/20 blur-3xl"></div>
-        <div class="absolute left-1/3 -bottom-24 h-56 w-56 rounded-full bg-white/5 blur-3xl"></div>
+    <div class="relative overflow-hidden bg-gradient-to-r from-[#564B68] via-[#855B6E] to-[#C08B7F] text-white shadow-sm">
+        <div class="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/20 blur-3xl"></div>
+        <div class="absolute left-1/3 -bottom-24 h-56 w-56 rounded-full bg-[#C08B7F]/40 blur-3xl"></div>
+        <div class="absolute -left-12 -top-12 h-52 w-52 rounded-full bg-black/10 blur-2xl"></div>
         <div class="relative mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-8 sm:px-6 lg:px-10">
             <div>
-                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#E8C9C0]">Buyer Dashboard</p>
-                <h1 class="mt-1 font-heading text-3xl font-bold sm:text-4xl">Welcome back, {{ \Illuminate\Support\Str::of($user->name)->before(' ') }}</h1>
-                <p class="mt-1 text-sm text-white/70">Track your orders, manage your account, and pick up where you left off.</p>
+                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-[#F9ECE9]">MY CARTZY</p>
+                <h1 class="mt-1 font-heading text-3xl font-bold sm:text-4xl text-white">Welcome back, {{ \Illuminate\Support\Str::of($user->name)->before(' ') }}</h1>
+                <p class="mt-1 text-sm text-white/90">Track your orders, manage your account, and pick up where you left off.</p>
             </div>
             <div class="flex gap-2.5">
-                <a href="{{ route('home') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#3E354C] shadow-sm hover:bg-[#FFF5F3] transition">Continue shopping</a>
-                <a href="{{ route('cart.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-white/30 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10 transition">View cart ({{ $cartCount }})</a>
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#564B68] shadow-sm hover:bg-[#FAF7F6] hover:shadow-md transition">Continue shopping</a>
+                <a href="{{ route('cart.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-white/40 bg-white/10 backdrop-blur-xs px-5 py-2.5 text-sm font-bold text-white hover:bg-white/20 transition">View cart ({{ $cartCount }})</a>
             </div>
         </div>
     </div>
@@ -72,12 +72,21 @@
             <aside class="lg:col-span-3 lg:sticky lg:top-[120px]">
                 <div class="overflow-hidden rounded-3xl border border-[#E1DDE7] bg-white shadow-[0_8px_30px_-12px_rgba(40,33,51,0.15)]">
                     <div class="flex items-center gap-3.5 p-5">
-                        <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#564B68] to-[#C08B7F] text-lg font-black text-white ring-4 ring-[#F1EFF5]">
-                            @if(!empty($user->avatar) && file_exists(public_path('storage/' . $user->avatar)))
-                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="h-full w-full object-cover">
-                            @else
-                                {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
-                            @endif
+                        <div class="relative group shrink-0">
+                            <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-[#564B68] to-[#C08B7F] text-lg font-black text-white ring-4 ring-[#F1EFF5]">
+                                @if($user->avatar_url)
+                                    <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-full w-full object-cover">
+                                @else
+                                    {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
+                                @endif
+                            </div>
+                            <button type="button" onclick="document.getElementById('dashAvatarInput').click()" title="Change photo" class="absolute inset-0 rounded-full bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </button>
+                            <form id="dashAvatarForm" action="{{ route('account.avatar.update') }}" method="POST" enctype="multipart/form-data" class="hidden">
+                                @csrf
+                                <input type="file" name="avatar" id="dashAvatarInput" accept=".jpg,.jpeg,.png" onchange="this.form.submit()">
+                            </form>
                         </div>
                         <div class="min-w-0">
                             <p class="truncate font-extrabold text-gray-900">{{ $user->name }}</p>
@@ -115,6 +124,11 @@
 
             {{-- ===================== MAIN ===================== --}}
             <main class="space-y-6 lg:col-span-9">
+                <section data-panel="messages" class="dash-panel hidden space-y-5">
+                    @if($inbox)
+                        @include('buyer.partials.messages', $inbox)
+                    @endif
+                </section>
 
                 {{-- ---------- OVERVIEW ---------- --}}
                 <section data-panel="overview" class="dash-panel space-y-6">
@@ -501,80 +515,9 @@
                     @endif
                 </section>
 
-                {{-- ---------- PROFILE ---------- --}}
-                <section data-panel="profile" class="dash-panel hidden space-y-5">
-                    <header>
-                        <h2 class="font-heading text-2xl font-bold text-gray-900">My Profile</h2>
-                        <p class="text-sm text-gray-500">Your name, email, phone and personal details.</p>
-                    </header>
-                    <form action="{{ route('account.profile.update') }}" method="POST" class="rounded-3xl border border-[#E1DDE7] bg-white p-6 shadow-sm">
-                        @csrf
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Full name</span><input name="name" value="{{ old('name', $user->name) }}" required class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Email</span><input value="{{ $user->email }}" disabled class="{{ $inputCls }} bg-gray-50 text-gray-500"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Phone</span><input name="phone" value="{{ old('phone', $user->phone) }}" class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Sex</span>
-                                <select name="sex" class="{{ $inputCls }}">
-                                    <option value="">Select</option>
-                                    @foreach(['Male', 'Female', 'Prefer not to say', 'Other'] as $sx)<option value="{{ $sx }}" @selected(old('sex', $user->sex) === $sx)>{{ $sx }}</option>@endforeach
-                                </select>
-                            </label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Birthday</span><input type="date" name="birthday" value="{{ old('birthday', optional($user->birthday)->format('Y-m-d') ?? $user->birthday) }}" class="{{ $inputCls }}"></label>
-                        </div>
-                        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-                            <a href="{{ route('account.index', ['tab' => 'profile']) }}" class="text-sm font-bold text-[#8C5A50] hover:underline">Upload photo / verify ID →</a>
-                            <button type="submit" class="{{ $btnPrimary }}">Save changes</button>
-                        </div>
-                    </form>
-                </section>
-
-                {{-- ---------- ADDRESSES ---------- --}}
-                <section data-panel="addresses" class="dash-panel hidden space-y-5">
-                    <header>
-                        <h2 class="font-heading text-2xl font-bold text-gray-900">Addresses</h2>
-                        <p class="text-sm text-gray-500">Where your orders will be delivered.</p>
-                    </header>
-                    @foreach($addresses as $a)
-                        <div class="flex items-start gap-4 rounded-3xl border-2 border-[#C08B7F]/50 bg-white p-5 shadow-sm">
-                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF5F3] text-xl">🏠</span>
-                            <div class="min-w-0">
-                                <p class="font-bold text-gray-900">{{ $a['name'] }} <span class="ml-2 rounded-full bg-[#564B68] px-2 py-0.5 text-[10px] font-bold text-white">Default · {{ $a['label'] }}</span></p>
-                                <p class="text-xs text-gray-500">{{ $a['phone'] }}</p>
-                                <p class="mt-1 text-sm text-gray-700">{{ $a['full'] }}</p>
-                            </div>
-                        </div>
-                    @endforeach
-                    <form action="{{ route('account.address.update') }}" method="POST" class="rounded-3xl border border-[#E1DDE7] bg-white p-6 shadow-sm">
-                        @csrf
-                        <h3 class="mb-4 text-sm font-extrabold uppercase tracking-wider text-gray-500">{{ count($addresses) ? 'Update address' : 'Add your address' }}</h3>
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            <label class="block sm:col-span-2"><span class="mb-1.5 block text-xs font-bold text-gray-600">Street / house no.</span><input name="street_address" value="{{ old('street_address', $user->street_address) }}" required class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Barangay</span><input name="barangay" value="{{ old('barangay', $user->barangay) }}" class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">City / Municipality</span><input name="city" value="{{ old('city', $user->city) }}" class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Province</span><input name="province" value="{{ old('province', $user->province) }}" class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Region</span><input name="region" value="{{ old('region', $user->region) }}" required class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Postal code</span><input name="postal_code" value="{{ old('postal_code', $user->postal_code) }}" class="{{ $inputCls }}"></label>
-                        </div>
-                        <div class="mt-6 text-right"><button type="submit" class="{{ $btnPrimary }}">Save address</button></div>
-                    </form>
-                </section>
-
                 {{-- ---------- SETTINGS ---------- --}}
                 <section data-panel="settings" class="dash-panel hidden space-y-5">
-                    <header>
-                        <h2 class="font-heading text-2xl font-bold text-gray-900">Account Settings</h2>
-                        <p class="text-sm text-gray-500">Keep your account secure with a strong password.</p>
-                    </header>
-                    <form action="{{ route('account.password.update') }}" method="POST" class="max-w-xl rounded-3xl border border-[#E1DDE7] bg-white p-6 shadow-sm">
-                        @csrf
-                        <h3 class="mb-4 text-sm font-extrabold uppercase tracking-wider text-gray-500">Change password</h3>
-                        <div class="space-y-4">
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Current password</span><input type="password" name="current_password" required class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">New password</span><input type="password" name="password" required minlength="6" class="{{ $inputCls }}"></label>
-                            <label class="block"><span class="mb-1.5 block text-xs font-bold text-gray-600">Confirm new password</span><input type="password" name="password_confirmation" required class="{{ $inputCls }}"></label>
-                        </div>
-                        <div class="mt-6"><button type="submit" class="{{ $btnPrimary }}">Update password</button></div>
-                    </form>
+                    @include('buyer.partials.account-settings')
                 </section>
 
             </main>
@@ -583,7 +526,7 @@
 </div>
 
 <style>
-    .dash-nav.is-active { background: linear-gradient(90deg, #564B68, #6F6382); color: #fff; box-shadow: 0 6px 16px -6px rgba(86,75,104,.6); }
+    .dash-nav.is-active { background: linear-gradient(90deg, #564B68, #C08B7F); color: #fff; box-shadow: 0 6px 16px -6px rgba(86,75,104,.4); }
     .dash-panel { animation: dashFade .28s ease both; }
     @keyframes dashFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .order-filter { color: #6b7280; transition: all .15s; }
@@ -599,11 +542,29 @@
     const valid = Array.from(panels).map(p => p.dataset.panel);
 
     function show(key, push) {
+        if (key === 'messages' && !@json((bool) $inbox)) {
+            window.location.href = @json(route('buyer.messages'));
+            return;
+        }
+        if (key === 'profile' || key === 'addresses') {
+            const wasAddresses = (key === 'addresses');
+            key = 'settings';
+            if (wasAddresses) {
+                setTimeout(() => {
+                    const el = document.getElementById('saved-addresses-card') || document.querySelector('.settings-add');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 120);
+            }
+        }
         if (!valid.includes(key)) key = 'overview';
         panels.forEach(p => p.classList.toggle('hidden', p.dataset.panel !== key));
         navs.forEach(n => n.classList.toggle('is-active', n.dataset.nav === key));
         navs.forEach(n => n.classList.toggle('group', true));
-        if (push) history.replaceState(null, '', '#' + key);
+        const url = new URL(location.href);
+        url.pathname = new URL(@json(route('buyer.dashboard'))).pathname;
+        url.searchParams.set('tab', key);
+        url.hash = key;
+        history.replaceState(null, '', url);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 

@@ -78,8 +78,8 @@
                     <div class="p-5 sm:p-6 flex items-center gap-3.5 sm:gap-4">
                         <div class="relative group shrink-0">
                             <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-zinc-900 text-white flex items-center justify-center font-black text-lg sm:text-xl border border-gray-100 shadow-2xs">
-                                @if(!empty($user->avatar) && file_exists(public_path('storage/' . $user->avatar)))
-                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="w-full h-full object-cover">
+                                @if($user->avatar_url)
+                                    <img src="{{ $user->avatar_url }}" alt="Avatar" class="w-full h-full object-cover">
                                 @else
                                     {{ strtoupper(substr($user->name ?? 'U', 0, 1)) }}
                                 @endif
@@ -237,7 +237,7 @@
                                 <h2 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Personal details</h2>
                             </div>
                             <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-gray-100 text-gray-800 text-xs font-bold shrink-0">
-                                <span class="text-black font-black">✓</span> Verified Buyer
+                                <span class="text-black font-black">✓</span> {{ $user->email_verified_at ? 'Email verified' : 'Email not verified' }}
                             </div>
                         </div>
 
@@ -283,7 +283,7 @@
                                     readonly
                                     class="w-full px-4 py-3 text-sm sm:text-base text-gray-700 border border-gray-200 rounded-xl bg-gray-50/70 cursor-not-allowed focus:outline-none shadow-2xs"
                                 >
-                                <p class="text-xs text-gray-500 mt-1.5 font-medium">Managed by your connected Google account.</p>
+                                <p class="text-xs text-gray-500 mt-1.5 font-medium">{{ $user->google_id ? 'Connected to your Google account.' : 'Your sign-in email address.' }}</p>
                             </div>
 
                             {{-- Row 3: Birthday + Current age --}}
@@ -328,131 +328,9 @@
                     </div>
 
 
-                    {{-- 2. BUYER ADDRESSES SECTION --}}
-                    <div id="delivery-addresses" class="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 sm:p-8 scroll-mt-24">
-                        <div class="flex flex-wrap items-start justify-between gap-4 pb-5 border-b border-gray-100">
-                            <div>
-                                <p class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-1">DELIVERY</p>
-                                <h2 class="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Buyer addresses</h2>
-                                <p class="text-xs sm:text-sm text-gray-500 mt-1 font-medium">Save an address by type, then choose your default delivery location.</p>
-                            </div>
-                            <button type="button" onclick="openAddressModal()" class="bg-black hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 uppercase tracking-wider shrink-0 shadow-sm active:scale-95 cursor-pointer">
-                                <span class="text-base leading-none font-bold">+</span>
-                                <span>ADD ADDRESS</span>
-                            </button>
-                        </div>
-
-                        {{-- 4 Quick-Add Buttons --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 my-5">
-                            <button type="button" onclick="openAddressModal('Home')" class="bg-[#fafafa] hover:bg-gray-100 border border-gray-200/90 rounded-xl py-3 px-3 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-gray-800 hover:text-black transition shadow-2xs cursor-pointer">
-                                <svg class="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-                                </svg>
-                                <span>Add Home</span>
-                            </button>
-
-                            <button type="button" onclick="openAddressModal('Work')" class="bg-[#fafafa] hover:bg-gray-100 border border-gray-200/90 rounded-xl py-3 px-3 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-gray-800 hover:text-black transition shadow-2xs cursor-pointer">
-                                <svg class="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                    <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"/>
-                                </svg>
-                                <span>Add Work</span>
-                            </button>
-
-                            <button type="button" onclick="openAddressModal('School')" class="bg-[#fafafa] hover:bg-gray-100 border border-gray-200/90 rounded-xl py-3 px-3 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-gray-800 hover:text-black transition shadow-2xs cursor-pointer">
-                                <svg class="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a10.973 10.973 0 00-.25 2.366c0 1.76.627 3.407 1.707 4.707A8.966 8.966 0 0010 18a8.966 8.966 0 003.293-2.876A7.042 7.042 0 0015 10.417c0-.82-.09-1.616-.25-2.366l2.644-1.132a1 1 0 000-1.84l-7-3zM10 16a6.98 6.98 0 01-2.55-1.503A5.045 5.045 0 016 10.417c0-.528.055-1.042.158-1.536l3.842 1.647V16zm2-5.472l3.842-1.647c.103.494.158 1.008.158 1.536 0 1.554-.606 2.973-1.604 4.08A6.98 6.98 0 0112 16v-5.472z"/>
-                                </svg>
-                                <span>Add School</span>
-                            </button>
-
-                            <button type="button" onclick="openAddressModal('Other')" class="bg-[#fafafa] hover:bg-gray-100 border border-gray-200/90 rounded-xl py-3 px-3 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-gray-800 hover:text-black transition shadow-2xs cursor-pointer">
-                                <svg class="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                                <span>Add Other</span>
-                            </button>
-                        </div>
-
-                        {{-- Saved Address Cards List --}}
-                        <div class="space-y-4">
-                            @foreach($addresses as $addr)
-                                @php
-                                    $addrType = $addr['type'] ?? 'Home';
-                                @endphp
-                                <div class="bg-white rounded-2xl border border-gray-200/90 p-5 sm:p-6 shadow-2xs hover:border-gray-300 transition">
-                                    <div class="flex items-start justify-between gap-4">
-                                        <div class="flex items-start gap-4 sm:gap-5 min-w-0">
-                                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#f4ece1] flex items-center justify-center text-gray-800 shrink-0 mt-0.5">
-                                                @if($addrType === 'Work')
-                                                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"/>
-                                                        <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"/>
-                                                    </svg>
-                                                @elseif($addrType === 'School')
-                                                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a10.973 10.973 0 00-.25 2.366c0 1.76.627 3.407 1.707 4.707A8.966 8.966 0 0010 18a8.966 8.966 0 003.293-2.876A7.042 7.042 0 0015 10.417c0-.82-.09-1.616-.25-2.366l2.644-1.132a1 1 0 000-1.84l-7-3zM10 16a6.98 6.98 0 01-2.55-1.503A5.045 5.045 0 016 10.417c0-.528.055-1.042.158-1.536l3.842 1.647V16zm2-5.472l3.842-1.647c.103.494.158 1.008.158 1.536 0 1.554-.606 2.973-1.604 4.08A6.98 6.98 0 0112 16v-5.472z"/>
-                                                    </svg>
-                                                @elseif($addrType === 'Other')
-                                                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-amber-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                    </svg>
-                                                @else
-                                                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-amber-900" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
-                                                    </svg>
-                                                @endif
-                                            </div>
-                                            <div class="min-w-0">
-                                                <div class="flex items-center gap-2.5 mb-1">
-                                                    <h3 class="font-black text-base sm:text-lg text-gray-900">{{ $addrType }}</h3>
-                                                    @if(!empty($addr['is_default']))
-                                                        <span class="bg-gray-100 text-gray-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">Default</span>
-                                                    @endif
-                                                </div>
-                                                <p class="font-bold text-sm text-gray-900 mb-0.5">{{ $addr['recipient_name'] }}</p>
-                                                <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">{{ $addr['full_address'] }}</p>
-                                                <p class="text-xs text-gray-500 mt-1 font-medium">{{ $addr['phone'] }}</p>
-                                            </div>
-                                        </div>
-
-                                        <div class="shrink-0">
-                                            <button type="button" onclick="openAddressModal('{{ $addrType }}')" class="rounded-xl border border-gray-200 hover:border-gray-400 px-3.5 py-2 text-xs font-bold text-gray-800 hover:bg-gray-50 transition flex items-center gap-1.5 uppercase shadow-2xs cursor-pointer">
-                                                <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-                                                </svg>
-                                                <span>EDIT</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-
-                            @if(empty($addresses))
-                                <div class="text-center py-12 border-2 border-dashed border-gray-200 rounded-2xl">
-                                    <div class="mb-2 text-gray-400 flex justify-center">
-                                        <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                    </div>
-                                    <p class="font-bold text-gray-800 text-sm sm:text-base">No saved addresses yet</p>
-                                    <p class="text-xs text-gray-500 mt-0.5 mb-4">Add a delivery address for faster checkout</p>
-                                    <button type="button" onclick="openAddressModal()" class="bg-black hover:bg-zinc-800 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition inline-flex items-center gap-1.5 uppercase tracking-wider">
-                                        <span>+</span> Add Address
-                                    </button>
-                                </div>
-                            @endif
-                        </div>
-
-                        {{-- Bottom Link: MANAGE ALL SAVED ADDRESSES → --}}
-                        <div class="mt-6">
-                            <button type="button" onclick="openAddressModal()" class="rounded-xl border border-gray-200 hover:border-black px-5 py-2.5 text-xs font-bold text-gray-800 hover:bg-gray-50 transition inline-flex items-center gap-2 uppercase tracking-wider shadow-2xs cursor-pointer">
-                                <span>MANAGE ALL SAVED ADDRESSES</span>
-                                <span class="text-sm leading-none">→</span>
-                            </button>
-                        </div>
+                    <div id="delivery-addresses" class="scroll-mt-24">
+                        @include('buyer.partials.address-book')
                     </div>
-
 
                     {{-- 3. PASSWORD SECTION --}}
                     <div id="password-settings" class="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-6 sm:p-8 scroll-mt-24">
@@ -485,7 +363,7 @@
                                         name="password"
                                         id="new_password"
                                         required
-                                        placeholder="Min. 6 characters"
+                                        placeholder="Min. 8 characters"
                                         class="w-full px-4 py-3 text-sm text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"
                                     >
                                 </div>

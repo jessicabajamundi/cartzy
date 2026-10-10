@@ -17,7 +17,10 @@
     </div>
     <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-5 py-4">
         <p class="text-sm text-gray-500">Order total <span class="ml-1.5 text-lg font-extrabold text-gray-900">{{ $peso($o['total']) }}</span></p>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+            @if($o['can_cancel'])
+                <button type="button" class="{{ $btnGhost }}" data-cancel-order="{{ route('orders.cancel', $o['seller_order_id']) }}" data-order-reference="{{ $o['id'] }}" aria-haspopup="dialog">Cancel order</button>
+            @endif
             <a href="{{ route('buyer.messages', ['contact' => $o['seller_order_id']]) }}" class="{{ $btnGhost }}">Contact seller</a>
             @if($o['status'] === 'to_pay')
                 <form action="{{ route('orders.pay', $o['id']) }}" method="POST" class="inline">
@@ -36,3 +39,8 @@
         </div>
     </div>
 </article>
+@if($o['can_cancel'])
+    @once
+        @include('buyer.partials.cancel-order-modal')
+    @endonce
+@endif

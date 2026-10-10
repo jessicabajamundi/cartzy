@@ -18,9 +18,9 @@ function updateAgeDisplay(dateStr) {
 }
 
 function scrollToSection(event, sectionId) {
-    if (event) event.preventDefault();
     const el = document.getElementById(sectionId);
     if (el) {
+        if (event) event.preventDefault();
         const headerOffset = 136;
         const elementPosition = el.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;

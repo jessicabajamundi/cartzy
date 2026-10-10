@@ -9,7 +9,9 @@ use App\Models\SellerOrder;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 
 class DashboardController extends Controller
 {
@@ -58,6 +60,8 @@ class DashboardController extends Controller
         ];
 
         return view('buyer.dashboard', [
+            'inbox' => $request->query('tab') === 'messages'
+                ? app(\App\Http\Controllers\Seller\MessageController::class)->inboxData($request) : null,
             'user'          => $user,
             'orders'        => $orders,
             'statusCounts'  => $statusCounts,
@@ -70,8 +74,9 @@ class DashboardController extends Controller
             'unread'        => collect($notifications)->where('unread', true)->count(),
             'stats'         => $stats,
             'addresses'     => $this->addresses($user),
+            'savedAddresses' => \App\Models\Address::where('user_id', $user->id)->orderByDesc('is_default')->orderBy('id')->get(),
             'tracking'      => $this->tracking($sellerOrders, $request->query('track')),
-            'tab'           => $request->query('tab', 'overview'),
+            'tab'           => in_array($request->query('tab'), ['profile', 'addresses']) ? 'settings' : $request->query('tab', 'overview'),
         ]);
     }
 
@@ -156,21 +161,85 @@ class DashboardController extends Controller
      */
     public function payOrder(string $reference)
     {
-        $order = \App\Models\Order::where('reference', $reference)->where('buyer_id', Auth::id())->firstOrFail();
+        $order = DB::transaction(function () use ($reference) {
+            $order = \App\Models\Order::where('reference', $reference)->where('buyer_id', Auth::id())->lockForUpdate()->firstOrFail();
 
-        if ($order->payment_status !== 'paid') {
-            $order->update(['payment_status' => 'paid']);
-            $order->payments()->update(['status' => 'paid']);
-            \App\Services\NotificationService::notify(
-                Auth::id(),
-                'payment',
-                'Payment Confirmed',
-                "Payment for order {$order->reference} has been received.",
-                route('buyer.dashboard', ['tab' => 'orders'])
-            );
-        }
+            if (!$order->sellerOrders()->where('status', '!=', 'cancelled')->exists()) {
+                throw ValidationException::withMessages(['order' => 'This order has been cancelled and cannot be paid.']);
+            }
+
+            if ($order->payment_status !== 'paid') {
+                $order->update(['payment_status' => 'paid']);
+                $order->payments()->update(['status' => 'paid']);
+                \App\Services\NotificationService::notify(
+                    Auth::id(),
+                    'payment',
+                    'Payment Confirmed',
+                    "Payment for order {$order->reference} has been received.",
+                    route('buyer.dashboard', ['tab' => 'orders'])
+                );
+            }
+
+            return $order;
+        });
 
         return redirect()->route('buyer.dashboard', ['tab' => 'orders'])->with('success', 'Payment recorded for ' . $order->reference . '.');
+    }
+
+    public function cancelOrder(Request $request, int $id)
+    {
+        $message = DB::transaction(function () use ($request, $id) {
+            $sellerOrder = SellerOrder::whereHas('order', fn ($q) => $q->where('buyer_id', Auth::id()))->findOrFail($id);
+            $order = $sellerOrder->order()->lockForUpdate()->firstOrFail();
+            $sellerOrder = SellerOrder::whereKey($id)->lockForUpdate()->firstOrFail();
+            $sellerOrder->setRelation('shipment', $sellerOrder->shipment()->lockForUpdate()->first());
+
+            if ($sellerOrder->status === 'cancelled') {
+                return 'This order has already been cancelled.';
+            }
+
+            if (!$sellerOrder->canBeCancelledByBuyer()) {
+                throw ValidationException::withMessages(['order' => 'This order can no longer be cancelled because it has already been collected or delivered.']);
+            }
+
+            $data = $request->validate([
+                'reason' => ['required', \Illuminate\Validation\Rule::in(SellerOrder::CANCELLATION_REASONS)],
+                'reason_details' => ['nullable', 'required_if:reason,Other reason', 'string', 'max:1000'],
+            ]);
+            $reason = $data['reason'] === 'Other reason'
+                ? 'Other reason: ' . $data['reason_details'] : $data['reason'];
+            $cancellationNote = 'Cancellation reason: ' . $reason;
+            $sellerOrder->update([
+                'status' => 'cancelled',
+                'note' => trim(($sellerOrder->note ? $sellerOrder->note . "\n" : '') . $cancellationNote),
+            ]);
+            if ($sellerOrder->shipment) {
+                $sellerOrder->shipment->update(['cod_amount_minor' => 0]);
+                $sellerOrder->shipment->deliveryEvents()->create([
+                    'status' => 'cancelled', 'attempt' => 1, 'user_id' => Auth::id(),
+                    'note' => 'Order cancelled by buyer. ' . $cancellationNote, 'occurred_at' => now(),
+                ]);
+            }
+
+            if (!$order->sellerOrders()->where('status', '!=', 'cancelled')->exists()) {
+                $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+            } elseif ($order->payment_status === 'pending') {
+                $remaining = $order->sellerOrders()->where('status', '!=', 'cancelled')->get()
+                    ->sum(fn ($remainingOrder) => $remainingOrder->subtotal_minor + $remainingOrder->shipping_fee_minor);
+                $order->payments()->where('status', 'pending')->update(['amount_minor' => $remaining]);
+            }
+
+            return 'Your order has been cancelled successfully.' . ($order->payment_status === 'paid'
+                ? ' Please contact the seller to arrange your refund.' : '');
+        });
+
+        try {
+            \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+        } catch (\Throwable $e) {
+            // SQL dump sync is best-effort.
+        }
+
+        return redirect()->route('buyer.dashboard', ['tab' => 'orders'])->with('success', $message);
     }
 
     /**
@@ -227,11 +296,16 @@ class DashboardController extends Controller
         return [
             'id'       => $order->reference,
             'seller_order_id' => $so->id,
+            'can_cancel' => $so->canBeCancelledByBuyer(),
             'store'    => $so->seller->name ?? 'Cartzy Seller',
             'status'   => $this->dashboardStatus($so),
             'date'     => $order->created_at->format('M d, Y'),
             'total'    => $singleSeller ? $order->total_minor / 100 : ($so->subtotal_minor + $so->shipping_fee_minor) / 100,
-            'payment'  => $order->payments->first()->method ?? strtoupper($order->payment_method),
+            'payment'  => match (strtoupper((string) ($order->payments->first()->method ?? $order->payment_method))) {
+                'WALLET', 'E-WALLET', 'GCASH' => 'GCash',
+                'COD', 'CASH ON DELIVERY'     => 'COD',
+                default                       => strtoupper((string) ($order->payments->first()->method ?? $order->payment_method)),
+            },
             'items'    => $so->items->map(fn ($i) => [
                 'name'      => $i->product_name,
                 'variation' => $i->variant_name,
@@ -369,11 +443,19 @@ class DashboardController extends Controller
 
         $riderName = optional(optional(optional($shipment)->rider)->user)->name;
 
+        if ($so->status === 'cancelled') {
+            $steps = [
+                $steps[0],
+                ['label' => 'Order cancelled', 'detail' => 'This order has been cancelled.',
+                    'time' => $at('cancelled', $so->updated_at), 'done' => true],
+            ];
+        }
+
         return [
             'order'       => $so->order->reference,
             'tracking_no' => $shipment->tracking_code ?? '—',
             'courier'     => trim(($so->logisticsProvider->name ?? 'Cartzy Express') . ($riderName ? " — {$riderName}" : '')),
-            'eta'         => $delivered ? 'Delivered' : ($ofd ? 'Arriving today' : 'We\'ll notify you of each update'),
+            'eta'         => $so->status === 'cancelled' ? 'Cancelled' : ($delivered ? 'Delivered' : ($ofd ? 'Arriving today' : 'We\'ll notify you of each update')),
             'steps'       => $steps,
         ];
     }

@@ -26,31 +26,16 @@ class AccountController extends Controller
     }
 
     /**
-     * Main Account Portal (Default: Profile tab)
+     * Main Account Portal — merged into Buyer Dashboard
      */
     public function index(Request $request)
     {
-        $tab = $request->query('tab', 'profile');
-        $user = $this->getUser();
-
-        // Sample / Live data for related tabs
-        $orders = $this->getPurchasesData();
-        $cards = $this->getCardsData();
-        $addresses = $this->getAddressesData($user);
-        $vouchers = $this->getVouchersData();
-        $coins = $this->getCoinsData();
-        $notifications = $this->getNotificationsData();
-
-        return view('buyer.account', compact(
-            'user',
-            'tab',
-            'orders',
-            'cards',
-            'addresses',
-            'vouchers',
-            'coins',
-            'notifications'
-        ));
+        $tab = $request->query('tab', 'settings');
+        if ($tab === 'profile') $tab = 'settings';
+        if ($tab === 'purchases') {
+            $tab = 'orders';
+        }
+        return redirect()->route('buyer.dashboard', ['tab' => $tab]);
     }
 
     /**
@@ -58,7 +43,7 @@ class AccountController extends Controller
      */
     public function profile()
     {
-        return redirect()->route('account.index', ['tab' => 'profile']);
+        return redirect()->route('buyer.dashboard', ['tab' => 'settings']);
     }
 
     /**
@@ -66,8 +51,7 @@ class AccountController extends Controller
      */
     public function purchases(Request $request)
     {
-        $status = $request->query('status', 'all');
-        return redirect()->route('account.index', ['tab' => 'purchases', 'status' => $status]);
+        return redirect()->route('buyer.dashboard', ['tab' => 'orders']);
     }
 
     /**
@@ -75,7 +59,7 @@ class AccountController extends Controller
      */
     public function addresses()
     {
-        return redirect()->route('account.index', ['tab' => 'addresses']);
+        return redirect()->route('buyer.dashboard', ['tab' => 'addresses']);
     }
 
     /**
@@ -83,7 +67,7 @@ class AccountController extends Controller
      */
     public function cards()
     {
-        return redirect()->route('account.index', ['tab' => 'cards']);
+        return redirect()->route('buyer.dashboard', ['tab' => 'overview']);
     }
 
     /**
@@ -112,11 +96,11 @@ class AccountController extends Controller
         if ($user) {
             $updateData = [
                 'name'           => $validated['name'],
-                'middle_initial' => $validated['middle_initial'] ?? null,
+                'middle_initial' => $validated['middle_initial'] ?? $user->middle_initial,
                 'phone'          => $validated['phone'] ?? null,
-                'sex'            => $validated['sex'] ?? null,
-                'birthday'       => $validated['birthday'] ?? null,
-                'age'            => $age,
+                'sex'            => array_key_exists('sex', $validated) ? $validated['sex'] : $user->sex,
+                'birthday'       => array_key_exists('birthday', $validated) ? $validated['birthday'] : $user->birthday,
+                'age'            => array_key_exists('birthday', $validated) ? $age : $user->age,
             ];
 
             if (!empty($validated['id_type'])) {
@@ -195,7 +179,7 @@ class AccountController extends Controller
             }
         }
 
-        return redirect()->route('account.index', ['tab' => 'profile'])
+        return redirect()->route('buyer.dashboard', ['tab' => 'settings'])
             ->with('success', 'Your ID has been submitted successfully and is now under review! You will be notified once approved.');
     }
 
@@ -206,7 +190,7 @@ class AccountController extends Controller
     {
         $request->validate([
             'current_password'      => ['required', 'string'],
-            'password'              => ['required', 'string', 'confirmed', Password::min(6)],
+            'password'              => ['required', 'string', 'confirmed', Password::min(8)],
             'password_confirmation' => ['required', 'string'],
         ]);
 
@@ -214,7 +198,7 @@ class AccountController extends Controller
 
         if ($user) {
             if (!Hash::check($request->input('current_password'), $user->password)) {
-                return back()->withErrors(['current_password' => 'The current password you entered is incorrect.'])->withInput();
+                return back()->withErrors(['current_password' => 'The current password you entered is incorrect.']);
             }
 
             $user->password = Hash::make($request->input('password'));

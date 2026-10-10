@@ -13,29 +13,6 @@
             <span class="text-gray-900 font-bold">Secure Checkout</span>
         </div>
 
-        {{-- Verification Approved Trust Banner --}}
-        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 sm:p-5 mb-6 flex items-center justify-between gap-4 shadow-2xs">
-            <div class="flex items-center gap-3.5">
-                <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
-                    ✓
-                </div>
-                <div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <h2 class="text-sm font-black text-emerald-950">ID-Verified Buyer Checkout</h2>
-                        <span class="text-[10px] font-extrabold bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                            Verified Account
-                        </span>
-                    </div>
-                    <p class="text-xs text-emerald-700 mt-0.5">
-                        Your identity has been verified via <strong>{{ $user->id_type ?? 'Government ID' }}</strong>. Your purchase is protected with Buyer Guarantee.
-                    </p>
-                </div>
-            </div>
-            <a href="{{ route('account.index', ['tab' => 'profile']) }}" class="hidden sm:inline-flex text-xs font-bold text-emerald-800 hover:text-emerald-950 underline shrink-0">
-                Manage ID
-            </a>
-        </div>
-
         <form action="{{ route('checkout.process') }}" method="POST" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             @csrf
 
@@ -49,7 +26,7 @@
                             <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <h3 class="text-base font-extrabold text-gray-900">Delivery Address</h3>
                         </div>
-                        <a href="{{ route('account.index', ['tab' => 'addresses']) }}" class="text-xs font-bold text-gray-600 hover:text-black underline">
+                        <a href="{{ route('buyer.dashboard', ['tab' => 'addresses']) }}" class="text-xs font-bold text-gray-600 hover:text-black underline">
                             Change Address
                         </a>
                     </div>
@@ -57,15 +34,15 @@
                     <div class="flex items-start gap-3 text-sm">
                         <div class="space-y-1">
                             <div class="font-black text-gray-900 flex items-center gap-2">
-                                <span>{{ $user->name }}</span>
-                                <span class="text-xs font-semibold text-gray-500">({{ $user->phone ?? 'No phone specified' }})</span>
-                                @if(!empty($user->address))
+                                <span>{{ $deliveryAddress?->recipient ?? $user->name }}</span>
+                                <span class="text-xs font-semibold text-gray-500">({{ $deliveryAddress?->phone ?? $user->phone ?? 'No phone specified' }})</span>
+                                @if(!empty($checkoutAddress))
                                     <span class="text-[10px] font-bold bg-gray-100 text-gray-800 px-2 py-0.5 rounded uppercase">Default</span>
                                 @endif
                             </div>
-                            @if(!empty($user->address))
+                            @if(!empty($checkoutAddress))
                                 <p class="text-xs text-gray-600 leading-relaxed">
-                                    {{ $user->address }}
+                                    {{ $checkoutAddress }}
                                 </p>
                             @else
                                 <p class="text-xs text-rose-600 font-semibold leading-relaxed flex items-center gap-1.5">
@@ -75,7 +52,7 @@
                             @endif
                         </div>
                     </div>
-                    <input type="hidden" name="delivery_address" value="{{ $user->address ?? '' }}">
+                    <input type="hidden" name="delivery_address" value="{{ $checkoutAddress ?? '' }}">
                 </div>
 
                 {{-- 2. Ordered Products --}}
@@ -118,38 +95,31 @@
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-bold">
-                        <label class="border-2 border-black rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer bg-gray-50">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs font-bold" id="payment-methods-grid">
+                        <label class="payment-method-card relative border-2 border-black rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 cursor-pointer bg-gray-50 transition-all shadow-xs">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                    <span>Cash on Delivery</span>
+                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                    </span>
+                                    <span>Cash on Delivery (COD)</span>
                                 </span>
-                                <input type="radio" name="payment_method" value="COD" checked class="accent-black">
+                                <input type="radio" name="payment_method" value="COD" checked class="accent-black w-4 h-4 cursor-pointer">
                             </div>
-                            <span class="text-[11px] text-gray-500 font-normal">Pay in cash upon doorstep delivery</span>
+                            <span class="text-[11px] text-gray-500 font-normal leading-relaxed">Pay in cash upon doorstep delivery</span>
                         </label>
 
-                        <label class="border-2 border-gray-200 hover:border-gray-400 rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer transition">
+                        <label class="payment-method-card relative border-2 border-gray-200 hover:border-gray-400 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 cursor-pointer bg-white transition-all">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                    <span>GCash / Maya</span>
+                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                                    <span class="w-8 h-8 rounded-xl bg-blue-50 text-[#007DFE] flex items-center justify-center font-black text-sm shrink-0 border border-blue-100">
+                                        G
+                                    </span>
+                                    <span>GCash</span>
                                 </span>
-                                <input type="radio" name="payment_method" value="E-Wallet" class="accent-black">
+                                <input type="radio" name="payment_method" value="GCash" class="accent-black w-4 h-4 cursor-pointer">
                             </div>
-                            <span class="text-[11px] text-gray-500 font-normal">Instant digital wallet QR payment</span>
-                        </label>
-
-                        <label class="border-2 border-gray-200 hover:border-gray-400 rounded-2xl p-4 flex flex-col justify-between gap-3 cursor-pointer transition">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-1.5">
-                                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 10h20M6 14h2"/></svg>
-                                    <span>Card / Debit</span>
-                                </span>
-                                <input type="radio" name="payment_method" value="Card" class="accent-black">
-                            </div>
-                            <span class="text-[11px] text-gray-500 font-normal">Visa, Mastercard, JCB</span>
+                            <span class="text-[11px] text-gray-500 font-normal leading-relaxed">Fast and secure mobile e-wallet payment</span>
                         </label>
                     </div>
                 </div>
@@ -207,4 +177,30 @@
 
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const radios = document.querySelectorAll('input[name="payment_method"]');
+
+        function updatePaymentCards() {
+            radios.forEach((radio) => {
+                const card = radio.closest('.payment-method-card');
+                if (!card) return;
+                if (radio.checked) {
+                    card.classList.remove('border-gray-200', 'bg-white', 'hover:border-gray-400');
+                    card.classList.add('border-black', 'bg-gray-50', 'shadow-xs');
+                } else {
+                    card.classList.remove('border-black', 'bg-gray-50', 'shadow-xs');
+                    card.classList.add('border-gray-200', 'bg-white', 'hover:border-gray-400');
+                }
+            });
+        }
+
+        radios.forEach((radio) => {
+            radio.addEventListener('change', updatePaymentCards);
+        });
+
+        updatePaymentCards();
+    });
+</script>
 @endsection

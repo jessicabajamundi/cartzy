@@ -51,7 +51,10 @@ class CheckoutController extends Controller
         $discount = $subtotal >= 1000 ? 50.00 : 0.00;
         $total = $subtotal + $shippingFee - $discount;
 
-        return view('buyer.checkout', compact('user', 'cartItems', 'subtotal', 'shippingFee', 'discount', 'total'));
+        $deliveryAddress = \App\Models\Address::where('user_id', $user->id)->where('is_default', true)->first();
+        $checkoutAddress = $deliveryAddress?->formatted_address ?: $user->address;
+
+        return view('buyer.checkout', compact('user', 'cartItems', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress'));
     }
 
     /**

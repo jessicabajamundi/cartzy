@@ -35,7 +35,7 @@ class Address extends Model
     {
         return implode(', ', array_filter([
             $this->line1,
-            'Brgy. ' . $this->barangay,
+            $this->barangay ? 'Brgy. ' . $this->barangay : null,
             $this->city,
             $this->province,
             $this->postal_code,
