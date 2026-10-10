@@ -1,104 +1,25 @@
 /**
- * Cartzy Authentication - Registration Multi-step Wizard Scripts
- * Handles role selection, PSGC cascading address, OTP verification, and form validation
+ * Cartzy Authentication - 3-Step Registration Wizard (Cartzy Original Design)
+ * Step 01: Details (First name, Last name, Mobile number, Birthday)
+ * Step 02: Sign-in (Email, Password, Confirm password)
+ * Step 03: Verify (6-digit OTP email verification)
  */
 
 let currentStep = 1;
 const totalSteps = 3;
-
-// Role switcher function
-function selectRole(role) {
-    const buyerRadio = document.getElementById('role_buyer');
-    const sellerRadio = document.getElementById('role_seller');
-    const logisticsRadio = document.getElementById('role_logistics');
-    const courierRadio = document.getElementById('role_courier');
-
-    const buyerOpt = document.getElementById('roleOptionBuyer');
-    const sellerOpt = document.getElementById('roleOptionSeller');
-    const courierOpt = document.getElementById('roleOptionCourier');
-
-    const standardRoleWrapper = document.getElementById('standardRoleWrapper');
-    const logisticsModeBanner = document.getElementById('logisticsModeBanner');
-
-    const subtitle = document.querySelector('.auth-subtitle');
-    const submitBtn = document.getElementById('submitRegBtn');
-    const kycSection = document.getElementById('sellerKycSection');
-    const kycHeaderTitle = document.getElementById('kycHeaderTitle');
-    const businessNameLabel = document.getElementById('businessNameLabel');
-    const businessNameInput = document.getElementById('business_name');
-    const lineOfBusinessWrapper = document.getElementById('lineOfBusinessWrapper');
-
-    // Reset all selection states
-    [buyerOpt, sellerOpt, courierOpt].forEach(opt => opt?.classList?.remove('selected'));
-    if (buyerRadio) buyerRadio.checked = false;
-    if (sellerRadio) sellerRadio.checked = false;
-    if (logisticsRadio) logisticsRadio.checked = false;
-    if (courierRadio) courierRadio.checked = false;
-
-    if (role === 'logistics') {
-        if (logisticsRadio) logisticsRadio.checked = true;
-        if (standardRoleWrapper) standardRoleWrapper.style.display = 'none';
-        if (logisticsModeBanner) logisticsModeBanner.style.display = 'flex';
-        if (subtitle) subtitle.innerText = 'Register your Sorting & Fulfillment Hub with cartzy';
-        if (submitBtn) submitBtn.innerText = 'Submit Hub Registration';
-        if (kycSection) kycSection.style.display = 'block';
-        if (kycHeaderTitle) kycHeaderTitle.innerHTML = 'Logistics Facility Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Admin Approval Required)</span>';
-        if (businessNameLabel) businessNameLabel.innerHTML = 'Facility / Business Name <span style="color:#ef4444">*</span>';
-        if (businessNameInput) businessNameInput.placeholder = 'e.g. Metro South Sorting & Fulfillment Hub';
-        if (lineOfBusinessWrapper) lineOfBusinessWrapper.style.display = 'none';
-
-        if (typeof currentStep !== 'undefined' && currentStep !== 1) {
-            prevStep(1);
-        } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    } else {
-        if (standardRoleWrapper) standardRoleWrapper.style.display = 'block';
-        if (logisticsModeBanner) logisticsModeBanner.style.display = 'none';
-
-        if (role === 'seller') {
-            if (sellerRadio) sellerRadio.checked = true;
-            if (sellerOpt) sellerOpt.classList.add('selected');
-            if (subtitle) subtitle.innerText = 'Join cartzy as a Seller and start selling your products';
-            if (submitBtn) submitBtn.innerText = 'Complete & Submit Application';
-            if (kycSection) kycSection.style.display = 'block';
-            if (kycHeaderTitle) kycHeaderTitle.innerHTML = 'Seller Business Information <span style="font-size:0.8rem; font-weight:600; color:#6F6382;">(Required for Merchant Account)</span>';
-            if (businessNameLabel) businessNameLabel.innerHTML = 'Business Name <span style="color:#ef4444">*</span>';
-            if (businessNameInput) businessNameInput.placeholder = "e.g. Maria's Electronics Store";
-            if (lineOfBusinessWrapper) lineOfBusinessWrapper.style.display = 'block';
-        } else if (role === 'courier') {
-            if (courierRadio) courierRadio.checked = true;
-            if (courierOpt) courierOpt.classList.add('selected');
-            if (subtitle) subtitle.innerText = 'Register as a delivery courier / rider partner';
-            if (submitBtn) submitBtn.innerText = 'Submit Rider Application';
-            if (kycSection) kycSection.style.display = 'none';
-        } else {
-            if (buyerRadio) buyerRadio.checked = true;
-            if (buyerOpt) buyerOpt.classList.add('selected');
-            if (subtitle) subtitle.innerText = 'Join cartzy and discover your everyday favorites';
-            if (submitBtn) submitBtn.innerText = 'Complete & Start Shopping';
-            if (kycSection) kycSection.style.display = 'none';
-        }
-    }
-}
-
-// Initialize initial role on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('registerForm');
-    const defaultRole = form?.dataset?.initialRole || 'buyer';
-    const selectedRole = document.querySelector('input[name="role"]:checked')?.value || defaultRole;
-    selectRole(selectedRole);
-});
+let isEmailVerified = false;
+let timerInterval = null;
+let secondsRemaining = 60;
 
 // Age auto-calculate from birthday
 function autoCalcAge(dateStr) {
-    if (!dateStr) { 
+    if (!dateStr) {
         const ageEl = document.getElementById('age_display');
-        if (ageEl) ageEl.value = ''; 
-        return; 
+        if (ageEl) ageEl.value = '';
+        return;
     }
     const today = new Date();
-    const bday  = new Date(dateStr);
+    const bday = new Date(dateStr);
     let age = today.getFullYear() - bday.getFullYear();
     const m = today.getMonth() - bday.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
@@ -106,315 +27,177 @@ function autoCalcAge(dateStr) {
     if (ageEl) ageEl.value = age >= 0 ? age : '';
 }
 
+// Update Cartzy Stepper UI
 function updateStepperUI() {
     for (let i = 1; i <= totalSteps; i++) {
         const labelEl = document.getElementById('label-step-' + i);
-        const lineEl = document.getElementById('line-' + i);
+        const panelEl = document.getElementById('step-' + i);
 
-        if (i <= currentStep) {
-            if (labelEl) labelEl.classList.remove('inactive');
-            if (lineEl && (i < currentStep || currentStep === totalSteps)) {
-                lineEl.classList.remove('inactive');
+        if (labelEl) {
+            if (i <= currentStep) {
+                labelEl.classList.remove('inactive');
+            } else {
+                labelEl.classList.add('inactive');
             }
-        } else {
-            if (labelEl) labelEl.classList.add('inactive');
-            if (lineEl) lineEl.classList.add('inactive');
+        }
+
+        if (panelEl) {
+            panelEl.style.display = (i === currentStep) ? 'block' : 'none';
         }
     }
 
     const line1 = document.getElementById('line-1');
     const line2 = document.getElementById('line-2');
-    if (currentStep >= 2) {
-        if (line1) line1.classList.remove('inactive');
-    } else {
-        if (line1) line1.classList.add('inactive');
+    if (line1) {
+        if (currentStep >= 2) {
+            line1.classList.remove('inactive');
+        } else {
+            line1.classList.add('inactive');
+        }
     }
-    if (currentStep >= 3) {
-        if (line2) line2.classList.remove('inactive');
-    } else {
-        if (line2) line2.classList.add('inactive');
-    }
-
-    for (let i = 1; i <= totalSteps; i++) {
-        const stepDiv = document.getElementById('step-' + i);
-        if (stepDiv) {
-            stepDiv.style.display = (i === currentStep) ? 'block' : 'none';
+    if (line2) {
+        if (currentStep >= 3) {
+            line2.classList.remove('inactive');
+        } else {
+            line2.classList.add('inactive');
         }
     }
 }
 
-function nextStep(step) {
+// Next Step transition
+function nextStep(targetStep) {
+    // Validate Step 1
     if (currentStep === 1) {
-        const firstName = document.getElementById('first_name')?.value?.trim();
-        const lastName = document.getElementById('last_name')?.value?.trim();
-        const email = document.getElementById('email')?.value?.trim();
+        const firstNameEl = document.getElementById('first_name');
+        const lastNameEl = document.getElementById('last_name');
+        const firstName = firstNameEl ? firstNameEl.value.trim() : '';
+        const lastName = lastNameEl ? lastNameEl.value.trim() : '';
 
         if (!firstName) {
-            document.getElementById('first_name')?.focus();
+            firstNameEl.focus();
+            firstNameEl.style.borderColor = '#ef4444';
             return;
         }
+        firstNameEl.style.borderColor = '';
+
         if (!lastName) {
-            document.getElementById('last_name')?.focus();
+            lastNameEl.focus();
+            lastNameEl.style.borderColor = '#ef4444';
             return;
         }
-        if (!email) {
-            document.getElementById('email')?.focus();
-            return;
+        lastNameEl.style.borderColor = '';
+
+        const role = document.getElementById('role_input')?.value || 'buyer';
+        if (role === 'logistics') {
+            const companyEl = document.getElementById('business_name');
+            const companyName = companyEl ? companyEl.value.trim() : '';
+            if (!companyName) {
+                if (companyEl) {
+                    companyEl.focus();
+                    companyEl.style.borderColor = '#ef4444';
+                }
+                return;
+            }
+            if (companyEl) companyEl.style.borderColor = '';
         }
+
+        // Combine full name
         const nameField = document.getElementById('name');
         if (nameField) {
             nameField.value = `${firstName} ${lastName}`.trim();
         }
     }
+
+    // Validate Step 2
     if (currentStep === 2) {
-        const phone = document.getElementById('phone')?.value?.trim();
-        const birthday = document.getElementById('birthday')?.value?.trim();
-        const street = document.getElementById('street_address')?.value?.trim();
-        const region = document.getElementById('region')?.value;
+        const emailEl = document.getElementById('email');
+        const passwordEl = document.getElementById('register_password');
+        const confirmPwEl = document.getElementById('password_confirmation');
 
-        if (!phone) {
-            document.getElementById('phone')?.focus();
+        const email = emailEl ? emailEl.value.trim() : '';
+        const password = passwordEl ? passwordEl.value : '';
+        const confirmPw = confirmPwEl ? confirmPwEl.value : '';
+
+        // Email check
+        if (!email || !email.includes('@') || !email.includes('.')) {
+            emailEl.focus();
+            emailEl.style.borderColor = '#ef4444';
             return;
         }
-        if (!birthday) {
-            document.getElementById('birthday')?.focus();
+        emailEl.style.borderColor = '';
+
+        // Password length check
+        if (!password || password.length < 6) {
+            passwordEl.focus();
+            passwordEl.style.borderColor = '#ef4444';
+            alert('Password must be at least 6 characters long.');
             return;
         }
-        if (!street) {
-            document.getElementById('street_address')?.focus();
+        passwordEl.style.borderColor = '';
+
+        // Password confirmation match
+        if (password !== confirmPw) {
+            confirmPwEl.focus();
+            confirmPwEl.style.borderColor = '#ef4444';
+            alert('The password confirmation does not match.');
             return;
         }
-        if (!region) {
-            document.getElementById('region')?.focus();
-            return;
-        }
+        confirmPwEl.style.borderColor = '';
 
-        // If registering as Seller or Logistics, validate business fields
-        const chosenRole = document.querySelector('input[name="role"]:checked')?.value;
-        if (chosenRole === 'seller' || chosenRole === 'logistics') {
-            const businessNameEl = document.getElementById('business_name');
-            const businessName = businessNameEl?.value?.trim();
-            if (!businessName) {
-                businessNameEl?.focus();
-                if (businessNameEl) businessNameEl.style.borderColor = '#ef4444';
-                return;
-            }
-            if (businessNameEl) businessNameEl.style.borderColor = '';
-
-            if (chosenRole === 'seller') {
-                const lineOfBusinessEl = document.getElementById('line_of_business');
-                const lineOfBusiness = lineOfBusinessEl?.value;
-                if (!lineOfBusiness) {
-                    lineOfBusinessEl?.focus();
-                    if (lineOfBusinessEl) lineOfBusinessEl.style.borderColor = '#ef4444';
-                    return;
-                }
-                if (lineOfBusinessEl) lineOfBusinessEl.style.borderColor = '';
-            }
-        }
-    }
-
-    currentStep = step;
-    updateStepperUI();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // When landing on Step 3 (Security & OTP)
-    if (currentStep === 3) {
+        // Send OTP automatically when transitioning to Step 3
         sendAutomaticOtp();
         startOtpTimer();
     }
+
+    currentStep = targetStep;
+    updateStepperUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (currentStep === 3) {
+        setTimeout(() => {
+            const firstOtp = document.querySelector('.otp-input[data-index="0"]');
+            if (firstOtp) firstOtp.focus();
+        }, 150);
+    }
 }
 
-function prevStep(step) {
-    currentStep = step;
+// Previous Step transition
+function prevStep(targetStep) {
+    currentStep = targetStep;
     updateStepperUI();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// --- Cascading Philippine Address Dropdowns (PSGC API) ---
-const PSGC = 'https://psgc.gitlab.io/api';
-
-function populateSelect(sel, items, valueKey, labelKey, placeholder) {
-    sel.innerHTML = `<option value="">${placeholder}</option>`;
-    items.sort((a, b) => a[labelKey].localeCompare(b[labelKey])).forEach(item => {
-        const opt = document.createElement('option');
-        opt.value = item[valueKey];
-        opt.textContent = item[labelKey];
-        sel.appendChild(opt);
-    });
-    sel.disabled = false;
-}
-
-function resetSelect(sel, placeholder) {
-    if (!sel) return;
-    sel.innerHTML = `<option value="">${placeholder}</option>`;
-    sel.disabled = true;
-}
-
-// Region -> Province
-document.getElementById('region')?.addEventListener('change', function() {
-    const regionCode = this.value;
-    const provSel  = document.getElementById('province');
-    const citySel  = document.getElementById('city');
-    const brgySel  = document.getElementById('barangay');
-    resetSelect(provSel,  'Select Province');
-    resetSelect(citySel,  'Select City / Municipality');
-    resetSelect(brgySel,  'Select Barangay');
-    if (!regionCode) return;
-
-    // NCR has no provinces — go straight to cities
-    if (regionCode === 'NCR') {
-        provSel.innerHTML = '<option value="Metro Manila" selected>Metro Manila</option>';
-        provSel.disabled = false;
-        provSel.value = 'Metro Manila';
-        // Load NCR cities
-        citySel.innerHTML = '<option value="">Loading...</option>';
-        fetch(`${PSGC}/regions/130000000/cities-municipalities.json`)
-            .then(r => r.json())
-            .then(data => populateSelect(citySel, data, 'name', 'name', 'Select City / Municipality'))
-            .catch(() => resetSelect(citySel, 'Select City / Municipality'));
-        return;
-    }
-
-    // Map region code to PSGC numeric code
-    const regionMap = {
-        'CAR':'140000000','I':'010000000','II':'020000000','III':'030000000',
-        'IV-A':'040000000','IV-B':'170000000','V':'050000000','VI':'060000000',
-        'VII':'070000000','VIII':'080000000','IX':'090000000','X':'100000000',
-        'XI':'110000000','XII':'120000000','XIII':'160000000','BARMM':'190000000'
-    };
-    const psgcCode = regionMap[regionCode];
-    if (!psgcCode) return;
-
-    provSel.innerHTML = '<option value="">Loading...</option>';
-    fetch(`${PSGC}/regions/${psgcCode}/provinces.json`)
-        .then(r => r.json())
-        .then(data => populateSelect(provSel, data, 'name', 'name', 'Select Province'))
-        .catch(() => resetSelect(provSel, 'Select Province'));
-});
-
-// Province -> City/Municipality
-document.getElementById('province')?.addEventListener('change', function() {
-    const provName = this.value;
-    const citySel  = document.getElementById('city');
-    const brgySel  = document.getElementById('barangay');
-    resetSelect(citySel,  'Select City / Municipality');
-    resetSelect(brgySel,  'Select Barangay');
-    if (!provName) return;
-
-    const regionCode = document.getElementById('region')?.value;
-    const regionMap = {
-        'NCR':'130000000','CAR':'140000000','I':'010000000','II':'020000000',
-        'III':'030000000','IV-A':'040000000','IV-B':'170000000','V':'050000000',
-        'VI':'060000000','VII':'070000000','VIII':'080000000','IX':'090000000',
-        'X':'100000000','XI':'110000000','XII':'120000000','XIII':'160000000','BARMM':'190000000'
-    };
-    const psgcCode = regionMap[regionCode];
-    if (!psgcCode) return;
-
-    if (regionCode === 'NCR') {
-        return;
-    }
-
-    citySel.innerHTML = '<option value="">Loading...</option>';
-    fetch(`${PSGC}/regions/${psgcCode}/provinces.json`)
-        .then(r => r.json())
-        .then(provinces => {
-            const prov = provinces.find(p => p.name === provName);
-            if (!prov) { resetSelect(citySel, 'Select City / Municipality'); return; }
-            return fetch(`${PSGC}/provinces/${prov.code}/cities-municipalities.json`);
-        })
-        .then(r => r && r.json())
-        .then(data => data && populateSelect(citySel, data, 'name', 'name', 'Select City / Municipality'))
-        .catch(() => resetSelect(citySel, 'Select City / Municipality'));
-});
-
-// City/Municipality -> Barangay
-document.getElementById('city')?.addEventListener('change', function() {
-    const cityName = this.value;
-    const brgySel  = document.getElementById('barangay');
-    resetSelect(brgySel, 'Select Barangay');
-    if (!cityName) return;
-
-    const regionCode = document.getElementById('region')?.value;
-    const provName   = document.getElementById('province')?.value;
-    const regionMap = {
-        'NCR':'130000000','CAR':'140000000','I':'010000000','II':'020000000',
-        'III':'030000000','IV-A':'040000000','IV-B':'170000000','V':'050000000',
-        'VI':'060000000','VII':'070000000','VIII':'080000000','IX':'090000000',
-        'X':'100000000','XI':'110000000','XII':'120000000','XIII':'160000000','BARMM':'190000000'
-    };
-    const psgcCode = regionMap[regionCode];
-    if (!psgcCode) return;
-
-    brgySel.innerHTML = '<option value="">Loading...</option>';
-
-    // For NCR, fetch from region cities directly
-    if (regionCode === 'NCR') {
-        fetch(`${PSGC}/regions/130000000/cities-municipalities.json`)
-            .then(r => r.json())
-            .then(cities => {
-                const city = cities.find(c => c.name === cityName);
-                if (!city) { resetSelect(brgySel, 'Select Barangay'); return; }
-                return fetch(`${PSGC}/cities-municipalities/${city.code}/barangays.json`);
-            })
-            .then(r => r && r.json())
-            .then(data => data && populateSelect(brgySel, data, 'name', 'name', 'Select Barangay'))
-            .catch(() => resetSelect(brgySel, 'Select Barangay'));
-        return;
-    }
-
-    // For other regions, fetch province -> city -> barangays
-    fetch(`${PSGC}/regions/${psgcCode}/provinces.json`)
-        .then(r => r.json())
-        .then(provinces => {
-            const prov = provinces.find(p => p.name === provName);
-            if (!prov) throw new Error('Province not found');
-            return fetch(`${PSGC}/provinces/${prov.code}/cities-municipalities.json`);
-        })
-        .then(r => r.json())
-        .then(cities => {
-            const city = cities.find(c => c.name === cityName);
-            if (!city) throw new Error('City not found');
-            return fetch(`${PSGC}/cities-municipalities/${city.code}/barangays.json`);
-        })
-        .then(r => r.json())
-        .then(data => populateSelect(brgySel, data, 'name', 'name', 'Select Barangay'))
-        .catch(() => resetSelect(brgySel, 'Select Barangay'));
-});
-
-function togglePasswordVisibility(inputId, iconId) {
+// Toggle Password Visibility with SVG eye icon / Show-Hide text
+function togglePasswordVisibility(inputId, btnEl) {
     const input = document.getElementById(inputId);
-    const icon = document.getElementById(iconId);
-    if (!input || !icon) return;
+    if (!input) return;
 
     if (input.type === 'password') {
         input.type = 'text';
-        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+        if (btnEl) {
+            const textEl = btnEl.querySelector('.eye-text');
+            if (textEl) textEl.innerText = 'Hide';
+        }
     } else {
         input.type = 'password';
-        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+        if (btnEl) {
+            const textEl = btnEl.querySelector('.eye-text');
+            if (textEl) textEl.innerText = 'Show';
+        }
     }
 }
 
-// --- Automatic Instant OTP Dispatch ---
+// Send Automatic OTP via AJAX
 function sendAutomaticOtp() {
     const email = document.getElementById('email')?.value?.trim();
-    const firstName = document.getElementById('first_name')?.value?.trim() || '';
-    const lastName = document.getElementById('last_name')?.value?.trim() || '';
-    const name = (firstName + ' ' + lastName).trim();
-
-    if (!email) return;
-
-    const targetDisplay = document.getElementById('noticeEmailTarget');
-    const noticeBanner = document.getElementById('otpSentNotice');
-    if (targetDisplay) targetDisplay.innerText = email;
-
-    const chosenRole = document.querySelector('input[name="role"]:checked')?.value || 'buyer';
+    const name = document.getElementById('name')?.value?.trim();
     const form = document.getElementById('registerForm');
     const requestOtpUrl = form?.dataset?.requestOtpUrl || '/register/request-otp';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
                    || document.querySelector('input[name="_token"]')?.value || '';
+
+    if (!email) return;
 
     fetch(requestOtpUrl, {
         method: 'POST',
@@ -422,236 +205,208 @@ function sendAutomaticOtp() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken
         },
-        body: JSON.stringify({ email: email, name: name, role: chosenRole })
+        body: JSON.stringify({ email: email, name: name })
     })
     .then(res => res.json())
     .then(data => {
-        if (noticeBanner) {
-            noticeBanner.style.display = 'flex';
-        }
-        // Auto focus on first box
-        const firstBox = document.querySelector('.otp-input');
-        if (firstBox && !firstBox.value) firstBox.focus();
-    })
-    .catch(err => console.error('Automatic OTP dispatch error:', err));
-}
-
-let isEmailVerified = false;
-
-// --- OTP Input Auto-Tab & Paste Handling ---
-const otpInputs = document.querySelectorAll('.otp-input');
-otpInputs.forEach((input, index) => {
-    input.addEventListener('input', (e) => {
-        const val = e.target.value;
-        if (val.length > 0) {
-            input.classList.add('filled');
-            if (index < otpInputs.length - 1) {
-                otpInputs[index + 1].focus();
-            }
-        } else {
-            input.classList.remove('filled');
-        }
-        syncOtpValue();
-    });
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !input.value && index > 0) {
-            otpInputs[index - 1].focus();
-        }
-    });
-
-    input.addEventListener('paste', (e) => {
-        e.preventDefault();
-        const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
-        if (/^\d+$/.test(pasteData)) {
-            const digits = pasteData.slice(0, 6).split('');
-            digits.forEach((digit, i) => {
-                if (otpInputs[i]) {
-                    otpInputs[i].value = digit;
-                    otpInputs[i].classList.add('filled');
-                }
-            });
-            const nextIndex = Math.min(digits.length, otpInputs.length - 1);
-            otpInputs[nextIndex]?.focus();
-            syncOtpValue();
-        }
-    });
-});
-
-function syncOtpValue() {
-    let otpCode = '';
-    otpInputs.forEach(i => otpCode += i.value);
-    const hiddenOtp = document.getElementById('email_verification_otp');
-    if (hiddenOtp) hiddenOtp.value = otpCode;
-
-    // Auto trigger verification once 6 digits are typed
-    if (otpCode.length === 6 && !isEmailVerified) {
-        checkAndVerifyOtp();
-    }
-}
-
-// --- Verify OTP Code before revealing Password Creation ---
-function checkAndVerifyOtp() {
-    syncOtpValue();
-    const email = document.getElementById('email')?.value?.trim();
-    const enteredOtp = document.getElementById('email_verification_otp')?.value?.trim();
-    const feedback = document.getElementById('otpFeedbackMsg');
-    const verifyBtn = document.getElementById('btnVerifyEmailOtp');
-
-    if (!enteredOtp || enteredOtp.length < 6) {
-        if (feedback) {
-            feedback.style.display = 'block';
-            feedback.style.color = '#ef4444';
-            feedback.innerText = 'Please enter all 6 digits of the verification code.';
-        }
-        otpInputs.forEach(inp => { if (!inp.value) inp.focus(); });
-        return;
-    }
-
-    if (verifyBtn) {
-        verifyBtn.disabled = true;
-        verifyBtn.innerText = 'Verifying...';
-    }
-
-    const form = document.getElementById('registerForm');
-    const verifyOtpUrl = form?.dataset?.verifyOtpUrl || '/register/verify-otp';
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
-                   || document.querySelector('input[name="_token"]')?.value || '';
-
-    fetch(verifyOtpUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({ email: email, otp: enteredOtp })
-    })
-    .then(res => res.json().then(data => ({ status: res.status, body: data })))
-    .then(({ status, body }) => {
-        if (verifyBtn) {
-            verifyBtn.disabled = false;
-            verifyBtn.innerText = 'Verify Code';
-        }
-
-        if (status === 200 && body.success) {
-            isEmailVerified = true;
-            if (feedback) feedback.style.display = 'none';
-
-            // Hide verify button row & resend row
-            const btnRow = document.getElementById('verifyOtpBtnRow');
-            const resendRow = document.getElementById('otpResendContainer');
-            if (btnRow) btnRow.style.display = 'none';
-            if (resendRow) resendRow.style.display = 'none';
-
-            // Lock OTP input boxes
-            otpInputs.forEach(inp => {
-                inp.disabled = true;
-                inp.style.background = '#f9fafb';
-                inp.style.borderColor = '#10b981';
-            });
-
-            // Unlock & display Password Creation Section
-            const pwSection = document.getElementById('passwordCreationSection');
-            if (pwSection) {
-                pwSection.style.display = 'block';
-                pwSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
-            const pwInput = document.getElementById('register_password');
-            if (pwInput) pwInput.focus();
-
-        } else {
-            if (feedback) {
-                feedback.style.display = 'block';
-                feedback.style.color = '#ef4444';
-                feedback.innerText = body.message || 'Invalid verification code. Please check your email.';
-            }
-            otpInputs.forEach(inp => {
-                inp.style.borderColor = '#ef4444';
-            });
-        }
+        console.log('OTP request status:', data.message || 'Code sent');
     })
     .catch(err => {
-        if (verifyBtn) {
-            verifyBtn.disabled = false;
-            verifyBtn.innerText = 'Verify Code';
-        }
-        if (feedback) {
-            feedback.style.display = 'block';
-            feedback.style.color = '#ef4444';
-            feedback.innerText = 'Verification error. Please try again.';
-        }
+        console.warn('OTP request error:', err);
     });
 }
 
-// --- Form Submit Validation ---
-document.getElementById('registerForm')?.addEventListener('submit', function(e) {
-    if (!isEmailVerified) {
-        e.preventDefault();
-        alert('Please verify your email address first with the 6-digit OTP.');
-        checkAndVerifyOtp();
-        return;
-    }
-
-    const pw = document.getElementById('register_password')?.value;
-    const confirmPw = document.getElementById('password_confirmation')?.value;
-
-    if (!pw || pw.length < 6) {
-        e.preventDefault();
-        alert('Password must be at least 6 characters long.');
-        document.getElementById('register_password')?.focus();
-        return;
-    }
-
-    if (pw !== confirmPw) {
-        e.preventDefault();
-        alert('Password confirmation does not match.');
-        document.getElementById('password_confirmation')?.focus();
-        return;
-    }
-});
-
-// --- OTP Timer Countdown Logic ---
-let timerInterval = null;
-let secondsRemaining = 45;
-
+// Start Resend OTP Timer
 function startOtpTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    secondsRemaining = 45;
-    const display = document.getElementById('otpTimerDisplay');
+    secondsRemaining = 60;
+    const timerDisplay = document.getElementById('otpTimerDisplay');
     const resendBtn = document.getElementById('resendOtpBtn');
 
-    if (!display || !resendBtn) return;
-
-    resendBtn.disabled = true;
+    if (resendBtn) {
+        resendBtn.disabled = true;
+    }
+    if (timerDisplay) {
+        timerDisplay.innerText = '00:60';
+    }
 
     timerInterval = setInterval(() => {
         secondsRemaining--;
         if (secondsRemaining <= 0) {
             clearInterval(timerInterval);
-            display.innerText = '00:00';
-            resendBtn.disabled = false;
-            resendBtn.innerText = 'Resend the OTP';
+            if (timerDisplay) timerDisplay.innerText = '00:00';
+            if (resendBtn) {
+                resendBtn.disabled = false;
+                resendBtn.innerText = 'Resend code';
+            }
         } else {
             const formatted = '00:' + (secondsRemaining < 10 ? '0' + secondsRemaining : secondsRemaining);
-            display.innerText = formatted;
+            if (timerDisplay) timerDisplay.innerText = formatted;
         }
     }, 1000);
 }
 
+// Trigger Resend OTP
 function triggerResendOtp() {
     const resendBtn = document.getElementById('resendOtpBtn');
-    if (resendBtn) {
-        resendBtn.innerHTML = 'Resend the OTP (<span id="otpTimerDisplay">00:45</span>)';
-    }
-    startOtpTimer();
-    sendAutomaticOtp();
+    if (resendBtn && resendBtn.disabled) return;
 
-    otpInputs.forEach(inp => {
-        inp.value = '';
-        inp.classList.remove('filled');
-        inp.style.borderColor = '#e5e7eb';
-    });
-    syncOtpValue();
-    if (otpInputs[0]) otpInputs[0].focus();
+    sendAutomaticOtp();
+    startOtpTimer();
+
+    const feedback = document.getElementById('otpFeedbackMsg');
+    if (feedback) {
+        feedback.style.display = 'block';
+        feedback.style.color = '#059669';
+        feedback.innerText = 'A new verification code has been sent to your email!';
+    }
 }
+
+// Role Selection function (Buyer, Seller, or Logistics)
+function selectRole(role) {
+    const roleInput = document.getElementById('role_input');
+    const buyerOpt = document.getElementById('roleOptionBuyer');
+    const sellerOpt = document.getElementById('roleOptionSeller');
+    const standardRoleWrapper = document.getElementById('standardRoleWrapper');
+    const birthdayFieldWrapper = document.getElementById('birthdayFieldWrapper');
+    const logisticsFieldsWrapper = document.getElementById('logisticsFieldsWrapper');
+    const logisticsNoticeBox = document.getElementById('logisticsNoticeBox');
+    const googleSignupWrapper = document.getElementById('googleSignupWrapper');
+    const googleSignupDivider = document.getElementById('googleSignupDivider');
+    const authTitle = document.getElementById('authTitle');
+    const authSubtitle = document.getElementById('authSubtitle');
+    const footNoticeText = document.getElementById('footNoticeText');
+    const linkLogisticsApply = document.getElementById('linkLogisticsApply');
+
+    if (roleInput) {
+        roleInput.value = role;
+    }
+
+    if (role === 'logistics') {
+        if (standardRoleWrapper) standardRoleWrapper.style.display = 'none';
+        if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = 'none';
+        if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'block';
+        if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'block';
+        if (googleSignupWrapper) googleSignupWrapper.style.display = 'none';
+        if (googleSignupDivider) googleSignupDivider.style.display = 'none';
+        if (authTitle) authTitle.innerText = 'Become a Logistics Partner';
+        if (authSubtitle) authSubtitle.innerText = 'Register your delivery company and manage your own riders on CARTZY.';
+        if (footNoticeText) footNoticeText.innerText = 'Want to register as buyer or seller?';
+        if (linkLogisticsApply) {
+            linkLogisticsApply.innerText = 'Switch here';
+            linkLogisticsApply.setAttribute('onclick', "selectRole('buyer'); return false;");
+        }
+    } else {
+        if (standardRoleWrapper) standardRoleWrapper.style.display = 'block';
+        if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = 'block';
+        if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'none';
+        if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'none';
+        if (googleSignupWrapper) googleSignupWrapper.style.display = 'block';
+        if (googleSignupDivider) googleSignupDivider.style.display = 'flex';
+        if (authTitle) authTitle.innerText = 'Create your account';
+        if (authSubtitle) authSubtitle.innerText = 'Join cartzy and discover your everyday favorites';
+        if (footNoticeText) footNoticeText.innerText = 'Do you want to be a logistics in cartzy?';
+        if (linkLogisticsApply) {
+            linkLogisticsApply.innerText = 'Apply here';
+            linkLogisticsApply.setAttribute('onclick', "selectRole('logistics'); return false;");
+        }
+
+        if (role === 'seller') {
+            if (buyerOpt) buyerOpt.classList.remove('selected');
+            if (sellerOpt) sellerOpt.classList.add('selected');
+        } else {
+            if (sellerOpt) sellerOpt.classList.remove('selected');
+            if (buyerOpt) buyerOpt.classList.add('selected');
+        }
+    }
+}
+window.selectRole = selectRole;
+
+// 6-Box OTP Input Handling (Paste, Auto-focus, Backspace)
+document.addEventListener('DOMContentLoaded', function() {
+    const otpInputs = document.querySelectorAll('.otp-input');
+    const hiddenOtp = document.getElementById('email_verification_otp');
+
+    function syncOtp() {
+        let code = '';
+        otpInputs.forEach(inp => { code += inp.value; });
+        if (hiddenOtp) hiddenOtp.value = code;
+        return code;
+    }
+
+    otpInputs.forEach((input, idx) => {
+        input.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value) {
+                this.classList.add('filled');
+                if (idx < otpInputs.length - 1) {
+                    otpInputs[idx + 1].focus();
+                }
+            } else {
+                this.classList.remove('filled');
+            }
+            syncOtp();
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !this.value && idx > 0) {
+                otpInputs[idx - 1].focus();
+                otpInputs[idx - 1].value = '';
+                otpInputs[idx - 1].classList.remove('filled');
+                syncOtp();
+            }
+        });
+
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
+            const digits = pasteData.replace(/[^0-9]/g, '').slice(0, 6);
+            if (digits) {
+                digits.split('').forEach((d, i) => {
+                    if (otpInputs[i]) {
+                        otpInputs[i].value = d;
+                        otpInputs[i].classList.add('filled');
+                    }
+                });
+                syncOtp();
+                const focusIdx = Math.min(digits.length, otpInputs.length - 1);
+                otpInputs[focusIdx].focus();
+            }
+        });
+    });
+
+    // Form Submit Check
+    const form = document.getElementById('registerForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const otpCode = syncOtp();
+            const feedback = document.getElementById('otpFeedbackMsg');
+
+            if (!otpCode || otpCode.length < 6) {
+                e.preventDefault();
+                otpInputs.forEach(inp => {
+                    if (!inp.value) {
+                        inp.focus();
+                        inp.style.borderColor = '#ef4444';
+                    }
+                });
+                if (feedback) {
+                    feedback.style.display = 'block';
+                    feedback.style.color = '#ef4444';
+                    feedback.innerText = 'Please enter all 6 digits of the verification code.';
+                }
+                return;
+            }
+
+            const submitBtn = document.getElementById('btnVerifyEmailSubmit');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'CREATING ACCOUNT...';
+            }
+        });
+    }
+
+    const initialRole = document.getElementById('role_input')?.value || 'buyer';
+    selectRole(initialRole);
+    updateStepperUI();
+});

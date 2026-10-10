@@ -219,6 +219,7 @@ class AuthController extends Controller
         return view('auth.pending', [
             'pending_name'  => session('pending_name', 'Applicant'),
             'pending_email' => session('pending_email', ''),
+            'pending_role'  => session('pending_role', 'seller'),
         ]);
     }
 
@@ -242,6 +243,7 @@ class AuthController extends Controller
             'barangay'             => ['nullable', 'string', 'max:100'],
             'postal_code'          => ['nullable', 'string', 'max:20'],
             'business_name'        => ['nullable', 'string', 'max:255'],
+            'service_area'         => ['nullable', 'string', 'max:255'],
             'line_of_business'     => ['nullable', 'string', 'max:150'],
             'id_photo'             => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'dti_permit'           => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
@@ -308,6 +310,9 @@ class AuthController extends Controller
             $city, $province, $region, $postalCode,
         ]);
         $fullAddress = implode(', ', $addressParts);
+        $finalAddress = ($validated['role'] === User::ROLE_LOGISTICS && !empty($validated['service_area']))
+            ? trim($validated['service_area'])
+            : ($fullAddress ?: $street);
 
         // Handle ID photo upload
         $idPhotoPath = null;
@@ -332,7 +337,7 @@ class AuthController extends Controller
                 'birthday'         => $validated['birthday'] ?? null,
                 'age'              => $age,
                 'phone'            => $validated['phone'] ?? null,
-                'address'          => $fullAddress ?: $street,
+                'address'          => $finalAddress,
                 'street_address'   => $street,
                 'region'           => $region,
                 'province'         => $province,
@@ -345,8 +350,29 @@ class AuthController extends Controller
                 'dti_permit'       => $dtiPermitPath,
                 'role'             => $validated['role'],
                 'status'           => $status,
+                'email_verified_at'=> now(),
                 'password'         => Hash::make($validated['password']),
             ]);
+
+            // If registering as Logistics partner, create corresponding LogisticsProvider record
+            if ($user->isLogistics()) {
+                $baseSlug = \Illuminate\Support\Str::slug($user->business_name ?: $user->name) ?: 'logistics-partner';
+                $uniqueSlug = $baseSlug;
+                $counter = 1;
+                while (\App\Models\LogisticsProvider::where('slug', $uniqueSlug)->exists()) {
+                    $uniqueSlug = $baseSlug . '-' . $counter++;
+                }
+
+                \App\Models\LogisticsProvider::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name'          => $user->business_name ?: $user->name,
+                        'slug'          => $uniqueSlug,
+                        'status'        => 'pending',
+                        'contact_phone' => $user->phone,
+                    ]
+                );
+            }
 
             // Clear verified OTP
             Cache::forget('otp_' . $email);
@@ -365,7 +391,8 @@ class AuthController extends Controller
             // Sellers, Logistics & Couriers require Admin approval
             return redirect()->route('register.pending')
                 ->with('pending_name', $user->name)
-                ->with('pending_email', $user->email);
+                ->with('pending_email', $user->email)
+                ->with('pending_role', $user->role);
 
         } catch (\Exception $e) {
             return back()->withInput()->withErrors([
@@ -461,7 +488,12 @@ class AuthController extends Controller
             // 1. Find user by google_id
             $user = User::where('google_id', $googleId)->first();
 
-            if (!$user) {
+            if ($user) {
+                if (!$user->email_verified_at) {
+                    $user->email_verified_at = now();
+                    $user->save();
+                }
+            } else {
                 // 2. Check if an account with this email already exists
                 $user = User::where('email', $email)->first();
 

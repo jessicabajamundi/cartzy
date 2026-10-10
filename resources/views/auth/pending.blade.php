@@ -35,9 +35,13 @@
             <span>What happens next?</span>
         </p>
         <ul style="font-size:0.85rem;color:#6F6382;padding-left:18px;line-height:1.8;margin:0;">
-            <li>Our team will review your submitted details and ID.</li>
+            <li>Our team will review your submitted registration details.</li>
             <li>You will receive an email once your account is approved.</li>
-            <li>Once approved, you can log in to start managing your store and selling products on cartzy.</li>
+            @if (($pending_role ?? '') === 'logistics')
+                <li>Once approved, riders can apply to your company and you can manage deliveries on cartzy.</li>
+            @else
+                <li>Once approved, you can log in to start managing your store and selling products on cartzy.</li>
+            @endif
         </ul>
     </div>
 

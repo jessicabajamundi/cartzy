@@ -329,6 +329,37 @@
         .alert-info    { background: #FAF8FC; border: 1px solid #E1DDE7; border-left: 4px solid #6F6382; color: #564B68; font-weight: 600; box-shadow: 0 2px 8px rgba(111, 99, 130, 0.06); }
         .alert-error   { background: #FFF1F2; border: 1px solid #FECDD3; border-left: 4px solid #BE123C; color: #BE123C; font-weight: 600; display: block; }
 
+        .auth-notice {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 14px 16px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            background: #F9FAFB;
+            text-align: left;
+        }
+        .auth-notice-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #EDEAF1;
+            color: #6F6382;
+        }
+        .auth-notice-message {
+            min-width: 0;
+            margin: 0;
+            color: #4B5563;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
         .page-footer {
             margin-top: 32px;
             text-align: center; font-size: 0.75rem; color: #9ca3af;
