@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 4. Demo Buyer Account
-        User::updateOrCreate(
+        $demoBuyer = User::updateOrCreate(
             ['email' => 'buyer@shopee.ph'],
             [
                 'name' => 'Maria Dela Cruz',
@@ -60,8 +60,22 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+        \App\Models\Buyer::firstOrCreate(
+            ['user_id' => $demoBuyer->id],
+            [
+                'name'            => $demoBuyer->name,
+                'phone'           => '09175556666',
+                'status'          => 'active',
+                'id_status'       => 'verified',
+                'loyalty_points'  => 120,
+                'membership_tier' => 'Silver',
+            ]
+        );
 
         // 5. Seed Roles, Categories, Shops, Products & Marketplace Ecosystem
         $this->call(MarketplaceDatabaseSeeder::class);
+
+        // 6. Seed Logistics Hub & Operations
+        $this->call(LogisticsDatabaseSeeder::class);
     }
 }

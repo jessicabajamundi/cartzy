@@ -57,6 +57,25 @@ class MarketplaceDatabaseSeeder extends Seeder
             if (isset($roles[$roleKey])) {
                 $user->roles()->syncWithoutDetaching([$roles[$roleKey]->id]);
             }
+
+            if ($user->role === 'buyer') {
+                \App\Models\Buyer::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name'           => $user->name,
+                        'middle_initial' => $user->middle_initial,
+                        'sex'            => $user->sex,
+                        'birthday'       => $user->birthday,
+                        'age'            => $user->age,
+                        'phone'          => $user->phone,
+                        'id_photo'       => $user->id_photo,
+                        'id_type'        => $user->id_type,
+                        'id_number'      => $user->id_number,
+                        'id_status'      => $user->id_status ?? 'unverified',
+                        'status'         => $user->status ?? 'active',
+                    ]
+                );
+            }
         }
 
         // 3. Ensure sample addresses exist for users
