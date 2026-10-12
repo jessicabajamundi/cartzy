@@ -11,7 +11,7 @@
     @foreach(['all'=>'All Riders','pending'=>'Pending','approved'=>'Approved','active'=>'Active','inactive'=>'Inactive','rejected'=>'Rejected'] as $key=>$label)
     <a href="{{ route('logistics.riders', ['filter'=>$key]) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$key ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter===$key ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         {{ $label }}
     </a>
     @endforeach
@@ -23,7 +23,7 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden">
         {{-- Header --}}
         <div class="flex items-center gap-3 p-4 border-b border-slate-100">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1A6FA8] to-[#0A2E4A] text-white flex items-center justify-center shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6F6382] to-[#3E354C] text-white flex items-center justify-center shrink-0">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="6.5" cy="16.5" r="2.5" stroke-width="1.8"/><circle cx="17.5" cy="16.5" r="2.5" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 16.5h5m-2.5-7l-3 7m2.5-7l4-2h3m-7 2l2-3h3"/></svg>
             </div>
             <div class="flex-1 min-w-0">

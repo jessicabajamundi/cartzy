@@ -33,6 +33,16 @@ class LogisticsProvider extends Model
         return $this->hasMany(Shipment::class);
     }
 
+    public function pickupRequests()
+    {
+        return $this->hasMany(PickupRequest::class);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(LogisticsMessage::class);
+    }
+
     public function isApproved(): bool
     {
         return $this->status === 'approved';

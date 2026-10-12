@@ -14,11 +14,18 @@ class Rider extends Model
         'logistics_provider_id',
         'vehicle_type',
         'plate_no',
+        'status',
+        'rejection_reason',
+        'area',
+        'rating',
+        'deliveries_today',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'rating' => 'float',
+        'deliveries_today' => 'integer',
     ];
 
     public function user()

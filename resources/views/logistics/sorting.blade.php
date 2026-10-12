@@ -11,7 +11,7 @@
     @foreach(['all'=>'All','unsorted'=>'Unsorted','sorted'=>'Sorted','assigned'=>'Assigned'] as $key=>$label)
     <a href="{{ route('logistics.sorting', ['status'=>$key]) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$key ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter===$key ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         {{ $label }}
     </a>
     @endforeach
@@ -24,7 +24,7 @@
         {{-- Header --}}
         <div class="px-4 pt-4 pb-3 border-b border-slate-100 flex items-center justify-between gap-2">
             <div>
-                <div class="text-xs font-black text-[#1A6FA8]">{{ $parcel['tracking_code'] }}</div>
+                <div class="text-xs font-black text-[#6F6382]">{{ $parcel['tracking_code'] }}</div>
                 <div class="font-bold text-slate-800 text-sm mt-0.5 truncate">{{ $parcel['recipient_name'] }}</div>
             </div>
             @php

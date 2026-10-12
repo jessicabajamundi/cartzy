@@ -11,7 +11,7 @@
     @foreach(['all'=>'All','received'=>'Received','at_hub'=>'At Hub'] as $key=>$label)
     <a href="{{ route('logistics.parcels', ['status'=>$key]) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$key ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter===$key ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         {{ $label }}
     </a>
     @endforeach
@@ -36,7 +36,7 @@
                 @forelse($parcels as $parcel)
                 <tr class="hover:bg-slate-50/60 transition">
                     <td class="px-4 py-3">
-                        <span class="font-black text-[#1A6FA8] text-xs">{{ $parcel['tracking_code'] }}</span>
+                        <span class="font-black text-[#6F6382] text-xs">{{ $parcel['tracking_code'] }}</span>
                     </td>
                     <td class="px-4 py-3">
                         <div class="font-semibold text-slate-800">{{ $parcel['seller_name'] }}</div>
@@ -68,7 +68,7 @@
                         @if($parcel['status'] !== 'received')
                         <form method="POST" action="{{ route('logistics.parcels.receive', $parcel['id']) }}">
                             @csrf
-                            <button type="submit" class="text-xs bg-[#1A6FA8] hover:bg-[#0F4C75] text-white font-bold px-3 py-1.5 rounded-lg transition">
+                            <button type="submit" class="text-xs bg-[#6F6382] hover:bg-[#564B68] text-white font-bold px-3 py-1.5 rounded-lg transition">
                                 Mark Received
                             </button>
                         </form>

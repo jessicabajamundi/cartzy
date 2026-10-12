@@ -10,13 +10,13 @@
 <div class="flex flex-wrap gap-2 mb-6">
     <a href="{{ route('logistics.assignments', ['area'=>'all']) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter==='all' ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter==='all' ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         All Areas
     </a>
     @foreach($areas as $area)
     <a href="{{ route('logistics.assignments', ['area'=>$area]) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$area ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter===$area ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         {{ $area }}
     </a>
     @endforeach
@@ -37,7 +37,7 @@
             {{-- Details --}}
             <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="text-xs font-black text-[#1A6FA8]">{{ $parcel['tracking_code'] }}</span>
+                    <span class="text-xs font-black text-[#6F6382]">{{ $parcel['tracking_code'] }}</span>
                     <span class="text-xs font-black bg-violet-100 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">{{ $parcel['delivery_area'] }}</span>
                     @if($parcel['sort_status']==='assigned')
                         <span class="text-xs font-black bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">Assigned</span>
@@ -71,10 +71,10 @@
                     <select name="rider_id" required class="border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                         <option value="">Assign Rider</option>
                         @foreach($riders as $rider)
-                        <option value="{{ $rider['id'] }}" data-name="{{ $rider['name'] }}">{{ $rider['name'] }} ({{ $rider['area'] }})</option>
+                        <option value="{{ $rider['id'] }}" data-name="{{ $rider['name'] }}">{{ $rider['name'] }} ({{ $rider['area'] ?? 'General Area' }})</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-[#1A6FA8] hover:bg-[#0F4C75] text-white font-black text-sm px-4 py-2.5 rounded-xl transition inline-flex items-center justify-center gap-2" onclick="setRiderName(this)">
+                    <button type="submit" class="bg-[#6F6382] hover:bg-[#564B68] text-white font-black text-sm px-4 py-2.5 rounded-xl transition inline-flex items-center justify-center gap-2" onclick="setRiderName(this)">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                         <span>Assign to Rider</span>
                     </button>
@@ -97,7 +97,7 @@
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
         </div>
         <p class="font-bold text-lg">No parcels to assign in this area.</p>
-        <a href="{{ route('logistics.sorting') }}" class="mt-3 inline-block text-sm text-[#1A6FA8] hover:underline font-bold">→ Sort parcels first</a>
+        <a href="{{ route('logistics.sorting') }}" class="mt-3 inline-block text-sm text-[#6F6382] hover:underline font-bold">→ Sort parcels first</a>
     </div>
     @endforelse
 </div>

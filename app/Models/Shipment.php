@@ -15,6 +15,12 @@ class Shipment extends Model
         'rider_id',
         'tracking_code',
         'status',
+        'delivery_area',
+        'sort_status',
+        'weight_kg',
+        'received_at',
+        'sorted_at',
+        'assigned_at',
         'fee_minor',
         'cod_amount_minor',
         'cod_collected',
@@ -26,6 +32,10 @@ class Shipment extends Model
         'cod_amount_minor' => 'integer',
         'cod_collected'    => 'boolean',
         'attempts'         => 'integer',
+        'weight_kg'        => 'float',
+        'received_at'      => 'datetime',
+        'sorted_at'        => 'datetime',
+        'assigned_at'      => 'datetime',
     ];
 
     public function sellerOrder()

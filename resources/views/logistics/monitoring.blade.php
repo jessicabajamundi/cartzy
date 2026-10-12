@@ -11,7 +11,7 @@
     @foreach(['all'=>'All','in_transit'=>'In Transit','out_for_delivery'=>'Out for Delivery','delivered'=>'Delivered','failed'=>'Failed','at_hub'=>'At Hub'] as $key=>$label)
     <a href="{{ route('logistics.monitoring', ['status'=>$key]) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$key ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter===$key ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         {{ $label }}
     </a>
     @endforeach
@@ -46,7 +46,7 @@
                     $dsInfo = $dsMap[$ds] ?? ['label'=>ucfirst($ds),'class'=>'bg-slate-100 text-slate-700'];
                 @endphp
                 <tr class="hover:bg-slate-50/60 transition">
-                    <td class="px-4 py-3 font-black text-[#1A6FA8] text-xs">{{ $parcel['tracking_code'] }}</td>
+                    <td class="px-4 py-3 font-black text-[#6F6382] text-xs">{{ $parcel['tracking_code'] }}</td>
                     <td class="px-4 py-3">
                         <div class="font-semibold text-slate-800">{{ $parcel['recipient_name'] }}</div>
                         <div class="text-xs text-slate-400 max-w-[160px] truncate">{{ $parcel['recipient_address'] }}</div>

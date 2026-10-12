@@ -11,7 +11,7 @@
     @foreach(['all'=>'All','pending'=>'Pending','confirmed'=>'Confirmed'] as $key=>$label)
     <a href="{{ route('logistics.pickups', ['status'=>$key]) }}"
        class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$key ? 'bg-[#1A6FA8] text-white border-[#1A6FA8] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#1A6FA8]' }}">
+              {{ $filter===$key ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
         {{ $label }}
     </a>
     @endforeach
@@ -23,7 +23,7 @@
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center gap-4 p-5">
             {{-- Icon --}}
-            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#1A6FA8] border border-blue-100 flex items-center justify-center shrink-0">
+            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#6F6382] border border-blue-100 flex items-center justify-center shrink-0">
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
             </div>
 
@@ -60,7 +60,7 @@
             @if($pickup['status'] === 'pending')
             <form method="POST" action="{{ route('logistics.pickups.confirm', $pickup['id']) }}" class="shrink-0">
                 @csrf
-                <button type="submit" class="bg-[#1A6FA8] hover:bg-[#0F4C75] text-white font-black text-sm px-5 py-2.5 rounded-xl transition shadow-sm hover:shadow">
+                <button type="submit" class="bg-[#6F6382] hover:bg-[#564B68] text-white font-black text-sm px-5 py-2.5 rounded-xl transition shadow-sm hover:shadow">
                     ✓ Confirm Pickup
                 </button>
             </form>

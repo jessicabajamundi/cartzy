@@ -1,0 +1,243 @@
+/* Cartzy logistics: plum foundations and rose-gold accents. */
+.logistics-portal { background:#F6F4F8; color:#3E354C; }
+.logistics-portal :is(h1,h2,h3,h4,.font-heading) { font-family:'Lato',sans-serif; letter-spacing:-.025em; }
+.logistics-portal ::selection { background:#A8A0B2; color:white; }
+.logistics-portal ::-webkit-scrollbar-track { background:#F6F4F8; }
+.logistics-portal ::-webkit-scrollbar-thumb { background:#D4CADC; }
+.logistics-portal :is(a,button,input,select,textarea):focus-visible { outline:2px solid #A38AB5; outline-offset:3px; }
+.logistics-portal #logistics-sidebar { width:256px; border-color:#E7E0EC; background:#FFF; }
+.logistics-portal .brand-header { padding:22px 18px; border-color:#EDE6F1; }
+.logistics-portal .brand-header a > div:first-child { box-shadow:none; padding:0; background:transparent; }
+.logistics-portal .brand-header img { height:32px; }
+.logistics-portal .brand-header button { background:#FAF8FC; border-color:#E9E1EE; color:#92839D; }
+.logistics-portal .sidebar-scroll { padding:16px 12px; }
+.logistics-portal .sidebar-section-divider span { font-size:9px; font-weight:800; letter-spacing:.12em; color:#AC9DB6; padding-top:18px; padding-bottom:8px; }
+.logistics-portal .nav-item { min-height:44px; border-radius:10px; font-size:12px; font-weight:700; margin-bottom:4px; }
+.logistics-portal .nav-item:not(.text-white):hover { background:#F6F1F9; color:#655274; }
+.logistics-portal .nav-item.text-white { background:#655274; box-shadow:0 4px 12px -8px #564B6880; }
+.logistics-portal .nav-item > span.rounded-full { background:#F0E5E0; color:#95695F; font-size:9px; }
+.logistics-portal .nav-item.text-white > span.rounded-full { background:#FFFFFF26; color:#F5E4DE; }
+.logistics-topbar { min-height:80px; gap:24px; box-shadow:none; border-color:#E7E0EC; }
+.logistics-topbar h1 { font-size:16px; font-weight:800; color:#564B68; }
+.logistics-topbar > div:first-child { min-width:0; }
+.logistics-topbar > div:last-child { flex-shrink:0; }
+.logistics-content { background:#F6F4F8; }
+.logistics-content > .bg-white { border-color:#E7E0EC; box-shadow:0 5px 20px -18px #564B6860; }
+.logistics-content table thead { background:#F4EFF8; color:#867390; }
+.logistics-content table th { font-size:10px; font-weight:800; letter-spacing:.06em; padding-block:16px; }
+.logistics-content table td { border-color:#EEE7F2; }
+.logistics-content table tbody tr:hover { background:#FAF6FC; }
+.logistics-content :is(input:not([type=checkbox]):not([type=radio]),select,textarea) { border-color:#DED4E6; accent-color:#6F6382; }
+.hub-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; margin-bottom:26px; padding:30px; border:1px solid #E0D5E7; border-radius:20px; background:linear-gradient(115deg,#EEE7F4 0%,#F5EEF5 55%,#F4E4DC 100%); }
+.hub-hero::after { content:''; position:absolute; right:-45px; top:-80px; width:260px; height:260px; border:1px solid #C08B7F30; border-radius:50%; pointer-events:none; }
+.hub-eyebrow { margin:0 0 12px; color:#95695F; font-size:10px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; }
+.hub-hero h2 { max-width:700px; margin:0 0 10px; color:#4E3E5D; font-size:clamp(22px,2.3vw,30px); font-weight:900; line-height:1.3; }
+.hub-hero-copy { margin:0; font-size:12px; color:#91809C; }
+.hub-hero-actions { position:relative; z-index:1; display:flex; flex-direction:column; gap:12px; align-items:flex-start; }
+.hub-primary-button { display:inline-flex; align-items:center; justify-content:center; gap:18px; padding:12px 18px; border-radius:10px; background:#655274; color:white; font-size:12px; font-weight:700; }
+.hub-primary-button:hover { background:#4E3E5D; }
+.hub-hero-actions > span { font-size:10px; color:#95695F; }
+.hub-section-label { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
+.hub-section-label h3 { margin:0; font-size:13px; color:#655274; font-weight:800; }
+.hub-section-label span { color:#A28DAE; font-size:10px; }
+.hub-kpi { position:relative; border:1px solid #E6DEED; border-radius:16px; background:white; padding:20px; box-shadow:0 4px 16px -15px #564B6870; }
+.hub-kpi-icon { display:grid; place-items:center; width:36px; height:36px; border-radius:11px; background:#F1EAF7; color:#8C739D; }
+.hub-kpi:nth-child(even) .hub-kpi-icon { background:#F7EBE5; color:#B08375; }
+.hub-kpi > .text-2xl { font-size:28px; font-weight:900; letter-spacing:-1px; color:#4E3E5D; }
+.hub-kpi > .text-xs { margin-top:5px; color:#97859F; font-size:11px; font-weight:700; }
+.hub-secondary-stats { gap:0; border:1px solid #E6DEED; border-radius:16px; background:white; overflow:hidden; }
+.hub-secondary-stats > div { position:relative; border:0; border-radius:0; box-shadow:none; padding:20px; background:transparent; text-align:left; }
+.hub-secondary-stats > div + div { border-left:1px solid #EEE7F2; }
+.hub-secondary-stats > div > div:first-child { position:absolute; right:18px; top:20px; }
+.hub-secondary-stats .text-2xl { font-size:24px; color:#655274; letter-spacing:-.7px; }
+.hub-secondary-stats > div:nth-child(n+3) .text-2xl { color:#A67567; }
+.hub-secondary-stats > div > .text-xs { font-size:11px; margin-top:6px; color:#97859F; padding-right:32px; }
+.hub-dashboard-panel { border:1px solid #E6DEED; border-radius:18px; box-shadow:none; }
+.hub-dashboard-panel h3 { font-size:15px; color:#564B68; font-weight:800; }
+.hub-chart-container { position:relative; height:280px; }
+.hub-quick-actions a { align-items:flex-start; padding:18px; background:#FAF7FC; border-color:#E7DEEE; border-radius:12px; }
+.hub-quick-actions a:nth-child(even) { background:#FCF5F1; border-color:#EADBD5; }
+.hub-quick-actions a:hover { background:#F0E9F6; }
+.hub-quick-actions a > span:last-child { color:#776188; text-align:left; }
+@media(max-width:1279px) { .logistics-topbar .hub-flash { display:none; } }
+@media(max-width:767px) { .hub-hero { padding:22px; } .hub-kpi { padding:16px; } .hub-secondary-stats > div { padding:16px; } .hub-secondary-stats > div:nth-child(3) { border-left:0; } .hub-secondary-stats > div:nth-child(n+3) { border-top:1px solid #EEE7F2; } .hub-secondary-stats > div > div:first-child { right:12px; top:14px; } .hub-secondary-stats .w-10 { width:30px; height:30px; } }
+@media(prefers-reduced-motion:reduce) { .logistics-portal *, .logistics-portal *::before, .logistics-portal *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+
+.logistics-portal {
+--color-slate-50:#FAF8FC;
+--color-slate-100:#F1EBF6;
+--color-slate-950:#201829;
+--color-slate-200:#E1D6EA;
+--color-slate-300:#CBBAD8;
+--color-slate-400:#A8A0B2;
+--color-slate-500:#8A789A;
+--color-slate-600:#6F6382;
+--color-slate-900:#282133;
+--color-slate-700:#564B68;
+--color-slate-800:#3E354C;
+--color-blue-50:#FAF8FC;
+--color-blue-100:#F1EBF6;
+--color-blue-950:#201829;
+--color-blue-200:#E1D6EA;
+--color-blue-300:#CBBAD8;
+--color-blue-400:#A8A0B2;
+--color-blue-500:#8A789A;
+--color-blue-600:#6F6382;
+--color-blue-900:#282133;
+--color-blue-700:#564B68;
+--color-blue-800:#3E354C;
+--color-sky-50:#FAF8FC;
+--color-sky-100:#F1EBF6;
+--color-sky-950:#201829;
+--color-sky-200:#E1D6EA;
+--color-sky-300:#CBBAD8;
+--color-sky-400:#A8A0B2;
+--color-sky-500:#8A789A;
+--color-sky-600:#6F6382;
+--color-sky-900:#282133;
+--color-sky-700:#564B68;
+--color-sky-800:#3E354C;
+--color-indigo-50:#FAF8FC;
+--color-indigo-100:#F1EBF6;
+--color-indigo-950:#201829;
+--color-indigo-200:#E1D6EA;
+--color-indigo-300:#CBBAD8;
+--color-indigo-400:#A8A0B2;
+--color-indigo-500:#8A789A;
+--color-indigo-600:#6F6382;
+--color-indigo-900:#282133;
+--color-indigo-700:#564B68;
+--color-indigo-800:#3E354C;
+--color-violet-50:#FAF8FC;
+--color-violet-100:#F1EBF6;
+--color-violet-950:#201829;
+--color-violet-200:#E1D6EA;
+--color-violet-300:#CBBAD8;
+--color-violet-400:#A8A0B2;
+--color-violet-500:#8A789A;
+--color-violet-600:#6F6382;
+--color-violet-900:#282133;
+--color-violet-700:#564B68;
+--color-violet-800:#3E354C;
+--color-purple-50:#FAF8FC;
+--color-purple-100:#F1EBF6;
+--color-purple-950:#201829;
+--color-purple-200:#E1D6EA;
+--color-purple-300:#CBBAD8;
+--color-purple-400:#A8A0B2;
+--color-purple-500:#8A789A;
+--color-purple-600:#6F6382;
+--color-purple-900:#282133;
+--color-purple-700:#564B68;
+--color-purple-800:#3E354C;
+--color-emerald-50:#FAF8FC;
+--color-emerald-100:#F1EBF6;
+--color-emerald-950:#201829;
+--color-emerald-200:#E1D6EA;
+--color-emerald-300:#CBBAD8;
+--color-emerald-400:#A8A0B2;
+--color-emerald-500:#8A789A;
+--color-emerald-600:#6F6382;
+--color-emerald-900:#282133;
+--color-emerald-700:#564B68;
+--color-emerald-800:#3E354C;
+--color-teal-50:#FAF8FC;
+--color-teal-100:#F1EBF6;
+--color-teal-950:#201829;
+--color-teal-200:#E1D6EA;
+--color-teal-300:#CBBAD8;
+--color-teal-400:#A8A0B2;
+--color-teal-500:#8A789A;
+--color-teal-600:#6F6382;
+--color-teal-900:#282133;
+--color-teal-700:#564B68;
+--color-teal-800:#3E354C;
+--color-cyan-50:#FAF8FC;
+--color-cyan-100:#F1EBF6;
+--color-cyan-950:#201829;
+--color-cyan-200:#E1D6EA;
+--color-cyan-300:#CBBAD8;
+--color-cyan-400:#A8A0B2;
+--color-cyan-500:#8A789A;
+--color-cyan-600:#6F6382;
+--color-cyan-900:#282133;
+--color-cyan-700:#564B68;
+--color-cyan-800:#3E354C;
+--color-green-50:#FAF8FC;
+--color-green-100:#F1EBF6;
+--color-green-950:#201829;
+--color-green-200:#E1D6EA;
+--color-green-300:#CBBAD8;
+--color-green-400:#A8A0B2;
+--color-green-500:#8A789A;
+--color-green-600:#6F6382;
+--color-green-900:#282133;
+--color-green-700:#564B68;
+--color-green-800:#3E354C;
+--color-amber-50:#FCF5F1;
+--color-amber-100:#F6E8E1;
+--color-amber-950:#3F2723;
+--color-amber-200:#EACFC4;
+--color-amber-300:#DAB3A4;
+--color-amber-400:#C08B7F;
+--color-amber-500:#B07B6F;
+--color-amber-600:#9B675B;
+--color-amber-900:#573730;
+--color-amber-700:#8C5A50;
+--color-amber-800:#70463F;
+--color-orange-50:#FCF5F1;
+--color-orange-100:#F6E8E1;
+--color-orange-950:#3F2723;
+--color-orange-200:#EACFC4;
+--color-orange-300:#DAB3A4;
+--color-orange-400:#C08B7F;
+--color-orange-500:#B07B6F;
+--color-orange-600:#9B675B;
+--color-orange-900:#573730;
+--color-orange-700:#8C5A50;
+--color-orange-800:#70463F;
+--color-rose-50:#FCF5F1;
+--color-rose-100:#F6E8E1;
+--color-rose-950:#3F2723;
+--color-rose-200:#EACFC4;
+--color-rose-300:#DAB3A4;
+--color-rose-400:#C08B7F;
+--color-rose-500:#B07B6F;
+--color-rose-600:#9B675B;
+--color-rose-900:#573730;
+--color-rose-700:#8C5A50;
+--color-rose-800:#70463F;
+--color-red-50:#FCF5F1;
+--color-red-100:#F6E8E1;
+--color-red-950:#3F2723;
+--color-red-200:#EACFC4;
+--color-red-300:#DAB3A4;
+--color-red-400:#C08B7F;
+--color-red-500:#B07B6F;
+--color-red-600:#9B675B;
+--color-red-900:#573730;
+--color-red-700:#8C5A50;
+--color-red-800:#70463F;
+--color-pink-50:#FCF5F1;
+--color-pink-100:#F6E8E1;
+--color-pink-950:#3F2723;
+--color-pink-200:#EACFC4;
+--color-pink-300:#DAB3A4;
+--color-pink-400:#C08B7F;
+--color-pink-500:#B07B6F;
+--color-pink-600:#9B675B;
+--color-pink-900:#573730;
+--color-pink-700:#8C5A50;
+--color-pink-800:#70463F;
+--color-yellow-50:#FCF5F1;
+--color-yellow-100:#F6E8E1;
+--color-yellow-950:#3F2723;
+--color-yellow-200:#EACFC4;
+--color-yellow-300:#DAB3A4;
+--color-yellow-400:#C08B7F;
+--color-yellow-500:#B07B6F;
+--color-yellow-600:#9B675B;
+--color-yellow-900:#573730;
+--color-yellow-700:#8C5A50;
+--color-yellow-800:#70463F;
+}

@@ -9,7 +9,7 @@
 <div class="max-w-2xl mx-auto">
 
     {{-- Profile Card --}}
-    <div class="bg-gradient-to-br from-[#0A2E4A] to-[#1A6FA8] rounded-2xl text-white p-6 mb-6 shadow-xl relative overflow-hidden">
+    <div class="bg-gradient-to-br from-[#3E354C] to-[#6F6382] rounded-2xl text-white p-6 mb-6 shadow-xl relative overflow-hidden">
         <div class="absolute -right-4 -top-4 opacity-[0.07] select-none">
             <svg class="w-28 h-28" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="0.8"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
         </div>
@@ -77,7 +77,7 @@
             </div>
 
             <div class="pt-2">
-                <button type="submit" class="w-full bg-[#1A6FA8] hover:bg-[#0F4C75] text-white font-black py-3 rounded-xl transition shadow-md">
+                <button type="submit" class="w-full bg-[#6F6382] hover:bg-[#564B68] text-white font-black py-3 rounded-xl transition shadow-md">
                     Save Changes
                 </button>
             </div>

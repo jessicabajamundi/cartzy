@@ -19,7 +19,7 @@
             <input type="date" name="to" value="{{ $dateTo }}"
                    class="border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
         </div>
-        <button type="submit" class="bg-[#1A6FA8] hover:bg-[#0F4C75] text-white font-black text-sm px-6 py-2.5 rounded-xl transition shadow">
+        <button type="submit" class="bg-[#6F6382] hover:bg-[#564B68] text-white font-black text-sm px-6 py-2.5 rounded-xl transition shadow">
             Generate Report
         </button>
         <a href="#" onclick="window.print()" class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm px-5 py-2.5 rounded-xl transition border border-slate-200">
@@ -82,7 +82,7 @@
                     <span class="font-black text-slate-800 ml-2">{{ $area['parcels'] }}</span>
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2">
-                    <div class="bg-[#1A6FA8] h-2 rounded-full transition-all" style="width:{{ $pct }}%"></div>
+                    <div class="bg-[#6F6382] h-2 rounded-full transition-all" style="width:{{ $pct }}%"></div>
                 </div>
             </div>
             @endforeach
@@ -123,7 +123,7 @@
                             {{ $rider['name'] }}
                         </span>
                     </td>
-                    <td class="px-6 py-3 font-black text-[#1A6FA8]">{{ $rider['deliveries'] }}</td>
+                    <td class="px-6 py-3 font-black text-[#6F6382]">{{ $rider['deliveries'] }}</td>
                     <td class="px-6 py-3">
                         <span class="font-black {{ $rider['success_rate'] >= 95 ? 'text-emerald-600' : ($rider['success_rate'] >= 90 ? 'text-amber-600' : 'text-rose-600') }}">
                             {{ $rider['success_rate'] }}%
@@ -155,23 +155,23 @@ new Chart(rCtx, {
             {
                 label: 'Received',
                 data: @json($reportData['chart']['received']),
-                borderColor: '#1A6FA8',
-                backgroundColor: 'rgba(26,111,168,0.1)',
+                borderColor: '#6F6382',
+                backgroundColor: 'rgba(111,99,130,0.1)',
                 borderWidth: 2.5,
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#1A6FA8',
+                pointBackgroundColor: '#6F6382',
                 pointRadius: 5,
             },
             {
                 label: 'Delivered',
                 data: @json($reportData['chart']['delivered']),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16,185,129,0.1)',
+                borderColor: '#C08B7F',
+                backgroundColor: 'rgba(192,139,127,0.1)',
                 borderWidth: 2.5,
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: '#10b981',
+                pointBackgroundColor: '#C08B7F',
                 pointRadius: 5,
             },
         ]
@@ -180,7 +180,7 @@ new Chart(rCtx, {
         responsive: true,
         plugins: { legend: { position: 'top' } },
         scales: {
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            y: { beginAtZero: true, grid: { color: '#F6F4F8' } },
             x: { grid: { display: false } }
         }
     }
