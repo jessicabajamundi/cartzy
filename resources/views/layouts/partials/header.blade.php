@@ -1,15 +1,26 @@
-<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
+@php
+    $buyerHeader = request()->routeIs('home') || (Auth::check() && Auth::user()->isBuyer());
+@endphp
+<header class="{{ $buyerHeader ? 'buyer-header' : (Auth::check() ? 'account-header' : '') }} sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
     <!-- Main Navigation & Search Bar -->
-    <div class="w-full px-4 sm:px-6 lg:px-10 py-2 sm:py-2.5">
-        <div class="flex items-center justify-between gap-4 lg:gap-8">
+    <div class="w-full px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
+        <div class="header-main storefront-header-main flex items-center justify-between gap-4 lg:gap-8">
             
             <!-- Brand Logo -->
-            <a href="/" class="flex items-center shrink-0 group py-0.5" title="cartzy">
-                <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-8.5 sm:h-9.5 w-auto object-contain group-hover:scale-105 transition-transform duration-200">
-            </a>
+            <div class="flex items-center shrink-0 py-0.5 select-none cursor-default" title="cartzy">
+                <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-8.5 sm:h-9.5 w-auto object-contain pointer-events-none">
+            </div>
+
+            <nav class="header-primary-links" aria-label="Main shopping navigation">
+                <a href="{{ route('home') }}" @if(request()->routeIs('home') && !request()->query()) aria-current="page" @endif>Home</a>
+                <a href="{{ route('home') }}#pick-trending-title">New</a>
+                <a href="{{ route('home') }}#flash-sale" class="header-primary-sale">Sale</a>
+                <a href="{{ route('home') }}#daily-discover-section">Shop All</a>
+                @include('layouts.partials.shop-all-dropdown')
+            </nav>
 
             <!-- Search Area -->
-            <div class="flex-1 mx-3 sm:mx-6 flex justify-center max-w-[650px]">
+            <div class="header-search flex-1 mx-3 sm:mx-6 flex justify-center max-w-[650px]">
                 <form id="header-search-form" action="{{ route('home') }}" method="GET" class="group relative flex items-center w-full bg-[#FAF9FB] hover:bg-[#F5F2F7] focus-within:!bg-white border border-[#E1DDE7] focus-within:border-[#C08B7F] rounded-full p-1 pl-4.5 shadow-[0_1px_3px_rgba(40,33,51,0.03)] focus-within:shadow-[0_4px_20px_rgba(111,99,130,0.12)] focus-within:ring-3 focus-within:ring-[#C08B7F]/20 transition-all duration-200">
                     <span class="text-gray-400 group-focus-within:text-[#6F6382] mr-2 shrink-0 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -46,10 +57,10 @@
 
 
             <!-- Action Links: Login, Sign up, Notifications, Cart -->
-            <div class="flex items-center gap-1 shrink-0">
+            <div class="header-actions flex items-center gap-1 shrink-0">
                 
                 @guest
-                    <div class="flex items-center gap-2 mr-1">
+                    <div class="header-auth-links flex items-center gap-2 mr-1">
                         <!-- Login Link -->
                         <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-[#3E354C] hover:text-[#564B68] hover:bg-[#F4F1F7] transition px-3 py-1.5 rounded-full text-xs font-bold">
                             <svg class="w-4 h-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -69,12 +80,17 @@
                 @endguest
 
                 {{-- Icons Group --}}
-                <div class="flex items-center gap-0.5">
+                <div class="header-icons flex items-center gap-0.5">
 
                 @auth
                     @include('layouts.partials.profile-menu')
                 @endauth
 
+                @if($buyerHeader)
+                    @include('layouts.partials.buyer-navigation')
+                @elseif(Auth::check())
+                    @include('layouts.partials.account-navigation')
+                @else
                 {{-- Notifications Dropdown --}}
                 <div class="relative" id="headerNotifDropdownContainer">
                     <button type="button" 
@@ -177,7 +193,7 @@
                             @auth
                                 <div class="p-2.5 bg-[#FAF9FB] border-t border-gray-100 text-center">
                                     <a href="{{ route('buyer.dashboard', ['tab' => 'notifications']) }}" class="text-xs font-bold text-[#564B68] hover:text-[#3E354C] hover:underline transition">
-                                        View all in Dashboard &rarr;
+                                        View all notifications &rarr;
                                     </a>
                                 </div>
                             @endauth
@@ -281,216 +297,12 @@
                         </div>
                     </div>
                 </div>
+                @endif
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Category Navigation Bar (Directly below Logo, Search, and Action Icons) -->
-    <div class="w-full bg-[#FAF9FB] border-t border-[#EAE6F0] px-4 sm:px-6 lg:px-10 py-1.5 text-xs font-semibold relative">
-        <div class="flex items-center justify-between gap-2">
-            
-            <!-- Left: Categories Dropdown Button & Mega Menu -->
-            <div class="relative" id="category-mega-menu-wrapper">
-                <button 
-                    type="button" 
-                    id="all-categories-btn"
-                    onclick="toggleCategoryMenu()"
-                    class="inline-flex items-center gap-2 text-[#282133] hover:text-[#564B68] px-3.5 py-1.5 rounded-full font-bold transition-all duration-150 bg-white hover:bg-[#F3EFF7] border border-[#E1DDE7] shadow-[0_1px_2px_rgba(40,33,51,0.04)] cursor-pointer select-none text-xs shrink-0 group"
-                    aria-expanded="false"
-                >
-                    <svg class="w-3.5 h-3.5 text-[#6F6382] group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-                    </svg>
-                    <span class="tracking-wide">Categories</span>
-                    <svg id="cat-chevron" class="w-3 h-3 text-gray-400 group-hover:text-gray-700 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-
-                <!-- Category Mega Menu Popover with Side Navigation (SHEIN/Lazada Style) -->
-                <div 
-                    id="category-mega-dropdown" 
-                    class="hidden absolute left-0 top-full mt-1.5 w-[94vw] sm:w-[720px] lg:w-[940px] bg-white rounded-2xl shadow-2xl border border-[#E1DDE7] z-50 p-4 sm:p-5 overflow-hidden transition-all duration-200 transform origin-top-left"
-                >
-                    <div class="flex flex-col md:flex-row gap-5">
-                        <!-- Left Column: Featured Sections (Just for You, New In, Sale) with Chevron > and Divider -->
-                        <div class="w-full md:w-52 shrink-0 md:border-r md:border-[#E1DDE7] md:pr-4 flex flex-col gap-1.5">
-                            <div class="text-[10px] font-extrabold uppercase tracking-wider text-gray-400 px-3 pb-1">Featured</div>
-                            <a 
-                                href="#daily-discover-section" 
-                                onclick="filterFeaturedSection('just-for-you')" 
-                                class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-[#EBEBEB] text-gray-900 font-semibold text-xs sm:text-sm transition group cursor-pointer"
-                            >
-                                <span class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-[#564B68]"></span>
-                                    <span>Just for You</span>
-                                </span>
-                                <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-800 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
-                            <a 
-                                href="#shoes" 
-                                onclick="filterFeaturedSection('new-in')" 
-                                class="flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-gray-100 text-gray-800 font-semibold text-xs sm:text-sm transition group cursor-pointer"
-                            >
-                                <span class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                    <span>New In</span>
-                                </span>
-                                <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-gray-800 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
-                            <a 
-                                href="#flash-sale" 
-                                onclick="filterFeaturedSection('sale')" 
-                                class="flex items-center justify-between px-3.5 py-2.5 rounded-xl hover:bg-red-50 text-red-600 font-semibold text-xs sm:text-sm transition group cursor-pointer"
-                            >
-                                <span class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                                    <span>Sale</span>
-                                </span>
-                                <svg class="w-3.5 h-3.5 text-red-400 group-hover:text-red-700 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                            </a>
-                            
-                            <div class="mt-4 pt-3 border-t border-gray-100 hidden md:block">
-                                <p class="text-[11px] text-gray-500 px-3 leading-relaxed">
-                                    Quickly jump to curated recommendations, latest arrivals, or discounted items.
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Right Column: Search + 22 Categories Grid -->
-                        <div class="flex-1 min-w-0 flex flex-col">
-                            <!-- Mega Menu Header -->
-                            <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#E1DDE7] gap-3">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-7 h-7 rounded-lg bg-[#F1EFF5] text-[#6F6382] flex items-center justify-center font-bold">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-sm font-extrabold text-[#282133] leading-none">All Categories</h3>
-                                        <p class="text-[11px] text-gray-500 mt-0.5">22 Categories synced from Cartzy database</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 22 Categories Responsive Grid -->
-                            <div id="mega-categories-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[340px] overflow-y-auto pr-1">
-                                @php
-                                    $catList = isset($allCategories) && $allCategories->count() ? $allCategories : (new \App\Http\Controllers\HomeController())->getCategoriesWithMeta();
-                                    $metaMap = (new \App\Http\Controllers\HomeController())->getCategoryMeta();
-                                @endphp
-                                @foreach($catList as $cat)
-                                    @php
-                                        $catIcon = $cat->meta['icon'] ?? ($metaMap[$cat->slug]['icon'] ?? null);
-                                    @endphp
-                                    <a 
-                                        href="{{ route('home', ['category' => $cat->slug]) }}" 
-                                        onclick="if(window.filterByCategory) { filterByCategory('{{ $cat->slug }}', '{{ addslashes($cat->name) }}'); closeCategoryMenu(); return false; }"
-                                        data-cat-name="{{ strtolower($cat->name) }}"
-                                        class="mega-cat-item group flex items-center gap-2.5 p-2 rounded-xl border border-transparent hover:border-[#E1DDE7] hover:bg-[#F1EFF5] transition-all"
-                                    >
-                                        <span class="w-7 h-7 rounded-lg bg-[#FAF9FB] group-hover:bg-[#6F6382] group-hover:text-white text-[#6F6382] border border-[#E1DDE7] group-hover:border-transparent flex items-center justify-center shrink-0 transition-colors shadow-2xs">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $catIcon ?? 'M12 6v12m6-6H6' }}"/>
-                                            </svg>
-                                        </span>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-xs font-bold text-gray-800 group-hover:text-[#282133] truncate leading-tight">{{ $cat->name }}</p>
-                                        </div>
-                                    </a>
-                                @endforeach
-                            </div>
-
-                            <!-- Mega Menu Footer -->
-                            <div class="mt-3 pt-2 border-t border-[#E1DDE7] flex items-center justify-between text-[11px] text-gray-500">
-                                <span>{{ count($catList) }} active categories</span>
-                                <a href="{{ route('home') }}#browse-categories" onclick="closeCategoryMenu()" class="text-[#6F6382] font-bold hover:underline">
-                                    Browse visual grid &rarr;
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top Level Featured 3 Items (Just for You, New In, Sale) from Screenshot -->
-            <div class="flex items-center gap-1 shrink-0">
-                <a 
-                    href="#daily-discover-section"
-                    onclick="filterFeaturedSection('just-for-you')"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-full font-bold text-gray-800 hover:text-[#564B68] hover:bg-[#F3EFF7] transition text-xs shrink-0 flex items-center gap-1.5 cursor-pointer"
-                >
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#6F6382]"></span>
-                    <span>Just for You</span>
-                </a>
-                <a 
-                    href="#shoes"
-                    onclick="filterFeaturedSection('new-in')"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-full font-bold text-gray-600 hover:text-[#564B68] hover:bg-[#F3EFF7] transition text-xs shrink-0 flex items-center gap-1.5 cursor-pointer"
-                >
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                    <span>New In</span>
-                </a>
-                <a 
-                    href="#flash-sale"
-                    onclick="filterFeaturedSection('sale')"
-                    class="px-2.5 sm:px-3 py-1.5 rounded-full font-extrabold text-[#BE123C] bg-rose-50/90 hover:bg-rose-100 border border-rose-100 transition text-xs shrink-0 flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                >
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#E11D48] animate-pulse"></span>
-                    <span>Sale</span>
-                </a>
-            </div>
-
-            <div class="h-4 w-px bg-[#E1DDE7] mx-1.5 shrink-0 hidden md:block"></div>
-
-            <!-- Center: Horizontally Scrollable Categories -->
-            <div class="relative flex-1 min-w-0 flex items-center">
-                <!-- Left Scroll Arrow -->
-                <button 
-                    type="button" 
-                    onclick="scrollHeaderCategories('left')" 
-                    id="header-cat-scroll-left"
-                    class="hidden sm:flex items-center justify-center w-6.5 h-6.5 rounded-full bg-white/95 hover:bg-white text-gray-600 hover:text-black border border-[#E1DDE7] shadow-xs shrink-0 mr-1.5 z-10 transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label="Scroll left"
-                >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                </button>
-
-                <!-- Scrollable Track -->
-                <div 
-                    id="header-categories-scroll" 
-                    class="flex-1 overflow-x-auto no-scrollbar scroll-smooth flex items-center gap-1 py-0.5"
-                    style="scrollbar-width: none; -ms-overflow-style: none;"
-                >
-                    @php
-                        $catList = isset($allCategories) && $allCategories->count() ? $allCategories : (new \App\Http\Controllers\HomeController())->getCategoriesWithMeta();
-                    @endphp
-                    @foreach($catList as $cat)
-                        <a 
-                            href="{{ route('home', ['category' => $cat->slug]) }}"
-                            onclick="if(window.filterByCategory) { filterByCategory('{{ $cat->slug }}', '{{ addslashes($cat->name) }}'); return false; }"
-                            id="header-nav-cat-{{ $cat->slug }}"
-                            class="header-nav-pill whitespace-nowrap shrink-0 px-3 py-1 rounded-full text-gray-600 hover:text-[#282133] hover:bg-white hover:shadow-2xs border border-transparent hover:border-[#E1DDE7] transition font-medium text-xs flex items-center gap-1"
-                        >
-                            <span>{{ $cat->name }}</span>
-                        </a>
-                    @endforeach
-                </div>
-
-                <!-- Right Scroll Arrow -->
-                <button 
-                    type="button" 
-                    onclick="scrollHeaderCategories('right')" 
-                    id="header-cat-scroll-right"
-                    class="hidden sm:flex items-center justify-center w-6.5 h-6.5 rounded-full bg-white/95 hover:bg-white text-gray-600 hover:text-black border border-[#E1DDE7] shadow-xs shrink-0 ml-1.5 z-10 transition-all duration-150 transform hover:scale-105 active:scale-95 cursor-pointer"
-                    aria-label="Scroll right"
-                >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                </button>
-            </div>
-
-        </div>
-    </div>
 </header>
 
 <script>
@@ -571,10 +383,11 @@ function markAllNotificationsAsRead(e) {
 }
 
 function updateHeaderNotifCount(unread) {
+    window.updateBuyerNavCount?.('notifications', unread);
     const badge = document.getElementById('headerNotifBadge');
     const pill = document.getElementById('headerNotifPill');
     const pillCount = document.getElementById('headerNotifPillCount');
-    if (badge) {
+    if (badge && !badge.hasAttribute('data-buyer-count')) {
         badge.textContent = unread;
         badge.classList.toggle('hidden', unread <= 0);
     }

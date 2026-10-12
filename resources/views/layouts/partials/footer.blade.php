@@ -66,9 +66,9 @@
 
             <!-- Column 1: cartzy Brand (4 cols on desktop) -->
             <div class="col-span-2 md:col-span-4 space-y-4 pr-0 md:pr-6">
-                <a href="{{ route('home') }}" class="inline-flex items-center">
-                    <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-16 w-auto object-contain">
-                </a>
+                <div class="inline-flex items-center select-none cursor-default">
+                    <img src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy" class="h-16 w-auto object-contain pointer-events-none">
+                </div>
                 <p class="text-sm text-gray-500 leading-relaxed max-w-sm">
                     Shop the best electronics, fashion, and home essentials. Your trusted online marketplace in the Philippines.
                 </p>
@@ -94,7 +94,7 @@
             <div class="md:col-span-2">
                 <h5 class="font-bold text-gray-900 uppercase tracking-wider mb-4 text-sm">DISCOVER</h5>
                 <ul class="space-y-3 text-sm">
-                    <li><a href="{{ route('home') }}#shoes" class="text-gray-500 hover:text-black transition">New arrivals</a></li>
+                    <li><a href="{{ route('home') }}#daily-discover-section" class="text-gray-500 hover:text-black transition">New arrivals</a></li>
                     <li><a href="{{ route('home') }}#flash-sale" class="text-gray-500 hover:text-black transition">Today's Deals</a></li>
                     <li><a href="{{ route('home') }}#browse-categories" class="text-gray-500 hover:text-black transition">Popular Categories</a></li>
                     <li><a href="{{ route('home') }}#daily-discover-section" class="text-gray-500 hover:text-black transition">Curated for You</a></li>

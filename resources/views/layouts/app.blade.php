@@ -175,6 +175,8 @@
         }
     </style>
     @stack('styles')
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap">
+    <link rel="stylesheet" href="{{ asset('css/header-primary.css') }}?v={{ filemtime(public_path('css/header-primary.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/rose-gold-borders.css') }}?v={{ filemtime(public_path('css/rose-gold-borders.css')) }}">
 
 </head>
@@ -194,12 +196,15 @@
     @endunless
 
     @stack('scripts')
+    <script src="{{ asset('js/shop-all-dropdown.js') }}?v={{ filemtime(public_path('js/shop-all-dropdown.js')) }}"></script>
 
     <!-- Global Cart JS (available on all pages) -->
     <script>
         window.isUserLoggedIn = {{ Auth::check() ? 'true' : 'false' }};
         window.registerUrl = "{{ route('register', ['from' => 'cart']) }}";
     </script>
-    <script src="{{ asset('js/cart.js') }}"></script>
+    <script src="{{ asset('js/buyer-navigation-counts.js') }}?v={{ filemtime(public_path('js/buyer-navigation-counts.js')) }}"></script>
+    <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
+    @include('partials.prevent-back-cache')
 </body>
 </html>

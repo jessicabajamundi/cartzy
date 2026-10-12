@@ -10,7 +10,8 @@
         $profileLinks[] = ['courier.dashboard', 'Rider Hub', 'box'];
     }
     $profileLinks = array_merge($profileLinks, [
-        ['buyer.dashboard', 'My cartzy', 'grid'],
+        ['buyer.dashboard', 'Account Settings', 'user', 'settings'],
+        ['buyer.dashboard', 'Reviews & Ratings', 'bag', 'reviews'],
     ]);
     $profileIcons = [
         'grid' => 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
@@ -42,8 +43,11 @@
             </div>
         </div>
         <nav class="profile-menu-links" aria-label="Your account">
-            @foreach($profileLinks as [$profileRoute, $profileLabel, $profileIcon])
-                <a class="profile-menu-link" href="{{ route($profileRoute) }}" @if(request()->routeIs($profileRoute)) aria-current="page" @endif>
+            @foreach($profileLinks as $profileLink)
+                @php
+                    [$profileRoute, $profileLabel, $profileIcon] = $profileLink;
+                @endphp
+                <a class="profile-menu-link" href="{{ route($profileRoute, isset($profileLink[3]) ? ['tab' => $profileLink[3]] : []) }}" @if(request()->routeIs($profileRoute) && (!isset($profileLink[3]) || request('tab') === $profileLink[3])) aria-current="page" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $profileIcons[$profileIcon] }}"/></svg>
                     <span>{{ $profileLabel }}</span>
                     <svg class="profile-menu-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
