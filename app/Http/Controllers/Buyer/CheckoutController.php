@@ -13,7 +13,7 @@ class CheckoutController extends Controller
     /**
      * Show Checkout Page with ID Verification Gate
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -38,15 +38,29 @@ class CheckoutController extends Controller
                 ->with('warning', $msg);
         }
 
-        // Load real cart from session
-        $cartItems = array_values(session('cart', []));
+        // Load the buyer's saved cart.
+        $cart = app(\App\Services\BuyerCart::class)->all();
+        $selectedKeys = array_keys(array_filter($cart, fn ($item) => $item['selected'] ?? true));
+        if ($request->has('selection')) {
+            $validated = $request->validate([
+                'selected_items' => ['required', 'array', 'min:1'],
+                'selected_items.*' => ['required', 'string', 'distinct'],
+            ]);
+            $selectedKeys = $validated['selected_items'];
+        }
+        $selectedCart = array_intersect_key($cart, array_flip($selectedKeys));
+        if (count($selectedCart) !== count($selectedKeys)) {
+            return redirect()->route('cart.index')->with('info', 'Your cart changed. Please select your items again.');
+        }
+        $selectedKeys = array_keys($selectedCart);
+        $checkoutItems = array_values($selectedCart);
 
         // If cart is empty, redirect to homepage
-        if (empty($cartItems)) {
+        if (empty($checkoutItems)) {
             return redirect()->route('cart.index')->with('info', 'Your cart is empty. Add some products before checking out!');
         }
 
-        $subtotal = array_sum(array_map(fn($item) => ($item['price'] ?? 0) * ($item['quantity'] ?? 1), $cartItems));
+        $subtotal = array_sum(array_map(fn($item) => ($item['price'] ?? 0) * ($item['quantity'] ?? 1), $checkoutItems));
         $shippingFee = 60.00;
         $discount = $subtotal >= 1000 ? 50.00 : 0.00;
         $total = $subtotal + $shippingFee - $discount;
@@ -54,7 +68,7 @@ class CheckoutController extends Controller
         $deliveryAddress = \App\Models\Address::where('user_id', $user->id)->where('is_default', true)->first();
         $checkoutAddress = $deliveryAddress?->formatted_address ?: $user->address;
 
-        return view('buyer.checkout', compact('user', 'cartItems', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress'));
+        return view('buyer.checkout', compact('user', 'checkoutItems', 'selectedKeys', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress'));
     }
 
     /**
@@ -72,25 +86,35 @@ class CheckoutController extends Controller
         $request->validate([
             'payment_method'   => ['required', 'string'],
             'delivery_address' => ['required', 'string'],
+            'selected_items' => ['required', 'array', 'min:1'],
+            'selected_items.*' => ['required', 'string', 'distinct'],
         ]);
 
-        $cartItems = array_values(session('cart', []));
-        if (empty($cartItems)) {
+        $cart = app(\App\Services\BuyerCart::class)->all();
+        $selectedKeys = $request->input('selected_items');
+        $selectedCart = array_intersect_key($cart, array_flip($selectedKeys));
+        if (count($selectedCart) !== count($selectedKeys)) {
+            return redirect()->route('cart.index')->with('info', 'Your cart changed. Please select your items again.');
+        }
+        $checkoutItems = array_values($selectedCart);
+        if (empty($checkoutItems)) {
             return redirect()->route('cart.index')->with('info', 'Your cart is empty. Add some products before checking out!');
         }
 
         try {
-            $order = app(OrderPlacement::class)->place(
-                $user,
-                $cartItems,
-                $request->input('payment_method'),
-                $request->input('delivery_address')
-            );
+            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $checkoutItems, $request, $selectedCart) {
+                $order = app(OrderPlacement::class)->place(
+                    $user,
+                    $checkoutItems,
+                    $request->input('payment_method'),
+                    $request->input('delivery_address')
+                );
+                app(\App\Services\BuyerCart::class)->remove(array_keys($selectedCart));
+                return $order;
+            });
         } catch (\RuntimeException $e) {
             return redirect()->route('cart.index')->with('info', $e->getMessage());
         }
-
-        session()->forget('cart');
 
         try {
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();

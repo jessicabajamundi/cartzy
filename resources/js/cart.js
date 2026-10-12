@@ -28,7 +28,9 @@ window.showToast = function(message, type = 'success') {
 
 // ─── Update Cart Badge ─────────────────────────────────────────────────────
 window.updateCartBadge = function(count) {
+    window.updateBuyerNavCount?.('cart', count);
     document.querySelectorAll('.cart-badge-count').forEach(badge => {
+        if (badge.hasAttribute('data-buyer-count')) return;
         badge.textContent = count;
         if (count > 0) {
             badge.classList.remove('hidden');

@@ -13,7 +13,7 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = Session::get('cart', []);
+        $cart = app(\App\Services\BuyerCart::class)->all();
         $subtotal = 0;
 
         foreach ($cart as $item) {
@@ -28,7 +28,7 @@ class CartController extends Controller
     }
 
     /**
-     * Add an item to the cart (Session-based).
+     * Add an item to the buyer's saved cart.
      */
     public function add(Request $request)
     {
@@ -60,15 +60,12 @@ class CartController extends Controller
         $variation = $validated['variation'] ?? 'Standard';
         $quantity = (int) ($validated['quantity'] ?? 1);
 
-        $cart = Session::get('cart', []);
+        $cart = app(\App\Services\BuyerCart::class)->all();
 
         // Key by product ID + variation
         $cartKey = $id . '_' . md5($variation);
 
-        if (isset($cart[$cartKey])) {
-            $cart[$cartKey]['quantity'] += $quantity;
-        } else {
-            $cart[$cartKey] = [
+        app(\App\Services\BuyerCart::class)->add($cartKey, [
                 'id'        => $id,
                 'cart_key'  => $cartKey,
                 'name'      => $name,
@@ -76,10 +73,8 @@ class CartController extends Controller
                 'image'     => $image,
                 'variation' => $variation,
                 'quantity'  => $quantity,
-            ];
-        }
-
-        Session::put('cart', $cart);
+            ]);
+        $cart = app(\App\Services\BuyerCart::class)->all();
 
         $totalCount = array_sum(array_column($cart, 'quantity'));
 
@@ -105,12 +100,12 @@ class CartController extends Controller
             'quantity' => 'required|integer|min:1|max:99',
         ]);
 
-        $cart = Session::get('cart', []);
+        $cart = app(\App\Services\BuyerCart::class)->all();
         $key = $validated['cart_key'];
 
         if (isset($cart[$key])) {
-            $cart[$key]['quantity'] = (int) $validated['quantity'];
-            Session::put('cart', $cart);
+            app(\App\Services\BuyerCart::class)->quantity($key, (int) $validated['quantity']);
+            $cart = app(\App\Services\BuyerCart::class)->all();
         }
 
         $totalCount = array_sum(array_column($cart, 'quantity'));
@@ -140,12 +135,12 @@ class CartController extends Controller
             'cart_key' => 'required|string',
         ]);
 
-        $cart = Session::get('cart', []);
+        $cart = app(\App\Services\BuyerCart::class)->all();
         $key = $validated['cart_key'];
 
         if (isset($cart[$key])) {
-            unset($cart[$key]);
-            Session::put('cart', $cart);
+            app(\App\Services\BuyerCart::class)->remove([$key]);
+            $cart = app(\App\Services\BuyerCart::class)->all();
         }
 
         $totalCount = array_sum(array_column($cart, 'quantity'));
@@ -167,7 +162,7 @@ class CartController extends Controller
      */
     public function clear(Request $request)
     {
-        Session::forget('cart');
+        app(\App\Services\BuyerCart::class)->clear();
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -179,5 +174,15 @@ class CartController extends Controller
         }
 
         return redirect()->route('cart.index')->with('success', 'Cart cleared.');
+    }
+
+    public function selection(Request $request)
+    {
+        $data = $request->validate([
+            'selected_items' => ['present', 'array'],
+            'selected_items.*' => ['required', 'string', 'distinct'],
+        ]);
+        app(\App\Services\BuyerCart::class)->select($data['selected_items']);
+        return response()->json(['success' => true]);
     }
 }

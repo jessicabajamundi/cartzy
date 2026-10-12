@@ -3,21 +3,17 @@
 @section('title', 'Shopping Cart | cartzy')
 
 @section('content')
-<div class="bg-gray-100/70 min-h-[calc(100vh-220px)] py-8 sm:py-10 w-full">
-    <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+@include('buyer.partials.commerce-style')
+<div class="commerce-cart min-h-[calc(100vh-220px)] py-8 sm:py-10 w-full">
+    <div class="commerce-page w-full mx-auto px-4 sm:px-6 lg:px-8">
         
         {{-- Page Header --}}
-        <div class="flex items-center justify-between pb-6 mb-6 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <span class="w-1.5 h-6 bg-[#6F6382] rounded-full"></span>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-                    Shopping Cart
-                </h1>
-                <span class="bg-[#6F6382] text-white text-xs font-bold px-2.5 py-0.5 rounded-full shadow-xs" id="cart-items-count-badge">
-                    {{ array_sum(array_column($cart, 'quantity')) }} items
-                </span>
+        <div class="commerce-heading">
+            <div>
+                <p class="commerce-eyebrow">YOUR NEXT FINDS</p>
+                <div class="flex flex-wrap items-center gap-3"><h1>Shopping Cart</h1><span class="commerce-count" id="cart-items-count-badge">{{ array_sum(array_column($cart, 'quantity')) }} items</span></div>
+                <p>Review your picks and make them yours.</p>
             </div>
-
             @if(count($cart) > 0)
                 <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear your entire cart?');">
                     @csrf
@@ -39,7 +35,13 @@
             </div>
         @endif
 
+        @if(session('info') || $errors->any())
+            <p class="mb-4 text-sm text-rose-600" role="alert">{{ session('info') ?: $errors->first() }}</p>
+        @endif
         @if(count($cart) > 0)
+            <form id="cart-checkout-form" action="{{ route('checkout') }}" method="GET" data-selection-url="{{ route('cart.selection') }}">
+                <input type="hidden" name="selection" value="1">
+            </form>
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {{-- Left: Cart Items List --}}
@@ -47,7 +49,10 @@
                     <div class="bg-white rounded-3xl border border-gray-200/90 shadow-2xs overflow-hidden">
                         {{-- Table Header --}}
                         <div class="grid grid-cols-12 gap-4 p-4 sm:p-5 bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <div class="col-span-6">Product</div>
+                            <div class="col-span-6 flex items-center gap-3">
+                                <input type="checkbox" id="cart-select-all" checked aria-label="Select all items" style="width:18px;height:18px;accent-color:#6F6382;cursor:pointer;flex-shrink:0">
+                                <label for="cart-select-all" class="cursor-pointer">Select all</label>
+                            </div>
                             <div class="col-span-2 text-center">Unit Price</div>
                             <div class="col-span-2 text-center">Quantity</div>
                             <div class="col-span-2 text-right">Total</div>
@@ -59,6 +64,7 @@
                                 <div class="p-4 sm:p-5 grid grid-cols-12 gap-4 items-center hover:bg-gray-50/50 transition" id="cart-row-{{ $key }}">
                                     {{-- Product Info --}}
                                     <div class="col-span-6 flex items-center gap-3 sm:gap-4">
+                                        <input type="checkbox" name="selected_items[]" value="{{ $key }}" form="cart-checkout-form" class="cart-item-checkbox" @checked($item['selected'] ?? true) data-price="{{ $item['price'] }}" data-quantity="{{ $item['quantity'] }}" aria-label="Select {{ $item['name'] }}, {{ $item['variation'] }}" style="width:18px;height:18px;accent-color:#6F6382;cursor:pointer;flex-shrink:0">
                                         <img src="{{ $item['image'] }}" alt="{{ $item['name'] }}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-2xl border border-gray-100 shrink-0 bg-gray-50">
                                         <div class="min-w-0 flex-1">
                                             <h3 class="font-bold text-xs sm:text-sm text-gray-900 line-clamp-2 leading-snug">
@@ -120,40 +126,40 @@
 
                 {{-- Right: Order Summary --}}
                 <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-32">
-                    <div class="bg-white rounded-3xl p-6 border border-gray-200/90 shadow-2xs space-y-5">
+                    <div class="cart-summary bg-white rounded-3xl p-6 border border-gray-200/90 shadow-2xs space-y-5">
                         <h2 class="text-lg font-extrabold text-gray-900 pb-3 border-b border-gray-100">
                             Order Summary
+                            <span id="cart-selected-count" class="block text-xs font-medium text-gray-500 mt-1" aria-live="polite"></span>
                         </h2>
 
                         <div class="space-y-3 text-xs sm:text-sm">
                             <div class="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span class="font-bold text-gray-900">₱{{ number_format($subtotal, 2) }}</span>
+                                <span id="cart-selected-subtotal" class="font-bold text-gray-900">₱{{ number_format($subtotal, 2) }}</span>
                             </div>
 
                             <div class="flex justify-between text-gray-600">
                                 <span>Shipping Fee</span>
-                                <span class="font-bold text-gray-900">₱{{ number_format($shippingFee, 2) }}</span>
+                                <span id="cart-selected-shipping" class="font-bold text-gray-900">₱{{ number_format($shippingFee, 2) }}</span>
                             </div>
 
-                            @if($discount > 0)
-                                <div class="flex justify-between text-emerald-600 font-bold">
+                                <div id="cart-discount-row" class="flex justify-between text-emerald-600 font-bold" style="display:{{ $discount > 0 ? 'flex' : 'none' }}">
                                     <span>Voucher Discount</span>
-                                    <span>-₱{{ number_format($discount, 2) }}</span>
+                                    <span id="cart-selected-discount">-₱{{ number_format($discount, 2) }}</span>
                                 </div>
-                            @endif
 
                             <div class="pt-3 border-t border-gray-100 flex justify-between items-baseline">
                                 <span class="text-sm font-bold text-gray-900">Total Amount</span>
-                                <span class="text-xl sm:text-2xl font-black text-gray-900">₱{{ number_format($total, 2) }}</span>
+                                <span id="cart-selected-total" class="text-xl sm:text-2xl font-black text-gray-900">₱{{ number_format($total, 2) }}</span>
                             </div>
                         </div>
 
                         <div class="pt-2">
-                            <a href="{{ route('checkout') }}" class="w-full bg-[#6F6382] hover:bg-[#564B68] text-white py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md shadow-[#6F6382]/25 transition-all duration-200 cursor-pointer active:scale-98">
+                            <button type="submit" form="cart-checkout-form" id="cart-checkout-button" class="disabled:opacity-50 disabled:cursor-not-allowed w-full bg-[#6F6382] hover:bg-[#564B68] text-white py-3.5 px-6 rounded-2xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 shadow-md shadow-[#6F6382]/25 transition-all duration-200 cursor-pointer active:scale-98">
                                 <span>Proceed to Checkout</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                            </a>
+                            </button>
+                            <p id="cart-selection-hint" class="text-xs text-gray-500 text-center mt-2" aria-live="polite"></p>
                             <p class="text-[11px] text-gray-400 text-center mt-2.5 inline-flex items-center justify-center gap-1 w-full">
                                 <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                 <span>Secure checkout with 100% Buyer Protection</span>
@@ -164,24 +170,22 @@
 
             </div>
         @else
-            {{-- Empty Cart State --}}
-            <div class="bg-white rounded-3xl border border-gray-200/90 shadow-2xs p-12 text-center max-w-xl mx-auto my-8">
-                <div class="w-20 h-20 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                </div>
-                <h2 class="text-xl font-extrabold text-gray-900">Your Shopping Cart is Empty</h2>
-                <p class="text-xs sm:text-sm text-gray-500 mt-2 max-w-sm mx-auto">
-                    Looks like you haven't added any products to your cart yet. Explore our featured deals and popular categories!
-                </p>
-                <div class="mt-6">
-                    <a href="/" class="inline-flex items-center gap-2 bg-black hover:bg-zinc-800 text-white font-bold text-sm px-8 py-3.5 rounded-2xl shadow-2xs transition">
-                        <span>Start Shopping Now</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                    </a>
-                </div>
-            </div>
+            @include('buyer.partials.commerce-empty', [
+                'emptyPath' => 'M16 9V7a4 4 0 0 0-8 0v2M5 9h14l1 12H4L5 9ZM9 13v1m6-1v1',
+                'eyebrow' => 'A LITTLE ROOM FOR SOMETHING GOOD',
+                'title' => 'Your cart is waiting for you',
+                'text' => 'Discover your next favorite. Add the products you love, then find them all right here when you are ready.',
+                'cta' => 'Explore products',
+                'href' => route('home'),
+                'note' => 'Already saved something you love? Find it in your wishlist.'
+            ])
+            <div class="mt-4 text-center"><a href="{{ route('buyer.dashboard', ['tab' => 'wishlist']) }}" class="text-xs font-bold text-[#8C5A50] hover:underline">View my wishlist &rarr;</a></div>
         @endif
 
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/cart-selection.js') }}?v={{ filemtime(public_path('js/cart-selection.js')) }}" defer></script>
+@endpush

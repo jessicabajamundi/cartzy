@@ -14,11 +14,14 @@ class CartItem extends Model
         'product_variant_id',
         'quantity',
         'selected',
+        'cart_key',
+        'snapshot',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'selected' => 'boolean',
+        'snapshot' => 'array',
     ];
 
     public function cart()
