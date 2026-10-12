@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Share cart items and active categories with all views
         View::composer('*', function ($view) {
-            $cart = Session::get('cart', []);
+            $cart = app(\App\Services\BuyerCart::class)->all();
             $view->with('cartItems', array_values($cart));
             $view->with('cartCount', array_sum(array_column($cart, 'quantity')));
 

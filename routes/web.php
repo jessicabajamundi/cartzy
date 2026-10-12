@@ -21,6 +21,7 @@ Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cart/selection', [CartController::class, 'selection'])->middleware('auth')->name('cart.selection');
 
 // Quick Demo Login (Works 100% without XAMPP MySQL Database)
 Route::get('/demo-login/{role?}', [AuthController::class, 'demoLogin'])->name('demo.login');
@@ -100,6 +101,7 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
 
 // Authenticated Routes for Buyer, Seller & Courier
 Route::middleware('auth')->group(function () {
+    Route::get('/buyer/navigation-counts', \App\Http\Controllers\Buyer\NavigationCountsController::class)->middleware('role:buyer')->name('buyer.navigation-counts');
     
     // Buyer Dashboard
     Route::get('/dashboard', [BuyerDashboardController::class, 'index'])->name('buyer.dashboard');
@@ -135,6 +137,8 @@ Route::middleware('auth')->group(function () {
 
     // Seller portal uses the authenticated account.
     Route::middleware('role:seller')->prefix('seller')->name('seller.')->group(function () {
+        Route::get('/notifications', [\App\Http\Controllers\Seller\NotificationController::class, 'index'])->name('notifications');
+        Route::post('/notifications/{id}/read', [\App\Http\Controllers\Seller\NotificationController::class, 'read'])->name('notifications.read');
         // 1. Dashboard Overview (Stats, Charts)
         Route::get('/', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard']);
         Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard'])->name('dashboard');
@@ -142,6 +146,7 @@ Route::middleware('auth')->group(function () {
         // 2. Order management and packing slips
         Route::get('/orders', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orders'])->name('orders');
         Route::post('/orders/{id}/pack', [\App\Http\Controllers\Seller\SellerPortalController::class, 'packOrder'])->name('orders.pack');
+        Route::post('/orders/{id}/cancellation', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reviewCancellation'])->name('orders.cancellation');
         Route::get('/orders/{id}/waybill', [\App\Http\Controllers\Seller\SellerPortalController::class, 'printWaybill'])->name('orders.waybill');
 
         // 3. Courier Handover & Shipment Tracking
@@ -157,6 +162,11 @@ Route::middleware('auth')->group(function () {
 
         // 6. Products, variants, stock and visibility
         Route::get('/inventory', [\App\Http\Controllers\Seller\SellerPortalController::class, 'inventory'])->name('inventory');
+        Route::get('/products', [\App\Http\Controllers\Seller\SellerPortalController::class, 'inventory'])->name('products');
+        Route::post('/products/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addProduct'])->name('products.add');
+        Route::post('/products/{id}/update', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProduct'])->name('products.update');
+        Route::post('/products/{id}/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'toggleArchiveProduct'])->name('products.archive');
+        Route::post('/inventory/{id}/stock', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateStock'])->name('inventory.stock');
         Route::post('/inventory/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addProduct'])->name('inventory.add');
         Route::post('/inventory/{id}/update', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProduct'])->name('inventory.update');
         Route::post('/inventory/{id}/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'toggleArchiveProduct'])->name('inventory.archive');
@@ -186,7 +196,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Logistics / Sorting Center Portal Routes
-Route::middleware(['auth', 'role:logistics'])->prefix('logistics')->name('logistics.')->group(function () {
+Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logistics')->name('logistics.')->group(function () {
     // 1. Dashboard
     Route::get('/', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard']);
     Route::get('/dashboard', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard'])->name('dashboard');
