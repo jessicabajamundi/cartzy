@@ -19,8 +19,12 @@
         <nav aria-label="{{ $sellerMode ? 'Seller' : 'Buyer' }} navigation">
             <span class="nav-label">WORKSPACE</span>
             @if($sellerMode)
-                @foreach(['dashboard' => ['Overview','grid'], 'orders' => ['Orders','bag'], 'inventory' => ['Inventory','box'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'chat' => ['Messages','chat'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'account' => ['Store settings','settings']] as $key => [$label,$icon])
-                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ request()->routeIs('seller.'.$key.'*') ? 'active' : '' }}" @if(request()->routeIs('seller.'.$key.'*')) aria-current="page" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
+                @foreach(['dashboard' => ['Overview','grid'], 'orders' => ['Orders','bag'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'chat' => ['Messages','chat'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'account' => ['Store settings','settings']] as $key => [$label,$icon])
+                    @php($navActive = request()->routeIs('seller.'.$key.'*'))
+                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
+                    @if($key === 'dashboard')
+                        @include('seller.partials.workspace-notifications')
+                    @endif
                 @endforeach
             @else
                 <a class="nav-link" href="{{ route('buyer.dashboard') }}">@include('seller.partials.icon', ['name' => 'grid'])My account</a>
@@ -30,7 +34,7 @@
         <div class="sidebar-footer"><small>Signed in as</small><strong>{{ auth()->user()->name }}</strong><form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit">Sign out &rarr;</button></form></div>
     </aside>
     <div class="workspace">
-        <header class="topbar"><div class="inline"><button class="icon-button mobile-menu" id="menu-toggle" aria-controls="seller-sidebar" aria-expanded="false" aria-label="Toggle navigation">☰</button><span class="muted">{{ $sellerMode ? 'Seller workspace' : 'Buyer workspace' }}</span><span class="breadcrumb">/</span><strong>@yield('page_title', 'Overview')</strong></div><a class="button small secondary" href="{{ route('home') }}">Marketplace ↗</a></header>
+        <header class="topbar"><div class="inline"><button class="icon-button mobile-menu" id="menu-toggle" aria-controls="seller-sidebar" aria-expanded="false" aria-label="Toggle navigation">☰</button><span class="muted">{{ $sellerMode ? 'Seller workspace' : 'Buyer workspace' }}</span><span class="breadcrumb">/</span><strong>@yield('page_title', 'Overview')</strong></div>@unless($sellerMode) @include('layouts.partials.account-navigation') @endunless<a class="button small secondary" href="{{ route('home') }}">Marketplace ↗</a></header>
         <main id="main">
             @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="notice error" role="alert"><strong>Please check your entries.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
@@ -43,6 +47,22 @@
                 </div>
             @elseif($sellerMode && !$shop && !request()->routeIs('seller.account*'))
                 <div class="notice">Finish setting up your store to start managing products. <a href="{{ route('seller.account') }}">Set up store &rarr;</a></div>
+            @endif
+            @if($sellerMode && ($stockAlertCount ?? 0) > 0)
+                <section class="notice stock-alert" role="alert" aria-label="Stock alert">
+                    <strong>Stock alert: {{ $stockAlertCount }} {{ $stockAlertCount === 1 ? 'variation needs' : 'variations need' }} restocking</strong>
+                    <p>May stock na 10 o mas kaunti. Mag-restock para tuloy ang benta.</p>
+                    <ul>
+                        @foreach($stockAlerts as $stockAlert)
+                            <li>
+                                <a href="{{ route('seller.inventory', ['search' => $stockAlert->sku]) }}">{{ $stockAlert->product->name }} — {{ $stockAlert->name }}</a>:
+                                <strong>{{ $stockAlert->stock > 0 ? $stockAlert->stock.' left' : 'Out of stock' }}</strong>
+                            </li>
+                        @endforeach
+                    </ul>
+                    @if($stockAlertCount > $stockAlerts->count())<p>Showing {{ $stockAlerts->count() }} of {{ $stockAlertCount }} variations.</p>@endif
+                    <a class="button small secondary" href="{{ route('seller.inventory') }}">Manage stock &rarr;</a>
+                </section>
             @endif
             @yield('content')
         </main>
@@ -59,5 +79,7 @@ document.addEventListener('keydown', event => {
 });
 </script>
 @stack('scripts')
+@if($sellerMode)<script src="{{ asset('js/seller-notifications.js') }}?v={{ filemtime(public_path('js/seller-notifications.js')) }}" defer></script>@endif
+@include('partials.prevent-back-cache')
 </body>
 </html>

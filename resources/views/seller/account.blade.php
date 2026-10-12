@@ -98,7 +98,7 @@
 
             <label class="full">
                 Contact No. (Store hotline / Mobile) <span style="color:#ef4444">*</span>
-                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" maxlength="20" placeholder="09171234567" oninput="this.value = this.value.replace(/\D/g, '')" required>
+                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" placeholder="09171234567" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" required>
             </label>
 
             <label class="full">
@@ -136,7 +136,7 @@
 
             <label>
                 Middle initial
-                <input type="text" name="middle_initial" value="{{ old('middle_initial', $user->middle_initial) }}" maxlength="5" placeholder="e.g. M.">
+                <input type="text" name="middle_initial" value="{{ old('middle_initial', $user->middle_initial) }}" maxlength="50" placeholder="e.g. Ñ. or M.">
             </label>
 
             <label>
@@ -151,7 +151,8 @@
 
             <label>
                 Birthday <span style="color:#ef4444">*</span>
-                <input type="date" name="birthday" id="owner_birthday" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}" max="{{ date('Y-m-d', strtotime('-1 day')) }}" required onchange="calculateSellerAge(this.value)">
+                <input type="date" name="birthday" id="owner_birthday" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" required onchange="calculateSellerAge(this.value)">
+                <small>You must be at least 18 years old.</small>
             </label>
 
             <label>
@@ -308,7 +309,7 @@
 
             <label>
                 Phone number <span style="color:#ef4444">*</span>
-                <input type="tel" name="phone" value="{{ $valPhone }}" required maxlength="20" placeholder="e.g. 09171234567" oninput="this.value = this.value.replace(/\D/g, '')">
+                <input type="tel" name="phone" value="{{ $valPhone }}" required maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" placeholder="e.g. 09171234567" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)">
             </label>
 
             <!-- Cascading Philippine Address (PSGC API) -->
@@ -360,7 +361,7 @@
 
             <label>
                 Postal code <span style="color:#ef4444">*</span>
-                <input type="text" name="postal_code" value="{{ $valPostal }}" required maxlength="15" placeholder="e.g. 1000" oninput="this.value = this.value.replace(/\D/g, '')">
+                <input type="text" name="postal_code" value="{{ $valPostal }}" required minlength="4" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" title="Postal code must contain exactly 4 digits." placeholder="e.g. 1000" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 4)">
             </label>
 
             <div class="full" style="display:flex; justify-content:flex-end;">

@@ -29,6 +29,10 @@ class SellerOrder extends Model
         'status',
         'delivered_at',
         'note',
+        'cancellation_status',
+        'cancellation_reason',
+        'cancellation_requested_at',
+        'cancellation_reviewed_at',
     ];
 
     protected $casts = [
@@ -36,6 +40,8 @@ class SellerOrder extends Model
         'shipping_fee_minor' => 'integer',
         'commission_minor' => 'integer',
         'delivered_at' => 'datetime',
+        'cancellation_requested_at' => 'datetime',
+        'cancellation_reviewed_at' => 'datetime',
     ];
 
     public function order()

@@ -9,7 +9,7 @@
             <div class="inline"><select id="sales-period" name="period">@foreach($periodLabels as $value => $label)<option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>@endforeach</select><button type="submit" class="button secondary small">Apply</button></div>
         </form>
         <a class="button secondary" href="{{ route('seller.reports', $reportDates) }}">View reports ↗</a>
-        <a class="button" href="{{ route('seller.inventory', ['create' => 1]) }}#add-product">＋ Add product</a>
+        <a class="button" href="{{ route('seller.products', ['create' => 1]) }}#add-product">＋ Add product</a>
     </div>
 </div>
 <div class="overview-context"><span>Sales: {{ $periodLabel }} <span aria-hidden="true">·</span> Orders and inventory: current status</span><span>Updated at {{ $updatedAt }} PHT</span></div>
@@ -23,7 +23,7 @@
     <div class="metric featured"><div class="metric-top">Gross sales @include('seller.partials.icon',['name'=>'chart'])</div><div class="metric-value">₱{{ number_format($stats['sales']/100,2) }}</div><small>{{ $periodLabel }} · paid & delivered orders</small></div>
     <div class="metric"><div class="metric-top">Net sales @include('seller.partials.icon',['name'=>'chart'])</div><div class="metric-value">₱{{ number_format($stats['net']/100,2) }}</div><small>After recorded platform commission</small></div>
     <a class="metric" href="{{ route('seller.orders',['status'=>'to_prepare']) }}"><div class="metric-top">Orders to prepare @include('seller.partials.icon',['name'=>'bag'])</div><div class="metric-value">{{ number_format($stats['orders']) }}</div><small>Pending, accepted & packed orders</small></a>
-    <a class="metric" href="{{ route('seller.inventory',['tab'=>'active']) }}"><div class="metric-top">Active products @include('seller.partials.icon',['name'=>'box'])</div><div class="metric-value">{{ number_format($stats['products']) }}</div><small>Currently active in your inventory</small></a>
+    <a class="metric" href="{{ route('seller.products',['tab'=>'active']) }}"><div class="metric-top">Active products @include('seller.partials.icon',['name'=>'box'])</div><div class="metric-value">{{ number_format($stats['products']) }}</div><small>Currently active in your inventory</small></a>
 </div>
 <div class="two-column">
     <section class="panel"><div class="panel-header"><div><h2>Sales performance</h2><small>Paid sales by delivery date</small></div><span class="badge">{{ $periodLabel }}</span></div><div class="panel-body"><div class="sales-chart-scroll" tabindex="0" role="region" aria-label="Daily sales chart"><div style="min-width:{{ $chart->count() > 7 ? $chart->count() * 58 : 0 }}px"><div class="chart" role="img" aria-label="Sales — {{ $periodLabel }}: {{ $chart->map(fn($d) => $d['date'].': PHP '.number_format($d['sales']/100,2))->join('; ') }}">@foreach($chart as $day)<div class="chart-column"><span class="chart-value">₱{{ number_format($day['sales']/100,0) }}</span><div class="chart-bar" style="height:{{ $chart->max('sales') ? round($day['sales']/$chart->max('sales')*80) : 0 }}%"></div></div>@endforeach</div><div class="chart-labels">@foreach($chart as $day)<span>{{ $day['label'] }}</span>@endforeach</div></div></div><p class="chart-note">{{ $chart->sum('sales') ? 'Only paid, delivered or completed orders are included.' : 'No paid, delivered sales in this period yet.' }}</p></div></section>

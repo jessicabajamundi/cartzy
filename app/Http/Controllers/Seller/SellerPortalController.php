@@ -40,7 +40,16 @@ class SellerPortalController extends Controller
 
     private function page(string $name, array $data = [])
     {
-        return view('seller.'.$name, $data + ['shop' => $this->shop()]);
+        $shop = $this->shop();
+        $stockAlertQuery = \App\Models\ProductVariant::query()
+            ->where('is_active', true)->where('stock', '<=', 10)
+            ->whereHas('product', fn ($query) => $query->where('seller_id', $shop?->id ?? 0)->where('is_active', true));
+
+        return view('seller.'.$name, $data + [
+            'shop' => $shop,
+            'stockAlertCount' => (clone $stockAlertQuery)->count(),
+            'stockAlerts' => $stockAlertQuery->with('product')->orderBy('stock')->orderBy('id')->limit(5)->get(),
+        ]);
     }
 
     private function paidSales()
@@ -81,9 +90,11 @@ class SellerPortalController extends Controller
 
     public function orders(Request $request)
     {
-        $request->validate(['search' => 'nullable|string|max:150', 'status' => ['nullable', Rule::in(['all', 'to_prepare', 'pending', 'accepted', 'packed', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'])]]);
+        $request->validate(['search' => 'nullable|string|max:150', 'status' => ['nullable', Rule::in(['all', 'cancellation_requested', 'to_prepare', 'pending', 'accepted', 'packed', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'])]]);
         $query = $this->ordersQuery()->with(['order.buyer', 'items', 'shipment']);
-        if ($request->status === 'to_prepare') {
+        if ($request->status === 'cancellation_requested') {
+            $query->where('cancellation_status', 'pending');
+        } elseif ($request->status === 'to_prepare') {
             $query->whereIn('status', ['pending', 'accepted', 'packed']);
         } elseif ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
@@ -99,10 +110,16 @@ class SellerPortalController extends Controller
     {
         DB::transaction(function () use ($id) {
             $order = $this->ordersQuery()->lockForUpdate()->findOrFail($id);
+            abort_if($order->cancellation_status === 'pending', 422, 'Review the cancellation request before packing.');
             abort_unless(in_array($order->status, ['pending', 'accepted', 'packed']), 422, 'This order cannot be packed in its current status.');
             abort_if(in_array($order->order->payment_status, ['refunded', 'partially_refunded']), 422, 'A refunded order cannot be packed.');
             abort_if($order->order->payment_method !== 'cod' && $order->order->payment_status !== 'paid', 422, 'Payment must be received before packing.');
             $order->update(['status' => 'ready_to_ship']);
+            $order->shipment?->deliveryEvents()->firstOrCreate(['status' => 'packed', 'attempt' => 1], [
+                'user_id' => Auth::id(),
+                'note' => 'The seller packed the parcel and marked it ready for pickup.',
+                'occurred_at' => now(),
+            ]);
         });
 
         return back()->with('success', 'Order packed and ready for pickup.');
@@ -113,6 +130,46 @@ class SellerPortalController extends Controller
         $order = $this->ordersQuery()->with(['order.buyer', 'items', 'shipment.logisticsProvider', 'seller.pickupAddress'])->findOrFail($id);
 
         return $this->page('waybill', compact('order'));
+    }
+
+    public function reviewCancellation(Request $request, int $id)
+    {
+        $data = $request->validate(['decision' => ['required', Rule::in(['approved', 'rejected'])]]);
+        DB::transaction(function () use ($id, $data) {
+            $sellerOrder = $this->ordersQuery()->findOrFail($id);
+            $order = $sellerOrder->order()->lockForUpdate()->firstOrFail();
+            $sellerOrder = $this->ordersQuery()->lockForUpdate()->findOrFail($id);
+            $sellerOrder->setRelation('shipment', $sellerOrder->shipment()->lockForUpdate()->first());
+            abort_unless($sellerOrder->cancellation_status === 'pending', 422, 'There is no pending cancellation request.');
+            if ($data['decision'] === 'approved') {
+                abort_unless($sellerOrder->canBeCancelledByBuyer(), 422, 'This order has already been collected or completed. Cancellation cannot be approved.');
+                $note = 'Cancellation reason: '.$sellerOrder->cancellation_reason;
+                $sellerOrder->update([
+                    'status' => 'cancelled',
+                    'note' => trim(($sellerOrder->note ? $sellerOrder->note."\n" : '').$note),
+                ]);
+                if ($sellerOrder->shipment) {
+                    $sellerOrder->shipment->update(['cod_amount_minor' => 0]);
+                    $sellerOrder->shipment->deliveryEvents()->create([
+                        'status' => 'cancelled', 'attempt' => 1, 'user_id' => Auth::id(),
+                        'note' => 'Cancellation approved by seller. '.$note, 'occurred_at' => now(),
+                    ]);
+                }
+                if (!$order->sellerOrders()->where('status', '!=', 'cancelled')->exists()) {
+                    $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+                } elseif ($order->payment_status === 'pending') {
+                    $remaining = $order->sellerOrders()->where('status', '!=', 'cancelled')->get()
+                        ->sum(fn ($row) => $row->subtotal_minor + $row->shipping_fee_minor);
+                    $order->payments()->where('status', 'pending')->update(['amount_minor' => $remaining]);
+                }
+            }
+            $sellerOrder->update(['cancellation_status' => $data['decision'], 'cancellation_reviewed_at' => now()]);
+            $message = $data['decision'] === 'approved'
+                ? "Your cancellation for {$order->reference} was approved.".($order->payment_status === 'paid' ? ' Contact the seller to arrange your refund.' : '')
+                : "Your cancellation for {$order->reference} was declined. Your order remains active.";
+            \App\Services\NotificationService::notify($order->buyer_id, 'cancellation_'.$data['decision'], 'Cancellation '.$data['decision'], $message, route('buyer.dashboard', ['tab' => 'orders']));
+        });
+        return back()->with('success', 'Cancellation request '.$data['decision'].'.');
     }
 
     public function courier()
@@ -129,13 +186,20 @@ class SellerPortalController extends Controller
         DB::transaction(function () use ($id, $data) {
             $order = $this->ordersQuery()->lockForUpdate()->findOrFail($id);
             abort_unless($order->status === 'ready_to_ship', 422, 'Pack the order before requesting pickup.');
+            abort_if($order->cancellation_status === 'pending', 422, 'Review the cancellation request before scheduling pickup.');
             $shipment = $order->shipment;
             abort_if($shipment && $shipment->status !== 'unassigned', 422, 'This shipment has already been assigned to a courier.');
             $order->update(['logistics_provider_id' => $data['logistics_provider_id'], 'note' => 'Requested pickup: '.$data['pickup_date'].(! empty($data['notes']) ? "\n".$data['notes'] : '')]);
-            Shipment::updateOrCreate(['seller_order_id' => $order->id], [
+            $shipment = Shipment::updateOrCreate(['seller_order_id' => $order->id], [
                 'logistics_provider_id' => $data['logistics_provider_id'], 'tracking_code' => $shipment?->tracking_code ?? 'CTZ-'.Str::upper(Str::random(12)),
                 'status' => 'unassigned', 'fee_minor' => $order->shipping_fee_minor,
                 'cod_amount_minor' => $shipment?->cod_amount_minor ?? ($order->order->payment_method === 'cod' ? $order->subtotal_minor + $order->shipping_fee_minor : 0),
+            ]);
+            $shipment->deliveryEvents()->create([
+                'status' => 'pickup_requested', 'user_id' => Auth::id(),
+                'attempt' => ((int) $shipment->deliveryEvents()->where('status', 'pickup_requested')->max('attempt')) + 1,
+                'note' => 'Seller requested pickup on '.$data['pickup_date'].'. Awaiting courier confirmation.',
+                'occurred_at' => now(),
             ]);
         });
 
@@ -186,7 +250,7 @@ class SellerPortalController extends Controller
             $query->where('is_active', $request->tab === 'active');
         }
         if ($request->tab === 'low_stock') {
-            $query->where('is_active', true)->whereHas('variants', fn ($q) => $q->where('is_active', true)->where('stock', '<=', 10));
+            $query->where('is_active', true)->whereHas('variants', fn ($q) => $q->where('is_active', true)->where('stock', '>', 0)->where('stock', '<=', 10));
         }
         if ($request->tab === 'out_of_stock') {
             $query->where('is_active', true)->where(function ($q) {
@@ -197,7 +261,7 @@ class SellerPortalController extends Controller
             $query->where(fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')->orWhereHas('variants', fn ($v) => $v->where('sku', 'like', '%'.$request->search.'%')));
         }
 
-        return $this->page('inventory', [
+        return $this->page($request->routeIs('seller.products') ? 'products' : 'inventory', [
             'products' => $query->latest()->paginate(12)->withQueryString(),
             'categories' => Category::where('is_active', true)->orderBy('name')->get(),
             'stockStats' => $stockStats,
@@ -216,16 +280,36 @@ class SellerPortalController extends Controller
             ]);
         }
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255', 'description' => 'nullable|string|max:5000',
+        $hasVariants = $request->boolean('has_variants') && $request->has('variants') && is_array($request->input('variants'));
+
+        $rules = [
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:5000',
             'category_id' => ['required', Rule::exists('categories', 'id')->where('is_active', true)],
             'gender' => ['nullable', 'string', Rule::in(['unisex', 'men', 'women', 'kids'])],
             'badge' => ['nullable', 'string', 'max:60'],
-            'sku' => 'required|string|max:100|unique:product_variants,sku',
-            'price' => 'required|numeric|min:0.01|max:99999999.99', 'stock' => 'required|integer|min:0|max:1000000',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
-        DB::transaction(function () use ($data, $shop, $request) {
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:10240',
+        ];
+
+        if ($hasVariants) {
+            $rules['variants'] = 'required|array|min:1';
+            $rules['variants.*.name'] = 'required|string|max:255';
+            $rules['variants.*.sku'] = 'required|string|max:100|distinct|unique:product_variants,sku';
+            $rules['variants.*.price'] = 'required|numeric|min:0.01|max:99999999.99';
+            $rules['variants.*.stock'] = 'required|integer|min:0|max:1000000';
+            $rules['variants.*.color'] = 'nullable|string|max:50';
+            $rules['variants.*.image'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240';
+        } else {
+            $rules['sku'] = 'required|string|max:100|unique:product_variants,sku';
+            $rules['price'] = 'required|numeric|min:0.01|max:99999999.99';
+            $rules['stock'] = 'required|integer|min:0|max:1000000';
+        }
+
+        $data = $request->validate($rules);
+
+        DB::transaction(function () use ($data, $shop, $request, $hasVariants) {
             $product = $shop->products()->create([
                 'name' => $data['name'],
                 'description' => $data['description'] ?? null,
@@ -235,10 +319,66 @@ class SellerPortalController extends Controller
                 'slug' => Str::slug($data['name']).'-'.Str::lower(Str::random(10)),
                 'is_active' => true
             ]);
-            $product->variants()->create(['sku' => $data['sku'], 'name' => 'Standard', 'price_minor' => (int) round($data['price'] * 100), 'stock' => $data['stock'], 'is_active' => true]);
-            if ($request->hasFile('image')) {
-                $product->images()->create(['path' => $request->file('image')->store('products', 'public'), 'position' => 0]);
+
+            $firstVariantImage = null;
+
+            if ($hasVariants && !empty($data['variants'])) {
+                foreach ($data['variants'] as $idx => $v) {
+                    $variantImagePath = null;
+                    if ($request->hasFile("variants.{$idx}.image") && $request->file("variants.{$idx}.image")->isValid()) {
+                        $variantImagePath = $request->file("variants.{$idx}.image")->store('products/variants', 'public');
+                        if (!$firstVariantImage) {
+                            $firstVariantImage = $variantImagePath;
+                        }
+                    }
+
+                    $options = !empty($v['color']) ? ['color' => $v['color']] : null;
+
+                    $product->variants()->create([
+                        'name' => $v['name'],
+                        'sku' => $v['sku'],
+                        'price_minor' => (int) round($v['price'] * 100),
+                        'stock' => (int) $v['stock'],
+                        'image_path' => $variantImagePath,
+                        'options' => $options,
+                        'is_active' => true,
+                    ]);
+                }
+            } else {
+                $product->variants()->create([
+                    'sku' => $data['sku'],
+                    'name' => 'Standard',
+                    'price_minor' => (int) round($data['price'] * 100),
+                    'stock' => (int) $data['stock'],
+                    'is_active' => true,
+                ]);
             }
+
+            $position = 0;
+
+            if ($request->hasFile('image')) {
+                $product->images()->create([
+                    'path' => $request->file('image')->store('products', 'public'),
+                    'position' => $position++,
+                ]);
+            }
+
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $imgFile) {
+                    if ($position >= 10) break;
+                    if ($imgFile->isValid()) {
+                        $product->images()->create([
+                            'path' => $imgFile->store('products', 'public'),
+                            'position' => $position++,
+                        ]);
+                    }
+                }
+            }
+
+            if ($position === 0 && $firstVariantImage) {
+                $product->images()->create(['path' => $firstVariantImage, 'position' => 0]);
+            }
+            \App\Services\NotificationService::notify(Auth::id(), 'product_update', 'Product added', $product->name.' was added to your catalog.', route('seller.products', ['search' => $product->name]));
         });
 
         return back()->with('success', 'Product added to your inventory.');
@@ -262,22 +402,101 @@ class SellerPortalController extends Controller
             'badge' => ['nullable', 'string', 'max:60'],
             'variants' => 'required|array|min:1',
             'variants.*.id' => 'required|integer|distinct',
+            'variants.*.name' => 'nullable|string|max:255',
             'variants.*.price' => 'required|numeric|min:0.01|max:99999999.99',
-            'variants.*.stock' => 'required|integer|min:0|max:1000000'
+            'variants.*.stock' => $request->routeIs('seller.products.update') ? 'exclude' : 'required|integer|min:0|max:1000000',
+            'variants.*.image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'images' => 'nullable|array|max:10',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:10240',
+            'new_variants' => 'nullable|array',
+            'new_variants.*.name' => 'required_with:new_variants|string|max:255',
+            'new_variants.*.sku' => 'required_with:new_variants|string|max:100|distinct|unique:product_variants,sku',
+            'new_variants.*.price' => 'required_with:new_variants|numeric|min:0.01|max:99999999.99',
+            'new_variants.*.stock' => 'required_with:new_variants|integer|min:0|max:1000000',
+            'new_variants.*.image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
         ]);
-        DB::transaction(function () use ($product, $data) {
+        DB::transaction(function () use ($product, $data, $request) {
             $product->update([
                 'name' => $data['name'],
                 'description' => $data['description'] ?? null,
                 'gender' => $data['gender'] ?? 'unisex',
                 'badge' => !empty($data['badge']) ? $data['badge'] : null,
             ]);
-            foreach ($data['variants'] as $variant) {
-                $product->variants()->lockForUpdate()->findOrFail($variant['id'])->update(['price_minor' => (int) round($variant['price'] * 100), 'stock' => $variant['stock']]);
+            foreach ($data['variants'] as $idx => $variant) {
+                $v = $product->variants()->lockForUpdate()->findOrFail($variant['id']);
+                $updateData = [
+                    'price_minor' => (int) round($variant['price'] * 100),
+                ];
+                if (array_key_exists('stock', $variant)) $updateData['stock'] = (int) $variant['stock'];
+                if (!empty($variant['name'])) {
+                    $updateData['name'] = $variant['name'];
+                }
+                if ($request->hasFile("variants.{$idx}.image") && $request->file("variants.{$idx}.image")->isValid()) {
+                    $updateData['image_path'] = $request->file("variants.{$idx}.image")->store('products/variants', 'public');
+                }
+                $v->update($updateData);
+            }
+
+            if (!empty($data['new_variants'])) {
+                foreach ($data['new_variants'] as $nIdx => $newV) {
+                    if (empty($newV['name']) || empty($newV['sku'])) continue;
+                    $newImgPath = null;
+                    if ($request->hasFile("new_variants.{$nIdx}.image") && $request->file("new_variants.{$nIdx}.image")->isValid()) {
+                        $newImgPath = $request->file("new_variants.{$nIdx}.image")->store('products/variants', 'public');
+                    }
+                    $product->variants()->create([
+                        'name' => $newV['name'],
+                        'sku' => $newV['sku'],
+                        'price_minor' => (int) round($newV['price'] * 100),
+                        'stock' => (int) $newV['stock'],
+                        'image_path' => $newImgPath,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
+            if ($request->hasFile('images')) {
+                $currPos = (int) $product->images()->max('position') + 1;
+                $currCount = $product->images()->count();
+                foreach ($request->file('images') as $imgFile) {
+                    if ($currCount >= 10) break;
+                    if ($imgFile->isValid()) {
+                        $product->images()->create([
+                            'path' => $imgFile->store('products', 'public'),
+                            'position' => $currPos++,
+                        ]);
+                        $currCount++;
+                    }
+                }
             }
         });
 
-        return back()->with('success', 'Product and stock levels updated.');
+        \App\Services\NotificationService::notify(Auth::id(), 'product_update', 'Product updated', $product->name.' details or variations were updated.', route('seller.products', ['search' => $product->name]));
+
+        return back()->with('success', 'Product changes saved.');
+    }
+
+    public function updateStock(Request $request, int $id)
+    {
+        abort_unless(Auth::user()->status === 'active' && $this->shop()?->isApproved(), 403, 'An approved store is required to update stock.');
+        $product = $this->productsQuery()->findOrFail($id);
+        $data = $request->validate([
+            'variants' => 'required|array|min:1',
+            'variants.*.id' => 'required|integer|distinct',
+            'variants.*.stock' => 'required|integer|min:0|max:1000000',
+            'variants.*.previous_stock' => 'required|integer|min:0',
+        ]);
+        DB::transaction(function () use ($product, $data) {
+            foreach (collect($data['variants'])->sortBy('id') as $row) {
+                $variant = $product->variants()->lockForUpdate()->findOrFail($row['id']);
+                if ((int) $variant->stock !== (int) $row['previous_stock']) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['stock' => 'Stock changed since this page was opened. Refresh the page and try again.']);
+                }
+                $variant->update(['stock' => $row['stock']]);
+            }
+        });
+        \App\Services\NotificationService::notify(Auth::id(), 'product_update', 'Stock updated', $product->name.' stock quantities were updated.', route('seller.inventory', ['search' => $product->name]));
+        return back()->with('success', 'Stock quantities updated.');
     }
 
     public function toggleArchiveProduct(int $id)
@@ -293,6 +512,7 @@ class SellerPortalController extends Controller
         DB::transaction(function () use ($id) {
             $product = $this->productsQuery()->lockForUpdate()->findOrFail($id);
             $product->update(['is_active' => ! $product->is_active]);
+            \App\Services\NotificationService::notify(Auth::id(), 'product_update', 'Product visibility updated', $product->name.($product->is_active ? ' is now active.' : ' was archived.'), route('seller.products', ['tab' => $product->is_active ? 'active' : 'archived', 'search' => $product->name]));
         });
 
         return back()->with('success', 'Product visibility updated.');
@@ -331,17 +551,21 @@ class SellerPortalController extends Controller
         $data = $request->validate([
             'store_name'       => 'required|string|max:255',
             'description'      => 'nullable|string|max:5000',
-            'phone'            => 'nullable|string|max:30',
+            'phone'            => ['nullable', 'string', 'regex:/\A[0-9]+\z/', 'max:11'],
             'line_of_business' => 'nullable|string|max:150',
+            'name'             => 'nullable|string|max:255',
             'first_name'       => 'nullable|string|max:120',
             'last_name'        => 'nullable|string|max:120',
-            'middle_initial'   => 'nullable|string|max:5',
+            'middle_initial'   => 'nullable|string|max:50',
             'sex'              => 'nullable|string|in:Male,Female,Prefer not to say',
-            'birthday'         => 'nullable|date|before:today',
+            'birthday'         => ['nullable', 'bail', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYearsNoOverflow(18)->toDateString()],
             'id_type'          => 'nullable|string|max:100',
             'id_number'        => 'nullable|string|max:100',
             'id_photo'         => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'dti_permit'       => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ], [
+            'birthday.date_format' => 'Please enter a valid birthday.',
+            'birthday.before_or_equal' => 'You must be at least 18 years old.',
         ]);
 
         DB::transaction(function () use ($request, $data) {
@@ -355,9 +579,11 @@ class SellerPortalController extends Controller
                 $age = max(0, (int) \Carbon\Carbon::parse($data['birthday'])->age);
             }
 
-            // Name combination if first_name / last_name submitted
+            // Name combination: preserve exactly as typed (including ñ/Ñ and multibyte characters)
             $fullName = $user->name;
-            if (!empty($data['first_name']) || !empty($data['last_name'])) {
+            if (!empty($data['name'])) {
+                $fullName = trim($data['name']);
+            } elseif (!empty($data['first_name']) || !empty($data['last_name'])) {
                 $combined = trim(($data['first_name'] ?? '') . ' ' . ($data['last_name'] ?? ''));
                 if ($combined) {
                     $fullName = $combined;
@@ -420,12 +646,12 @@ class SellerPortalController extends Controller
         abort_unless($shop, 422, 'Save your store profile first.');
         $data = $request->validate([
             'recipient'   => 'required|string|max:255',
-            'phone'       => 'required|string|max:30',
+            'phone'       => ['required', 'string', 'regex:/\A[0-9]+\z/', 'max:11'],
             'line1'       => 'required|string|max:500',
             'barangay'    => 'required|string|max:255',
             'city'        => 'required|string|max:255',
             'province'    => 'required|string|max:255',
-            'postal_code' => 'required|string|max:15',
+            'postal_code' => ['required', 'string', 'regex:/\A[0-9]{4}\z/'],
             'region'      => 'nullable|string|max:100',
         ]);
 
