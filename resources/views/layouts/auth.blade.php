@@ -470,5 +470,6 @@
     @endif
 
     @stack('scripts')
+    @include('partials.prevent-back-cache')
 </body>
 </html>

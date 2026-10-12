@@ -11,12 +11,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [\App\Http\Middleware\EnsureAccountActive::class, \Illuminate\Session\Middleware\AuthenticateSession::class]);
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo(fn () => auth()->user() ? route(auth()->user()->getDashboardRoute()) : '/');
+
+        $middleware->append(\App\Http\Middleware\PreventBackHistory::class);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureAccountActive::class,
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
+        ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'admin.demo' => \App\Http\Middleware\AdminDemoAuthMiddleware::class,
             'seller.demo' => \App\Http\Middleware\SellerDemoAuthMiddleware::class,
             'logistics.demo' => \App\Http\Middleware\LogisticsDemoAuthMiddleware::class,
+            'prevent-back-history' => \App\Http\Middleware\PreventBackHistory::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
