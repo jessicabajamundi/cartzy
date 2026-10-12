@@ -94,6 +94,13 @@ class AdminPortalController extends Controller
             foreach (['seller', 'logisticsProvider'] as $relation) {
                 $user->$relation()->update(['status' => $approved ? 'approved' : 'rejected', 'rejection_reason' => $approved ? null : $data['reason']]);
             }
+            if ($user->buyer) {
+                $user->buyer()->update([
+                    'id_status' => $approved ? 'verified' : 'rejected',
+                    'id_verified_at' => $approved ? now() : null,
+                    'id_rejection_reason' => $approved ? null : $data['reason'],
+                ]);
+            }
             $this->audit('Registration reviewed', $user->name.' — '.$data['status']);
 
             // In-app notification
@@ -140,6 +147,7 @@ class AdminPortalController extends Controller
             abort_if($data['status'] === 'active' && in_array($user->status, ['pending', 'rejected']), 422, 'Review the registration before activating this account.');
             $user->update(['status' => $data['status'], 'is_suspended' => $data['status'] !== 'active']);
             $user->rider()->update(['is_active' => $data['status'] === 'active']);
+            $user->buyer()->update(['status' => $data['status']]);
             $this->audit('Account status changed', $user->name.' — '.$data['status']);
         });
         return back()->with('success', 'Account status saved.');
@@ -160,6 +168,11 @@ class AdminPortalController extends Controller
         DB::transaction(function () use ($id, $data) {
             $product = Product::findOrFail($id);
             $product->update(['is_active' => $data['action'] === 'activate']);
+            if ($product->seller?->user_id) {
+                NotificationService::notify($product->seller->user_id, 'product_update', 'Product visibility updated by admin',
+                    $product->name.($product->is_active ? ' was activated by admin.' : ' was suspended by admin.'),
+                    route('seller.products', ['tab' => $product->is_active ? 'active' : 'archived', 'search' => $product->name]));
+            }
             $this->audit('Product visibility changed', $product->name.' — '.($product->is_active ? 'active' : 'inactive'));
         });
         return back()->with('success', 'Product visibility saved.');

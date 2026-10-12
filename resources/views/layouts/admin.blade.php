@@ -56,5 +56,6 @@
 </div>
 <script src="{{ asset('js/admin/admin.js') }}?v={{ filemtime(public_path('js/admin/admin.js')) }}" defer></script>
 @stack('scripts')
+@include('partials.prevent-back-cache')
 </body>
 </html>
