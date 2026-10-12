@@ -78,6 +78,10 @@ class CatalogStoreTest extends TestCase
         $cancelled = $order->sellerOrders->first();
         $remaining = $order->sellerOrders->last();
         $this->actingAs($buyer)->post(route('orders.cancel', $cancelled->id), ['reason' => 'I changed my mind'])->assertSessionHasNoErrors();
+        $this->flushSession();
+        $this->actingAs($cancelled->seller->user)->post(route('seller.orders.cancellation', $cancelled->id), ['decision' => 'approved'])->assertRedirect()->assertSessionHasNoErrors();
+        $this->flushSession();
+        $this->actingAs($buyer);
         $this->post(route('orders.pay', $order->reference))->assertSessionHasNoErrors();
         $this->assertDatabaseHas('payments', [
             'order_id' => $order->id, 'status' => 'paid',
