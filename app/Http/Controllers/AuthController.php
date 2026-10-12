@@ -16,6 +16,52 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    private function normalizeSellerContact(Request $request): void
+    {
+        if ($request->input('role') === User::ROLE_SELLER && is_string($request->input('email'))) {
+            $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        }
+        if (is_string($request->input('phone'))) {
+            $phone = trim($request->input('phone'));
+            if ($request->input('phone_country_code') === '+63' && preg_match('/\A9[0-9]{9}\z/', $phone)) {
+                $phone = '0' . $phone;
+            }
+            if (preg_match('/\A\+639[0-9]{9}\z/', $phone)) {
+                $phone = '0' . substr($phone, 3);
+            }
+            $request->merge(['phone' => $phone]);
+        }
+    }
+
+    private function sellerPhoneRules(): array
+    {
+        return [...$this->mobilePhoneRules(),
+            function ($attribute, $value, $fail) {
+                if (User::whereIn('phone', [$value, '+63' . substr($value, 1)])->exists()) {
+                    $fail('This mobile number is already in use.');
+                }
+            },
+        ];
+    }
+
+    private function mobilePhoneRules(): array
+    {
+        return ['bail', 'nullable', 'string', 'regex:/\A[0-9]+\z/', 'size:11', 'starts_with:09'];
+    }
+
+    private function sellerEmailRules(): array
+    {
+        return [
+            'bail', 'required', 'string', 'max:255', 'email',
+            'regex:/\A[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+\z/',
+            function ($attribute, $value, $fail) {
+                if (User::whereRaw('LOWER(email) = ?', [strtolower($value)])->exists()) {
+                    $fail('This email is already in use. Please log in instead.');
+                }
+            },
+        ];
+    }
+
     /**
      * Show the login form.
      */
@@ -100,11 +146,15 @@ class AuthController extends Controller
      */
     public function requestOtp(Request $request)
     {
+        $this->normalizeSellerContact($request);
         $validated = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => $request->input('role') === User::ROLE_SELLER
+                ? $this->sellerEmailRules() : ['required', 'email'],
             'name' => ['nullable', 'string'],
             'role' => ['nullable', 'string'],
-        ]);
+            'phone' => $request->input('role') === User::ROLE_SELLER ? $this->sellerPhoneRules() : $this->mobilePhoneRules(),
+        ], ['email.email' => 'Please enter a valid email address.',
+            'email.regex' => 'Please enter a valid email address.']);
 
         $email = strtolower(trim($validated['email']));
         $name = trim($validated['name'] ?? 'Applicant');
@@ -228,13 +278,26 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        $this->normalizeSellerContact($request);
+        $nameRules = [
+            'first_name' => ['required', 'string', 'max:255', 'regex:/\A(?:\p{L}\p{M}*| )+\z/u'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/\A(?:\p{L}\p{M}*| )+\z/u'],
+        ];
+        if (is_string($request->input('first_name')) && is_string($request->input('last_name'))) {
+            $request->merge(['name' => trim($request->input('first_name') . ' ' . $request->input('last_name'))]);
+        }
+
         $validated = $request->validate([
+            ...$nameRules,
             'name'                 => ['required', 'string', 'max:255'],
             'middle_initial'       => ['nullable', 'string', 'max:5'],
-            'email'                => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email'                => $request->input('role') === User::ROLE_SELLER
+                ? $this->sellerEmailRules() : ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'sex'                  => ['nullable', 'string', 'in:Male,Female,Prefer not to say'],
-            'birthday'             => ['nullable', 'date', 'before:today'],
-            'phone'                => ['nullable', 'string', 'max:20'],
+            'birthday'             => ['exclude_if:role,logistics', 'bail', 'required', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYearsNoOverflow(18)->toDateString()],
+            'phone'                => $request->input('role') === User::ROLE_SELLER
+                ? $this->sellerPhoneRules()
+                : $this->mobilePhoneRules(),
             'street_address'       => ['nullable', 'string', 'max:500'],
             'address'              => ['nullable', 'string', 'max:500'],
             'region'               => ['nullable', 'string', 'max:100'],
@@ -248,19 +311,32 @@ class AuthController extends Controller
             'id_photo'             => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'dti_permit'           => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'role'                 => ['required', 'string', Rule::in([User::ROLE_BUYER, User::ROLE_SELLER, User::ROLE_COURIER, User::ROLE_LOGISTICS])],
-            'password'             => ['required', 'string', 'confirmed', Password::min(6)],
+            'password'             => ['required', 'string', 'confirmed', $request->input('role') === User::ROLE_SELLER
+                ? Password::min(8)->mixedCase()->numbers()->symbols() : Password::min(6)],
             'email_verification_otp' => ['required', 'string', 'min:6', 'max:6'],
         ], [
             'name.required'        => 'Please enter your full name.',
+            'first_name.required'  => 'Please enter your first name.',
+            'last_name.required'   => 'Please enter your last name.',
+            'first_name.regex'     => 'Only letters are allowed.',
+            'last_name.regex'      => 'Only letters are allowed.',
             'email.required'       => 'Please enter an email address.',
+            'email.email'          => 'Please enter a valid email address.',
+            'email.regex'          => 'Please enter a valid email address.',
+            'phone.regex'          => 'Please enter a valid mobile number starting with 09 and containing only digits.',
+            'phone.starts_with'    => 'Please enter a valid mobile number starting with 09 and containing only digits.',
+            'phone.size'           => 'Mobile number must be exactly 11 digits.',
             'email.unique'         => 'This email is already registered. Please log in instead.',
             'sex.in'               => 'Please select a valid sex option.',
-            'birthday.before'      => 'Birthday must be a past date.',
+            'birthday.required'    => 'Please enter your birthday.',
+            'birthday.date_format' => 'Please enter a valid birthday.',
+            'birthday.before_or_equal' => 'You must be at least 18 years old to register.',
             'role.required'        => 'Please choose an account type.',
             'role.in'              => 'Invalid account type selected.',
             'password.required'    => 'Please provide a password.',
             'password.confirmed'   => 'The password confirmation does not match.',
-            'password.min'         => 'Password must be at least 6 characters long.',
+            'password.min'         => $request->input('role') === User::ROLE_SELLER
+                ? 'Password must be at least 8 characters long.' : 'Password must be at least 6 characters long.',
             'id_photo.mimes'       => 'ID must be a JPG, PNG, or PDF file.',
             'id_photo.max'         => 'ID file must not exceed 5MB.',
             'dti_permit.mimes'     => 'Business / DTI permit must be a JPG, PNG, or PDF file.',
@@ -354,6 +430,51 @@ class AuthController extends Controller
                 'password'         => Hash::make($validated['password']),
             ]);
 
+            // If registering as Buyer, create corresponding Buyer profile record
+            if ($user->isBuyer()) {
+                \App\Models\Buyer::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name'                => $user->name,
+                        'middle_initial'      => $user->middle_initial,
+                        'sex'                 => $user->sex,
+                        'birthday'            => $user->birthday,
+                        'age'                 => $age,
+                        'phone'               => $user->phone,
+                        'id_photo'            => $idPhotoPath,
+                        'id_type'             => $user->id_type ?? null,
+                        'id_number'           => $user->id_number ?? null,
+                        'id_status'           => 'unverified',
+                        'status'              => 'active',
+                    ]
+                );
+
+                $roleModel = \App\Models\Role::firstOrCreate(['name' => 'buyer']);
+                $user->roles()->syncWithoutDetaching([$roleModel->id]);
+            }
+
+            // If registering as Seller, create corresponding Seller store record
+            if ($user->isSeller()) {
+                $baseSlug = \Illuminate\Support\Str::slug($user->business_name ?: $user->name) ?: 'seller-store';
+                $uniqueSlug = $baseSlug;
+                $counter = 1;
+                while (\App\Models\Seller::where('slug', $uniqueSlug)->exists()) {
+                    $uniqueSlug = $baseSlug . '-' . $counter++;
+                }
+
+                \App\Models\Seller::firstOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name'   => $user->business_name ?: $user->name,
+                        'slug'   => $uniqueSlug,
+                        'status' => 'pending',
+                    ]
+                );
+
+                $roleModel = \App\Models\Role::firstOrCreate(['name' => 'seller']);
+                $user->roles()->syncWithoutDetaching([$roleModel->id]);
+            }
+
             // If registering as Logistics partner, create corresponding LogisticsProvider record
             if ($user->isLogistics()) {
                 $baseSlug = \Illuminate\Support\Str::slug($user->business_name ?: $user->name) ?: 'logistics-partner';
@@ -372,6 +493,9 @@ class AuthController extends Controller
                         'contact_phone' => $user->phone,
                     ]
                 );
+
+                $roleModel = \App\Models\Role::firstOrCreate(['name' => 'logistics']);
+                $user->roles()->syncWithoutDetaching([$roleModel->id]);
             }
 
             // Clear verified OTP
@@ -411,23 +535,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $user = Auth::user();
-        $role = $user ? $user->role : null;
-
-        Auth::logout();
+        Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $message = match ($role) {
-            User::ROLE_ADMIN => 'You have been logged out from Admin Portal.',
-            User::ROLE_SELLER => 'You have been logged out from Seller Centre.',
-            User::ROLE_COURIER => 'You have been logged out from Rider Hub.',
-            User::ROLE_BUYER => 'You have been logged out from your Buyer account.',
-            default => 'You have been successfully logged out.',
-        };
-
-        return redirect('/login')->with('info', $message);
+        return redirect()->route('login')
+            ->withHeaders([
+                'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => 'Sun, 02 Jan 1990 00:00:00 GMT',
+                'Clear-Site-Data' => '"cache"',
+            ]);
     }
 
     /**
@@ -507,22 +626,13 @@ class AuthController extends Controller
                     }
                     $user->save();
                 } else {
-                    // 3. Create a brand new buyer account
-                    $user = User::create([
-                        'name'              => $name,
-                        'email'             => $email,
-                        'google_id'         => $googleId,
-                        'avatar'            => $avatar,
-                        'role'              => User::ROLE_BUYER,
-                        'status'            => 'active',
-                        'email_verified_at' => now(),
-                        'password'          => Hash::make(Str::random(32)),
+                    // Google does not provide a birthday: require age-checked registration.
+                    return redirect()->route('register')->withInput([
+                        'email' => $email,
+                        'role' => User::ROLE_BUYER,
+                    ])->withErrors([
+                        'birthday' => 'Please complete registration with your birthday. You must be at least 18 years old to register.',
                     ]);
-
-                    // Sync MySQL dump file
-                    if (class_exists(\App\Console\Commands\ExportDatabaseSql::class)) {
-                        \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
-                    }
                 }
             }
 

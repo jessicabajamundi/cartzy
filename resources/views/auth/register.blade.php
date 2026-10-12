@@ -131,12 +131,15 @@
                             type="text"
                             name="first_name"
                             id="first_name"
+                            aria-describedby="first_name_error"
+                            aria-invalid="{{ $errors->has('first_name') ? 'true' : 'false' }}"
                             value="{{ old('first_name') }}"
                             placeholder="First name"
                             class="auth-input"
                             required
                         >
                     </div>
+                    <p id="first_name_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('first_name')) hidden @endif>{{ $errors->first('first_name') }}</p>
                 </div>
                 <div>
                     <label class="field-label" for="last_name">Last name <span style="color:#ef4444">*</span></label>
@@ -150,6 +153,8 @@
                             type="text"
                             name="last_name"
                             id="last_name"
+                            aria-describedby="last_name_error"
+                            aria-invalid="{{ $errors->has('last_name') ? 'true' : 'false' }}"
                             value="{{ old('last_name') }}"
                             placeholder="Last name"
                             class="auth-input"
@@ -157,33 +162,42 @@
                             required
                         >
                     </div>
+                    <p id="last_name_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('last_name')) hidden @endif>{{ $errors->first('last_name') }}</p>
                 </div>
             </div>
 
             <div class="mb-4">
                 <label class="field-label" for="phone">Mobile number</label>
-                <div class="input-group">
+                <input type="hidden" name="phone_country_code" value="+63">
+                <div class="input-group registration-phone-group">
                     <span class="input-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
                         </svg>
                     </span>
+                    <span class="registration-phone-prefix" aria-hidden="true">+63</span>
                     <input
                         type="tel"
                         name="phone"
                         id="phone"
-                        value="{{ old('phone') }}"
-                        placeholder="09171234567"
+                        aria-describedby="phone_hint phone_error"
+                        aria-invalid="{{ $errors->has('phone') ? 'true' : 'false' }}"
+                        value="{{ preg_replace('/^(?:\+63|0)(?=9)/', '', old('phone', '')) }}"
+                        placeholder="9171234567"
                         class="auth-input"
                         inputmode="numeric"
-                        maxlength="11"
-                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                        pattern="9[0-9]{9}"
+                        maxlength="10"
+                        autocomplete="tel-national"
+                        title="Enter 10 digits starting with 9 after +63."
                     >
                 </div>
+                <p id="phone_hint" style="font-size:12px; line-height:1.5; color:#4b5563; margin:6px 0 20px;">+63 Philippines · Enter 10 digits starting with 9.</p>
+                <p id="phone_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('phone')) hidden @endif>{{ $errors->first('phone') }}</p>
             </div>
 
-            <!-- Birthday Field (Shown for Buyer & Seller) -->
-            <div id="birthdayFieldWrapper" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'none' : 'block' }}; margin-bottom: 26px;">
+            <!-- Birthday applies to individual account registrations. -->
+            <div id="birthdayFieldWrapper" style="{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'display: none; ' : '' }}margin-bottom: 26px;">
                 <label class="field-label" for="birthday">Birthday</label>
                 <div class="input-group">
                     <span class="input-icon">
@@ -198,13 +212,18 @@
                         type="date"
                         name="birthday"
                         id="birthday"
+                        @disabled(old('role', $selectedRole ?? 'buyer') === 'logistics')
                         value="{{ old('birthday') }}"
                         class="auth-input"
-                        max="{{ date('Y-m-d', strtotime('-1 day')) }}"
-                        onchange="autoCalcAge(this.value)"
+                        max="{{ now()->subYearsNoOverflow(18)->toDateString() }}"
+                        required
+                        aria-describedby="birthday_error"
+                        aria-invalid="{{ $errors->has('birthday') ? 'true' : 'false' }}"
+                        onchange="autoCalcAge(this.value); validateRegistrationBirthday()"
                     >
                 </div>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; margin-bottom: 0;">Your age is calculated automatically from your birthday.</p>
+                <p id="birthday_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('birthday')) hidden @endif>{{ $errors->first('birthday') }}</p>
+                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; margin-bottom: 0;">You must be at least 18 years old to register.</p>
             </div>
 
             <!-- Logistics Partner Company & Service Area Fields (Shown for Logistics) -->
@@ -251,7 +270,7 @@
                 </div>
             </div>
 
-            <button type="button" class="btn-primary btn-single" style="margin-top: 26px;" onclick="nextStep(2)">Continue</button>
+            <button type="button" class="btn-primary btn-single btn-details-continue" style="margin-top: 26px;" onclick="nextStep(2)">Continue</button>
         </div>
 
         <!-- STEP 2: Sign-in (Your sign-in details) -->
@@ -274,12 +293,15 @@
                         type="email"
                         name="email"
                         id="email"
+                        aria-describedby="email_error"
+                        aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
                         value="{{ old('email') }}"
                         placeholder="you@example.com"
                         class="auth-input"
                         required
                     >
                 </div>
+                <p id="email_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('email')) hidden @endif>{{ $errors->first('email') }}</p>
             </div>
 
             <div class="mb-4">
@@ -295,6 +317,7 @@
                         type="password"
                         name="password"
                         id="register_password"
+                        aria-describedby="register_password_error password-entry-note"
                         placeholder="Create a password"
                         class="auth-input"
                         oncopy="return false;"
@@ -304,11 +327,16 @@
                         autocomplete="new-password"
                         required
                     >
-                    <button type="button" class="eye-btn text-toggle-btn" onclick="togglePasswordVisibility('register_password', this)" tabindex="-1">
-                        <span class="eye-text">Show</span>
+                    <button type="button" class="eye-btn password-toggle-btn" onclick="togglePasswordVisibility('register_password', this)" aria-label="Show password" aria-controls="register_password" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path class="eye-slash" d="M3 3l18 18" style="display:none"/>
+                        </svg>
                     </button>
                 </div>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; margin-bottom: 14px;">Use at least 8 characters, one uppercase letter, one lowercase letter, and one symbol.</p>
+                <p id="register_password_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('password')) hidden @endif>{{ $errors->first('password') }}</p>
+                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; margin-bottom: 14px;">Use at least 8 characters, one uppercase letter, one lowercase letter, one number, and one symbol.</p>
             </div>
 
             <div class="mb-6">
@@ -324,6 +352,7 @@
                         type="password"
                         name="password_confirmation"
                         id="password_confirmation"
+                        aria-describedby="password_confirmation_error password-entry-note"
                         placeholder="Repeat your password"
                         class="auth-input"
                         oncopy="return false;"
@@ -333,11 +362,16 @@
                         autocomplete="new-password"
                         required
                     >
-                    <button type="button" class="eye-btn text-toggle-btn" onclick="togglePasswordVisibility('password_confirmation', this)" tabindex="-1">
-                        <span class="eye-text">Show</span>
+                    <button type="button" class="eye-btn password-toggle-btn" onclick="togglePasswordVisibility('password_confirmation', this)" aria-label="Show password" aria-controls="password_confirmation" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path class="eye-slash" d="M3 3l18 18" style="display:none"/>
+                        </svg>
                     </button>
                 </div>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
+                <p id="password_confirmation_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" hidden></p>
+                <p id="password-entry-note" style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
                 <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">We'll send a six-digit verification code to this email address. You'll need the code to finish creating your CARTZY account.</p>
             </div>
 
@@ -349,7 +383,12 @@
                     </svg>
                     Back
                 </button>
-                <button type="button" class="btn-action-continue" onclick="nextStep(3)">Continue</button>
+                <button type="button" class="btn-action-continue" onclick="nextStep(3)">
+                    Continue
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -404,6 +443,18 @@
     </div>
 
 <style>
+    .registration-phone-group .registration-phone-prefix {
+        position: absolute;
+        left: 48px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #374151;
+        font-weight: 600;
+        pointer-events: none;
+    }
+    .registration-phone-group input.auth-input {
+        padding-left: 94px !important;
+    }
     /* Role Selector Cards */
     .role-selection-wrapper {
         margin-bottom: 20px;
@@ -611,6 +662,13 @@
     }
 
     /* Button Rows */
+    .auth-split-page .btn-primary.btn-details-continue {
+        background: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--brand-lavender, #6F6382) 48%, var(--rose-dark, #8C5A50) 100%) !important;
+        background-size: 100% 100% !important;
+    }
+    .auth-split-page .btn-primary.btn-details-continue:hover {
+        background: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--rose-dark, #8C5A50) 100%) !important;
+    }
     .form-btn-row {
         display: flex;
         align-items: center;
@@ -620,10 +678,10 @@
     .btn-action-back {
         width: 38%;
         height: 50px;
-        background: #ffffff;
-        color: #374151;
-        border: 1.5px solid #e5e7eb;
-        border-radius: 9999px;
+        background: linear-gradient(120deg, var(--brand-soft, #FAF9FB), var(--rose-light, #FCEAE6));
+        color: var(--brand-dark, #564B68);
+        border: 1px solid var(--rose-primary, #D4A69A);
+        border-radius: 16px;
         font-size: 0.95rem;
         font-weight: 700;
         display: inline-flex;
@@ -635,9 +693,9 @@
         font-family: inherit;
     }
     .btn-action-back:hover {
-        background: #f9fafb;
-        border-color: #d1d5db;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        background: linear-gradient(120deg, #EEEAF3, var(--rose-muted, #F5CFC7));
+        border-color: var(--rose-deep, #C08B7F);
+        box-shadow: 0 4px 12px rgba(111, 99, 130, 0.12);
     }
     .btn-action-back svg {
         width: 18px;
@@ -646,10 +704,10 @@
     .btn-action-continue {
         flex: 1;
         height: 50px;
-        background: linear-gradient(135deg, #91879E 0%, #6F6382 50%, #564B68 100%);
+        background: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--brand-lavender, #6F6382) 48%, var(--rose-dark, #8C5A50) 100%);
         color: #ffffff;
         border: none;
-        border-radius: 9999px;
+        border-radius: 16px;
         font-size: 0.95rem;
         font-weight: 700;
         cursor: pointer;
@@ -657,18 +715,36 @@
         align-items: center;
         justify-content: center;
         letter-spacing: 0.2px;
-        box-shadow: 0 4px 14px rgba(111, 99, 130, 0.35);
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(111, 99, 130, 0.2);
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         font-family: inherit;
     }
     .btn-action-continue:hover {
-        background: linear-gradient(135deg, #9E94AB 0%, #7B6E90 50%, #625575 100%);
-        box-shadow: 0 6px 20px rgba(111, 99, 130, 0.45);
+        background: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--rose-dark, #8C5A50) 100%);
+        box-shadow: 0 6px 16px rgba(140, 90, 80, 0.25);
         transform: translateY(-1px);
     }
     .btn-action-continue:active {
         transform: translateY(0) scale(0.99);
         box-shadow: 0 2px 8px rgba(111, 99, 130, 0.25);
+    }
+    .btn-action-continue svg {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+    .btn-action-back:focus-visible,
+    .btn-action-continue:focus-visible {
+        outline: 3px solid var(--brand-lavender, #6F6382);
+        outline-offset: 4px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .btn-action-back,
+        .btn-action-continue {
+            transition: none;
+            transform: none;
+        }
     }
     .btn-single {
         border-radius: 9999px !important;
@@ -689,10 +765,13 @@
         font-weight: 500;
     }
 
-    .eye-btn.text-toggle-btn {
+    .eye-btn.password-toggle-btn {
         background: none;
         border: none;
-        padding: 4px 10px;
+        padding: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         color: #6b7280;
         font-size: 0.82rem;
         font-weight: 600;
@@ -700,7 +779,7 @@
         font-family: inherit;
         transition: color 0.15s ease;
     }
-    .eye-btn.text-toggle-btn:hover {
+    .eye-btn.password-toggle-btn:hover {
         color: #6F6382;
     }
 
@@ -717,64 +796,6 @@
 
 @push('scripts')
 <script>
-    window.selectRole = function(role) {
-        var roleInput = document.getElementById('role_input');
-        var buyerOpt = document.getElementById('roleOptionBuyer');
-        var sellerOpt = document.getElementById('roleOptionSeller');
-        var standardRoleWrapper = document.getElementById('standardRoleWrapper');
-        var birthdayFieldWrapper = document.getElementById('birthdayFieldWrapper');
-        var logisticsFieldsWrapper = document.getElementById('logisticsFieldsWrapper');
-        var logisticsNoticeBox = document.getElementById('logisticsNoticeBox');
-        var googleSignupWrapper = document.getElementById('googleSignupWrapper');
-        var googleSignupDivider = document.getElementById('googleSignupDivider');
-        var authTitle = document.getElementById('authTitle');
-        var authSubtitle = document.getElementById('authSubtitle');
-        var footNoticeText = document.getElementById('footNoticeText');
-        var linkLogisticsApply = document.getElementById('linkLogisticsApply');
-
-        if (roleInput) {
-            roleInput.value = role;
-        }
-
-        if (role === 'logistics') {
-            if (standardRoleWrapper) standardRoleWrapper.style.display = 'none';
-            if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = 'none';
-            if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'block';
-            if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'block';
-            if (googleSignupWrapper) googleSignupWrapper.style.display = 'none';
-            if (googleSignupDivider) googleSignupDivider.style.display = 'none';
-            if (authTitle) authTitle.innerText = 'Become a Logistics Partner';
-            if (authSubtitle) authSubtitle.innerText = 'Register your delivery company and manage your own riders on CARTZY.';
-            if (footNoticeText) footNoticeText.innerText = 'Want to register as buyer or seller?';
-            if (linkLogisticsApply) {
-                linkLogisticsApply.innerText = 'Switch here';
-                linkLogisticsApply.setAttribute('onclick', "selectRole('buyer'); return false;");
-            }
-        } else {
-            if (standardRoleWrapper) standardRoleWrapper.style.display = 'block';
-            if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = 'block';
-            if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'none';
-            if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'none';
-            if (googleSignupWrapper) googleSignupWrapper.style.display = 'block';
-            if (googleSignupDivider) googleSignupDivider.style.display = 'flex';
-            if (authTitle) authTitle.innerText = 'Create your account';
-            if (authSubtitle) authSubtitle.innerText = 'Join cartzy and discover your everyday favorites';
-            if (footNoticeText) footNoticeText.innerText = 'Do you want to be a logistics in cartzy?';
-            if (linkLogisticsApply) {
-                linkLogisticsApply.innerText = 'Apply here';
-                linkLogisticsApply.setAttribute('onclick', "selectRole('logistics'); return false;");
-            }
-
-            if (role === 'seller') {
-                if (buyerOpt) buyerOpt.classList.remove('selected');
-                if (sellerOpt) sellerOpt.classList.add('selected');
-            } else {
-                if (sellerOpt) sellerOpt.classList.remove('selected');
-                if (buyerOpt) buyerOpt.classList.add('selected');
-            }
-        }
-    };
-
     document.addEventListener('DOMContentLoaded', function() {
         var buyerOpt = document.getElementById('roleOptionBuyer');
         var sellerOpt = document.getElementById('roleOptionSeller');

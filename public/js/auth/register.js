@@ -10,6 +10,99 @@ const totalSteps = 3;
 let isEmailVerified = false;
 let timerInterval = null;
 let secondsRemaining = 60;
+let otpRequestPending = false;
+
+function showRegistrationError(id, message, focus = false) {
+    const input = document.getElementById(id);
+    const error = document.getElementById(id + '_error');
+    if (error) {
+        error.textContent = message;
+        error.hidden = !message;
+    }
+    input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    input.style.borderColor = message ? '#ef4444' : '';
+    if (message && focus) input.focus();
+    return !message;
+}
+
+function validateRegistrationPhone(focus = false) {
+    const value = document.getElementById('phone').value.trim();
+    let message = '';
+    if (value) {
+        if (!/^[0-9]+$/.test(value)) {
+            message = 'Please enter digits only.';
+        } else if (value.length !== 10) {
+            message = 'Enter exactly 10 digits after +63.';
+        } else if (!value.startsWith('9')) {
+            message = 'Mobile number must start with 9 after +63.';
+        }
+    }
+    return showRegistrationError('phone', message, focus);
+}
+
+function validateRegistrationPasswords(focus = false) {
+    const password = document.getElementById('register_password').value;
+    const confirmation = document.getElementById('password_confirmation').value;
+    const seller = document.getElementById('role_input').value === 'seller';
+    let message = '';
+    if (password.length < (seller ? 8 : 6)) {
+        message = `Password must be at least ${seller ? 8 : 6} characters long.`;
+    } else if (seller) {
+        if (!/\p{Lu}/u.test(password)) message = 'Password must contain at least one uppercase letter.';
+        else if (!/\p{Ll}/u.test(password)) message = 'Password must contain at least one lowercase letter.';
+        else if (!/\p{N}/u.test(password)) message = 'Password must contain at least one number.';
+        else if (!/[\p{Z}\p{S}\p{P}]/u.test(password)) message = 'Password must contain at least one symbol.';
+    }
+    const validPassword = showRegistrationError('register_password', message, focus);
+    const validConfirmation = showRegistrationError('password_confirmation', password === confirmation ? '' : 'The password confirmation does not match.', focus && validPassword);
+    return validPassword && validConfirmation;
+}
+
+function validateRegistrationEmail(focus = false) {
+    const input = document.getElementById('email');
+    input.value = input.value.trim();
+    if (document.getElementById('role_input').value === 'seller') input.value = input.value.toLowerCase();
+    const valid = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(input.value) && input.validity.valid;
+    return showRegistrationError('email', valid ? '' : 'Please enter a valid email address.', focus);
+}
+
+function validateRegistrationNames(focusInvalid = false) {
+    let firstInvalid = null;
+    ['first_name', 'last_name'].forEach(id => {
+        const input = document.getElementById(id);
+        const error = document.getElementById(id + '_error');
+        const value = input.value.trim();
+        let message = '';
+        if (!value) {
+            message = id === 'first_name' ? 'Please enter your first name.' : 'Please enter your last name.';
+        } else if (!/^(?:\p{L}\p{M}*| )+$/u.test(value)) {
+            message = 'Only letters are allowed.';
+        }
+        if (error) {
+            error.textContent = message;
+            error.hidden = !message;
+        }
+        input.setAttribute('aria-invalid', message ? 'true' : 'false');
+        input.style.borderColor = message ? '#ef4444' : '';
+        if (message && !firstInvalid) firstInvalid = input;
+    });
+    if (focusInvalid && firstInvalid) firstInvalid.focus();
+    return !firstInvalid;
+}
+
+function validateRegistrationBirthday(focus = false) {
+    if (document.getElementById('role_input')?.value === 'logistics') return true;
+    const input = document.getElementById('birthday');
+    let message = '';
+    if (!input.value) {
+        message = 'Please enter your birthday.';
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(input.value) || input.validity.badInput) {
+        message = 'Please enter a valid birthday.';
+    } else if (input.value > input.max) {
+        message = 'You must be at least 18 years old to register.';
+    }
+    return showRegistrationError('birthday', message, focus);
+}
 
 // Age auto-calculate from birthday
 function autoCalcAge(dateStr) {
@@ -19,7 +112,7 @@ function autoCalcAge(dateStr) {
         return;
     }
     const today = new Date();
-    const bday = new Date(dateStr);
+    const bday = new Date(dateStr + 'T00:00:00');
     let age = today.getFullYear() - bday.getFullYear();
     const m = today.getMonth() - bday.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
@@ -65,9 +158,13 @@ function updateStepperUI() {
 }
 
 // Next Step transition
-function nextStep(targetStep) {
+async function nextStep(targetStep) {
+    if (otpRequestPending) return;
     // Validate Step 1
     if (currentStep === 1) {
+        if (!validateRegistrationBirthday(true)) return;
+        if (!validateRegistrationNames(true)) return;
+        if (!validateRegistrationPhone(true)) return;
         const firstNameEl = document.getElementById('first_name');
         const lastNameEl = document.getElementById('last_name');
         const firstName = firstNameEl ? firstNameEl.value.trim() : '';
@@ -110,42 +207,13 @@ function nextStep(targetStep) {
 
     // Validate Step 2
     if (currentStep === 2) {
-        const emailEl = document.getElementById('email');
-        const passwordEl = document.getElementById('register_password');
-        const confirmPwEl = document.getElementById('password_confirmation');
-
-        const email = emailEl ? emailEl.value.trim() : '';
-        const password = passwordEl ? passwordEl.value : '';
-        const confirmPw = confirmPwEl ? confirmPwEl.value : '';
-
         // Email check
-        if (!email || !email.includes('@') || !email.includes('.')) {
-            emailEl.focus();
-            emailEl.style.borderColor = '#ef4444';
-            return;
-        }
-        emailEl.style.borderColor = '';
+        if (!validateRegistrationEmail(true)) return;
 
-        // Password length check
-        if (!password || password.length < 6) {
-            passwordEl.focus();
-            passwordEl.style.borderColor = '#ef4444';
-            alert('Password must be at least 6 characters long.');
-            return;
-        }
-        passwordEl.style.borderColor = '';
-
-        // Password confirmation match
-        if (password !== confirmPw) {
-            confirmPwEl.focus();
-            confirmPwEl.style.borderColor = '#ef4444';
-            alert('The password confirmation does not match.');
-            return;
-        }
-        confirmPwEl.style.borderColor = '';
+        if (!validateRegistrationPasswords(true)) return;
 
         // Send OTP automatically when transitioning to Step 3
-        sendAutomaticOtp();
+        if (!await sendAutomaticOtp()) return;
         startOtpTimer();
     }
 
@@ -168,28 +236,24 @@ function prevStep(targetStep) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Toggle Password Visibility with SVG eye icon / Show-Hide text
+// Toggle password visibility and the eye icon.
 function togglePasswordVisibility(inputId, btnEl) {
     const input = document.getElementById(inputId);
     if (!input) return;
 
-    if (input.type === 'password') {
-        input.type = 'text';
-        if (btnEl) {
-            const textEl = btnEl.querySelector('.eye-text');
-            if (textEl) textEl.innerText = 'Hide';
-        }
-    } else {
-        input.type = 'password';
-        if (btnEl) {
-            const textEl = btnEl.querySelector('.eye-text');
-            if (textEl) textEl.innerText = 'Show';
-        }
+    const visible = input.type === 'password';
+    input.type = visible ? 'text' : 'password';
+    if (btnEl) {
+        btnEl.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+        btnEl.setAttribute('aria-pressed', String(visible));
+        const slash = btnEl.querySelector('.eye-slash');
+        if (slash) slash.style.display = visible ? '' : 'none';
     }
 }
 
 // Send Automatic OTP via AJAX
-function sendAutomaticOtp() {
+async function sendAutomaticOtp() {
+    if (otpRequestPending || !validateRegistrationEmail(true)) return false;
     const email = document.getElementById('email')?.value?.trim();
     const name = document.getElementById('name')?.value?.trim();
     const form = document.getElementById('registerForm');
@@ -199,21 +263,34 @@ function sendAutomaticOtp() {
 
     if (!email) return;
 
-    fetch(requestOtpUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({ email: email, name: name })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log('OTP request status:', data.message || 'Code sent');
-    })
-    .catch(err => {
-        console.warn('OTP request error:', err);
-    });
+    otpRequestPending = true;
+    try {
+        const response = await fetch(requestOtpUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ email: email, name: name, role: document.getElementById('role_input').value, phone: document.getElementById('phone').value.trim(), phone_country_code: '+63' })
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+            const field = data.errors?.phone ? 'phone' : 'email';
+            currentStep = field === 'phone' ? 1 : 2;
+            updateStepperUI();
+            showRegistrationError(field, data.errors?.[field]?.[0] || data.message || 'Unable to send verification code. Please try again.', true);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        currentStep = 2;
+        updateStepperUI();
+        showRegistrationError('email', 'Unable to send verification code. Please try again.', true);
+        return false;
+    } finally {
+        otpRequestPending = false;
+    }
 }
 
 // Start Resend OTP Timer
@@ -247,11 +324,11 @@ function startOtpTimer() {
 }
 
 // Trigger Resend OTP
-function triggerResendOtp() {
+async function triggerResendOtp() {
     const resendBtn = document.getElementById('resendOtpBtn');
     if (resendBtn && resendBtn.disabled) return;
 
-    sendAutomaticOtp();
+    if (!await sendAutomaticOtp()) return;
     startOtpTimer();
 
     const feedback = document.getElementById('otpFeedbackMsg');
@@ -264,6 +341,12 @@ function triggerResendOtp() {
 
 // Role Selection function (Buyer, Seller, or Logistics)
 function selectRole(role) {
+    const birthdayInput = document.getElementById('birthday');
+    if (birthdayInput) {
+        birthdayInput.disabled = role === 'logistics';
+        birthdayInput.required = role !== 'logistics';
+        if (role === 'logistics') showRegistrationError('birthday', '');
+    }
     const roleInput = document.getElementById('role_input');
     const buyerOpt = document.getElementById('roleOptionBuyer');
     const sellerOpt = document.getElementById('roleOptionSeller');
@@ -324,6 +407,63 @@ window.selectRole = selectRole;
 
 // 6-Box OTP Input Handling (Paste, Auto-focus, Backspace)
 document.addEventListener('DOMContentLoaded', function() {
+    ['register_password', 'password_confirmation'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => validateRegistrationPasswords());
+    });
+    const phoneInput = document.getElementById('phone');
+    phoneInput?.addEventListener('beforeinput', event => {
+        if (event.inputType === 'insertText' && event.data && /[^0-9]/.test(event.data)) {
+            event.preventDefault();
+        }
+        if (event.inputType.startsWith('insert') && phoneInput.value.length >= 10
+            && phoneInput.selectionStart === phoneInput.selectionEnd) {
+            event.preventDefault();
+        }
+    });
+    phoneInput?.addEventListener('input', () => {
+        const start = phoneInput.selectionStart;
+        const original = phoneInput.value;
+        phoneInput.value = original.replace(/[^0-9]/g, '').slice(0, 10);
+        if (start !== null && original !== phoneInput.value) {
+            const position = original.slice(0, start).replace(/[^0-9]/g, '').length;
+            phoneInput.setSelectionRange(position, position);
+        }
+        validateRegistrationPhone();
+    });
+    phoneInput?.addEventListener('paste', event => {
+        const pasted = event.clipboardData?.getData('text');
+        if (pasted === undefined) return;
+        event.preventDefault();
+        const normalized = pasted.replace(/[^0-9]/g, '').replace(/^(?:63|0)(?=9)/, '');
+        const available = 10 - (phoneInput.value.length - (phoneInput.selectionEnd - phoneInput.selectionStart));
+        const digits = normalized.slice(0, Math.max(0, available));
+        phoneInput.setRangeText(digits, phoneInput.selectionStart, phoneInput.selectionEnd, 'end');
+        phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    document.getElementById('email')?.addEventListener('input', () => showRegistrationError('email', ''));
+    document.getElementById('email')?.addEventListener('blur', () => validateRegistrationEmail());
+    ['first_name', 'last_name'].forEach(id => {
+        const input = document.getElementById(id);
+        input?.addEventListener('beforeinput', event => {
+            if (!event.isComposing && event.inputType === 'insertText' && event.data && /[^\p{L}\p{M} ]/u.test(event.data)) {
+                event.preventDefault();
+            }
+        });
+        const cleanName = () => {
+            const original = input.value;
+            const position = input.selectionStart;
+            input.value = original.replace(/[^\p{L}\p{M} ]/gu, '');
+            if (position !== null && original !== input.value) {
+                const caret = original.slice(0, position).replace(/[^\p{L}\p{M} ]/gu, '').length;
+                input.setSelectionRange(caret, caret);
+            }
+            validateRegistrationNames();
+        };
+        input?.addEventListener('input', event => {
+            if (!event.isComposing) cleanName();
+        });
+        input?.addEventListener('compositionend', cleanName);
+    });
     const otpInputs = document.querySelectorAll('.otp-input');
     const hiddenOtp = document.getElementById('email_verification_otp');
 
@@ -378,7 +518,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form Submit Check
     const form = document.getElementById('registerForm');
     if (form) {
+        document.getElementById('birthday')?.addEventListener('invalid', function(e) {
+            e.preventDefault();
+            currentStep = 1;
+            updateStepperUI();
+            validateRegistrationBirthday(true);
+        });
         form.addEventListener('submit', function(e) {
+            if (!validateRegistrationBirthday()) {
+                e.preventDefault();
+                currentStep = 1;
+                updateStepperUI();
+                validateRegistrationBirthday(true);
+                return;
+            }
+            if (!validateRegistrationPasswords()) {
+                e.preventDefault();
+                currentStep = 2;
+                updateStepperUI();
+                validateRegistrationPasswords(true);
+                return;
+            }
+            if (!validateRegistrationPhone()) {
+                e.preventDefault();
+                currentStep = 1;
+                updateStepperUI();
+                validateRegistrationPhone(true);
+                return;
+            }
+            if (!validateRegistrationEmail()) {
+                e.preventDefault();
+                currentStep = 2;
+                updateStepperUI();
+                validateRegistrationEmail(true);
+                return;
+            }
+            if (!validateRegistrationNames()) {
+                e.preventDefault();
+                currentStep = 1;
+                updateStepperUI();
+                validateRegistrationNames(true);
+                return;
+            }
             const otpCode = syncOtp();
             const feedback = document.getElementById('otpFeedbackMsg');
 
@@ -408,5 +589,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const initialRole = document.getElementById('role_input')?.value || 'buyer';
     selectRole(initialRole);
+    if (['email', 'register_password', 'password_confirmation'].some(id => document.getElementById(id + '_error')?.textContent.trim())
+        && !['first_name', 'last_name', 'phone', 'birthday'].some(id => document.getElementById(id + '_error')?.textContent.trim())) {
+        currentStep = 2;
+    }
     updateStepperUI();
 });
