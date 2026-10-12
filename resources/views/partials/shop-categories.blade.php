@@ -9,7 +9,7 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/shop-categories.css') }}?v={{ filemtime(public_path('css/shop-categories.css')) }}">
 @endpush
-<section class="shop-collections" aria-labelledby="shop-collections-title">
+<section id="browse-categories" class="shop-collections" aria-labelledby="shop-collections-title">
     <div class="shop-collections__header">
         <div>
             <p class="shop-collections__eyebrow"><span aria-hidden="true"></span> Shop by category</p>

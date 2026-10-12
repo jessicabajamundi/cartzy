@@ -22,97 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentCategory = 'all';
     let currentSearch = '';
 
-    // ─── Header Mega Menu ──────────────────────────────────────────────────
-    window.toggleCategoryMenu = function() {
-        const dropdown = document.getElementById('category-mega-dropdown');
-        const chevron = document.getElementById('cat-chevron');
-        if (!dropdown) return;
-
-        const isHidden = dropdown.classList.contains('hidden');
-        if (isHidden) {
-            dropdown.classList.remove('hidden');
-            if (chevron) chevron.style.transform = 'rotate(180deg)';
-            const input = document.getElementById('mega-category-search');
-            if (input) setTimeout(() => input.focus(), 100);
-        } else {
-            dropdown.classList.add('hidden');
-            if (chevron) chevron.style.transform = '';
-        }
-    };
-
-    window.closeCategoryMenu = function() {
-        const dropdown = document.getElementById('category-mega-dropdown');
-        const chevron = document.getElementById('cat-chevron');
-        if (dropdown) dropdown.classList.add('hidden');
-        if (chevron) chevron.style.transform = '';
-    };
-
-    window.filterFeaturedSection = function(type) {
-        if (window.closeCategoryMenu) window.closeCategoryMenu();
-        if (type === 'just-for-you') {
-            if (window.clearCategoryFilter) window.clearCategoryFilter();
-            const el = document.getElementById('daily-discover-section');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else if (type === 'new-in') {
-            const el = document.getElementById('shoes');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else if (type === 'sale') {
-            const el = document.getElementById('flash-sale') || document.querySelector('section:has(#flash-sale-timer)');
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    };
-
-    // ─── Horizontal Category Bar Scrolling ─────────────────────────────────
-    window.scrollHeaderCategories = function(direction) {
-        const el = document.getElementById('header-categories-scroll');
-        if (!el) return;
-        const scrollDistance = 220;
-        el.scrollBy({
-            left: direction === 'left' ? -scrollDistance : scrollDistance,
-            behavior: 'smooth'
-        });
-    };
-
-    const headerCatScroll = document.getElementById('header-categories-scroll');
-    if (headerCatScroll) {
-        headerCatScroll.addEventListener('wheel', function(e) {
-            if (e.deltaY !== 0) {
-                e.preventDefault();
-                headerCatScroll.scrollLeft += e.deltaY;
-            }
-        }, { passive: false });
-    }
-
-    // Close mega menu on outside click
-    document.addEventListener('click', function(e) {
-        const wrapper = document.getElementById('category-mega-menu-wrapper');
-        if (wrapper && !wrapper.contains(e.target)) {
-            window.closeCategoryMenu();
-        }
-    });
-
-    // Close mega menu on Escape
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            window.closeCategoryMenu();
-        }
-    });
-
-    // Instant filter within Mega Menu search
-    window.filterMegaMenu = function(query) {
-        query = (query || '').toLowerCase().trim();
-        const items = document.querySelectorAll('.mega-cat-item');
-        items.forEach(item => {
-            const name = (item.getAttribute('data-cat-name') || '').toLowerCase();
-            if (!query || name.includes(query)) {
-                item.style.display = '';
-            } else {
-                item.style.display = 'none';
-            }
-        });
-    };
-
-    // ─── Search Functionality ──────────────────────────────────────────────
+    // Product search and filtering (shared header controls live in header-navigation.js).
     function performSearch(query, shouldScroll = false) {
         currentSearch = (query || '').trim().toLowerCase();
         
@@ -210,9 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (shouldScroll) {
-            const target = categoryBanner && !categoryBanner.classList.contains('hidden') 
-                ? categoryBanner 
-                : (resultsBanner || shoesSection || dailySection);
+            const target = [categoryBanner, resultsBanner, noResults, shoesSection, dailySection]
+                .find(section => section && !section.classList.contains('hidden') && section.style.display !== 'none');
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
@@ -271,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Update URL
         const url = new URL(window.location);
+        url.searchParams.delete('cat');
         if (slug && slug !== 'all') {
             url.searchParams.set('category', slug);
         } else {
@@ -283,6 +193,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.clearCategoryFilter = function() {
         window.filterByCategory('all', 'All Categories', false);
+    };
+
+    window.clearAllProductFilters = function() {
+        currentSearch = '';
+        if (searchInput) searchInput.value = '';
+        if (searchClear) searchClear.classList.add('hidden');
+        const url = new URL(window.location);
+        ['q', 'category', 'cat'].forEach(key => url.searchParams.delete(key));
+        window.history.replaceState({}, '', url.toString());
+        window.clearCategoryFilter();
     };
 
     // ─── Department Tabs within Categories Showcase ────────────────────────

@@ -226,6 +226,9 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
+        $wishlistRefs = $request->user()
+            ? \App\Models\Wishlist::where('user_id', $request->user()->id)->pluck('ref')->all()
+            : [];
         $categories = $this->getCategoriesWithMeta();
         $activeCategory = $request->query('category') ?? $request->query('cat');
         $searchQuery = $request->query('q');
@@ -251,7 +254,8 @@ class HomeController extends Controller
             'categories',
             'activeCategory',
             'searchQuery',
-            'departmentCounts'
+            'departmentCounts',
+            'wishlistRefs'
         ));
     }
 

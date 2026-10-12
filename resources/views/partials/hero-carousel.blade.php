@@ -27,7 +27,7 @@
             'accent' => 'Find your everyday fit.',
             'description' => 'Easy layers, fresh kicks, and finishing touches. Meet the pieces that make every day feel a little more you.',
             'cta' => 'Find your next pair',
-            'href' => '#shoes',
+            'href' => route('category.show', ['slug' => 'shoes']),
             'alt' => 'Cream sneakers, a folded beige shirt, and a muted lavender crossbody bag',
         ],
         [
