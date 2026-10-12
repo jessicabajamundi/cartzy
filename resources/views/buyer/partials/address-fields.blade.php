@@ -60,10 +60,10 @@
         {{-- Contact Number --}}
         <label class="block">
             <span class="settings-label">Contact number</span>
-            <input class="settings-input" name="phone" type="tel" inputmode="numeric" pattern="[0-9]*" required maxlength="20"
+            <input class="settings-input" name="phone" type="tel" inputmode="numeric" pattern="[0-9]{1,11}" required maxlength="11"
                 placeholder="e.g. 09171234567"
                 value="{{ $valPhone }}"
-                oninput="this.value = this.value.replace(/\D/g, '')">
+                oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)">
         </label>
 
         {{-- Region (PSGC API) --}}
@@ -113,10 +113,9 @@
         {{-- Postal Code --}}
         <label class="block">
             <span class="settings-label">Postal code</span>
-            <input class="settings-input" name="postal_code" type="text" inputmode="numeric" pattern="[0-9]*" required maxlength="20"
+            <input class="settings-input" name="postal_code" type="text" inputmode="numeric" pattern="[0-9]{4}" required minlength="4" maxlength="4" title="Postal code must contain exactly 4 digits." oninput="this.value = this.value.replace(/\D/g, '').slice(0, 4)"
                 placeholder="e.g. 1100"
-                value="{{ $valPostal }}"
-                oninput="this.value = this.value.replace(/\D/g, '')">
+                value="{{ $valPostal }}">
         </label>
 
         {{-- House / Unit and Street --}}

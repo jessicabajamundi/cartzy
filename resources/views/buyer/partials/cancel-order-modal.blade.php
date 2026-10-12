@@ -1,9 +1,9 @@
 <dialog id="cancelOrderDialog" aria-labelledby="cancelOrderTitle" aria-describedby="cancelOrderDescription" class="m-auto w-full max-w-lg rounded-3xl border border-[#E1DDE7] bg-white p-6 text-gray-900 shadow-xl" style="max-height:90vh;width:calc(100% - 2rem)">
     <form method="POST" id="cancelOrderForm" class="space-y-4">
         @csrf
-        <h2 id="cancelOrderTitle" class="text-xl font-bold">Cancel order</h2>
+        <h2 id="cancelOrderTitle" class="text-xl font-bold">Request cancellation</h2>
         <p id="cancelOrderReference" class="text-sm font-semibold text-gray-500"></p>
-        <p id="cancelOrderDescription" class="text-sm text-gray-600">Please select a reason for cancelling your order.</p>
+        <p id="cancelOrderDescription" class="text-sm text-gray-600">Select a reason to send to the seller. Your order will only be cancelled after the seller approves your request.</p>
         <fieldset class="space-y-2">
             <legend class="sr-only">Cancellation reason (required)</legend>
             @foreach(\App\Models\SellerOrder::CANCELLATION_REASONS as $reason)
@@ -17,11 +17,11 @@
             <label for="cancelReasonDetails" class="block text-sm font-semibold">Please specify your reason.</label>
             <textarea id="cancelReasonDetails" name="reason_details" maxlength="1000" rows="3" disabled class="mt-2 w-full rounded-xl border border-gray-300 p-3 text-sm" placeholder="Please specify your reason."></textarea>
         </div>
-        <p class="text-sm font-semibold">Are you sure you want to cancel this order?</p>
-        <p class="text-xs text-gray-500">If you have already paid, please contact the seller to arrange your refund.</p>
+        <p class="text-sm font-semibold">Send this cancellation request to the seller?</p>
+        <p class="text-xs text-gray-500">If approved and already paid, contact the seller to arrange your refund. Sending a request does not issue a refund.</p>
         <div class="flex flex-wrap justify-end gap-2">
             <button type="button" id="keepOrderButton" class="{{ $btnGhost }}">Keep order</button>
-            <button type="submit" id="confirmCancellationButton" class="{{ $btnPrimary }} disabled:opacity-50 disabled:cursor-not-allowed" disabled>Confirm cancellation</button>
+            <button type="submit" id="confirmCancellationButton" class="{{ $btnPrimary }} disabled:opacity-50 disabled:cursor-not-allowed" disabled>Send cancellation request</button>
         </div>
     </form>
 </dialog>

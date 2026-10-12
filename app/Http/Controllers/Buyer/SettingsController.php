@@ -19,17 +19,17 @@ class SettingsController extends Controller
             'legacy_address' => ['nullable', 'boolean'],
             'label' => ['required', 'in:Home,Work,School,Other'],
             'recipient' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'regex:/^[0-9]+$/', 'max:20'],
+            'phone' => ['required', 'string', 'regex:/^[0-9]+$/', 'max:11'],
             'line1' => ['required', 'string', 'max:255'],
             'region' => ['nullable', 'string', 'max:100'],
             'barangay' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'province' => ['required', 'string', 'max:100'],
-            'postal_code' => ['required', 'string', 'regex:/^[0-9]+$/', 'max:20'],
+            'postal_code' => ['required', 'string', 'regex:/\A[0-9]{4}\z/'],
             'is_default' => ['nullable', 'boolean'],
         ], [
             'phone.regex' => 'Contact number must contain numbers only.',
-            'postal_code.regex' => 'Postal code must contain numbers only.',
+            'postal_code.regex' => 'Postal code must contain exactly 4 digits.',
         ]);
 
         DB::transaction(function () use ($request, $data) {

@@ -330,6 +330,7 @@
     document.addEventListener('input', e => {
         if (!isNumericTarget(e.target)) return;
         e.target.value = e.target.value.replace(/\D/g, '');
+        e.target.value = e.target.value.slice(0, e.target.name === 'postal_code' ? 4 : 11);
     });
 
     document.addEventListener('paste', e => {
@@ -337,10 +338,12 @@
         e.preventDefault();
         const text = (e.clipboardData || window.clipboardData).getData('text') || '';
         const digits = text.replace(/\D/g, '');
-        if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
-            document.execCommand('insertText', false, digits);
-        } else {
-            e.target.value = digits;
-        }
+        const input = e.target;
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? start;
+        const limit = input.name === 'postal_code' ? 4 : 11;
+        const available = Math.max(0, limit - (input.value.length - (end - start)));
+        input.setRangeText(digits.slice(0, available), start, end, 'end');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
     });
 })();

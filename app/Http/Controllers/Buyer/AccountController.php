@@ -80,12 +80,15 @@ class AccountController extends Controller
         $validated = $request->validate([
             'name'           => ['required', 'string', 'max:255'],
             'middle_initial' => ['nullable', 'string', 'max:5'],
-            'phone'          => ['nullable', 'string', 'max:20'],
+            'phone'          => ['nullable', 'string', 'regex:/\A[0-9]+\z/', 'max:11'],
             'sex'            => ['nullable', 'string', 'in:Male,Female,Prefer not to say,Other'],
-            'birthday'       => ['nullable', 'date', 'before:today'],
+            'birthday'       => ['nullable', 'bail', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYearsNoOverflow(18)->toDateString()],
             'id_type'        => ['nullable', 'string', 'max:100'],
             'id_number'      => ['nullable', 'string', 'max:100'],
             'id_photo'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
+        ], [
+            'birthday.date_format' => 'Please enter a valid birthday.',
+            'birthday.before_or_equal' => 'You must be at least 18 years old.',
         ]);
 
         $age = null;
@@ -117,6 +120,25 @@ class AccountController extends Controller
             }
 
             $user->update($updateData);
+
+            if ($user->isBuyer()) {
+                \App\Models\Buyer::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'name'                => $user->name,
+                        'middle_initial'      => $user->middle_initial,
+                        'sex'                 => $user->sex,
+                        'birthday'            => $user->birthday,
+                        'age'                 => $user->age,
+                        'phone'               => $user->phone,
+                        'id_type'             => $user->id_type,
+                        'id_number'           => $user->id_number,
+                        'id_photo'            => $user->id_photo,
+                        'id_status'           => $user->id_status ?? 'unverified',
+                        'id_rejection_reason' => $user->id_rejection_reason,
+                    ]
+                );
+            }
 
             // Sync database dump
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
@@ -175,6 +197,19 @@ class AccountController extends Controller
                 $user->id_rejection_reason = null;
                 $user->save();
 
+                if ($user->isBuyer()) {
+                    \App\Models\Buyer::updateOrCreate(
+                        ['user_id' => $user->id],
+                        [
+                            'id_type'             => $validated['id_type'],
+                            'id_number'           => $validated['id_number'] ?? null,
+                            'id_photo'            => $path,
+                            'id_status'           => 'pending',
+                            'id_rejection_reason' => null,
+                        ]
+                    );
+                }
+
                 \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
             }
         }
@@ -221,7 +256,7 @@ class AccountController extends Controller
             'province'       => ['nullable', 'string', 'max:100'],
             'city'           => ['nullable', 'string', 'max:100'],
             'barangay'       => ['nullable', 'string', 'max:100'],
-            'postal_code'    => ['nullable', 'string', 'max:20'],
+            'postal_code'    => ['required', 'string', 'regex:/\A[0-9]{4}\z/'],
         ]);
 
         $street    = trim($validated['street_address']);

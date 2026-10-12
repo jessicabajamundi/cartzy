@@ -23,15 +23,15 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Cart (session)
-        $cart = array_values(Session::get('cart', []));
+        // Cart saved to the buyer's account.
+        $cart = array_values(app(\App\Services\BuyerCart::class)->all());
         $cartSubtotal = collect($cart)->sum(fn ($i) => $i['price'] * $i['quantity']);
         $cartCount = collect($cart)->sum('quantity');
 
         // Orders (database): one card per seller order
         $sellerOrders = SellerOrder::query()
             ->whereHas('order', fn ($q) => $q->where('buyer_id', $user->id))
-            ->with(['order.sellerOrders', 'order.payments', 'seller', 'items.product.coverImage', 'shipment.deliveryEvents', 'shipment.rider', 'logisticsProvider'])
+            ->with(['order.sellerOrders', 'order.payments', 'seller', 'items.product.coverImage', 'shipment.deliveryEvents', 'shipment.rider.user', 'shipment.logisticsProvider', 'logisticsProvider'])
             ->latest()
             ->get();
 
@@ -76,7 +76,7 @@ class DashboardController extends Controller
             'addresses'     => $this->addresses($user),
             'savedAddresses' => \App\Models\Address::where('user_id', $user->id)->orderByDesc('is_default')->orderBy('id')->get(),
             'tracking'      => $this->tracking($sellerOrders, $request->query('track')),
-            'tab'           => in_array($request->query('tab'), ['profile', 'addresses']) ? 'settings' : $request->query('tab', 'overview'),
+            'tab'           => in_array($request->query('tab'), ['profile', 'addresses']) ? 'settings' : $request->query('tab', 'orders'),
         ]);
     }
 
@@ -110,6 +110,11 @@ class DashboardController extends Controller
                 'variation'   => $data['variation'] ?? 'Standard',
             ]);
             $wished = true;
+        }
+
+        if (!$request->expectsJson()) {
+            return redirect()->route('home')->withFragment('daily-discover-section')
+                ->with('wishlist_status', $wished ? 'Saved to your wishlist.' : 'Removed from your wishlist.');
         }
 
         return response()->json([
@@ -197,6 +202,9 @@ class DashboardController extends Controller
             if ($sellerOrder->status === 'cancelled') {
                 return 'This order has already been cancelled.';
             }
+            if ($sellerOrder->cancellation_status === 'pending') {
+                return 'Your cancellation request is awaiting seller approval.';
+            }
 
             if (!$sellerOrder->canBeCancelledByBuyer()) {
                 throw ValidationException::withMessages(['order' => 'This order can no longer be cancelled because it has already been collected or delivered.']);
@@ -208,29 +216,18 @@ class DashboardController extends Controller
             ]);
             $reason = $data['reason'] === 'Other reason'
                 ? 'Other reason: ' . $data['reason_details'] : $data['reason'];
-            $cancellationNote = 'Cancellation reason: ' . $reason;
             $sellerOrder->update([
-                'status' => 'cancelled',
-                'note' => trim(($sellerOrder->note ? $sellerOrder->note . "\n" : '') . $cancellationNote),
+                'cancellation_status' => 'pending',
+                'cancellation_reason' => $reason,
+                'cancellation_requested_at' => now(),
+                'cancellation_reviewed_at' => null,
             ]);
-            if ($sellerOrder->shipment) {
-                $sellerOrder->shipment->update(['cod_amount_minor' => 0]);
-                $sellerOrder->shipment->deliveryEvents()->create([
-                    'status' => 'cancelled', 'attempt' => 1, 'user_id' => Auth::id(),
-                    'note' => 'Order cancelled by buyer. ' . $cancellationNote, 'occurred_at' => now(),
-                ]);
-            }
-
-            if (!$order->sellerOrders()->where('status', '!=', 'cancelled')->exists()) {
-                $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
-            } elseif ($order->payment_status === 'pending') {
-                $remaining = $order->sellerOrders()->where('status', '!=', 'cancelled')->get()
-                    ->sum(fn ($remainingOrder) => $remainingOrder->subtotal_minor + $remainingOrder->shipping_fee_minor);
-                $order->payments()->where('status', 'pending')->update(['amount_minor' => $remaining]);
-            }
-
-            return 'Your order has been cancelled successfully.' . ($order->payment_status === 'paid'
-                ? ' Please contact the seller to arrange your refund.' : '');
+            \App\Services\NotificationService::notify(
+                $sellerOrder->seller->user_id, 'cancellation_requested', 'Cancellation request',
+                "The buyer requested cancellation of {$order->reference}. Reason: {$reason}",
+                route('seller.orders', ['status' => 'cancellation_requested'])
+            );
+            return 'Cancellation request sent. Your order will only be cancelled after seller approval.';
         });
 
         try {
@@ -296,7 +293,8 @@ class DashboardController extends Controller
         return [
             'id'       => $order->reference,
             'seller_order_id' => $so->id,
-            'can_cancel' => $so->canBeCancelledByBuyer(),
+            'can_cancel' => $so->cancellation_status !== 'pending' && $so->canBeCancelledByBuyer(),
+            'cancellation_status' => $so->cancellation_status,
             'store'    => $so->seller->name ?? 'Cartzy Seller',
             'status'   => $this->dashboardStatus($so),
             'date'     => $order->created_at->format('M d, Y'),
@@ -413,51 +411,7 @@ class DashboardController extends Controller
                 ?? $sellerOrders->first();
         }
 
-        $shipment = $so->shipment;
-        $shipStatus = optional($shipment)->status;
-        $events = $shipment ? $shipment->deliveryEvents->keyBy('status') : collect();
-        $at = fn (string $status, $fallback = null) => optional(optional($events->get($status))->occurred_at ?? $fallback)->format('M d, h:i A') ?? 'Pending';
-
-        $packed = in_array($so->status, ['packed', 'ready_to_ship', 'shipped', 'delivered', 'completed'], true);
-        $moving = in_array($shipStatus, ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'], true) || in_array($so->status, ['shipped', 'delivered', 'completed'], true);
-        $ofd = in_array($shipStatus, ['out_for_delivery', 'delivered'], true) || in_array($so->status, ['delivered', 'completed'], true);
-        $delivered = $shipStatus === 'delivered' || in_array($so->status, ['delivered', 'completed'], true);
-
-        $steps = [
-            ['label' => 'Order placed',               'detail' => 'Your order was received.',                         'time' => $so->order->created_at->format('M d, h:i A'), 'done' => true],
-            ['label' => 'Packed by seller',           'detail' => 'The seller has packed your parcel.',               'time' => $packed ? $at('packed', $so->updated_at) : 'Pending', 'done' => $packed],
-            ['label' => 'Picked up by courier',       'detail' => 'The courier has collected your parcel.',           'time' => $moving ? $at('picked_up', $shipment?->updated_at) : 'Pending', 'done' => $moving],
-            ['label' => 'Out for delivery',           'detail' => 'Your rider is on the way to your address.',        'time' => $ofd ? $at('out_for_delivery', $shipment?->updated_at) : 'Pending', 'done' => $ofd],
-            ['label' => 'Delivered',                  'detail' => 'Parcel handed over. Enjoy your purchase!',         'time' => $delivered ? ($so->delivered_at?->format('M d, h:i A') ?? $at('delivered')) : 'Pending', 'done' => $delivered],
-        ];
-
-        // Mark the latest completed step as "current" unless everything is done.
-        for ($i = count($steps) - 1; $i >= 0; $i--) {
-            if ($steps[$i]['done']) {
-                if ($i < count($steps) - 1) {
-                    $steps[$i]['current'] = true;
-                }
-                break;
-            }
-        }
-
-        $riderName = optional(optional(optional($shipment)->rider)->user)->name;
-
-        if ($so->status === 'cancelled') {
-            $steps = [
-                $steps[0],
-                ['label' => 'Order cancelled', 'detail' => 'This order has been cancelled.',
-                    'time' => $at('cancelled', $so->updated_at), 'done' => true],
-            ];
-        }
-
-        return [
-            'order'       => $so->order->reference,
-            'tracking_no' => $shipment->tracking_code ?? '—',
-            'courier'     => trim(($so->logisticsProvider->name ?? 'Cartzy Express') . ($riderName ? " — {$riderName}" : '')),
-            'eta'         => $so->status === 'cancelled' ? 'Cancelled' : ($delivered ? 'Delivered' : ($ofd ? 'Arriving today' : 'We\'ll notify you of each update')),
-            'steps'       => $steps,
-        ];
+        return app(\App\Services\OrderTracking::class)->build($so);
     }
 
     private function addresses($user): array

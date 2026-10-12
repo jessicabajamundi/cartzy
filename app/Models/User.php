@@ -216,6 +216,11 @@ class User extends Authenticatable
         return $this->hasOne(Address::class)->where('is_default', true);
     }
 
+    public function buyer()
+    {
+        return $this->hasOne(Buyer::class);
+    }
+
     public function seller()
     {
         return $this->hasOne(Seller::class);

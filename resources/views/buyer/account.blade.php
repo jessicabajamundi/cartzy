@@ -267,7 +267,8 @@
                                         placeholder="09XXXXXXXXX"
                                         maxlength="11"
                                         inputmode="numeric"
-                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                        pattern="[0-9]{1,11}"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)"
                                         class="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition bg-white shadow-2xs"
                                     >
                                 </div>
@@ -295,11 +296,11 @@
                                         name="birthday"
                                         id="birthday"
                                         value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}"
-                                        max="{{ date('Y-m-d', strtotime('-1 day')) }}"
+                                        max="{{ now()->subYearsNoOverflow(18)->toDateString() }}"
                                         onchange="updateAgeDisplay(this.value)"
                                         class="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition bg-white shadow-2xs"
                                     >
-                                    <p class="text-xs text-gray-500 mt-1.5 font-medium">Your birthday is used to keep your age accurate.</p>
+                                    <p class="text-xs text-gray-500 mt-1.5 font-medium">You must be at least 18 years old.</p>
                                 </div>
                                 <div>
                                     <label for="ageDisplay" class="block text-xs sm:text-sm font-bold text-gray-800 mb-1.5">Current age</label>
@@ -515,7 +516,12 @@
                     name="postal_code"
                     id="modal_postal_code"
                     value="{{ old('postal_code', $user->postal_code ?? '') }}"
+                    required
+                    minlength="4"
                     maxlength="4"
+                    pattern="[0-9]{4}"
+                    title="Postal code must contain exactly 4 digits."
+                    oninput="this.value = this.value.replace(/\D/g, '').slice(0, 4)"
                     inputmode="numeric"
                     placeholder="e.g. 4000"
                     class="w-36 px-3.5 py-2.5 text-xs sm:text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black shadow-2xs"

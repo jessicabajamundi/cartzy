@@ -130,6 +130,24 @@ class AccountSettingsTest extends TestCase
         $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Updated Name', 'sex' => 'Female', 'middle_initial' => 'A', 'birthday' => '1995-01-01', 'age' => 31]);
     }
 
+    public function test_buyer_birthday_requires_age_eighteen_and_accepts_the_exact_birthday(): void
+    {
+        $this->travelTo(\Carbon\Carbon::parse('2026-10-12 12:00:00'));
+        $user = User::factory()->create(['birthday' => '1995-01-01', 'age' => 31]);
+        $this->actingAs($user);
+
+        foreach (['2008-10-13', '2010-01-01', '2027-01-01', '2008-02-30'] as $birthday) {
+            $this->post(route('account.profile.update'), ['name' => $user->name, 'birthday' => $birthday])
+                ->assertSessionHasErrors('birthday');
+            $this->assertDatabaseHas('users', ['id' => $user->id, 'birthday' => '1995-01-01', 'age' => 31]);
+        }
+
+        $this->post(route('account.profile.update'), ['name' => $user->name, 'birthday' => '2008-10-12'])
+            ->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'birthday' => '2008-10-12', 'age' => 18]);
+        $this->get('/dashboard?tab=settings')->assertOk()->assertSee('max="2008-10-12"', false);
+    }
+
     public function test_password_change_rejects_wrong_password_and_never_flashes_secrets(): void
     {
         $user = User::factory()->create(['password' => Hash::make('original-password')]);
