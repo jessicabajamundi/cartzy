@@ -212,6 +212,20 @@ async function nextStep(targetStep) {
 
         if (!validateRegistrationPasswords(true)) return;
 
+        // Terms and Privacy Policy agreement check
+        const termsCheckbox = document.getElementById('terms_agree');
+        const termsError = document.getElementById('terms_agree_error');
+        if (termsCheckbox && !termsCheckbox.checked) {
+            if (termsError) {
+                termsError.textContent = 'Please agree to the Cartzy Terms & Conditions and Privacy Policy to proceed.';
+                termsError.hidden = false;
+            }
+            termsCheckbox.focus();
+            return;
+        } else if (termsError) {
+            termsError.hidden = true;
+        }
+
         // Send OTP automatically when transitioning to Step 3
         if (!await sendAutomaticOtp()) return;
         startOtpTimer();
@@ -235,6 +249,26 @@ function prevStep(targetStep) {
     updateStepperUI();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// Scroll to specific policy section (Terms & Conditions or Privacy Policy)
+function scrollToPolicySection(sectionId) {
+    const box = document.getElementById('termsPolicyScrollBox');
+    const target = document.getElementById(sectionId);
+    if (box && target) {
+        const topPos = target.offsetTop - box.offsetTop;
+        box.scrollTo({ top: Math.max(0, topPos - 4), behavior: 'smooth' });
+    }
+    const btnTerms = document.getElementById('btn-jump-terms');
+    const btnPrivacy = document.getElementById('btn-jump-privacy');
+    if (sectionId === 'terms-conditions-section') {
+        btnTerms?.classList.add('active');
+        btnPrivacy?.classList.remove('active');
+    } else {
+        btnPrivacy?.classList.add('active');
+        btnTerms?.classList.remove('active');
+    }
+}
+window.scrollToPolicySection = scrollToPolicySection;
 
 // Toggle password visibility and the eye icon.
 function togglePasswordVisibility(inputId, btnEl) {
@@ -560,6 +594,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 validateRegistrationNames(true);
                 return;
             }
+            const termsCheckbox = document.getElementById('terms_agree');
+            if (termsCheckbox && !termsCheckbox.checked) {
+                e.preventDefault();
+                currentStep = 2;
+                updateStepperUI();
+                const termsError = document.getElementById('terms_agree_error');
+                if (termsError) {
+                    termsError.textContent = 'Please agree to the Cartzy Terms & Conditions and Privacy Policy to proceed.';
+                    termsError.hidden = false;
+                }
+                termsCheckbox.focus();
+                return;
+            }
             const otpCode = syncOtp();
             const feedback = document.getElementById('otpFeedbackMsg');
 
@@ -594,4 +641,34 @@ document.addEventListener('DOMContentLoaded', function() {
         currentStep = 2;
     }
     updateStepperUI();
+
+    // Legal policy scroll tracking & checkbox event listener
+    const policyBox = document.getElementById('termsPolicyScrollBox');
+    const btnTerms = document.getElementById('btn-jump-terms');
+    const btnPrivacy = document.getElementById('btn-jump-privacy');
+    const privacySection = document.getElementById('privacy-policy-section');
+
+    if (policyBox && privacySection) {
+        policyBox.addEventListener('scroll', function() {
+            const privacyOffset = privacySection.offsetTop - policyBox.offsetTop;
+            if (policyBox.scrollTop >= privacyOffset - 30) {
+                btnPrivacy?.classList.add('active');
+                btnTerms?.classList.remove('active');
+            } else {
+                btnTerms?.classList.add('active');
+                btnPrivacy?.classList.remove('active');
+            }
+        });
+    }
+
+    const termsAgreeInput = document.getElementById('terms_agree');
+    const termsErrorEl = document.getElementById('terms_agree_error');
+    if (termsAgreeInput && termsErrorEl) {
+        termsAgreeInput.addEventListener('change', function() {
+            if (this.checked) {
+                termsErrorEl.hidden = true;
+                termsErrorEl.textContent = '';
+            }
+        });
+    }
 });
