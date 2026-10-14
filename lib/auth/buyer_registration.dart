@@ -1,11 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/services/user_account_service.dart';
 // ============================================================
 // PSGC API MODELS + SERVICE
 // ============================================================
@@ -93,11 +96,13 @@ class BuyerRegistration extends StatefulWidget {
   // not a leftover/hardcoded one.
   final ValueChanged<Map<String, dynamic>> onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
+  final VoidCallback? onSwitchToRiderRegistration;
 
   const BuyerRegistration({
     super.key,
     required this.onRegistrationSubmitted,
     required this.onBackToLogin,
+    this.onSwitchToRiderRegistration,
   });
 
   @override
@@ -123,12 +128,16 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   int? _age;
 
   bool _lastNameError = false;
+  String? _lastNameErrorMessage;
   bool _firstNameError = false;
+  String? _firstNameErrorMessage;
   bool _sexError = false;
   bool _emailError = false;
   String? _emailErrorMessage;
   bool _contactNoError = false;
+  String? _contactNoErrorMessage;
   bool _birthdayError = false;
+  String? _birthdayErrorMessage;
   bool _isCheckingEmail = false;
 
   // ========================================================
@@ -170,12 +179,18 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   bool _confirmPasswordVisible = false;
 
   bool _passwordError = false;
+  String? _passwordErrorMessage;
   bool _confirmPasswordError = false;
   String _confirmPasswordMessage = 'This field is required';
 
   String? _idFileName;
   XFile? _idFile;
   bool _idError = false;
+
+  bool _agreeToTerms = false;
+  bool _agreeToPrivacy = false;
+  bool _termsError = false;
+  bool _privacyError = false;
 
   bool _isSubmitting = false;
 
@@ -364,19 +379,101 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   }
 
   // ============================================================
-  // STEP 1 → STEP 2: validate fields, THEN check email availability
+  // STEP 1 → STEP 2: validate fields (TC-BUY-010 to 016)
   // ============================================================
 
   Future<void> _handleStep1Next() async {
+    final rawEmail = _emailController.text;
+    final trimmedEmail = rawEmail.trim(); // TC-BUY-012: Trim spaces before and after
+    _emailController.text = trimmedEmail;
+
+    final rawPhone = _contactNoController.text;
+    final trimmedPhone = rawPhone.trim();
+
+    final fName = _firstNameController.text.trim();
+    final lName = _lastNameController.text.trim();
+
     setState(() {
-      _lastNameError = _lastNameController.text.trim().isEmpty;
-      _firstNameError = _firstNameController.text.trim().isEmpty;
+      // First Name validation
+      if (fName.isEmpty) {
+        _firstNameError = true;
+        _firstNameErrorMessage = 'First name is required';
+      } else if (fName.length < 2) {
+        _firstNameError = true;
+        _firstNameErrorMessage = 'First name must be at least 2 characters';
+      } else if (!RegExp(r"^[a-zA-Z\s\-\'\.]+$").hasMatch(fName)) {
+        _firstNameError = true;
+        _firstNameErrorMessage = 'First name can only contain letters, hyphens, and spaces';
+      } else {
+        _firstNameError = false;
+        _firstNameErrorMessage = null;
+      }
+
+      // Last Name validation
+      if (lName.isEmpty) {
+        _lastNameError = true;
+        _lastNameErrorMessage = 'Last name is required';
+      } else if (lName.length < 2) {
+        _lastNameError = true;
+        _lastNameErrorMessage = 'Last name must be at least 2 characters';
+      } else if (!RegExp(r"^[a-zA-Z\s\-\'\.]+$").hasMatch(lName)) {
+        _lastNameError = true;
+        _lastNameErrorMessage = 'Last name can only contain letters, hyphens, and spaces';
+      } else {
+        _lastNameError = false;
+        _lastNameErrorMessage = null;
+      }
+
       _sexError = _selectedSex.isEmpty;
-      _emailError = _emailController.text.trim().isEmpty;
-      _emailErrorMessage = _emailError ? 'Email is required' : null;
-      _contactNoError = _contactNoController.text.trim().isEmpty;
-      _birthdayError = _birthday.isEmpty;
+
+      // Birthday & Age validation (18+ requirement)
+      if (_birthday.isEmpty) {
+        _birthdayError = true;
+        _birthdayErrorMessage = 'Please select your birthday';
+      } else if (_age != null && _age! < 18) {
+        _birthdayError = true;
+        _birthdayErrorMessage = 'You must be at least 18 years old to register as a buyer';
+      } else {
+        _birthdayError = false;
+        _birthdayErrorMessage = null;
+      }
+
+      // Email validation (TC-BUY-010, TC-BUY-011, TC-BUY-012)
+      final emailFormatError = UserAccountService.validateEmailFormat(trimmedEmail);
+      if (emailFormatError != null) {
+        _emailError = true;
+        _emailErrorMessage = emailFormatError;
+      } else if (UserAccountService.instance.isEmailRegistered(trimmedEmail)) {
+        // TC-BUY-010 & TC-BUY-011: Duplicate check (case-insensitive)
+        _emailError = true;
+        _emailErrorMessage = 'This email is already in use. No account created.';
+      } else {
+        _emailError = false;
+        _emailErrorMessage = null;
+      }
+
+      // Phone: normalize +63 to 09 on blur before validation (TC-BUY-016)
+      final normalizedPhone = UserAccountService.normalizePhone(trimmedPhone);
+      _contactNoController.text = normalizedPhone;
+
+      // Mobile number validation (TC-BUY-013, TC-BUY-014, TC-BUY-015, TC-BUY-016)
+      final phoneFormatError = UserAccountService.validatePhoneFormat(normalizedPhone);
+      if (phoneFormatError != null) {
+        _contactNoError = true;
+        _contactNoErrorMessage = phoneFormatError;
+      } else if (UserAccountService.instance.isPhoneRegistered(normalizedPhone)) {
+        // TC-BUY-015 & TC-BUY-016: Duplicate mobile check (normalized +63 / 09)
+        _contactNoError = true;
+        _contactNoErrorMessage = 'This mobile number is already in use.';
+      } else {
+        _contactNoError = false;
+        _contactNoErrorMessage = null;
+      }
     });
+
+    if (_emailError) {
+      _emailShakeKey.currentState?.shake();
+    }
 
     if (_lastNameError ||
         _firstNameError ||
@@ -387,78 +484,287 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       return;
     }
 
-    setState(() => _isCheckingEmail = true);
-
-    final available = await checkEmailAvailable(_emailController.text.trim());
-
-    if (!mounted) return;
-
-    if (available == false) {
-      setState(() {
-        _isCheckingEmail = false;
-        _emailError = true;
-        _emailErrorMessage = 'This email is already registered. Try logging in instead.';
-      });
-      _emailShakeKey.currentState?.shake();
-      return;
-    }
-
-    // available == true, or available == null (check failed —
-    // let them continue; the final submit still catches duplicates).
     setState(() {
-      _isCheckingEmail = false;
       _currentStep = 2;
     });
   }
 
+  // ============================================================
+  // TERMS & PRIVACY MODAL DIALOGS
+  // ============================================================
+
+  void _showTermsDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: CartzyColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: ListView(
+            controller: controller,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Cartzy Terms of Service', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.navy)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+              const Divider(color: CartzyColors.border),
+              const SizedBox(height: 12),
+              const Text(
+                '1. Acceptance of Terms\nBy creating a buyer account on Cartzy, you agree to comply with and be bound by these Terms of Service.\n\n'
+                '2. Eligibility\nYou must be at least 18 years of age to register an account and place orders.\n\n'
+                '3. Account Responsibility\nYou are responsible for maintaining the confidentiality of your credentials and OTP verification codes.\n\n'
+                '4. Orders and Payments\nAll orders placed through Cartzy are subject to product availability and payment verification.\n\n'
+                '5. Delivery and Returns\nDeliveries are handled by registered Cartzy riders. Returns and refunds follow standard Cartzy policies.',
+                style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.text),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showPrivacyPolicyDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: CartzyColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: ListView(
+            controller: controller,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Cartzy Privacy Policy', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.navy)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+              const Divider(color: CartzyColors.border),
+              const SizedBox(height: 12),
+              const Text(
+                '1. Information We Collect\nWe collect personal details such as your full name, email address, contact number, delivery address, and government-issued ID for identity verification.\n\n'
+                '2. Use of Information\nYour information is used solely to process your orders, facilitate deliveries, prevent fraudulent activity, and comply with Philippine Republic Act No. 10173 (Data Privacy Act of 2012).\n\n'
+                '3. Data Protection\nCartzy implements industry-standard encryption and security protocols to safeguard your credentials and personal records.',
+                style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.text),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // PASSWORD STRENGTH CHECKLIST WIDGET
+  // ============================================================
+
+  Widget _buildPasswordChecklist() {
+    final pass = _passwordController.text;
+    final hasLength = pass.length >= 8;
+    final hasUpper = RegExp(r'[A-Z]').hasMatch(pass);
+    final hasLower = RegExp(r'[a-z]').hasMatch(pass);
+    final hasNumber = RegExp(r'[0-9]').hasMatch(pass);
+    final hasSpecial = RegExp(r'[!@#\$%^&*(),.?":{}|<>_\+\-=\\/\[\]~`]').hasMatch(pass);
+
+    int satisfiedCount = 0;
+    if (hasLength) satisfiedCount++;
+    if (hasUpper) satisfiedCount++;
+    if (hasLower) satisfiedCount++;
+    if (hasNumber) satisfiedCount++;
+    if (hasSpecial) satisfiedCount++;
+
+    Color strengthColor = CartzyColors.error;
+    String strengthText = 'Weak';
+    double strengthPercent = 0.2;
+    if (satisfiedCount >= 5) {
+      strengthColor = Colors.green;
+      strengthText = 'Strong';
+      strengthPercent = 1.0;
+    } else if (satisfiedCount >= 3) {
+      strengthColor = Colors.orange;
+      strengthText = 'Medium';
+      strengthPercent = 0.6;
+    }
+
+    if (pass.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    Widget item(bool satisfied, String text) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            Icon(
+              satisfied ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 14,
+              color: satisfied ? Colors.green : CartzyColors.gray,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 11,
+                color: satisfied ? CartzyColors.brandDarkest : CartzyColors.gray,
+                fontWeight: satisfied ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CartzyColors.brandLight,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: CartzyColors.brandBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Password Strength:', style: TextStyle(fontSize: 11, color: CartzyColors.gray)),
+              Text(strengthText, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: strengthColor)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: strengthPercent,
+              backgroundColor: CartzyColors.brandBorder,
+              valueColor: AlwaysStoppedAnimation<Color>(strengthColor),
+              minHeight: 4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          item(hasLength, 'At least 8 characters (TC-BUY-017)'),
+          item(hasUpper, 'At least one uppercase letter [A-Z] (TC-BUY-018)'),
+          item(hasLower, 'At least one lowercase letter [a-z] (TC-BUY-018)'),
+          item(hasNumber, 'At least one number [0-9] (TC-BUY-018)'),
+          item(hasSpecial, 'At least one special character [!@#\$%...] (TC-BUY-018)'),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // STEP 3: CREATE ACCOUNT (TC-BUY-017 to 022)
+  // ============================================================
+
   Future<void> _registerBuyer() async {
-    if (_idFile == null) {
-      setState(() => _idError = true);
+    // TC-BUY-022: Prevent multiple clicks in quick succession
+    if (_isSubmitting) return;
+
+    setState(() {
+      // TC-BUY-017, TC-BUY-018: Password length and complexity
+      final passError = UserAccountService.validatePassword(_passwordController.text);
+      if (passError != null) {
+        _passwordError = true;
+        _passwordErrorMessage = passError;
+      } else {
+        _passwordError = false;
+        _passwordErrorMessage = null;
+      }
+
+      // TC-BUY-019: Confirm password match
+      if (_confirmPasswordController.text.isEmpty) {
+        _confirmPasswordMessage = 'Please confirm your password';
+        _confirmPasswordError = true;
+      } else if (_confirmPasswordController.text != _passwordController.text) {
+        _confirmPasswordMessage = 'Passwords do not match';
+        _confirmPasswordError = true;
+      } else {
+        _confirmPasswordError = false;
+      }
+
+      _idError = _idFile == null;
+
+      // TC-BUY-021: Terms AND Privacy Policy must both be accepted
+      _termsError = !_agreeToTerms;
+      _privacyError = !_agreeToPrivacy;
+    });
+
+    if (_passwordError ||
+        _confirmPasswordError ||
+        _idError ||
+        _termsError ||
+        _privacyError) {
       return;
     }
 
     setState(() => _isSubmitting = true);
 
     try {
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       final firstName = _firstNameController.text.trim();
       final lastName = _lastNameController.text.trim();
       final middleInitial = _middleInitialController.text.trim();
-      final fullName = '$firstName $lastName'.trim();
+      final email = _emailController.text.trim();
+      final phone = _contactNoController.text.trim();
 
-      final createdUser = <String, dynamic>{
-        'id': DateTime.now().millisecondsSinceEpoch % 10000,
-        'name': fullName.isNotEmpty ? fullName : 'New Buyer',
-        'middle_initial': middleInitial,
-        'sex': _selectedSex,
-        'birthday': _birthdayForDatabase(),
-        'age': _age ?? 25,
-        'email': _emailController.text.trim(),
-        'phone': _contactNoController.text.trim(),
-        'street_address': _houseStreetController.text.trim(),
-        'address': _houseStreetController.text.trim(),
-        'region': 'National Capital Region (NCR)',
-        'province': _selectedProvince.isNotEmpty ? _selectedProvince : 'Metro Manila',
-        'city': _selectedMunicipality.isNotEmpty ? _selectedMunicipality : 'Pasig City',
-        'barangay': _selectedBarangay.isNotEmpty ? _selectedBarangay : 'San Antonio',
-        'postal_code': '1600',
-        'id_type': 'Government ID',
-        'id_number': 'ID-2026-001',
-        'id_status': 'verified',
-      };
+      // Register account in UserAccountService
+      final createdAccount = UserAccountService.instance.registerBuyer(
+        email: email,
+        phone: phone,
+        password: _passwordController.text,
+        firstName: firstName,
+        lastName: lastName,
+        middleInitial: middleInitial,
+        extraData: {
+          'sex': _selectedSex,
+          'birthday': _birthdayForDatabase(),
+          'age': _age ?? 25,
+          'street_address': _houseStreetController.text.trim(),
+          'address': _houseStreetController.text.trim(),
+          'province': _selectedProvince.isNotEmpty ? _selectedProvince : 'Metro Manila',
+          'city': _selectedMunicipality.isNotEmpty ? _selectedMunicipality : 'Pasig City',
+          'barangay': _selectedBarangay.isNotEmpty ? _selectedBarangay : 'San Antonio',
+          'postal_code': '1600',
+          'id_type': 'Government ID',
+          'id_number': 'ID-2026-001',
+          'id_status': 'verified',
+        },
+      );
 
       if (!mounted) return;
 
       setState(() => _isSubmitting = false);
 
-      showCartzyFlash(context, 'Account created! Welcome to Cartzy.');
+      showCartzyFlash(context, 'Account created! Please verify your email.');
 
-      await Future.delayed(const Duration(milliseconds: 700));
+      await Future.delayed(const Duration(milliseconds: 500));
 
       if (!mounted) return;
 
-      widget.onRegistrationSubmitted(createdUser);
+      widget.onRegistrationSubmitted(createdAccount.toMap());
     } catch (e) {
       if (!mounted) return;
 
@@ -466,9 +772,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'Registration failed: ${e.toString().replaceFirst('Exception: ', '')}',
-          ),
+          content: Text('Registration failed: $e'),
         ),
       );
     }
@@ -477,81 +781,29 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: CartzyColors.surface,
-                border: Border(
-                  bottom: BorderSide(color: CartzyColors.border, width: 0.5),
-                ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CartzyRegisterHeader(
+                title: 'Create your account',
+                subtitle: 'Join cartzy and discover your everyday favorites',
+                onBack: widget.onBackToLogin,
               ),
-              padding: const EdgeInsets.only(
-                left: 24,
-                right: 24,
-                top: 28,
-                bottom: 20,
+              const SizedBox(height: 12),
+              StepIndicator(
+                currentStep: _currentStep,
+                labels: const ['Details', 'Address', 'Security'],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Create Your Account',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: CartzyColors.navy,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: CartzyColors.navy.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'BUYER REGISTRATION',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: CartzyColors.navy,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            StepIndicator(
-              currentStep: _currentStep,
-              accent: CartzyColors.navy,
-              gray: CartzyColors.border,
-              icons: const [
-                Icons.person_outline,
-                Icons.location_on_outlined,
-                Icons.lock_outline,
-              ],
-            ),
-            const Divider(color: CartzyColors.border, height: 1),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_currentStep == 1) _buildStep1(),
-                    if (_currentStep == 2) _buildStep2(),
-                    if (_currentStep == 3) _buildStep3(),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              if (_currentStep == 1) _buildStep1(),
+              if (_currentStep == 2) _buildStep2(),
+              if (_currentStep == 3) _buildStep3(),
+            ],
+          ),
         ),
       ),
     );
@@ -565,51 +817,97 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Personal Information',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Tell us a little about yourself.',
-          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
-        ),
-        const SizedBox(height: 28),
-
-        RegistrationTextField(
-          controller: _lastNameController,
-          label: 'Last Name *',
-          icon: Icons.person_outline,
-          isError: _lastNameError,
-          errorMessage: 'Last name is required',
-          onChanged: (value) {
-            if (_lastNameError && value.trim().isNotEmpty) {
-              setState(() => _lastNameError = false);
-            }
+        RoleSelectionSection(
+          isBuyerSelected: true,
+          onSelectBuyer: () {},
+          onSelectRider: () {
+            widget.onSwitchToRiderRegistration?.call();
           },
+        ),
+        const SizedBox(height: 22),
+        Text(
+          'Your personal details',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Enter your name and personal details',
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
         const SizedBox(height: 18),
 
         RegistrationTextField(
           controller: _firstNameController,
-          label: 'First Name *',
+          label: 'First name *',
           icon: Icons.person_outline,
           isError: _firstNameError,
-          errorMessage: 'First name is required',
+          errorMessage: _firstNameErrorMessage ?? 'First name is required',
           onChanged: (value) {
             if (_firstNameError && value.trim().isNotEmpty) {
-              setState(() => _firstNameError = false);
+              setState(() {
+                _firstNameError = false;
+                _firstNameErrorMessage = null;
+              });
             }
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+
+        RegistrationTextField(
+          controller: _lastNameController,
+          label: 'Last name *',
+          icon: Icons.person_outline,
+          isError: _lastNameError,
+          errorMessage: _lastNameErrorMessage ?? 'Last name is required',
+          onChanged: (value) {
+            if (_lastNameError && value.trim().isNotEmpty) {
+              setState(() {
+                _lastNameError = false;
+                _lastNameErrorMessage = null;
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 16),
 
         RegistrationTextField(
           controller: _middleInitialController,
-          label: 'Middle Initial',
+          label: 'Middle Initial (Optional)',
           icon: Icons.person_outline,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+
+        RegistrationTextField(
+          controller: _contactNoController,
+          label: 'Mobile number *',
+          isPhone: true,
+          isError: _contactNoError,
+          errorMessage: _contactNoErrorMessage ?? 'Contact number is required',
+          onChanged: (value) {
+            if (_contactNoError) {
+              setState(() {
+                _contactNoError = false;
+                _contactNoErrorMessage = null;
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+
+        RegistrationDateField(
+          birthday: _birthday,
+          onClick: _openBirthdayPicker,
+          isError: _birthdayError,
+          errorMessage: _birthdayErrorMessage ?? 'Please select your birthday',
+        ),
+        const SizedBox(height: 16),
 
         SexDropdown(
           selectedValue: _selectedSex,
@@ -622,7 +920,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             });
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         ShakeWidget(
           key: _emailShakeKey,
@@ -642,68 +940,16 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             },
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 28),
 
-        RegistrationTextField(
-          controller: _contactNoController,
-          label: 'Contact No. *',
-          icon: Icons.phone_outlined,
-          isError: _contactNoError,
-          errorMessage: 'Contact number is required',
-          onChanged: (value) {
-            if (_contactNoError && value.trim().isNotEmpty) {
-              setState(() => _contactNoError = false);
-            }
-          },
+        PrimaryButton(
+          text: _isCheckingEmail ? 'Checking...' : 'Continue',
+          onClick: _isCheckingEmail ? () {} : _handleStep1Next,
         ),
-        const SizedBox(height: 18),
-
-        RegistrationDateField(
-          birthday: _birthday,
-          onClick: _openBirthdayPicker,
-          isError: _birthdayError,
-          errorMessage: 'Please select your birthday',
-        ),
-        const SizedBox(height: 18),
-
-        // AGE (AUTOGEN)
-        TextField(
-          readOnly: true,
-          controller: TextEditingController(text: _age?.toString() ?? ''),
-          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
-          decoration: InputDecoration(
-            labelText: 'Age (auto-generated)',
-            labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
-            prefixIcon: const Icon(Icons.badge_outlined, color: CartzyColors.coral, size: 20),
-            filled: true,
-            fillColor: CartzyColors.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
-            ),
-          ),
-        ),
-        const SizedBox(height: 36),
-
-        Row(
-          children: [
-            Expanded(
-              child: SecondaryButton(
-                text: 'BACK',
-                color: CartzyColors.navy,
-                onClick: widget.onBackToLogin,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: PrimaryButton(
-                text: _isCheckingEmail ? 'CHECKING...' : 'NEXT',
-                color: CartzyColors.navy,
-                onClick: _isCheckingEmail ? () {} : _handleStep1Next,
-              ),
-            ),
-          ],
+        RegistrationFooter(
+          isBuyer: true,
+          onBackToLogin: widget.onBackToLogin,
+          onSwitchRole: widget.onSwitchToRiderRegistration,
         ),
       ],
     );
@@ -717,16 +963,23 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Delivery Address',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+        Text(
+          'Delivery address',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text(
+        const SizedBox(height: 4),
+        Text(
           'Where should we deliver your orders?',
-          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
 
         if (_provincesLoadError) ...[
           const Text(
@@ -755,7 +1008,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             _loadMunicipalities(province.code);
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         if (_municipalitiesLoadError) ...[
           const Text(
@@ -782,7 +1035,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             _loadBarangays(municipality.code);
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         if (_barangaysLoadError) ...[
           const Text(
@@ -805,7 +1058,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             });
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         RegistrationTextField(
           controller: _houseStreetController,
@@ -819,22 +1072,20 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             }
           },
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 28),
 
         Row(
           children: [
             Expanded(
               child: SecondaryButton(
-                text: 'BACK',
-                color: CartzyColors.navy,
+                text: 'Back',
                 onClick: () => setState(() => _currentStep = 1),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: 'NEXT',
-                color: CartzyColors.navy,
+                text: 'Continue',
                 onClick: () {
                   setState(() {
                     _provinceError = _selectedProvince.isEmpty;
@@ -854,6 +1105,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             ),
           ],
         ),
+        RegistrationFooter(
+          isBuyer: true,
+          onBackToLogin: widget.onBackToLogin,
+          onSwitchRole: widget.onSwitchToRiderRegistration,
+        ),
       ],
     );
   }
@@ -866,38 +1122,49 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Account Information',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+        Text(
+          'Account & security',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Create your Cartzy login details.',
-          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+        const SizedBox(height: 4),
+        Text(
+          'Create your Cartzy login details and upload ID',
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
 
         RegistrationTextField(
           controller: _passwordController,
           label: 'Password *',
           icon: Icons.lock_outline,
           isError: _passwordError,
-          errorMessage: 'Password is required',
+          errorMessage: _passwordErrorMessage ?? 'Password is required',
           obscureText: !_passwordVisible,
           trailing: IconButton(
             icon: Icon(
               _passwordVisible ? Icons.visibility_off : Icons.visibility,
-              color: CartzyColors.gray,
+              color: const Color(0xFF7A6E72),
             ),
             onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
           ),
           onChanged: (value) {
-            if (_passwordError && value.trim().isNotEmpty) {
-              setState(() => _passwordError = false);
-            }
+            setState(() {
+              if (_passwordError) {
+                _passwordError = false;
+                _passwordErrorMessage = null;
+              }
+            });
           },
         ),
-        const SizedBox(height: 18),
+        _buildPasswordChecklist(),
+        const SizedBox(height: 16),
 
         RegistrationTextField(
           controller: _confirmPasswordController,
@@ -909,7 +1176,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           trailing: IconButton(
             icon: Icon(
               _confirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: CartzyColors.gray,
+              color: const Color(0xFF7A6E72),
             ),
             onPressed: () => setState(() => _confirmPasswordVisible = !_confirmPasswordVisible),
           ),
@@ -919,59 +1186,176 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             }
           },
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
 
-        _UploadField(
+        RegistrationUploadField(
           label: 'Upload ID *',
           fileName: _idFileName,
           isError: _idError,
           errorMessage: 'Please upload a valid ID',
           onTap: _pickIdFile,
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 20),
+
+        // ── Terms of Service ──
+        InkWell(
+          onTap: () {
+            setState(() {
+              _agreeToTerms = !_agreeToTerms;
+              if (_agreeToTerms) _termsError = false;
+            });
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _agreeToTerms,
+                    activeColor: const Color(0xFF865561),
+                    side: BorderSide(
+                      color: _termsError ? CartzyColors.error : const Color(0xFFD0C3C5),
+                      width: 1.5,
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        _agreeToTerms = val ?? false;
+                        if (_agreeToTerms) _termsError = false;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20), height: 1.4),
+                      children: [
+                        const TextSpan(text: 'I have read and agree to the '),
+                        TextSpan(
+                          text: 'Terms of Service',
+                          style: const TextStyle(
+                            color: Color(0xFF865561),
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()..onTap = _showTermsDialog,
+                        ),
+                        const TextSpan(text: ' *', style: TextStyle(color: Color(0xFFD32F2F))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_termsError) ...[
+          const SizedBox(height: 4),
+          const Padding(
+            padding: EdgeInsets.only(left: 36),
+            child: Text(
+              'You must accept the Terms of Service to continue.',
+              style: TextStyle(fontSize: 12, color: CartzyColors.error, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+        const SizedBox(height: 12),
+
+        // ── Privacy Policy ──
+        InkWell(
+          onTap: () {
+            setState(() {
+              _agreeToPrivacy = !_agreeToPrivacy;
+              if (_agreeToPrivacy) _privacyError = false;
+            });
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: _agreeToPrivacy,
+                    activeColor: const Color(0xFF865561),
+                    side: BorderSide(
+                      color: _privacyError ? CartzyColors.error : const Color(0xFFD0C3C5),
+                      width: 1.5,
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        _agreeToPrivacy = val ?? false;
+                        if (_agreeToPrivacy) _privacyError = false;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20), height: 1.4),
+                      children: [
+                        const TextSpan(text: 'I have read and agree to the '),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: const TextStyle(
+                            color: Color(0xFF865561),
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                          recognizer: TapGestureRecognizer()..onTap = _showPrivacyPolicyDialog,
+                        ),
+                        const TextSpan(text: ' *', style: TextStyle(color: Color(0xFFD32F2F))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (_privacyError) ...[
+          const SizedBox(height: 4),
+          const Padding(
+            padding: EdgeInsets.only(left: 36),
+            child: Text(
+              'You must accept the Privacy Policy to continue.',
+              style: TextStyle(fontSize: 12, color: CartzyColors.error, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+        const SizedBox(height: 28),
 
         Row(
           children: [
             Expanded(
               child: SecondaryButton(
-                text: 'BACK',
-                color: CartzyColors.navy,
+                text: 'Back',
                 onClick: () => setState(() => _currentStep = 2),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: _isSubmitting ? 'CREATING...' : 'CREATE ACCOUNT',
-                color: CartzyColors.navy,
-                onClick: _isSubmitting
-                    ? () {}
-                    : () {
-                        setState(() {
-                          _passwordError = _passwordController.text.trim().isEmpty;
-
-                          if (_confirmPasswordController.text.trim().isEmpty) {
-                            _confirmPasswordMessage = 'Please confirm your password';
-                            _confirmPasswordError = true;
-                          } else if (_confirmPasswordController.text != _passwordController.text) {
-                            _confirmPasswordMessage = 'Passwords do not match';
-                            _confirmPasswordError = true;
-                          } else {
-                            _confirmPasswordError = false;
-                          }
-
-                          _idError = _idFile == null;
-                        });
-
-                        if (!_passwordError &&
-                            !_confirmPasswordError &&
-                            !_idError) {
-                          _registerBuyer();
-                        }
-                      },
+                text: _isSubmitting ? 'Creating...' : 'Create account',
+                onClick: _isSubmitting ? () {} : _registerBuyer,
               ),
             ),
           ],
+        ),
+        RegistrationFooter(
+          isBuyer: true,
+          onBackToLogin: widget.onBackToLogin,
+          onSwitchRole: widget.onSwitchToRiderRegistration,
         ),
       ],
     );
@@ -979,17 +1363,18 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 }
 
 // ============================================================
-// UPLOAD FIELD (placeholder — real file picking added later)
+// UPLOAD FIELD (Screenshot Reference Style)
 // ============================================================
 
-class _UploadField extends StatelessWidget {
+class RegistrationUploadField extends StatelessWidget {
   final String label;
   final String? fileName;
   final bool isError;
   final String errorMessage;
   final VoidCallback onTap;
 
-  const _UploadField({
+  const RegistrationUploadField({
+    super.key,
     required this.label,
     required this.fileName,
     required this.isError,
@@ -999,59 +1384,84 @@ class _UploadField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: CartzyColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isError ? CartzyColors.error : CartzyColors.border,
-            width: isError ? 1.5 : 1.2,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.dmSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF231F20),
           ),
         ),
-        child: Row(
-          children: [
-            const Icon(Icons.upload_file, color: CartzyColors.coral),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: CartzyColors.navy,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    fileName ?? 'Tap to upload',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: fileName != null ? CartzyColors.coral : CartzyColors.gray,
-                    ),
-                  ),
-                  if (isError) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      errorMessage,
-                      style: const TextStyle(fontSize: 11, color: CartzyColors.error),
-                    ),
-                  ],
-                ],
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isError ? const Color(0xFFD32F2F) : const Color(0xFFE5D7D7),
+                width: 1.0,
               ),
             ),
-          ],
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.file_upload_outlined,
+                  color: Color(0xFF865561),
+                  size: 22,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    fileName ?? 'Tap to choose file',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      color: fileName != null ? const Color(0xFF231F20) : const Color(0xFFAAA0A2),
+                      fontWeight: fileName != null ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F2F3),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFE5D7D7)),
+                  ),
+                  child: Text(
+                    'Browse',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF4A3E4D),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+        if (isError) ...[
+          const SizedBox(height: 4),
+          Text(
+            errorMessage,
+            style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
+          ),
+        ],
+      ],
     );
   }
 }
+
+typedef _UploadField = RegistrationUploadField;
 
 // ============================================================
 // DATE FIELD
@@ -1076,20 +1486,18 @@ class RegistrationDateField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label above field
         RichText(
-          text: const TextSpan(
+          text: TextSpan(
             text: 'Birthday',
-            style: TextStyle(
+            style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: CartzyColors.navy,
-              height: 1.3,
+              color: const Color(0xFF231F20),
             ),
-            children: [
+            children: const [
               TextSpan(
                 text: ' *',
-                style: TextStyle(color: CartzyColors.error, fontWeight: FontWeight.w600),
+                style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1101,35 +1509,43 @@ class RegistrationDateField extends StatelessWidget {
             child: TextField(
               controller: TextEditingController(text: birthday),
               readOnly: true,
-              style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+              style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
               decoration: InputDecoration(
                 hintText: 'Select your birthday',
-                hintStyle: TextStyle(fontSize: 14, color: CartzyColors.gray.withValues(alpha: 0.7)),
-                prefixIcon: Icon(Icons.cake_outlined, color: CartzyColors.navy.withValues(alpha: 0.5), size: 20),
-                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.navy.withValues(alpha: 0.5)),
+                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
+                prefixIcon: const Icon(Icons.calendar_today_outlined, color: Color(0xFF9E8F91), size: 20),
+                suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
                 errorText: isError ? errorMessage : null,
-                errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
+                errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
                 filled: true,
-                fillColor: CartzyColors.surface,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: CartzyColors.navy.withValues(alpha: 0.6), width: 1.5),
+                  borderSide: const BorderSide(color: Color(0xFF865561), width: 1.5),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.error, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.2),
                 ),
               ),
             ),
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          'You must be at least 18 years old to register.',
+          style: GoogleFonts.dmSans(
+            fontSize: 11.5,
+            color: const Color(0xFF7A6E72),
           ),
         ),
       ],
@@ -1422,17 +1838,16 @@ class RegistrationDropdown extends StatelessWidget {
         RichText(
           text: TextSpan(
             text: displayLabel,
-            style: const TextStyle(
+            style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: CartzyColors.navy,
-              height: 1.3,
+              color: const Color(0xFF231F20),
             ),
             children: [
               if (isRequired)
                 const TextSpan(
                   text: ' *',
-                  style: TextStyle(color: CartzyColors.error, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
                 ),
             ],
           ),
@@ -1458,41 +1873,41 @@ class RegistrationDropdown extends StatelessWidget {
             child: TextField(
               controller: TextEditingController(text: selectedValue),
               readOnly: true,
-              style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+              style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
               decoration: InputDecoration(
                 hintText: isLoading ? 'Loading...' : 'Select ${displayLabel.toLowerCase()}',
-                hintStyle: TextStyle(fontSize: 14, color: CartzyColors.gray.withValues(alpha: 0.7)),
-                prefixIcon: Icon(icon ?? Icons.list_alt_outlined, color: CartzyColors.navy.withValues(alpha: 0.5), size: 20),
+                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
+                prefixIcon: Icon(icon ?? Icons.list_alt_outlined, color: const Color(0xFF9E8F91), size: 20),
                 suffixIcon: isLoading
                     ? const Padding(
                         padding: EdgeInsets.all(14),
                         child: SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: CartzyColors.gray),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF865561)),
                         ),
                       )
-                    : Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.navy.withValues(alpha: 0.5)),
+                    : const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
                 errorText: isError ? errorMessage : null,
-                errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
+                errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
                 filled: true,
-                fillColor: CartzyColors.surface,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: CartzyColors.navy.withValues(alpha: 0.6), width: 1.5),
+                  borderSide: const BorderSide(color: Color(0xFF865561), width: 1.5),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.error, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.2),
                 ),
               ),
             ),
@@ -1685,20 +2100,18 @@ class SexDropdown extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label above field
         RichText(
-          text: const TextSpan(
+          text: TextSpan(
             text: 'Sex',
-            style: TextStyle(
+            style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: CartzyColors.navy,
-              height: 1.3,
+              color: const Color(0xFF231F20),
             ),
-            children: [
+            children: const [
               TextSpan(
                 text: ' *',
-                style: TextStyle(color: CartzyColors.error, fontWeight: FontWeight.w600),
+                style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1712,13 +2125,13 @@ class SexDropdown extends StatelessWidget {
               builder: (context) {
                 return Container(
                   decoration: const BoxDecoration(
-                    color: CartzyColors.surface,
+                    color: Colors.white,
                     borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
                     ),
                   ),
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1727,18 +2140,18 @@ class SexDropdown extends StatelessWidget {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: CartzyColors.border,
+                          color: const Color(0xFFE5D7D7),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const Align(
+                      Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Sex',
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                          'Select Sex',
+                          style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700, color: const Color(0xFF231F20)),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       ..._options.map((option) {
                         final isSelected = option['label'] == selectedValue;
                         return Padding(
@@ -1749,10 +2162,10 @@ class SexDropdown extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               decoration: BoxDecoration(
-                                color: isSelected ? CartzyColors.navy.withValues(alpha: 0.06) : CartzyColors.background,
+                                color: isSelected ? const Color(0xFFFFF9F9) : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: isSelected ? CartzyColors.navy : CartzyColors.border,
+                                  color: isSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
                                   width: isSelected ? 1.5 : 1,
                                 ),
                               ),
@@ -1760,22 +2173,22 @@ class SexDropdown extends StatelessWidget {
                                 children: [
                                   Icon(
                                     option['icon'] as IconData,
-                                    color: isSelected ? CartzyColors.navy : CartzyColors.gray,
+                                    color: isSelected ? const Color(0xFF865561) : const Color(0xFF7A6E72),
                                     size: 22,
                                   ),
                                   const SizedBox(width: 14),
                                   Expanded(
                                     child: Text(
                                       option['label'] as String,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                        color: isSelected ? CartzyColors.navy : CartzyColors.text,
+                                      style: GoogleFonts.dmSans(
+                                        fontSize: 14.5,
+                                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                        color: const Color(0xFF231F20),
                                       ),
                                     ),
                                   ),
                                   if (isSelected)
-                                    const Icon(Icons.check_circle, color: CartzyColors.navy, size: 20),
+                                    const Icon(Icons.check, color: Color(0xFF865561), size: 20),
                                 ],
                               ),
                             ),
@@ -1793,32 +2206,32 @@ class SexDropdown extends StatelessWidget {
             child: TextField(
               controller: TextEditingController(text: selectedValue),
               readOnly: true,
-              style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+              style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
               decoration: InputDecoration(
                 hintText: 'Select your sex',
-                hintStyle: TextStyle(fontSize: 14, color: CartzyColors.gray.withValues(alpha: 0.7)),
-                prefixIcon: Icon(_selectedIcon, color: CartzyColors.navy.withValues(alpha: 0.5), size: 20),
-                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.navy.withValues(alpha: 0.5)),
+                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
+                prefixIcon: Icon(_selectedIcon, color: const Color(0xFF9E8F91), size: 20),
+                suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
                 errorText: isError ? errorMessage : null,
-                errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
+                errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
                 filled: true,
-                fillColor: CartzyColors.surface,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: CartzyColors.navy.withValues(alpha: 0.6), width: 1.5),
+                  borderSide: const BorderSide(color: Color(0xFF865561), width: 1.5),
                 ),
                 errorBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: CartzyColors.error, width: 1),
+                  borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.2),
                 ),
               ),
             ),
@@ -1893,6 +2306,380 @@ class ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderState
 // TEXT FIELD
 // ============================================================
 
+// ============================================================
+// CARTZY REGISTER HEADER (Screenshot Reference)
+// ============================================================
+
+class CartzyRegisterHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback? onBack;
+
+  const CartzyRegisterHeader({
+    super.key,
+    this.title = 'Create your account',
+    this.subtitle = 'Join cartzy and discover your everyday favorites',
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (onBack != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFF231F20)),
+              onPressed: onBack,
+            ),
+          ),
+        Center(
+          child: Image.asset(
+            'assets/cartzy_splash.png',
+            height: 34,
+            fit: BoxFit.contain,
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.dmSans(
+            fontSize: 13,
+            color: const Color(0xFF7A6E72),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Container(
+          width: double.infinity,
+          height: 46,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFE5D7D7), width: 1.2),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.network(
+                'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                width: 18,
+                height: 18,
+                errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Sign up with Google',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Text(
+                'or register with email',
+                style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  color: const Color(0xFF9E8F91),
+                ),
+              ),
+            ),
+            const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// ROLE SELECTION SECTION (Screenshot Reference)
+// ============================================================
+
+class RoleSelectionSection extends StatelessWidget {
+  final bool isBuyerSelected;
+  final VoidCallback onSelectBuyer;
+  final VoidCallback onSelectRider;
+
+  const RoleSelectionSection({
+    super.key,
+    required this.isBuyerSelected,
+    required this.onSelectBuyer,
+    required this.onSelectRider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            text: 'I want to register as',
+            style: GoogleFonts.dmSans(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF231F20),
+            ),
+            children: const [
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Buyer Card
+        GestureDetector(
+          onTap: onSelectBuyer,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: isBuyerSelected ? const Color(0xFFFFF9F9) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isBuyerSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
+                width: isBuyerSelected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFF7F2F3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.shopping_bag_outlined,
+                    color: isBuyerSelected ? Colors.white : const Color(0xFF7A6E72),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Buyer',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF231F20),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Shop & discover items',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          color: const Color(0xFF7A6E72),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isBuyerSelected ? const Color(0xFF8B6370) : Colors.transparent,
+                    border: Border.all(
+                      color: isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFD0C3C5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: isBuyerSelected
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Rider Card
+        GestureDetector(
+          onTap: onSelectRider,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: !isBuyerSelected ? const Color(0xFFFFF9F9) : Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: !isBuyerSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
+                width: !isBuyerSelected ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: !isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFF7F2F3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.two_wheeler_outlined,
+                    color: !isBuyerSelected ? Colors.white : const Color(0xFF7A6E72),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Delivery Partner / Rider',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF231F20),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Deliver orders & earn',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          color: const Color(0xFF7A6E72),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: !isBuyerSelected ? const Color(0xFF8B6370) : Colors.transparent,
+                    border: Border.all(
+                      color: !isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFD0C3C5),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: !isBuyerSelected
+                      ? const Icon(Icons.check, size: 14, color: Colors.white)
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// REGISTRATION FOOTER (Screenshot Reference)
+// ============================================================
+
+class RegistrationFooter extends StatelessWidget {
+  final bool isBuyer;
+  final VoidCallback onBackToLogin;
+  final VoidCallback? onSwitchRole;
+
+  const RegistrationFooter({
+    super.key,
+    required this.isBuyer,
+    required this.onBackToLogin,
+    this.onSwitchRole,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 18),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Already have an account? ',
+              style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+            ),
+            GestureDetector(
+              onTap: onBackToLogin,
+              child: Text(
+                'Log in',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF865561),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (onSwitchRole != null) ...[
+          const SizedBox(height: 16),
+          const Divider(color: Color(0xFFE5D7D7), height: 1),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                isBuyer
+                    ? 'Do you want to be a logistics in cartzy? '
+                    : 'Looking to shop on cartzy instead? ',
+                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+              ),
+              GestureDetector(
+                onTap: onSwitchRole,
+                child: Text(
+                  isBuyer ? 'Apply here' : 'Register as buyer',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF865561),
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// TEXT FIELD (Screenshot Reference)
+// ============================================================
+
 class RegistrationTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -1902,6 +2689,9 @@ class RegistrationTextField extends StatelessWidget {
   final bool obscureText;
   final Widget? trailing;
   final ValueChanged<String>? onChanged;
+  final String? helperText;
+  final bool isPhone;
+  final String? customHint;
 
   const RegistrationTextField({
     super.key,
@@ -1913,93 +2703,130 @@ class RegistrationTextField extends StatelessWidget {
     this.obscureText = false,
     this.trailing,
     this.onChanged,
+    this.helperText,
+    this.isPhone = false,
+    this.customHint,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Extract display label (remove asterisk for hint)
     final displayLabel = label.replaceAll('*', '').trim();
     final isRequired = label.contains('*');
+    final checkPhone = isPhone || label.toLowerCase().contains('mobile') || label.toLowerCase().contains('contact');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label above field
         RichText(
           text: TextSpan(
             text: displayLabel,
-            style: const TextStyle(
+            style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: CartzyColors.navy,
-              height: 1.3,
+              color: const Color(0xFF231F20),
             ),
             children: [
               if (isRequired)
                 const TextSpan(
                   text: ' *',
-                  style: TextStyle(color: CartzyColors.error, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
                 ),
             ],
           ),
         ),
         const SizedBox(height: 8),
-        // Input field
         TextField(
           controller: controller,
           obscureText: obscureText,
           onChanged: onChanged,
-          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+          style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
           decoration: InputDecoration(
-            hintText: 'Enter your ${displayLabel.toLowerCase()}',
-            hintStyle: TextStyle(fontSize: 14, color: CartzyColors.gray.withValues(alpha: 0.7)),
-            prefixIcon: Icon(icon ?? Icons.edit_outlined, color: CartzyColors.navy.withValues(alpha: 0.5), size: 20),
+            hintText: customHint ?? (checkPhone ? '9171234567' : displayLabel),
+            hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
+            prefixIcon: checkPhone
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 14),
+                      const Icon(Icons.phone_outlined, color: Color(0xFF9E8F91), size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        '+63',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF231F20),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  )
+                : (icon != null ? Icon(icon, color: const Color(0xFF9E8F91), size: 20) : null),
             suffixIcon: trailing,
             errorText: isError ? errorMessage : null,
-            errorStyle: const TextStyle(fontSize: 12, color: CartzyColors.error),
+            errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
             filled: true,
-            fillColor: CartzyColors.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+              borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: CartzyColors.border, width: 1),
+              borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: CartzyColors.navy.withValues(alpha: 0.6), width: 1.5),
+              borderSide: const BorderSide(color: Color(0xFF865561), width: 1.5),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: CartzyColors.error, width: 1),
+              borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.2),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: CartzyColors.error, width: 1.5),
+              borderSide: const BorderSide(color: Color(0xFFD32F2F), width: 1.5),
             ),
           ),
         ),
+        if (checkPhone) ...[
+          const SizedBox(height: 5),
+          Text(
+            '+63 Philippines · Enter 10 digits starting with 9.',
+            style: GoogleFonts.dmSans(
+              fontSize: 11.5,
+              color: const Color(0xFF7A6E72),
+            ),
+          ),
+        ] else if (helperText != null && helperText!.isNotEmpty) ...[
+          const SizedBox(height: 5),
+          Text(
+            helperText!,
+            style: GoogleFonts.dmSans(
+              fontSize: 11.5,
+              color: const Color(0xFF7A6E72),
+            ),
+          ),
+        ],
       ],
     );
   }
 }
 
 // ============================================================
-// PRIMARY BUTTON
+// PRIMARY BUTTON (Screenshot Gradient Style)
 // ============================================================
 
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final Color color;
+  final Color? color;
   final VoidCallback onClick;
 
   const PrimaryButton({
     super.key,
     required this.text,
-    required this.color,
+    this.color,
     required this.onClick,
   });
 
@@ -2007,22 +2834,19 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 48,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color,
-              color.withValues(alpha: 0.7),
-            ],
+          gradient: const LinearGradient(
+            colors: [Color(0xFF4A3E4D), Color(0xFF865561)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.3),
-              blurRadius: 12,
+              color: const Color(0xFF865561).withValues(alpha: 0.25),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
@@ -2040,7 +2864,11 @@ class PrimaryButton extends StatelessWidget {
           ),
           child: Text(
             text,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+            style: GoogleFonts.dmSans(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -2054,13 +2882,13 @@ class PrimaryButton extends StatelessWidget {
 
 class SecondaryButton extends StatelessWidget {
   final String text;
-  final Color color;
+  final Color? color;
   final VoidCallback onClick;
 
   const SecondaryButton({
     super.key,
     required this.text,
-    required this.color,
+    this.color,
     required this.onClick,
   });
 
@@ -2068,20 +2896,22 @@ class SecondaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 48,
       child: OutlinedButton(
         onPressed: onClick,
         style: OutlinedButton.styleFrom(
-          foregroundColor: color,
-          side: BorderSide(color: CartzyColors.border, width: 1.2),
-          backgroundColor: CartzyColors.surface,
+          side: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
         child: Text(
           text,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: color, letterSpacing: 0.3),
+          style: GoogleFonts.dmSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF231F20),
+          ),
         ),
       ),
     );
@@ -2089,52 +2919,57 @@ class SecondaryButton extends StatelessWidget {
 }
 
 // ============================================================
-// STEP INDICATOR
+// STEP INDICATOR (Screenshot Reference Text Stepper)
 // ============================================================
 
 class StepIndicator extends StatelessWidget {
   final int currentStep;
-  final Color accent;
-  final Color gray;
-  final List<IconData> icons;
+  final List<String> labels;
+  final Color? accent;
+  final Color? gray;
+  final List<IconData>? icons;
 
   const StepIndicator({
     super.key,
     required this.currentStep,
-    required this.accent,
-    required this.gray,
-    required this.icons,
+    this.labels = const ['Details', 'Sign-in', 'Verify'],
+    this.accent,
+    this.gray,
+    this.icons,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveLabels = labels.isNotEmpty ? labels : const ['Details', 'Sign-in', 'Verify'];
+
     return Container(
-      color: CartzyColors.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+      color: Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
       child: Row(
         children: [
-          for (int i = 0; i < icons.length; i++) ...[
-            StepCircle(
-              icon: icons[i],
-              active: currentStep >= i + 1,
-              accent: accent,
-              gray: gray,
-              stepNumber: i + 1,
+          for (int i = 0; i < effectiveLabels.length; i++) ...[
+            Text(
+              effectiveLabels[i],
+              style: GoogleFonts.dmSans(
+                fontSize: 13,
+                fontWeight: currentStep == i + 1
+                    ? FontWeight.w700
+                    : (currentStep > i + 1 ? FontWeight.w600 : FontWeight.w500),
+                color: currentStep == i + 1
+                    ? const Color(0xFF231F20)
+                    : (currentStep > i + 1 ? const Color(0xFF865561) : const Color(0xFFA59799)),
+              ),
             ),
-            if (i < icons.length - 1) ...[
-              const SizedBox(width: 6),
+            if (i < effectiveLabels.length - 1) ...[
               Expanded(
                 child: Container(
-                  height: 2.5,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    color: currentStep >= i + 2
-                        ? accent
-                        : gray.withValues(alpha: 0.5),
-                  ),
+                  height: 1.5,
+                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  color: currentStep > i + 1
+                      ? const Color(0xFF865561)
+                      : const Color(0xFFE5D7D7),
                 ),
               ),
-              const SizedBox(width: 6),
             ],
           ],
         ],
@@ -2144,7 +2979,7 @@ class StepIndicator extends StatelessWidget {
 }
 
 // ============================================================
-// STEP CIRCLE
+// STEP CIRCLE (Preserved for compatibility)
 // ============================================================
 
 class StepCircle extends StatelessWidget {
@@ -2165,34 +3000,6 @@ class StepCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      width: 38,
-      height: 38,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: active ? accent : Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: active ? accent : gray,
-          width: active ? 0 : 1.5,
-        ),
-        boxShadow: active
-            ? [
-                BoxShadow(
-                  color: accent.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : [],
-      ),
-      child: Icon(
-        icon,
-        color: active ? Colors.white : gray,
-        size: 18,
-      ),
-    );
+    return const SizedBox.shrink();
   }
 }

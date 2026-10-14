@@ -7,8 +7,8 @@ import 'package:cartzy/auth/account_type_selection_screen.dart';
 import 'package:cartzy/auth/login_screen.dart';
 import 'package:cartzy/buyer/dashboard.dart';
 import 'package:cartzy/rider/rider_dashboard.dart';
-import 'package:cartzy/buyer/buyer_profile_screen.dart';
 import 'package:cartzy/buyer/account_menu_screen.dart';
+import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 import 'package:cartzy/auth/buyer_registration.dart';
@@ -16,6 +16,8 @@ import 'package:cartzy/rider/rider_registration.dart';
 import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/services/cart_service.dart';
+import 'package:cartzy/auth/email_verification_screen.dart';
+import 'package:cartzy/widgets/access_denied_screen.dart';
 
 void main() {
   runApp(const CartzyApp());
@@ -50,6 +52,7 @@ class _CartzyHomeState extends State<CartzyHome> {
   String? riderToken;
 
   AccountType pendingAccountType = AccountType.buyer;
+  String pendingVerificationEmail = '';
 
   // ============================================================
   // ROUTING
@@ -69,6 +72,7 @@ class _CartzyHomeState extends State<CartzyHome> {
     setState(() {
       loggedInUser = null;
       riderToken = null;
+      pendingVerificationEmail = '';
       pendingAccountType = AccountType.buyer;
     });
 
@@ -117,10 +121,20 @@ class _CartzyHomeState extends State<CartzyHome> {
   }
 
   // ============================================================
-  // BUYER REGISTRATION SUCCESS
+  // BUYER REGISTRATION SUCCESS -> EMAIL VERIFICATION (OTP)
   // ============================================================
 
   void handleBuyerRegistrationSuccess(
+    Map<String, dynamic> user,
+  ) {
+    setState(() {
+      pendingVerificationEmail = user['email']?.toString() ?? '';
+    });
+
+    goTo('emailVerification');
+  }
+
+  void handleEmailVerificationSuccess(
     Map<String, dynamic> user,
   ) {
     setState(() {
@@ -155,18 +169,15 @@ class _CartzyHomeState extends State<CartzyHome> {
       case 'guest':
         return GuestHomeScreen(
           onLogin: () {
-            goTo('accountTypeSelect');
+            goTo('login');
           },
           onSignUp: () {
-            goTo('accountTypeSelect');
+            goTo('buyerRegistration');
           },
         );
 
       // ========================================================
-      // ACCOUNT TYPE SELECTION
-      //
-      // Buyer and Rider only.
-      // Logistics has been removed.
+      // ACCOUNT TYPE SELECTION (Legacy fallback)
       // ========================================================
 
       case 'accountTypeSelect':
@@ -187,26 +198,39 @@ class _CartzyHomeState extends State<CartzyHome> {
 
           onLogin: handleLogin,
 
+          onVerifyEmail: (email) {
+            setState(() {
+              pendingVerificationEmail = email;
+            });
+            goTo('emailVerification');
+          },
+
           onSignUp: (accountType) {
-            // Buyer registration
-            if (accountType == AccountType.buyer) {
-              goTo('buyerRegistration');
-            }
-
-            // Rider registration
-            else if (accountType == AccountType.rider) {
-              goTo('riderRegistration');
-            }
-
-            // No Logistics registration
+            // Buyer registration (with role switcher inside)
+            goTo('buyerRegistration');
           },
 
           onBack: () {
-            goTo('accountTypeSelect');
+            goTo('guest');
           },
 
           onBackToGuest: () {
             goTo('guest');
+          },
+        );
+
+      // ========================================================
+      // EMAIL VERIFICATION (OTP)
+      // ========================================================
+
+      case 'emailVerification':
+        return EmailVerificationScreen(
+          email: pendingVerificationEmail.isNotEmpty
+              ? pendingVerificationEmail
+              : 'juanmiguel.delacruz@example.com',
+          onVerificationSuccess: handleEmailVerificationSuccess,
+          onBackToLogin: () {
+            goTo('login');
           },
         );
 
@@ -220,6 +244,9 @@ class _CartzyHomeState extends State<CartzyHome> {
               handleBuyerRegistrationSuccess,
           onBackToLogin: () {
             goTo('login');
+          },
+          onSwitchToRiderRegistration: () {
+            goTo('riderRegistration');
           },
         );
 
@@ -241,6 +268,9 @@ class _CartzyHomeState extends State<CartzyHome> {
           onBackToLogin: () {
             goTo('login');
           },
+          onSwitchToBuyerRegistration: () {
+            goTo('buyerRegistration');
+          },
         );
 
       // ========================================================
@@ -249,12 +279,14 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'dashboard':
         return DashboardScreen(
+          userName: loggedInUser?['name']?.toString() ?? 'Leonardo, Tiffany Joy O.',
           onCartClick: () {
             goTo('cart');
           },
           onProfileClick: () {
-            goTo('profile');
+            goTo('accountSettings');
           },
+          onLogout: logout,
         );
 
       // ========================================================
@@ -287,12 +319,34 @@ class _CartzyHomeState extends State<CartzyHome> {
         );
 
       // ========================================================
+      // ROLE ACCESS CONTROL (TC-BUY-030)
+      // ========================================================
+
+      case 'sellerDashboard':
+      case 'logisticsDashboard':
+      case 'adminDashboard':
+        return AccessDeniedScreen(
+          attemptedPage: currentRoute == 'sellerDashboard'
+              ? 'Seller Dashboard'
+              : currentRoute == 'logisticsDashboard'
+                  ? 'Logistics Dashboard'
+                  : 'Admin Dashboard',
+          userRole: loggedInUser?['role']?.toString().toUpperCase() ?? 'BUYER',
+          onReturn: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
+        );
+
+      // ========================================================
       // RIDER DASHBOARD
-      //
-      // Existing Rider account goes here.
       // ========================================================
 
       case 'riderDashboard':
+        if (loggedInUser?['role'] == 'buyer') {
+          return AccessDeniedScreen(
+            attemptedPage: 'Rider Dashboard',
+            userRole: 'BUYER',
+            onReturn: () => goTo('dashboard'),
+          );
+        }
         return RiderDashboard(
           token: riderToken ?? '',
           userId: int.tryParse(
@@ -305,21 +359,29 @@ class _CartzyHomeState extends State<CartzyHome> {
         );
 
       // ========================================================
-      // PROFILE
+      // ACCOUNT SETTINGS & PROFILE
       // ========================================================
 
+      case 'accountSettings':
       case 'profile':
-        return BuyerProfileScreen(
+        return AccountSettingsScreen(
           userName:
-              loggedInUser?['name']?.toString() ?? 'Buyer',
+              loggedInUser?['name']?.toString() ?? 'Leonardo, Tiffany Joy O.',
           userEmail:
-              loggedInUser?['email']?.toString() ?? '',
+              loggedInUser?['email']?.toString() ?? 'tiffany.leonardolspu@gmail.com',
+          userPhone:
+              loggedInUser?['phone']?.toString() ?? '09171234567',
           onBack: () {
             goTo('dashboard');
           },
           onLogout: logout,
-          onEditProfile: () {
-            goTo('accountMenu');
+          onProfileUpdated: (updatedUser) {
+            setState(() {
+              loggedInUser = {
+                ...(loggedInUser ?? {}),
+                ...updatedUser,
+              };
+            });
           },
         );
 
@@ -354,6 +416,9 @@ class _CartzyHomeState extends State<CartzyHome> {
           onLogout: logout,
           onAddresses: () {
             goTo('addresses');
+          },
+          onNavigateRole: (route) {
+            goTo(route);
           },
         );
 
@@ -405,10 +470,10 @@ class _CartzyHomeState extends State<CartzyHome> {
       default:
         return GuestHomeScreen(
           onLogin: () {
-            goTo('accountTypeSelect');
+            goTo('login');
           },
           onSignUp: () {
-            goTo('accountTypeSelect');
+            goTo('buyerRegistration');
           },
         );
     }

@@ -32,3 +32,18 @@ flutter:
 
   assets:
     - assets/
+    - assets/cartzy_splash.png
+    - assets/google_logo.png
+    - assets/banner_home_living.png
+    - assets/banner_everyday_style.png
+    - assets/banner_beauty.png
+    - assets/banner_jewelry.png
+    - assets/banner_coffee_home.png
+    - assets/banner_bags_travel.png
+    - assets/banner_wellness.png
+    - assets/banner_home_living.jpg
+    - assets/banner_everyday_style.jpg
+    - assets/banner_beauty.jpg
+    - assets/banner_jewelry.jpg
+    - assets/banner_coffee_home.jpg
+    - assets/banner_bags_travel.jpg

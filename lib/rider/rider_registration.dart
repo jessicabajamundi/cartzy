@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/auth/buyer_registration.dart'; // reuses shared form widgets + checkEmailAvailable
@@ -11,11 +12,13 @@ import 'package:cartzy/auth/buyer_registration.dart'; // reuses shared form widg
 class RiderRegistration extends StatefulWidget {
   final VoidCallback onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
+  final VoidCallback? onSwitchToBuyerRegistration;
 
   const RiderRegistration({
     super.key,
     required this.onRegistrationSubmitted,
     required this.onBackToLogin,
+    this.onSwitchToBuyerRegistration,
   });
 
   @override
@@ -302,7 +305,13 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       _emailError = _emailController.text.trim().isEmpty;
       _emailErrorMessage = _emailError ? 'Email is required' : null;
       _contactNoError = _contactNoController.text.trim().isEmpty;
-      _birthdayError = _birthday.isEmpty;
+      if (_birthday.isEmpty) {
+        _birthdayError = true;
+      } else if (_age != null && _age! < 18) {
+        _birthdayError = true;
+      } else {
+        _birthdayError = false;
+      }
       _houseStreetError = _houseStreetController.text.trim().isEmpty;
       _provinceError = _selectedProvince.isEmpty;
       _municipalityError = _selectedMunicipality.isEmpty;
@@ -377,95 +386,29 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            // =================================================
-            // HEADER
-            // =================================================
-            Container(
-              width: double.infinity,
-              color: CartzyColors.surface,
-              padding: const EdgeInsets.only(
-                left: 8,
-                right: 24,
-                top: 8,
-                bottom: 18,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CartzyRegisterHeader(
+                title: 'Create your account',
+                subtitle: 'Join cartzy logistics and earn on your schedule',
+                onBack: widget.onBackToLogin,
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
-                      onPressed: widget.onBackToLogin,
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Become a Courier',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w700,
-                            color: CartzyColors.navy,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'RIDER REGISTRATION',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: CartzyColors.coral,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              StepIndicator(
+                currentStep: _currentStep,
+                labels: const ['Details', 'Vehicle', 'Sign-in'],
               ),
-            ),
-
-            // =================================================
-            // STEP INDICATOR
-            // =================================================
-            StepIndicator(
-              currentStep: _currentStep,
-              accent: CartzyColors.coral,
-              gray: CartzyColors.border,
-              icons: const [
-                Icons.person_outline,
-                Icons.two_wheeler_outlined,
-                Icons.lock_outline,
-              ],
-            ),
-            // =================================================
-            // FORM
-            // =================================================
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_currentStep == 1) _buildStep1(),
-                    if (_currentStep == 2) _buildStep2(),
-                    if (_currentStep == 3) _buildStep3(),
-                  ],
-                ),
-              ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              if (_currentStep == 1) _buildStep1(),
+              if (_currentStep == 2) _buildStep2(),
+              if (_currentStep == 3) _buildStep3(),
+            ],
+          ),
         ),
       ),
     );
@@ -479,34 +422,35 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Personal Information',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Tell us about yourself.',
-          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
-        ),
-        const SizedBox(height: 28),
-
-        RegistrationTextField(
-          controller: _lastNameController,
-          label: 'Last Name *',
-          icon: Icons.person_outline,
-          isError: _lastNameError,
-          errorMessage: 'Last name is required',
-          onChanged: (value) {
-            if (_lastNameError && value.trim().isNotEmpty) {
-              setState(() => _lastNameError = false);
-            }
+        RoleSelectionSection(
+          isBuyerSelected: false,
+          onSelectBuyer: () {
+            widget.onSwitchToBuyerRegistration?.call();
           },
+          onSelectRider: () {},
+        ),
+        const SizedBox(height: 22),
+        Text(
+          'Your personal details',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Enter your name and personal details',
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
         const SizedBox(height: 18),
 
         RegistrationTextField(
           controller: _firstNameController,
-          label: 'First Name *',
+          label: 'First name *',
           icon: Icons.person_outline,
           isError: _firstNameError,
           errorMessage: 'First name is required',
@@ -516,14 +460,50 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             }
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+
+        RegistrationTextField(
+          controller: _lastNameController,
+          label: 'Last name *',
+          icon: Icons.person_outline,
+          isError: _lastNameError,
+          errorMessage: 'Last name is required',
+          onChanged: (value) {
+            if (_lastNameError && value.trim().isNotEmpty) {
+              setState(() => _lastNameError = false);
+            }
+          },
+        ),
+        const SizedBox(height: 16),
 
         RegistrationTextField(
           controller: _middleInitialController,
-          label: 'Middle Initial',
+          label: 'Middle Initial (Optional)',
           icon: Icons.person_outline,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
+
+        RegistrationTextField(
+          controller: _contactNoController,
+          label: 'Mobile number *',
+          isPhone: true,
+          isError: _contactNoError,
+          errorMessage: 'Contact number is required',
+          onChanged: (value) {
+            if (_contactNoError && value.trim().isNotEmpty) {
+              setState(() => _contactNoError = false);
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+
+        RegistrationDateField(
+          birthday: _birthday,
+          onClick: _openBirthdayPicker,
+          isError: _birthdayError,
+          errorMessage: 'Please select your birthday',
+        ),
+        const SizedBox(height: 16),
 
         SexDropdown(
           selectedValue: _selectedSex,
@@ -536,7 +516,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             });
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         ShakeWidget(
           key: _emailShakeKey,
@@ -556,72 +536,26 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             },
           ),
         ),
-        const SizedBox(height: 18),
-
-        RegistrationTextField(
-          controller: _contactNoController,
-          label: 'Contact No. *',
-          icon: Icons.phone_outlined,
-          isError: _contactNoError,
-          errorMessage: 'Contact number is required',
-          onChanged: (value) {
-            if (_contactNoError && value.trim().isNotEmpty) {
-              setState(() => _contactNoError = false);
-            }
-          },
-        ),
-        const SizedBox(height: 18),
-
-        RegistrationDateField(
-          birthday: _birthday,
-          onClick: _openBirthdayPicker,
-          isError: _birthdayError,
-          errorMessage: 'Please select your birthday',
-        ),
-        const SizedBox(height: 18),
-
-        // AGE (AUTOGEN)
-        TextField(
-          readOnly: true,
-          controller: TextEditingController(text: _age?.toString() ?? ''),
-          style: const TextStyle(fontSize: 15, color: CartzyColors.text),
-          decoration: InputDecoration(
-            labelText: 'Age (auto-generated)',
-            labelStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
-            hintText: 'Select birthday first',
-            hintStyle: const TextStyle(fontSize: 13, color: CartzyColors.gray),
-            prefixIcon: const Icon(Icons.badge_outlined, color: CartzyColors.coral, size: 20),
-            filled: true,
-            fillColor: CartzyColors.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
-            ),
-          ),
-        ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 24),
 
         // -----------------------------------------------------
         // ADDRESS
         // -----------------------------------------------------
-        const Text(
-          'Address',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+        Text(
+          'Address details',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
         ),
-        const SizedBox(height: 16),
-
-        RegistrationTextField(
-          controller: _houseStreetController,
-          label: 'House Number / Street *',
-          icon: Icons.home_outlined,
-          isError: _houseStreetError,
-          errorMessage: 'This field is required',
-          onChanged: (value) {
-            if (_houseStreetError && value.trim().isNotEmpty) {
-              setState(() => _houseStreetError = false);
-            }
-          },
+        const SizedBox(height: 4),
+        Text(
+          'Where are you based in the Philippines?',
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
         const SizedBox(height: 18),
 
@@ -653,7 +587,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             _loadMunicipalities(province.code);
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         if (_municipalitiesLoadError) ...[
           const Text(
@@ -681,7 +615,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             _loadBarangays(municipality.code);
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         if (_barangaysLoadError) ...[
           const Text(
@@ -705,12 +639,30 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             });
           },
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 16),
+
+        RegistrationTextField(
+          controller: _houseStreetController,
+          label: 'House Number / Street *',
+          icon: Icons.home_outlined,
+          isError: _houseStreetError,
+          errorMessage: 'This field is required',
+          onChanged: (value) {
+            if (_houseStreetError && value.trim().isNotEmpty) {
+              setState(() => _houseStreetError = false);
+            }
+          },
+        ),
+        const SizedBox(height: 28),
 
         PrimaryButton(
-          text: _isCheckingEmail ? 'CHECKING...' : 'NEXT',
-          color: CartzyColors.navy,
+          text: _isCheckingEmail ? 'Checking...' : 'Continue',
           onClick: _isCheckingEmail ? () {} : _handleStep1Next,
+        ),
+        RegistrationFooter(
+          isBuyer: false,
+          onBackToLogin: widget.onBackToLogin,
+          onSwitchRole: widget.onSwitchToBuyerRegistration,
         ),
       ],
     );
@@ -724,16 +676,23 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Vehicle & Documents',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+        Text(
+          'Vehicle & documents',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Tell us what you\'ll be delivering with.',
-          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+        const SizedBox(height: 4),
+        Text(
+          'Tell us what vehicle you will be delivering with',
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
 
         RegistrationDropdown(
           label: 'Choose Vehicle *',
@@ -749,7 +708,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             });
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         RegistrationTextField(
           controller: _plateNumberController,
@@ -763,40 +722,38 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             }
           },
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 20),
 
-        _UploadField(
+        RegistrationUploadField(
           label: 'Upload OR/CR *',
           fileName: _orCrFileName,
           isError: _orCrError,
           errorMessage: 'Please upload your OR/CR',
           onTap: _pickOrCrFile,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
-        _UploadField(
+        RegistrationUploadField(
           label: 'Upload ID / Driver\'s License *',
           fileName: _idLicenseFileName,
           isError: _idLicenseError,
           errorMessage: 'Please upload your ID or license',
           onTap: _pickIdLicenseFile,
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 28),
 
         Row(
           children: [
             Expanded(
               child: SecondaryButton(
-                text: 'BACK',
-                color: CartzyColors.navy,
+                text: 'Back',
                 onClick: () => setState(() => _currentStep = 1),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: 'NEXT',
-                color: CartzyColors.navy,
+                text: 'Continue',
                 onClick: () {
                   setState(() {
                     _vehicleError = _selectedVehicle.isEmpty;
@@ -816,6 +773,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             ),
           ],
         ),
+        RegistrationFooter(
+          isBuyer: false,
+          onBackToLogin: widget.onBackToLogin,
+          onSwitchRole: widget.onSwitchToBuyerRegistration,
+        ),
       ],
     );
   }
@@ -828,16 +790,23 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Account Information',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+        Text(
+          'Account & security',
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Create your Cartzy Courier login details.',
-          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+        const SizedBox(height: 4),
+        Text(
+          'Create a secure password for your rider account',
+          style: GoogleFonts.dmSans(
+            fontSize: 12.5,
+            color: const Color(0xFF7A6E72),
+          ),
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 20),
 
         RegistrationTextField(
           controller: _passwordController,
@@ -849,7 +818,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           trailing: IconButton(
             icon: Icon(
               _passwordVisible ? Icons.visibility_off : Icons.visibility,
-              color: CartzyColors.gray,
+              color: const Color(0xFF7A6E72),
             ),
             onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
           ),
@@ -859,7 +828,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             }
           },
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         RegistrationTextField(
           controller: _confirmPasswordController,
@@ -871,7 +840,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           trailing: IconButton(
             icon: Icon(
               _confirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: CartzyColors.gray,
+              color: const Color(0xFF7A6E72),
             ),
             onPressed: () => setState(() => _confirmPasswordVisible = !_confirmPasswordVisible),
           ),
@@ -881,22 +850,20 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             }
           },
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 28),
 
         Row(
           children: [
             Expanded(
               child: SecondaryButton(
-                text: 'BACK',
-                color: CartzyColors.navy,
+                text: 'Back',
                 onClick: () => setState(() => _currentStep = 2),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: _isSubmitting ? 'SUBMITTING...' : 'SUBMIT',
-                color: CartzyColors.navy,
+                text: _isSubmitting ? 'Submitting...' : 'Submit application',
                 onClick: _isSubmitting
                     ? () {}
                     : () {
@@ -922,6 +889,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             ),
           ],
         ),
+        RegistrationFooter(
+          isBuyer: false,
+          onBackToLogin: widget.onBackToLogin,
+          onSwitchRole: widget.onSwitchToBuyerRegistration,
+        ),
       ],
     );
   }
@@ -937,21 +909,32 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.hourglass_top, color: CartzyColors.coral),
-              SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F2F3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.hourglass_top, color: Color(0xFF865561), size: 22),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Registration Submitted',
-                style: TextStyle(color: CartzyColors.navy, fontWeight: FontWeight.bold),
+                style: GoogleFonts.dmSans(
+                  color: const Color(0xFF231F20),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
-          content: const Text(
+          content: Text(
             "After submitting your registration, please wait for the "
             "Logistics/Sorting Center's approval, which will be sent to "
             "your email.",
-            style: TextStyle(fontSize: 14, color: CartzyColors.gray),
+            style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72), height: 1.4),
           ),
           actions: [
             TextButton(
@@ -959,89 +942,18 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 Navigator.of(context).pop();
                 widget.onRegistrationSubmitted();
               },
-              child: const Text(
+              child: Text(
                 'OK',
-                style: TextStyle(color: CartzyColors.coral, fontWeight: FontWeight.bold),
+                style: GoogleFonts.dmSans(
+                  color: const Color(0xFF865561),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
               ),
             ),
           ],
         );
       },
-    );
-  }
-}
-
-// ============================================================
-// UPLOAD FIELD (placeholder — real file picking added later)
-// ============================================================
-
-class _UploadField extends StatelessWidget {
-  final String label;
-  final String? fileName;
-  final bool isError;
-  final String errorMessage;
-  final VoidCallback onTap;
-
-  const _UploadField({
-    required this.label,
-    required this.fileName,
-    required this.isError,
-    required this.errorMessage,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: CartzyColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isError ? CartzyColors.error : CartzyColors.border,
-            width: isError ? 1.5 : 1.2,
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.upload_file, color: CartzyColors.coral),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: CartzyColors.navy,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    fileName ?? 'Tap to upload',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: fileName != null ? CartzyColors.coral : CartzyColors.gray,
-                    ),
-                  ),
-                  if (isError) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      errorMessage,
-                      style: const TextStyle(fontSize: 11, color: CartzyColors.error),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

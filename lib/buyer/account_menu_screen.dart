@@ -8,6 +8,7 @@ class AccountMenuScreen extends StatelessWidget {
   final VoidCallback onMyPurchase;
   final VoidCallback onLogout;
   final VoidCallback onAddresses;
+  final ValueChanged<String>? onNavigateRole;
 
   final int userId;
   final String userName;
@@ -16,16 +17,17 @@ class AccountMenuScreen extends StatelessWidget {
   final ValueChanged<Map<String, dynamic>>? onProfileUpdated;
 
   const AccountMenuScreen({
-  super.key,
-  required this.onBack,
-  required this.onMyPurchase,
-  required this.onLogout,
-  required this.onAddresses,
-  required this.userId,
-  required this.userName,
-  required this.userEmail,
-  this.onProfileUpdated,
-});
+    super.key,
+    required this.onBack,
+    required this.onMyPurchase,
+    required this.onLogout,
+    required this.onAddresses,
+    this.onNavigateRole,
+    required this.userId,
+    required this.userName,
+    required this.userEmail,
+    this.onProfileUpdated,
+  });
   // ============================================================
   // GET FIRST LETTER
   // ============================================================
@@ -307,6 +309,24 @@ class AccountMenuScreen extends StatelessWidget {
             ),
 
             // ==================================================
+            // ROLE ACCESS CONTROL (TC-BUY-030)
+            // ==================================================
+
+            const _MenuSectionLabel(
+              'ROLE ACCESS CONTROL (TC-BUY-030)',
+            ),
+
+            _MenuItem(
+              icon: Icons.shield_outlined,
+              label: 'Test Other Role Access (403)',
+              onTap: () => _showAccessControlTestDialog(context),
+            ),
+
+            const SizedBox(
+              height: 20,
+            ),
+
+            // ==================================================
             // ACTIVITY
             // ==================================================
 
@@ -446,6 +466,61 @@ class AccountMenuScreen extends StatelessWidget {
         content: Text(
           'This section is coming soon',
         ),
+      ),
+    );
+  }
+
+  void _showAccessControlTestDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.shield_outlined, color: CartzyColors.navy),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Role Access Control (TC-BUY-030)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Attempt to open another role\'s dashboard to verify 403 Forbidden access denial:',
+          style: TextStyle(fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onNavigateRole?.call('sellerDashboard');
+            },
+            child: const Text('Seller Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onNavigateRole?.call('logisticsDashboard');
+            },
+            child: const Text('Logistics Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onNavigateRole?.call('riderDashboard');
+            },
+            child: const Text('Rider Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onNavigateRole?.call('adminDashboard');
+            },
+            child: const Text('Admin Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+          ),
+        ],
       ),
     );
   }

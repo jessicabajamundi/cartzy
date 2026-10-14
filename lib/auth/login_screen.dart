@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/services/user_account_service.dart';
 
 enum AccountType { buyer, rider, admin }
 
@@ -20,11 +22,12 @@ class LoginScreen extends StatefulWidget {
     String? token,
   }) onLogin;
   final ValueChanged<AccountType> onSignUp;
+  final ValueChanged<String>? onVerifyEmail;
 
-  /// Back arrow — goes back to the role-selection screen.
+  /// Back arrow — goes back to the role-selection screen or shop.
   final VoidCallback onBack;
 
-  /// "Continue as Guest" — skips straight to the guest home screen.
+  /// "Continue as Guest" / "Continue to the shop".
   final VoidCallback onBackToGuest;
 
   const LoginScreen({
@@ -32,6 +35,7 @@ class LoginScreen extends StatefulWidget {
     required this.initialAccountType,
     required this.onLogin,
     required this.onSignUp,
+    this.onVerifyEmail,
     required this.onBack,
     required this.onBackToGuest,
   });
@@ -49,6 +53,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoggingIn = false;
+  int _loginAttempts = 0;
+  static const int _maxAttempts = 5;
 
   String? _emailError;
   String? _passwordError;
@@ -93,6 +99,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_validateLogin()) return;
 
+    // TC: Account lockout after 5 failed attempts
+    if (_loginAttempts >= _maxAttempts) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account temporarily locked after 5 failed attempts. Please try again later.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoggingIn = true);
 
     // Simulate a short delay for UX
@@ -103,6 +121,77 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
 
+    // Check with UserAccountService (TC-BUY-028 & TC-BUY-029)
+    final authResult = UserAccountService.instance.authenticate(
+      email: email,
+      password: password,
+    );
+
+    if (authResult.isUnverified) {
+      setState(() => _isLoggingIn = false);
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.mark_email_unread_outlined, color: CartzyColors.navy),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text('Email Verification Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          content: Text(
+            'The buyer account $email exists with status Unverified.\n\nPlease verify your email to access your account.',
+            style: const TextStyle(fontSize: 14, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(color: CartzyColors.gray)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                if (widget.onVerifyEmail != null) {
+                  widget.onVerifyEmail!(email);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CartzyColors.navy,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Verify Email Now'),
+            ),
+          ],
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account unverified. Please verify your email before logging in.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (authResult.success && authResult.account != null) {
+      setState(() => _isLoggingIn = false);
+      final account = authResult.account!;
+      final role = account.role;
+      final user = account.toMap();
+
+      if (role == 'buyer') {
+        widget.onLogin(AccountType.buyer, user, token: 'user-token');
+      } else if (role == 'rider') {
+        widget.onLogin(AccountType.rider, user, token: 'rider-token');
+      } else {
+        widget.onLogin(AccountType.admin, user, token: 'admin-token');
+      }
+      return;
+    }
+
     // Match against demo accounts
     final match = _demoAccounts.where(
       (a) => a['email'] == email && a['password'] == password,
@@ -111,15 +200,24 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoggingIn = false);
 
     if (match == null) {
+      setState(() => _loginAttempts++);
+      final remaining = _maxAttempts - _loginAttempts;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid email or password. Try buyer@cartzy.com / 123456'),
-          backgroundColor: Colors.redAccent,
+        SnackBar(
+          content: Text(
+            remaining > 0
+                ? 'Invalid credentials. $remaining attempt(s) left before lockout.'
+                : 'Account locked. Too many failed attempts.',
+          ),
+          backgroundColor: remaining > 0 ? Colors.redAccent : Colors.red.shade900,
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
     }
 
+    // Successful login — reset attempt counter
+    setState(() => _loginAttempts = 0);
     final role = match['role'].toString();
     final user = Map<String, dynamic>.from(match);
 
@@ -137,15 +235,40 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Forgot Password',
-            style: TextStyle(color: CartzyColors.navy, fontWeight: FontWeight.bold)),
-        content: const Text(
-          'Use the demo credentials:\n\nBuyer:  buyer@cartzy.com\nRider:  rider@cartzy.com\nPassword: 123456',
+        title: Text('Forgot Password',
+            style: GoogleFonts.dmSans(color: const Color(0xFF231F20), fontWeight: FontWeight.bold)),
+        content: Text(
+          'Use the sample accounts to sign in:\n\nBuyer:  buyer@cartzy.com\nRider:  rider@cartzy.com\nPassword: 123456',
+          style: GoogleFonts.dmSans(fontSize: 13.5, height: 1.5, color: const Color(0xFF4A3E4D)),
         ),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _emailController.text = 'buyer@cartzy.com';
+                _passwordController.text = '123456';
+                _emailError = null;
+                _passwordError = null;
+              });
+            },
+            child: Text('Fill Buyer', style: GoogleFonts.dmSans(color: const Color(0xFF865561), fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                _emailController.text = 'rider@cartzy.com';
+                _passwordController.text = '123456';
+                _emailError = null;
+                _passwordError = null;
+              });
+            },
+            child: Text('Fill Rider', style: GoogleFonts.dmSans(color: const Color(0xFF865561), fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Got it', style: TextStyle(color: CartzyColors.coral)),
+            child: Text('Close', style: GoogleFonts.dmSans(color: const Color(0xFF7A6E72))),
           ),
         ],
       ),
@@ -155,285 +278,395 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Back ──
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
-                onPressed: widget.onBack,
-                padding: EdgeInsets.zero,
+              // ── Back link: Continue to the shop ──
+              GestureDetector(
+                onTap: widget.onBackToGuest,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4, bottom: 20),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.arrow_back, size: 16, color: Color(0xFF865561)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Continue to the shop',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF865561),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 24),
+
+              // ── Brand Logo ──
+              Center(
+                child: Image.asset(
+                  'assets/cartzy_splash.png',
+                  height: 38,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 14),
 
               // ── Title ──
-              const Text(
-                'Welcome back',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+              Center(
+                child: Text(
+                  'Welcome back',
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF231F20),
+                    letterSpacing: -0.3,
+                  ),
+                ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Sign in to continue shopping',
-                style: TextStyle(fontSize: 14, color: CartzyColors.gray),
-              ),
-              const SizedBox(height: 32),
 
-              // ── Role tabs ──
-              _RoleTabs(
-                selected: _accountType,
-                onChanged: (t) => setState(() => _accountType = t),
+              // ── Subtitle ──
+              Center(
+                child: Text(
+                  'Login to your account and continue shopping',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 13,
+                    color: const Color(0xFF7A6E72),
+                  ),
+                ),
               ),
               const SizedBox(height: 28),
 
-              // ── Demo hint ──
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: CartzyColors.coral.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: CartzyColors.coral.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, size: 16, color: CartzyColors.coral),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Demo: ${_accountType == AccountType.buyer ? 'buyer' : 'rider'}@cartzy.com  /  123456',
-                        style: const TextStyle(fontSize: 12, color: CartzyColors.navy),
+              // ── Failed attempts warning ──
+              if (_loginAttempts > 0)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _loginAttempts >= 4
+                          ? CartzyColors.error.withValues(alpha: 0.08)
+                          : Colors.orange.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _loginAttempts >= 4
+                            ? CartzyColors.error.withValues(alpha: 0.4)
+                            : Colors.orange.withValues(alpha: 0.4),
                       ),
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          size: 18,
+                          color: _loginAttempts >= 4 ? CartzyColors.error : Colors.orange,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _loginAttempts >= _maxAttempts
+                                ? 'Account temporarily locked due to too many failed attempts.'
+                                : '${_maxAttempts - _loginAttempts} attempt(s) remaining before your account is locked.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _loginAttempts >= 4
+                                  ? CartzyColors.error
+                                  : Colors.orange.shade800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // ── Email address ──
+              Text(
+                'Email address',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // ── Email ──
-              _InputField(
-                controller: _emailController,
-                label: 'Email',
-                hint: 'you@example.com',
-                keyboardType: TextInputType.emailAddress,
-                icon: Icons.email_outlined,
-                errorText: _emailError,
-                onChanged: (_) => setState(() => _emailError = null),
+              const SizedBox(height: 6),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _emailError != null
+                        ? const Color(0xFFD32F2F)
+                        : const Color(0xFFE5D7D7),
+                    width: 1.0,
+                  ),
+                ),
+                child: TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (_) {
+                    if (_emailError != null) setState(() => _emailError = null);
+                  },
+                  style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
+                  decoration: InputDecoration(
+                    hintText: 'Enter your email address',
+                    hintStyle: GoogleFonts.dmSans(
+                      fontSize: 13.5,
+                      color: const Color(0xFFAAA0A2),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.mail_outline,
+                      size: 20,
+                      color: Color(0xFF865561),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  ),
+                ),
               ),
+              if (_emailError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _emailError!,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
+                ),
+              ],
               const SizedBox(height: 16),
 
               // ── Password ──
-              _InputField(
-                controller: _passwordController,
-                label: 'Password',
-                hint: '••••••',
-                obscure: _obscurePassword,
-                icon: Icons.lock_outline,
-                errorText: _passwordError,
-                onChanged: (_) => setState(() => _passwordError = null),
-                suffix: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                    color: CartzyColors.gray,
-                    size: 20,
-                  ),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              Text(
+                'Password',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
                 ),
               ),
+              const SizedBox(height: 6),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _passwordError != null
+                        ? const Color(0xFFD32F2F)
+                        : const Color(0xFFE5D7D7),
+                    width: 1.0,
+                  ),
+                ),
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  onChanged: (_) {
+                    if (_passwordError != null) setState(() => _passwordError = null);
+                  },
+                  style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    hintStyle: GoogleFonts.dmSans(
+                      fontSize: 13.5,
+                      color: const Color(0xFFAAA0A2),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline,
+                      size: 20,
+                      color: Color(0xFF865561),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        size: 20,
+                        color: const Color(0xFF7A6E72),
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  ),
+                ),
+              ),
+              if (_passwordError != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  _passwordError!,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
+                ),
+              ],
               const SizedBox(height: 12),
 
-              // ── Remember / Forgot ──
+              // ── Remember me / Forgot password ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      Checkbox(
-                        value: _rememberMe,
-                        activeColor: CartzyColors.navy,
-                        onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          value: _rememberMe,
+                          activeColor: const Color(0xFF865561),
+                          side: const BorderSide(color: Color(0xFFD0C3C5), width: 1.2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                        ),
                       ),
-                      const Text('Remember me', style: TextStyle(fontSize: 13, color: CartzyColors.navy)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Remember me',
+                        style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF4A3E4D)),
+                      ),
                     ],
                   ),
-                  TextButton(
-                    onPressed: _showForgotPasswordDialog,
-                    child: const Text('Forgot password?',
-                        style: TextStyle(fontSize: 13, color: CartzyColors.coral)),
+                  GestureDetector(
+                    onTap: _showForgotPasswordDialog,
+                    child: Text(
+                      'Forgot password?',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF865561),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // ── Login button ──
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CartzyColors.navy,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 0,
+              // ── Sign In to Account button ──
+              GestureDetector(
+                onTap: _isLoggingIn ? null : _handleLogin,
+                child: Container(
+                  width: double.infinity,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4A3E4D), Color(0xFF865561)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF865561).withValues(alpha: 0.25),
+                        offset: const Offset(0, 4),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
-                  onPressed: _isLoggingIn ? null : _handleLogin,
+                  alignment: Alignment.center,
                   child: _isLoggingIn
                       ? const SizedBox(
-                          height: 18, width: 18,
+                          height: 20,
+                          width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Text('Sign In',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : Text(
+                          'Sign In to Account',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
+              ),
+              const SizedBox(height: 24),
+
+              // ── Divider: or continue with ──
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      'or continue with',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12.5,
+                        color: const Color(0xFF9E8F93),
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
+                ],
               ),
               const SizedBox(height: 20),
 
-              // ── Sign up ──
+              // ── Continue with Google ──
+              GestureDetector(
+                onTap: () {
+                  // Pre-fill demo buyer account for seamless testing
+                  setState(() {
+                    _emailController.text = 'buyer@cartzy.com';
+                    _passwordController.text = '123456';
+                  });
+                  _handleLogin();
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFE5D7D7), width: 1.2),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.network(
+                        'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                        width: 18,
+                        height: 18,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Continue with Google',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF231F20),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ── Don't have an account? Sign up ──
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text("Don't have an account? ",
-                        style: TextStyle(fontSize: 13, color: CartzyColors.gray)),
+                    Text(
+                      "Don't have an account? ",
+                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+                    ),
                     GestureDetector(
                       onTap: () => widget.onSignUp(_accountType),
-                      child: const Text('Sign Up',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: CartzyColors.coral,
-                              fontWeight: FontWeight.bold)),
+                      child: Text(
+                        'Sign up',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF865561),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // ── Guest ──
-              Center(
-                child: TextButton(
-                  onPressed: widget.onBackToGuest,
-                  child: const Text('Continue as Guest',
-                      style: TextStyle(color: CartzyColors.gray, fontSize: 13)),
-                ),
-              ),
+              const SizedBox(height: 20),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Role Tabs ──────────────────────────────────────────────────
-class _RoleTabs extends StatelessWidget {
-  final AccountType selected;
-  final ValueChanged<AccountType> onChanged;
-  const _RoleTabs({required this.selected, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: CartzyColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: CartzyColors.border),
-      ),
-      child: Row(
-        children: [
-          _tab(AccountType.buyer, 'Buyer', Icons.shopping_bag_outlined),
-          _tab(AccountType.rider, 'Rider', Icons.directions_bike_outlined),
-        ],
-      ),
-    );
-  }
-
-  Widget _tab(AccountType type, String label, IconData icon) {
-    final active = selected == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onChanged(type),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.all(4),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: active ? CartzyColors.navy : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: active ? Colors.white : CartzyColors.gray),
-              const SizedBox(width: 6),
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: active ? Colors.white : CartzyColors.gray)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Reusable Input Field ─────────────────────────────────────
-class _InputField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final IconData icon;
-  final bool obscure;
-  final TextInputType keyboardType;
-  final String? errorText;
-  final ValueChanged<String>? onChanged;
-  final Widget? suffix;
-
-  const _InputField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.icon,
-    this.obscure = false,
-    this.keyboardType = TextInputType.text,
-    this.errorText,
-    this.onChanged,
-    this.suffix,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      keyboardType: keyboardType,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: CartzyColors.gray, size: 20),
-        suffixIcon: suffix,
-        errorText: errorText,
-        filled: true,
-        fillColor: CartzyColors.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: CartzyColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: CartzyColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: CartzyColors.coral, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: CartzyColors.error),
         ),
       ),
     );

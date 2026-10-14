@@ -161,7 +161,7 @@ class ProductDetailsScreen extends StatelessWidget {
                           minHeight: 18,
                         ),
                         child: Text(
-                          count > 99 ? '99+' : '',
+                          count > 99 ? '99+' : '$count',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: Colors.white,

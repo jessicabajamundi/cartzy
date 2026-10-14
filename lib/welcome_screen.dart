@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 
-// ==========================================
-// LOCAL COLORS (specific to this screen in the Kotlin original —
-// swap these for your shared CartzyColors.navy/coral/gray if you'd
-// rather match the Coral Horizon palette used elsewhere)
-// ==========================================
-
-class _WelcomeColors {
-  static const teal = Color(0xFF2A9D8F);
-  static const peach = Color(0xFFF4A261);
-  static const text = Color(0xFF1F2933);
-}
 
 class WelcomeScreen extends StatelessWidget {
   final VoidCallback onGetStarted;
@@ -20,7 +10,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -51,14 +41,14 @@ class WelcomeScreen extends StatelessWidget {
                     TextSpan(
                       text: 'Find Everything You ',
                       style: TextStyle(
-                        color: _WelcomeColors.text,
+                        color: CartzyColors.brandDarkest,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
                       text: 'Love',
                       style: TextStyle(
-                        color: _WelcomeColors.teal,
+                        color: CartzyColors.brandDeep,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -69,14 +59,14 @@ class WelcomeScreen extends StatelessWidget {
 
               const Text(
                 'Top quality products at best prices.',
-                style: TextStyle(fontSize: 14, color: _WelcomeColors.text),
+                style: TextStyle(fontSize: 14, color: CartzyColors.brandDarkest),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
 
               const Text(
                 'Shop easy, live better',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: 14, color: CartzyColors.brandDeep),
                 textAlign: TextAlign.center,
               ),
 
@@ -91,7 +81,7 @@ class WelcomeScreen extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: onGetStarted,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _WelcomeColors.teal,
+                    backgroundColor: CartzyColors.brandDark,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -107,7 +97,7 @@ class WelcomeScreen extends StatelessWidget {
 
               const Text(
                 'Your shopping journey starts here',
-                style: TextStyle(fontSize: 12, color: _WelcomeColors.peach),
+                style: TextStyle(fontSize: 12, color: CartzyColors.brandDeep),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),

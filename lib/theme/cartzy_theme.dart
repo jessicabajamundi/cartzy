@@ -13,24 +13,24 @@ import 'cartzy_input_styles.dart';
 import 'cartzy_button_styles.dart';
 
 // ============================================================
-// CARTZY THEME — Global Material Theme ("CSS Global Stylesheet")
+// CARTZY THEME — Warm Cream & Burgundy Material Theme
 // ============================================================
 
 class CartzyTheme {
   static ThemeData get lightTheme {
-    final baseFont = GoogleFonts.poppins();
+    final baseFont = GoogleFonts.dmSans();
 
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: CartzyColors.background,
       fontFamily: baseFont.fontFamily,
-      textTheme: GoogleFonts.poppinsTextTheme(
+      textTheme: GoogleFonts.dmSansTextTheme(
         ThemeData.light().textTheme,
       ),
       colorScheme: ColorScheme.fromSeed(
-        seedColor: CartzyColors.navy,
+        seedColor: CartzyColors.burgundy,
         primary: CartzyColors.navy,
-        secondary: CartzyColors.coral,
+        secondary: CartzyColors.burgundy,
         surface: CartzyColors.surface,
         error: CartzyColors.error,
         brightness: Brightness.light,
@@ -69,3 +69,5 @@ class CartzyTheme {
     );
   }
 }
+
+
