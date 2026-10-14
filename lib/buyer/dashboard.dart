@@ -768,13 +768,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       decoration: BoxDecoration(
                         color: CartzyColors.background,
                         borderRadius: BorderRadius.circular(50),
-                        border: Border.all(color: CartzyColors.border),
+                        border: Border.all(color: CartzyColors.border, width: 1.2),
                       ),
                       child: Row(
                         children: [
-                          const SizedBox(width: 14),
-                          const Icon(Icons.search, size: 18, color: CartzyColors.gray),
-                          const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
                               controller: _searchController,
@@ -792,10 +789,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               },
                               decoration: InputDecoration(
                                 hintText: 'Search products, brands, categories...',
-                                hintStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.grayLight),
+                                hintStyle: GoogleFonts.dmSans(
+                                  fontSize: 13,
+                                  color: CartzyColors.grayLight,
+                                ),
                                 border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                filled: false,
+                                fillColor: Colors.transparent,
                                 isDense: true,
-                                contentPadding: EdgeInsets.zero,
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
                               ),
                             ),
                           ),
@@ -813,7 +819,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Container(
                               width: 36,
                               height: 36,
-                              margin: const EdgeInsets.all(4),
+                              margin: const EdgeInsets.only(right: 4),
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
                                   colors: [Color(0xFF53414E), Color(0xFF865561)],
