@@ -250,25 +250,62 @@ function prevStep(targetStep) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Scroll to specific policy section (Terms & Conditions or Privacy Policy)
-function scrollToPolicySection(sectionId) {
-    const box = document.getElementById('termsPolicyScrollBox');
-    const target = document.getElementById(sectionId);
-    if (box && target) {
-        const topPos = target.offsetTop - box.offsetTop;
-        box.scrollTo({ top: Math.max(0, topPos - 4), behavior: 'smooth' });
-    }
-    const btnTerms = document.getElementById('btn-jump-terms');
-    const btnPrivacy = document.getElementById('btn-jump-privacy');
-    if (sectionId === 'terms-conditions-section') {
-        btnTerms?.classList.add('active');
-        btnPrivacy?.classList.remove('active');
-    } else {
-        btnPrivacy?.classList.add('active');
-        btnTerms?.classList.remove('active');
-    }
+// Open Legal Modal (Terms & Conditions and Privacy Policy)
+function openLegalModal(tab) {
+    const backdrop = document.getElementById('legalModalBackdrop');
+    if (!backdrop) return;
+    backdrop.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    switchModalTab(tab || 'terms');
 }
-window.scrollToPolicySection = scrollToPolicySection;
+window.openLegalModal = openLegalModal;
+
+// Close Legal Modal
+function closeLegalModal() {
+    const backdrop = document.getElementById('legalModalBackdrop');
+    if (!backdrop) return;
+    backdrop.style.display = 'none';
+    document.body.style.overflow = '';
+}
+window.closeLegalModal = closeLegalModal;
+
+// Switch tab in Legal Modal
+function switchModalTab(tab) {
+    const termsSec = document.getElementById('modalTermsSection');
+    const privSec = document.getElementById('modalPrivacySection');
+    const tabTerms = document.getElementById('modalTabTerms');
+    const tabPrivacy = document.getElementById('modalTabPrivacy');
+    const modalBody = document.getElementById('legalModalBody');
+
+    if (tab === 'privacy') {
+        if (termsSec) termsSec.style.display = 'none';
+        if (privSec) privSec.style.display = 'block';
+        tabPrivacy?.classList.add('active');
+        tabTerms?.classList.remove('active');
+    } else {
+        if (termsSec) termsSec.style.display = 'block';
+        if (privSec) privSec.style.display = 'none';
+        tabTerms?.classList.add('active');
+        tabPrivacy?.classList.remove('active');
+    }
+    if (modalBody) modalBody.scrollTop = 0;
+}
+window.switchModalTab = switchModalTab;
+
+// Accept Terms from inside the modal
+function acceptTermsFromModal() {
+    const termsCheck = document.getElementById('terms_agree');
+    const termsErr = document.getElementById('terms_agree_error');
+    if (termsCheck) {
+        termsCheck.checked = true;
+    }
+    if (termsErr) {
+        termsErr.hidden = true;
+        termsErr.textContent = '';
+    }
+    closeLegalModal();
+}
+window.acceptTermsFromModal = acceptTermsFromModal;
 
 // Toggle password visibility and the eye icon.
 function togglePasswordVisibility(inputId, btnEl) {
@@ -642,24 +679,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateStepperUI();
 
-    // Legal policy scroll tracking & checkbox event listener
-    const policyBox = document.getElementById('termsPolicyScrollBox');
-    const btnTerms = document.getElementById('btn-jump-terms');
-    const btnPrivacy = document.getElementById('btn-jump-privacy');
-    const privacySection = document.getElementById('privacy-policy-section');
-
-    if (policyBox && privacySection) {
-        policyBox.addEventListener('scroll', function() {
-            const privacyOffset = privacySection.offsetTop - policyBox.offsetTop;
-            if (policyBox.scrollTop >= privacyOffset - 30) {
-                btnPrivacy?.classList.add('active');
-                btnTerms?.classList.remove('active');
-            } else {
-                btnTerms?.classList.add('active');
-                btnPrivacy?.classList.remove('active');
+    // Legal modal backdrop click & Escape key listener
+    const modalBackdrop = document.getElementById('legalModalBackdrop');
+    if (modalBackdrop) {
+        modalBackdrop.addEventListener('click', function(e) {
+            if (e.target === modalBackdrop) {
+                closeLegalModal();
             }
         });
     }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeLegalModal();
+        }
+    });
 
     const termsAgreeInput = document.getElementById('terms_agree');
     const termsErrorEl = document.getElementById('terms_agree_error');

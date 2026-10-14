@@ -373,154 +373,15 @@
                 <p id="password_confirmation_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" hidden></p>
                 <p id="password-entry-note" style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
 
-                <!-- Terms & Conditions and Privacy Policy Section from PDF -->
-                <div class="terms-policy-wrapper">
-                    <div class="terms-policy-card">
-                        <div class="terms-policy-nav">
-                            <span class="terms-policy-nav-label">Legal Agreements:</span>
-                            <button type="button" class="terms-nav-btn active" id="btn-jump-terms" onclick="scrollToPolicySection('terms-conditions-section')">Terms &amp; Conditions</button>
-                            <button type="button" class="terms-nav-btn" id="btn-jump-privacy" onclick="scrollToPolicySection('privacy-policy-section')">Privacy Policy</button>
-                        </div>
-
-                        <div class="terms-policy-scroll" id="termsPolicyScrollBox">
-                            <!-- Terms & Conditions -->
-                            <div id="terms-conditions-section" class="terms-doc-section">
-                                <h4 class="terms-section-title">Terms &amp; Conditions</h4>
-                                <p class="terms-section-intro">The terms and rules that every Cartzy user agrees to follow when creating an account and using the platform. It explains the responsibilities of buyers and sellers, orders, payments, products, deliveries, returns, and proper use of Cartzy.</p>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Account Registration</h5>
-                                    <p class="terms-item-body">Users must provide accurate information when creating an account and are responsible for keeping their account credentials secure.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Buyer Responsibilities</h5>
-                                    <p class="terms-item-body">Buyers are responsible for reviewing product details, prices, quantities, shipping information, and order details before placing an order.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Seller Responsibilities</h5>
-                                    <p class="terms-item-body">Sellers must provide accurate product information, prices, images, availability, and descriptions. Sellers must only list products that are allowed on Cartzy.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Products and Listings</h5>
-                                    <p class="terms-item-body">Cartzy may remove or restrict listings that contain prohibited, misleading, fraudulent, or inappropriate products or information.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Orders and Payments</h5>
-                                    <p class="terms-item-body">Users are responsible for completing their transactions through the payment methods provided by Cartzy. Orders may be subject to cancellation according to Cartzy's applicable policies.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Shipping and Delivery</h5>
-                                    <p class="terms-item-body">Delivery times may vary depending on the seller, courier, location, and other circumstances. Cartzy is not responsible for delays caused by circumstances beyond its reasonable control.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Returns, Refunds, and Cancellations</h5>
-                                    <p class="terms-item-body">Buyers may request returns, refunds, or cancellations according to the applicable Cartzy policies and the conditions of the order.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Reviews and User Content</h5>
-                                    <p class="terms-item-body">Users must provide honest and appropriate reviews or other content. Fake, abusive, misleading, or offensive content may be removed.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Prohibited Activities</h5>
-                                    <p class="terms-item-body">Users must not use Cartzy for fraud, scams, unauthorized access, harassment, or other illegal or abusive activities.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Account Suspension or Termination</h5>
-                                    <p class="terms-item-body">Cartzy may suspend or terminate accounts that violate these Terms &amp; Conditions or misuse the platform.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Changes to Cartzy</h5>
-                                    <p class="terms-item-body">Cartzy may update its services, features, and these Terms &amp; Conditions when necessary.</p>
-                                </div>
-                            </div>
-
-                            <hr class="terms-divider">
-
-                            <!-- Privacy Policy -->
-                            <div id="privacy-policy-section" class="terms-doc-section">
-                                <h4 class="terms-section-title">Privacy Policy</h4>
-                                <p class="terms-section-intro">The policy that explains how Cartzy collects, uses, stores, shares, and protects users' personal information when they use the platform.</p>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Information We Collect</h5>
-                                    <p class="terms-item-body">Cartzy may collect information such as your name, email address, contact number, account details, delivery address, order details, payment-related information, and information you provide when using the platform.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">How We Use Your Information</h5>
-                                    <p class="terms-item-body" style="margin-bottom: 4px;">We may use your information to:</p>
-                                    <ul class="terms-bullet-list">
-                                        <li>Create and manage your account</li>
-                                        <li>Process orders and payments</li>
-                                        <li>Facilitate delivery</li>
-                                        <li>Connect buyers and sellers when necessary</li>
-                                        <li>Provide customer support</li>
-                                        <li>Send important updates about orders and accounts</li>
-                                        <li>Improve and secure Cartzy</li>
-                                    </ul>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Sharing of Information</h5>
-                                    <p class="terms-item-body">Cartzy may share necessary information with sellers, delivery providers, payment providers, and other authorized service providers when needed to complete transactions or operate the platform.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Payment Information</h5>
-                                    <p class="terms-item-body">Payment information may be processed through authorized payment providers. Cartzy should only retain payment information when necessary and permitted by applicable law.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Data Security</h5>
-                                    <p class="terms-item-body">Cartzy will take reasonable measures to protect users' personal information from unauthorized access, disclosure, alteration, or loss.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Data Retention</h5>
-                                    <p class="terms-item-body">Personal information will only be kept for as long as necessary for legitimate purposes, transactions, legal requirements, or other applicable purposes.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Your Privacy Rights</h5>
-                                    <p class="terms-item-body">Users may have the right to access, correct, object to the processing of, or request deletion/blocking of their personal information, subject to applicable law.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Cookies and Usage Information</h5>
-                                    <p class="terms-item-body">Cartzy may use cookies or similar technologies, when applicable, to improve functionality, security, and user experience.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Changes to This Privacy Policy</h5>
-                                    <p class="terms-item-body">Cartzy may update this Privacy Policy when necessary and will communicate significant changes appropriately.</p>
-                                </div>
-
-                                <div class="terms-item">
-                                    <h5 class="terms-item-title">Contact Us</h5>
-                                    <p class="terms-item-body">For any questions, concerns, or privacy requests regarding the Terms &amp; Conditions or Privacy Policy, users may contact the Cartzy team through the contact information provided in the application</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Checkbox as shown in PDF -->
-                        <div class="terms-agreement-row">
-                            <label class="terms-checkbox-label" for="terms_agree">
-                                <input type="checkbox" id="terms_agree" name="terms_agree" value="1" required class="terms-checkbox">
-                                <span class="terms-checkbox-text">I agree to the Cartzy Terms &amp; Conditions and Privacy Policy. <span style="color:#ef4444">*</span></span>
-                            </label>
-                            <p id="terms_agree_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:4px;" hidden></p>
-                        </div>
-                    </div>
+                <!-- Terms & Conditions and Privacy Policy agreement row -->
+                <div class="terms-agreement-row">
+                    <label class="terms-checkbox-label" for="terms_agree">
+                        <input type="checkbox" id="terms_agree" name="terms_agree" value="1" required class="terms-checkbox">
+                        <span class="terms-checkbox-text">
+                            I agree to the <a href="javascript:void(0)" class="terms-policy-link" onclick="openLegalModal('terms'); event.stopPropagation();">Cartzy Terms &amp; Conditions and Privacy Policy</a>. <span style="color:#ef4444">*</span>
+                        </span>
+                    </label>
+                    <p id="terms_agree_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:5px;" hidden></p>
                 </div>
 
                 <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">We'll send a six-digit verification code to this email address to finish creating your Cartzy account.</p>
@@ -591,6 +452,193 @@
     <div class="auth-foot" style="margin-top: 10px; padding-top: 12px; border-top: 1px dashed #e5e7eb; font-size: 0.88rem; color: #4b5563;">
         <span id="footNoticeText">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Want to register as buyer or seller?' : 'Do you want to be a logistics in cartzy?' }}</span>
         <a href="{{ route('register') }}" id="linkLogisticsApply" onclick="selectRole('{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'buyer' : 'logistics' }}'); return false;" style="font-weight: 700; color: #6F6382; margin-left: 4px; text-decoration: underline;">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Switch here' : 'Apply here' }}</a>
+    </div>
+
+    <!-- Legal Agreements Modal (Terms & Conditions and Privacy Policy) -->
+    <div id="legalModalBackdrop" class="legal-modal-backdrop" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle">
+        <div class="legal-modal-container">
+            <!-- Modal Header -->
+            <div class="legal-modal-header">
+                <div class="legal-modal-title-wrap">
+                    <div class="legal-modal-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 id="legalModalTitle" class="legal-modal-title">Cartzy Legal Agreements</h3>
+                        <p class="legal-modal-subtitle">Terms &amp; Conditions and Privacy Policy</p>
+                    </div>
+                </div>
+                <button type="button" class="legal-modal-close" onclick="closeLegalModal()" aria-label="Close modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Navigation Tabs inside Modal -->
+            <div class="legal-modal-tabs">
+                <button type="button" class="legal-tab-btn active" id="modalTabTerms" onclick="switchModalTab('terms')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:4px;">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Terms &amp; Conditions
+                </button>
+                <button type="button" class="legal-tab-btn" id="modalTabPrivacy" onclick="switchModalTab('privacy')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;display:inline-block;vertical-align:middle;margin-right:4px;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Privacy Policy
+                </button>
+            </div>
+
+            <!-- Scrollable Modal Body -->
+            <div class="legal-modal-body" id="legalModalBody">
+                <!-- Terms & Conditions Section -->
+                <div id="modalTermsSection" class="legal-content-section active">
+                    <h4 class="terms-section-title">Terms &amp; Conditions</h4>
+                    <p class="terms-section-intro">The terms and rules that every Cartzy user agrees to follow when creating an account and using the platform. It explains the responsibilities of buyers and sellers, orders, payments, products, deliveries, returns, and proper use of Cartzy.</p>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Account Registration</h5>
+                        <p class="terms-item-body">Users must provide accurate information when creating an account and are responsible for keeping their account credentials secure.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Buyer Responsibilities</h5>
+                        <p class="terms-item-body">Buyers are responsible for reviewing product details, prices, quantities, shipping information, and order details before placing an order.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Seller Responsibilities</h5>
+                        <p class="terms-item-body">Sellers must provide accurate product information, prices, images, availability, and descriptions. Sellers must only list products that are allowed on Cartzy.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Products and Listings</h5>
+                        <p class="terms-item-body">Cartzy may remove or restrict listings that contain prohibited, misleading, fraudulent, or inappropriate products or information.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Orders and Payments</h5>
+                        <p class="terms-item-body">Users are responsible for completing their transactions through the payment methods provided by Cartzy. Orders may be subject to cancellation according to Cartzy's applicable policies.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Shipping and Delivery</h5>
+                        <p class="terms-item-body">Delivery times may vary depending on the seller, courier, location, and other circumstances. Cartzy is not responsible for delays caused by circumstances beyond its reasonable control.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Returns, Refunds, and Cancellations</h5>
+                        <p class="terms-item-body">Buyers may request returns, refunds, or cancellations according to the applicable Cartzy policies and the conditions of the order.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Reviews and User Content</h5>
+                        <p class="terms-item-body">Users must provide honest and appropriate reviews or other content. Fake, abusive, misleading, or offensive content may be removed.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Prohibited Activities</h5>
+                        <p class="terms-item-body">Users must not use Cartzy for fraud, scams, unauthorized access, harassment, or other illegal or abusive activities.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Account Suspension or Termination</h5>
+                        <p class="terms-item-body">Cartzy may suspend or terminate accounts that violate these Terms &amp; Conditions or misuse the platform.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Changes to Cartzy</h5>
+                        <p class="terms-item-body">Cartzy may update its services, features, and these Terms &amp; Conditions when necessary.</p>
+                    </div>
+                </div>
+
+                <!-- Privacy Policy Section -->
+                <div id="modalPrivacySection" class="legal-content-section" style="display: none;">
+                    <h4 class="terms-section-title">Privacy Policy</h4>
+                    <p class="terms-section-intro">The policy that explains how Cartzy collects, uses, stores, shares, and protects users' personal information when they use the platform.</p>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Information We Collect</h5>
+                        <p class="terms-item-body">Cartzy may collect information such as your name, email address, contact number, account details, delivery address, order details, payment-related information, and information you provide when using the platform.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">How We Use Your Information</h5>
+                        <p class="terms-item-body" style="margin-bottom: 4px;">We may use your information to:</p>
+                        <ul class="terms-bullet-list">
+                            <li>Create and manage your account</li>
+                            <li>Process orders and payments</li>
+                            <li>Facilitate delivery</li>
+                            <li>Connect buyers and sellers when necessary</li>
+                            <li>Provide customer support</li>
+                            <li>Send important updates about orders and accounts</li>
+                            <li>Improve and secure Cartzy</li>
+                        </ul>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Sharing of Information</h5>
+                        <p class="terms-item-body">Cartzy may share necessary information with sellers, delivery providers, payment providers, and other authorized service providers when needed to complete transactions or operate the platform.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Payment Information</h5>
+                        <p class="terms-item-body">Payment information may be processed through authorized payment providers. Cartzy should only retain payment information when necessary and permitted by applicable law.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Data Security</h5>
+                        <p class="terms-item-body">Cartzy will take reasonable measures to protect users' personal information from unauthorized access, disclosure, alteration, or loss.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Data Retention</h5>
+                        <p class="terms-item-body">Personal information will only be kept for as long as necessary for legitimate purposes, transactions, legal requirements, or other applicable purposes.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Your Privacy Rights</h5>
+                        <p class="terms-item-body">Users may have the right to access, correct, object to the processing of, or request deletion/blocking of their personal information, subject to applicable law.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Cookies and Usage Information</h5>
+                        <p class="terms-item-body">Cartzy may use cookies or similar technologies, when applicable, to improve functionality, security, and user experience.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Changes to This Privacy Policy</h5>
+                        <p class="terms-item-body">Cartzy may update this Privacy Policy when necessary and will communicate significant changes appropriately.</p>
+                    </div>
+
+                    <div class="terms-item">
+                        <h5 class="terms-item-title">Contact Us</h5>
+                        <p class="terms-item-body">For any questions, concerns, or privacy requests regarding the Terms &amp; Conditions or Privacy Policy, users may contact the Cartzy team through the contact information provided in the application</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="legal-modal-footer">
+                <button type="button" class="btn-modal-close" onclick="closeLegalModal()">Close</button>
+                <button type="button" class="btn-modal-agree" onclick="acceptTermsFromModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    I Agree &amp; Accept
+                </button>
+            </div>
+        </div>
     </div>
 
 <style>
@@ -934,109 +982,217 @@
         color: #6F6382;
     }
 
-    /* Terms & Conditions / Privacy Policy Card */
-    .terms-policy-wrapper {
+    /* Terms & Privacy Policy Checkbox & Link */
+    .terms-agreement-row {
         margin: 14px 0 10px 0;
+        padding: 4px 0;
     }
-    .terms-policy-card {
-        background: #FAF8F6;
-        border: 1.5px solid #EFEAE6;
-        border-radius: 12px;
-        padding: 12px 14px;
-        box-shadow: 0 1px 4px rgba(86, 75, 104, 0.04);
+    .terms-checkbox-label {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        user-select: none;
+        line-height: 1.5;
     }
-    .terms-policy-nav {
+    .terms-checkbox {
+        width: 18px;
+        height: 18px;
+        accent-color: #6F6382;
+        cursor: pointer;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+    .terms-policy-link {
+        color: #6F6382;
+        font-weight: 700;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        transition: color 0.15s ease;
+        cursor: pointer;
+    }
+    .terms-policy-link:hover {
+        color: #564B68;
+        text-decoration: underline;
+    }
+
+    /* Legal Modal Backdrop & Container */
+    .legal-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: rgba(30, 24, 38, 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         display: flex;
         align-items: center;
+        justify-content: center;
+        padding: 16px;
+        animation: legalFadeIn 0.2s ease-out;
+    }
+    @keyframes legalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .legal-modal-container {
+        background: #ffffff;
+        width: 100%;
+        max-width: 620px;
+        max-height: 86vh;
+        border-radius: 20px;
+        box-shadow: 0 24px 48px -12px rgba(45, 30, 60, 0.35);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #EFEAE6;
+        animation: legalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes legalSlideUp {
+        from { transform: translateY(24px) scale(0.96); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .legal-modal-header {
+        padding: 18px 24px 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #EFEAE6;
+        background: #FAF8F6;
+    }
+    .legal-modal-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .legal-modal-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #EEE7E2;
+        color: #564B68;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .legal-modal-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+    .legal-modal-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #564B68;
+        margin: 0;
+        line-height: 1.3;
+    }
+    .legal-modal-subtitle {
+        font-size: 0.76rem;
+        color: #6b7280;
+        margin: 2px 0 0 0;
+    }
+    .legal-modal-close {
+        background: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    .legal-modal-close:hover {
+        background: #EAE4DF;
+        color: #111827;
+    }
+    .legal-modal-close svg {
+        width: 18px;
+        height: 18px;
+    }
+    .legal-modal-tabs {
+        display: flex;
         gap: 8px;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
+        padding: 12px 24px;
+        background: #FAF8F6;
         border-bottom: 1px solid #EAE4DF;
-        flex-wrap: wrap;
     }
-    .terms-policy-nav-label {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #6F6382;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-    }
-    .terms-nav-btn {
+    .legal-tab-btn {
         background: #ffffff;
         border: 1px solid #D8CFC8;
         color: #564B68;
-        font-size: 0.74rem;
+        font-size: 0.78rem;
         font-weight: 700;
-        padding: 4px 12px;
+        padding: 6px 14px;
         border-radius: 9999px;
         cursor: pointer;
-        transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.15s ease;
         font-family: inherit;
     }
-    .terms-nav-btn:hover {
+    .legal-tab-btn:hover {
         background: #F4EFF7;
         border-color: #6F6382;
-        color: #564B68;
     }
-    .terms-nav-btn.active {
+    .legal-tab-btn.active {
         background: linear-gradient(110deg, #564B68 0%, #6F6382 100%);
         color: #ffffff;
         border-color: transparent;
         box-shadow: 0 2px 6px rgba(111, 99, 130, 0.25);
     }
-    .terms-policy-scroll {
-        max-height: 200px;
+    .legal-modal-body {
+        padding: 20px 24px;
         overflow-y: auto;
-        padding: 12px 14px;
-        font-size: 0.78rem;
-        line-height: 1.5;
+        flex: 1;
+        font-size: 0.8rem;
+        line-height: 1.55;
         color: #4B453D;
-        scroll-behavior: smooth;
         background: #ffffff;
-        border: 1px solid #EAE4DF;
-        border-radius: 8px;
     }
-    .terms-policy-scroll::-webkit-scrollbar {
+    .legal-modal-body::-webkit-scrollbar {
         width: 6px;
     }
-    .terms-policy-scroll::-webkit-scrollbar-track {
+    .legal-modal-body::-webkit-scrollbar-track {
         background: #FAF8F6;
-        border-radius: 4px;
     }
-    .terms-policy-scroll::-webkit-scrollbar-thumb {
+    .legal-modal-body::-webkit-scrollbar-thumb {
         background: #D4CBD8;
         border-radius: 4px;
     }
-    .terms-policy-scroll::-webkit-scrollbar-thumb:hover {
+    .legal-modal-body::-webkit-scrollbar-thumb:hover {
         background: #6F6382;
     }
-    .terms-doc-section {
-        margin-bottom: 8px;
-    }
     .terms-section-title {
-        font-size: 0.88rem;
+        font-size: 0.92rem;
         font-weight: 800;
         color: #564B68;
-        margin: 0 0 4px 0;
+        margin: 0 0 6px 0;
         letter-spacing: -0.2px;
     }
     .terms-section-intro {
-        font-size: 0.77rem;
+        font-size: 0.78rem;
         color: #6b7280;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         line-height: 1.45;
     }
     .terms-item {
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
     .terms-item-title {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 700;
         color: #374151;
-        margin: 0 0 2px 0;
+        margin: 0 0 3px 0;
     }
     .terms-item-body {
-        font-size: 0.77rem;
+        font-size: 0.78rem;
         color: #4b5563;
         line-height: 1.45;
         margin: 0;
@@ -1046,43 +1202,56 @@
         padding: 0;
         list-style-type: disc;
         color: #4b5563;
-        font-size: 0.77rem;
+        font-size: 0.78rem;
         line-height: 1.45;
     }
     .terms-bullet-list li {
         margin-bottom: 3px;
     }
-    .terms-divider {
-        height: 1px;
-        background: #EAE4DF;
-        border: none;
-        margin: 14px 0;
+    .legal-modal-footer {
+        padding: 14px 24px;
+        background: #FAF8F6;
+        border-top: 1px solid #EFEAE6;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
     }
-    .terms-agreement-row {
-        margin-top: 10px;
-        padding-top: 6px;
-    }
-    .terms-checkbox-label {
-        display: inline-flex;
-        align-items: flex-start;
-        gap: 9px;
-        font-size: 0.8rem;
+    .btn-modal-close {
+        padding: 8px 18px;
+        background: #ffffff;
+        border: 1px solid #D8CFC8;
+        color: #4b5563;
+        border-radius: 12px;
+        font-size: 0.84rem;
         font-weight: 600;
-        color: #374151;
         cursor: pointer;
-        user-select: none;
-        line-height: 1.45;
+        transition: all 0.15s ease;
+        font-family: inherit;
     }
-    .terms-checkbox {
-        width: 17px;
-        height: 17px;
-        accent-color: #6F6382;
+    .btn-modal-close:hover {
+        background: #F5EFEB;
+        color: #111827;
+    }
+    .btn-modal-agree {
+        padding: 8px 20px;
+        background: linear-gradient(110deg, #564B68 0%, #6F6382 50%, #8C5A50 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: 12px;
+        font-size: 0.84rem;
+        font-weight: 700;
         cursor: pointer;
-        margin-top: 1px;
-        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+        box-shadow: 0 3px 8px rgba(111, 99, 130, 0.25);
+        font-family: inherit;
     }
-    .terms-checkbox-label:hover {
-        color: #564B68;
+    .btn-modal-agree:hover {
+        background: linear-gradient(110deg, #564B68 0%, #8C5A50 100%);
+        box-shadow: 0 4px 12px rgba(140, 90, 80, 0.3);
     }
 
     @media (max-width: 480px) {
