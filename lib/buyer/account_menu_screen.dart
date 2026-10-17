@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'buyer_account_screen.dart';
+import 'reviews_screen.dart';
 
 class AccountMenuScreen extends StatelessWidget {
   final VoidCallback onBack;
@@ -346,6 +347,24 @@ class AccountMenuScreen extends StatelessWidget {
 
               onTap:
                   onMyPurchase,
+            ),
+
+            _MenuItem(
+              icon: Icons.rate_review_outlined,
+              label: 'Reviews & Ratings',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ReviewsScreen(
+                      onBack: () => Navigator.of(context).pop(),
+                      onViewOrders: () {
+                        Navigator.of(context).pop();
+                        onMyPurchase();
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
 
             // ==================================================

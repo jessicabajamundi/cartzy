@@ -713,19 +713,80 @@ class CategoryIconRow extends StatelessWidget {
 // ============================================================
 // CATEGORY GRID  (Browse all categories — 2-column card grid)
 // ============================================================
+// CATEGORY GRID  (Shop by Category — "Find your next favorite" cards)
+// ============================================================
 
+// ignore: unused_element
 class _CategoryCard {
   final String title;
   final String subtitle;
   final IconData icon;
-  const _CategoryCard({required this.title, required this.subtitle, required this.icon});
+
+  const _CategoryCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
 }
 
-const _categoryCards = [
-  _CategoryCard(title: 'Women Clothing', subtitle: 'Everyday looks, your way.', icon: Icons.checkroom_outlined),
-  _CategoryCard(title: 'Home & Living', subtitle: 'Thoughtful finds for your space.', icon: Icons.chair_outlined),
-  _CategoryCard(title: 'Electronics', subtitle: 'Gear that works as hard as you.', icon: Icons.devices_outlined),
-  _CategoryCard(title: 'Beauty & Health', subtitle: 'Glow up your routine.', icon: Icons.spa_outlined),
+class _CategoryFeatureCard {
+  final String title;
+  final String subtitle;
+  final String badge;
+  final String imageUrl;
+  final String assetFallback;
+  final String targetCategory;
+  final bool isHighlighted;
+
+  const _CategoryFeatureCard({
+    required this.title,
+    required this.subtitle,
+    required this.badge,
+    required this.imageUrl,
+    required this.assetFallback,
+    required this.targetCategory,
+    this.isHighlighted = false,
+  });
+}
+
+const List<_CategoryFeatureCard> _categoryCards = [
+  _CategoryFeatureCard(
+    title: "Women's Fashion",
+    subtitle: 'Everyday looks, your way.',
+    badge: 'Wear your mood',
+    imageUrl:
+        'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=800&q=80',
+    assetFallback: 'assets/banner_everyday_style.jpg',
+    targetCategory: 'Women Clothing',
+  ),
+  _CategoryFeatureCard(
+    title: 'Home & Living',
+    subtitle: 'Thoughtful finds for your space.',
+    badge: 'Make room for comfort',
+    imageUrl:
+        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80',
+    assetFallback: 'assets/banner_home_living.jpg',
+    targetCategory: 'Home & Living',
+  ),
+  _CategoryFeatureCard(
+    title: 'Tech & Gadgets',
+    subtitle: 'Upgrade your everyday.',
+    badge: 'Small upgrades, big possibilities',
+    imageUrl:
+        'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
+    assetFallback: 'assets/banner_coffee_home.jpg',
+    targetCategory: 'Electronics',
+    isHighlighted: true,
+  ),
+  _CategoryFeatureCard(
+    title: 'Beauty & Care',
+    subtitle: 'Refresh your daily routine.',
+    badge: 'A little time for you',
+    imageUrl:
+        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80',
+    assetFallback: 'assets/banner_beauty.jpg',
+    targetCategory: 'Beauty & Health',
+  ),
 ];
 
 class CategoryCardGrid extends StatelessWidget {
@@ -735,78 +796,184 @@ class CategoryCardGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // "Browse all categories" pill button
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: GestureDetector(
-            onTap: () => onCategoryTap?.call('All'),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-              decoration: BoxDecoration(
-                color: CartzyColors.surface,
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(color: CartzyColors.rose, width: 1.3),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Browse all categories',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: CartzyColors.burgundy,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header ───────────────────────────────────────
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Eyebrow
+                    Row(
+                      children: [
+                        const Text(
+                          '• ',
+                          style: TextStyle(
+                            color: Color(0xFF9E7766),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          'SHOP BY CATEGORY',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.4,
+                            color: const Color(0xFF9E7766),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: CartzyColors.roseSoft,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.north_east, size: 12, color: CartzyColors.burgundy),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
+                    const SizedBox(height: 4),
 
-        // 2-column grid
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.84,
-            ),
-            itemCount: _categoryCards.length,
-            itemBuilder: (context, index) {
-              final card = _categoryCards[index];
-              return _CategoryCardItem(
-                card: card,
-                onTap: () => onCategoryTap?.call(card.title),
-              );
+                    // Main Title: "Find your next favorite."
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'Find your next ',
+                            style: GoogleFonts.playfairDisplay(
+                              fontSize: 27,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF261E30),
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'favorite.',
+                            style: GoogleFonts.playfairDisplay(
+                              fontSize: 27,
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FontStyle.italic,
+                              color: const Color(0xFF8A7684),
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+
+                    // Subtitle
+                    Text(
+                      'Explore everyday essentials, style, and more.',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12.5,
+                        color: const Color(0xFF756A7C),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // "Browse all categories ↗" pill button
+              GestureDetector(
+                onTap: () => onCategoryTap?.call('All'),
+                child: Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: const Color(0xFFE6D8D5),
+                      width: 1.1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Browse all categories',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF6E5E65),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Icon(
+                        Icons.north_east,
+                        size: 11,
+                        color: Color(0xFF6E5E65),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
+
+          // ── Cards Layout (responsive 4-column row on web / desktop) ──
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth >= 960) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(_categoryCards.length, (index) {
+                    final card = _categoryCards[index];
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: index < _categoryCards.length - 1 ? 14 : 0,
+                        ),
+                        child: _CategoryCardItem(
+                          card: card,
+                          onTap: () => onCategoryTap?.call(card.targetCategory),
+                        ),
+                      ),
+                    );
+                  }),
+                );
+              } else {
+                return SizedBox(
+                  height: 275,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _categoryCards.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 14),
+                    itemBuilder: (context, index) {
+                      final card = _categoryCards[index];
+                      return SizedBox(
+                        width: 250,
+                        child: _CategoryCardItem(
+                          card: card,
+                          onTap: () => onCategoryTap?.call(card.targetCategory),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 class _CategoryCardItem extends StatelessWidget {
-  final _CategoryCard card;
+  final _CategoryFeatureCard card;
   final VoidCallback onTap;
 
   const _CategoryCardItem({required this.card, required this.onTap});
@@ -817,36 +984,90 @@ class _CategoryCardItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: CartzyColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CartzyColors.rose.withValues(alpha: 0.55), width: 1.3),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: const Color(0xFFE8DCDA),
+            width: 1.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Image / icon area
-            Expanded(
-              child: Container(
+            // Image area with badge
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(17)),
+              child: SizedBox(
+                height: 180,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  color: CartzyColors.creamSection,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                ),
-                child: Center(
-                  child: Icon(
-                    card.icon,
-                    size: 58,
-                    color: CartzyColors.navy.withValues(alpha: 0.25),
-                  ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      card.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset(
+                        card.assetFallback,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFFF2ECE9),
+                          child: const Icon(
+                            Icons.image_outlined,
+                            size: 40,
+                            color: Color(0xFFC0B2B4),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Floating micro-chip on image
+                    Positioned(
+                      left: 12,
+                      bottom: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.94),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          card.badge,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF2C2436),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
 
-            // Text + arrow
+            // Text + Arrow Button
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 8, 12),
+              padding: const EdgeInsets.fromLTRB(14, 12, 12, 14),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -857,34 +1078,49 @@ class _CategoryCardItem extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.dmSans(
-                            fontSize: 13,
+                            fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: CartzyColors.navy,
+                            color: const Color(0xFF261E30),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           card.subtitle,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.dmSans(
                             fontSize: 11,
-                            color: CartzyColors.gray,
-                            height: 1.3,
+                            color: const Color(0xFF756A7C),
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
+
+                  // Circle arrow button
                   Container(
                     width: 26,
                     height: 26,
                     decoration: BoxDecoration(
-                      color: CartzyColors.roseSoft,
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(color: CartzyColors.rose.withValues(alpha: 0.4)),
+                      shape: BoxShape.circle,
+                      color: card.isHighlighted
+                          ? const Color(0xFF9E4B5E)
+                          : Colors.white,
+                      border: Border.all(
+                        color: card.isHighlighted
+                            ? Colors.transparent
+                            : const Color(0xFFE2D0D3),
+                        width: 1.1,
+                      ),
                     ),
-                    child: const Icon(Icons.north_east, size: 13, color: CartzyColors.burgundy),
+                    child: Icon(
+                      Icons.north_east,
+                      size: 11,
+                      color: card.isHighlighted
+                          ? Colors.white
+                          : const Color(0xFF9E4B5E),
+                    ),
                   ),
                 ],
               ),
@@ -895,6 +1131,7 @@ class _CategoryCardItem extends StatelessWidget {
     );
   }
 }
+
 
 // ============================================================
 // FLASH DEALS

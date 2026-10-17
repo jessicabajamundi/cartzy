@@ -11,6 +11,13 @@ import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/utils/product_images.dart';
 
 import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/buyer/order_history_screen.dart';
+import 'package:cartzy/buyer/wishlist_screen.dart';
+import 'package:cartzy/buyer/messages_screen.dart';
+import 'package:cartzy/buyer/notifications_screen.dart';
+import 'package:cartzy/buyer/reviews_screen.dart';
+import 'package:cartzy/buyer/my_orders_screen.dart';
+import 'package:cartzy/address/my_addresses_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
@@ -241,11 +248,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       InkWell(
                         onTap: () {
                           Navigator.pop(ctx);
-                          _showQuickSheet(
-                            context,
-                            'Reviews & Ratings',
-                            'You have no pending product reviews yet. Share your feedback on delivered items to help the Cartzy community!',
-                            Icons.rate_review_outlined,
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ReviewsScreen(
+                                onBack: () => Navigator.of(context).pop(),
+                                onViewOrders: () {
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => OrderHistoryScreen(
+                                        onBack: () => Navigator.of(context).pop(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                           );
                         },
                         borderRadius: BorderRadius.circular(8),
@@ -471,59 +489,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       );
     }
-  }
-
-  void _showQuickSheet(BuildContext context, String title, String message, IconData icon) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F2F3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: const Color(0xFF865561), size: 24),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.playfairDisplay(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF231F20),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF7A6E72), height: 1.4),
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -882,20 +847,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       _IconStrip(
                         icon: Icons.view_in_ar_outlined,
-                        onTap: () => _showQuickSheet(
-                          context,
-                          'AR & 3D View',
-                          'Point your camera to preview products in your space with augmented reality.',
-                          Icons.view_in_ar_outlined,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MyOrdersScreen(
+                              onBack: () => Navigator.of(context).pop(),
+                              onStartShopping: () => Navigator.of(context).pop(),
+                            ),
+                          ),
                         ),
                       ),
                       _IconStrip(
                         icon: Icons.chat_bubble_outline,
-                        onTap: () => _showQuickSheet(
-                          context,
-                          'Messages & Chat',
-                          'Connect directly with sellers, store customer support, and delivery partners.',
-                          Icons.chat_bubble_outline,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MessagesScreen(
+                              onBack: () => Navigator.of(context).pop(),
+                            ),
+                          ),
                         ),
                       ),
                       ListenableBuilder(
@@ -908,38 +876,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       _IconStrip(
                         icon: Icons.favorite_border,
-                        onTap: () => _showQuickSheet(
-                          context,
-                          'My Wishlist',
-                          'View and manage your saved items and favorite products.',
-                          Icons.favorite_border,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => WishlistScreen(
+                              onBack: () => Navigator.of(context).pop(),
+                              onDiscoverProducts: () => Navigator.of(context).pop(),
+                            ),
+                          ),
                         ),
                       ),
                       _IconStrip(
                         icon: Icons.history_outlined,
-                        onTap: () => _showQuickSheet(
-                          context,
-                          'Order History',
-                          'Track current shipments and view details of past purchases.',
-                          Icons.history_outlined,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => OrderHistoryScreen(
+                              onBack: () => Navigator.of(context).pop(),
+                              onStartShopping: () => Navigator.of(context).pop(),
+                            ),
+                          ),
                         ),
                       ),
                       _IconStrip(
                         icon: Icons.location_on_outlined,
-                        onTap: () => _showQuickSheet(
-                          context,
-                          'Delivery Address',
-                          'Manage your saved shipping addresses and delivery instructions.',
-                          Icons.location_on_outlined,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MyAddressesScreen(
+                              userId: 1,
+                              onBack: () => Navigator.of(context).pop(),
+                              onAddAddress: () => Navigator.of(context).pop(),
+                            ),
+                          ),
                         ),
                       ),
                       _IconStrip(
                         icon: Icons.notifications_outlined,
-                        onTap: () => _showQuickSheet(
-                          context,
-                          'Notifications',
-                          'Order status alerts, flash sales, price drops, and promotions.',
-                          Icons.notifications_outlined,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => NotificationsScreen(
+                              onBack: () => Navigator.of(context).pop(),
+                            ),
+                          ),
                         ),
                       ),
                     ],
