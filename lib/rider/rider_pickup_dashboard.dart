@@ -553,6 +553,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
 
           // Scheduled Window
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Scheduled Window:',
@@ -561,13 +562,17 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                   color: const Color(0xFF8A7780),
                 ),
               ),
-              const Spacer(),
-              Text(
-                item.scheduledWindow,
-                style: GoogleFonts.dmSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF261E30),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  item.scheduledWindow,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF261E30),
+                  ),
+                  textAlign: TextAlign.end,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -596,8 +601,12 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
 
           const SizedBox(height: 16),
 
-          // Actions Row
-          Row(
+          // Actions
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               // Call Merchant Button
               OutlinedButton.icon(
@@ -619,8 +628,6 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                   ),
                 ),
               ),
-
-              const Spacer(),
 
               // Confirm / Collected status
               if (isConfirmed)

@@ -17,6 +17,7 @@ import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:cartzy/buyer/reviews_screen.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
+import 'package:cartzy/buyer/track_order_screen.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -900,10 +901,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         icon: Icons.location_on_outlined,
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => MyAddressesScreen(
-                              userId: 1,
+                            builder: (_) => TrackOrderScreen(
                               onBack: () => Navigator.of(context).pop(),
-                              onAddAddress: () => Navigator.of(context).pop(),
+                              onBrowseProducts: () => Navigator.of(context).pop(),
                             ),
                           ),
                         ),

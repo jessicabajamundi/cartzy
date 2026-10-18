@@ -6,6 +6,7 @@ import 'package:cartzy/widgets/home_sections.dart';
 import 'package:cartzy/utils/product_images.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/products/product_details_screen.dart';
+import 'package:cartzy/buyer/track_order_screen.dart';
 
 class GuestHomeScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -511,7 +512,17 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                   _IconStrip(icon: Icons.shopping_cart_outlined, onTap: _showLoginRequiredDialog),
                   _IconStrip(icon: Icons.favorite_border,        onTap: _showLoginRequiredDialog),
                   _IconStrip(icon: Icons.history_outlined,       onTap: _showLoginRequiredDialog),
-                  _IconStrip(icon: Icons.location_on_outlined,   onTap: _showLoginRequiredDialog),
+                  _IconStrip(
+                    icon: Icons.location_on_outlined,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TrackOrderScreen(
+                          onBack: () => Navigator.of(context).pop(),
+                          onBrowseProducts: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ),
+                  ),
                   _IconStrip(icon: Icons.notifications_outlined, onTap: _showLoginRequiredDialog),
                 ],
               ),

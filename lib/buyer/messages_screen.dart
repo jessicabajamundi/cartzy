@@ -254,7 +254,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         children: [
           // Chat header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               border:
@@ -262,6 +262,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ),
             child: Row(
               children: [
+                if (MediaQuery.of(context).size.width <= 700) ...[
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: CartzyColors.navy, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => setState(() => _selectedConversation = null),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: const Color(0xFFF0EBF4),
@@ -460,15 +469,23 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       ],
                     ),
                   ),
-                  // Action chips
-                  Row(
-                    children: [
-                      _chip('Back to My Orders', onTap: widget.onBack),
-                      const SizedBox(width: 8),
-                      _chip('Refresh inbox',
-                          onTap: () => setState(() {})),
-                    ],
-                  ),
+                  // Action chips / buttons
+                  if (isWide) ...[
+                    Row(
+                      children: [
+                        _chip('Back to My Orders', onTap: widget.onBack),
+                        const SizedBox(width: 8),
+                        _chip('Refresh inbox',
+                            onTap: () => setState(() {})),
+                      ],
+                    ),
+                  ] else ...[
+                    IconButton(
+                      icon: const Icon(Icons.refresh, size: 20, color: CartzyColors.navy),
+                      onPressed: () => setState(() {}),
+                      tooltip: 'Refresh inbox',
+                    ),
+                  ],
                 ],
               ),
             ),

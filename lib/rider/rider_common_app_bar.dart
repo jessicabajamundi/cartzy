@@ -42,8 +42,6 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
     return Container(
-      height: 64,
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 20),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(
@@ -51,7 +49,12 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       child: SafeArea(
-        child: Row(
+        bottom: false,
+        child: SizedBox(
+          height: 60,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 20),
+            child: Row(
           children: [
             // Back Button
             InkWell(
@@ -205,6 +208,8 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }
