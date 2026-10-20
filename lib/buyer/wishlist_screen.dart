@@ -23,7 +23,7 @@ class WishlistScreen extends StatefulWidget {
 class _WishlistScreenState extends State<WishlistScreen> {
   // In a real app, load from a service/state
   final List<Map<String, dynamic>> _items = [];
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   // ── Empty State ─────────────────────────────────────────────
   Widget _emptyState() {
@@ -38,7 +38,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
             border: Border.all(color: CartzyColors.border),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -184,9 +184,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
             // ── Header ───────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: CartzyColors.background,
-                border: Border(bottom: BorderSide(color: CartzyColors.border)),
+                border: const Border(bottom: const BorderSide(color: CartzyColors.border)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,9 +299,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
         children: [
           Expanded(
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: CartzyColors.background,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: const Center(child: Icon(Icons.image_outlined, color: CartzyColors.gray, size: 40)),
             ),

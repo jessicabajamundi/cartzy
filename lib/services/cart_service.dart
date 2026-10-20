@@ -6,8 +6,9 @@ class CartItem {
   final String name;
   final double price;
   final String? originalPrice;
-  final String image;
-  final String category;
+  final String? image;
+  final String? category;
+  final String? variation;
   int quantity;
   bool selected;
 
@@ -18,11 +19,23 @@ class CartItem {
     this.originalPrice,
     this.image = '',
     this.category = '',
+    this.variation = '',
     this.quantity = 1,
     this.selected = true,
   });
 
-  double get subtotal => price * quantity;
+  String get safeName => name.isNotEmpty ? name : 'Product';
+  String get safeImage => image ?? '';
+  String get safeCategory => category ?? '';
+  String get safeVariation {
+    if (variation != null && variation!.isNotEmpty) return variation!;
+    if (category != null && category!.isNotEmpty) return category!;
+    return 'Standard';
+  }
+
+  double get subtotal =>
+      (price.isNaN || price.isInfinite ? 0.0 : price) *
+      (quantity <= 0 ? 1 : quantity);
 }
 
 class CartService extends ChangeNotifier {
@@ -34,13 +47,20 @@ class CartService extends ChangeNotifier {
 
   final List<CartItem> _items = [];
 
-  List<CartItem> get items => List.unmodifiable(_items);
+  List<CartItem> get items {
+    // If the cart has old seed items from previous session, upgrade to the 5 design items
+    if (_items.any((item) => item.id == 'seed-1' || item.id == 'seed-2')) {
+      _items.clear();
+      _seedInitialItems();
+    }
+    return List.unmodifiable(_items);
+  }
 
   List<CartItem> get selectedItems =>
-      _items.where((item) => item.selected).toList();
+      items.where((item) => item.selected == true).toList();
 
   int get totalItemCount =>
-      _items.fold<int>(0, (sum, item) => sum + item.quantity);
+      items.fold<int>(0, (sum, item) => sum + item.quantity);
 
   int get selectedItemCount =>
       selectedItems.fold<int>(0, (sum, item) => sum + item.quantity);
@@ -51,25 +71,63 @@ class CartService extends ChangeNotifier {
   bool get isAllSelected =>
       _items.isNotEmpty && _items.every((item) => item.selected);
 
+  bool? get selectAllState {
+    if (_items.isEmpty) return false;
+    final selectedCount = _items.where((i) => i.selected).length;
+    if (selectedCount == 0) return false;
+    if (selectedCount == _items.length) return true;
+    return null; // Indeterminate (dash)
+  }
+
   void _seedInitialItems() {
     _items.addAll([
       CartItem(
-        id: 'seed-1',
-        name: 'Smart Fitness Tracker Watch with Blood Oxygen',
-        price: 1299.00,
-        originalPrice: '₱1,999',
+        id: 'item-1',
+        name: 'ANC Pro Wireless Earphones BT5.3',
+        price: 890.00,
+        variation: 'Black',
         category: 'Electronics',
-        image: CartzyProductImages.getImage('Smart Fitness Tracker Watch with Blood Oxygen', 'Electronics'),
+        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
         quantity: 1,
-        selected: true,
+        selected: false,
       ),
       CartItem(
-        id: 'seed-2',
-        name: 'ANC Pro Wireless Noise Cancelling Earphones',
-        price: 890.00,
-        originalPrice: '₱1,850',
+        id: 'item-2',
+        name: 'Minimalist Chronograph Watch',
+        price: 459.00,
+        variation: 'Black',
+        category: 'Accessories',
+        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80',
+        quantity: 1,
+        selected: false,
+      ),
+      CartItem(
+        id: 'item-3',
+        name: 'Modern 3-Seater Scandinavian Sofa',
+        price: 12500.00,
+        variation: 'Grey Velvet',
+        category: 'Furniture',
+        image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80',
+        quantity: 1,
+        selected: false,
+      ),
+      CartItem(
+        id: 'item-4',
+        name: 'Vacuum Insulated Steel Tumbler 32oz',
+        price: 480.00,
+        variation: 'Midnight Blue',
+        category: 'Home & Living',
+        image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500&q=80',
+        quantity: 1,
+        selected: false,
+      ),
+      CartItem(
+        id: 'item-5',
+        name: 'Logitech Zone True Wireless Earbuds',
+        price: 899.00,
+        variation: 'Graphite',
         category: 'Electronics',
-        image: CartzyProductImages.getImage('ANC Pro Wireless Noise Cancelling Earphones', 'Electronics'),
+        image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&q=80',
         quantity: 1,
         selected: true,
       ),
@@ -102,6 +160,7 @@ class CartService extends ChangeNotifier {
     String? originalPrice,
     String image = '',
     String category = '',
+    String variation = '',
     int quantity = 1,
   }) {
     final parsedPrice = parsePrice(price);
@@ -124,6 +183,7 @@ class CartService extends ChangeNotifier {
           originalPrice: originalPrice,
           image: effectiveImage,
           category: category,
+          variation: variation,
           quantity: quantity,
           selected: true,
         ),

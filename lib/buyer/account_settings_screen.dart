@@ -35,7 +35,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   late TextEditingController _idNumberController;
 
   String _selectedSex = 'Female';
-  String _birthday = '14/10/2000';
+  final String _birthday = '14/10/2000';
   String _selectedIdType = 'National ID';
   String? _idFileName;
   String? _profilePhotoName;
@@ -50,7 +50,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   final List<Map<String, String>> _savedAddresses = [];
 
   // Avatar image url
-  String _avatarUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
+  final String _avatarUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
 
   @override
   void initState() {
@@ -368,7 +368,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   )
@@ -802,7 +802,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF865561).withOpacity(0.25),
+                        color: const Color(0xFF865561).withValues(alpha: 0.25),
                         offset: const Offset(0, 4),
                         blurRadius: 8,
                       ),

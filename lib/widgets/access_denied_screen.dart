@@ -113,11 +113,11 @@ class AccessDeniedScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.security_outlined, size: 16, color: CartzyColors.brandDark),
-                        const SizedBox(width: 8),
-                        const Text(
+                        Icon(Icons.security_outlined, size: 16, color: CartzyColors.brandDark),
+                        SizedBox(width: 8),
+                        Text(
                           'Security Incident Details',
                           style: TextStyle(
                             fontSize: 13,
@@ -131,9 +131,9 @@ class AccessDeniedScreen extends StatelessWidget {
                     _DetailRow(label: 'Attempted Resource', value: attemptedPage),
                     _DetailRow(label: 'Account Role', value: userRole),
                     _DetailRow(label: 'Required Role', value: _requiredRole(attemptedPage)),
-                    _DetailRow(label: 'Response Code', value: '403 Forbidden'),
+                    const _DetailRow(label: 'Response Code', value: '403 Forbidden'),
                     _DetailRow(label: 'Timestamp', value: timestamp),
-                    _DetailRow(label: 'Action Logged', value: 'Yes — security audit trail updated'),
+                    const _DetailRow(label: 'Action Logged', value: 'Yes — security audit trail updated'),
                   ],
                 ),
               ),

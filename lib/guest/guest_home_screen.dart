@@ -83,7 +83,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss Collection Menu',
-      barrierColor: Colors.black.withOpacity(0.04),
+      barrierColor: Colors.black.withValues(alpha: 0.04),
       transitionDuration: const Duration(milliseconds: 160),
       pageBuilder: (ctx, anim1, anim2) {
         return Stack(
@@ -107,7 +107,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                     border: Border.all(color: const Color(0xFFDCC8CA), width: 1.2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.09),
+                        color: Colors.black.withValues(alpha: 0.09),
                         blurRadius: 20,
                         spreadRadius: 1,
                         offset: const Offset(0, 8),

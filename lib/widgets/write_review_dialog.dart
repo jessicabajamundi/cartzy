@@ -401,7 +401,7 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                       ),
                       Switch(
                         value: _isAnonymous,
-                        activeColor: CartzyColors.coral,
+                        activeThumbColor: CartzyColors.coral,
                         onChanged: (val) {
                           setState(() {
                             _isAnonymous = val;

@@ -38,7 +38,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         color: Colors.white,
         border: Border(
           right: isWide
-              ? BorderSide(color: CartzyColors.border)
+              ? const BorderSide(color: CartzyColors.border)
               : BorderSide.none,
         ),
       ),
@@ -138,7 +138,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 : ListView.separated(
                     itemCount: _filtered.length,
                     separatorBuilder: (_, __) =>
-                        Divider(height: 1, color: CartzyColors.border),
+                        const Divider(height: 1, color: CartzyColors.border),
                     itemBuilder: (context, i) {
                       final c = _filtered[i];
                       final isSelected = _selectedConversation == c;
@@ -255,10 +255,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
           // Chat header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
               border:
-                  Border(bottom: BorderSide(color: CartzyColors.border)),
+                  const Border(bottom: const BorderSide(color: CartzyColors.border)),
             ),
             child: Row(
               children: [
@@ -346,9 +346,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
           Container(
             padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(top: BorderSide(color: CartzyColors.border)),
+              border: const Border(top: const BorderSide(color: CartzyColors.border)),
             ),
             child: Row(
               children: [
@@ -394,7 +394,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   child: Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: CartzyColors.navy,
                       shape: BoxShape.circle,
                     ),
@@ -423,10 +423,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
             // ── Page Header ──────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: CartzyColors.background,
                 border:
-                    Border(bottom: BorderSide(color: CartzyColors.border)),
+                    const Border(bottom: const BorderSide(color: CartzyColors.border)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +500,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   border: Border.all(color: CartzyColors.border),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),

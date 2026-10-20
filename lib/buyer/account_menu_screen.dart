@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'buyer_account_screen.dart';
 import 'reviews_screen.dart';
+import 'vouchers_screen.dart';
 
 class AccountMenuScreen extends StatelessWidget {
   final VoidCallback onBack;
@@ -388,13 +389,21 @@ class AccountMenuScreen extends StatelessWidget {
             // ==================================================
 
             _MenuItem(
-              icon:
-                  Icons.card_giftcard_outlined,
-
+              icon: Icons.confirmation_number_outlined,
               label: 'My Vouchers',
-
-              onTap: () =>
-                  _comingSoon(context),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => VouchersScreen(
+                      onBack: () => Navigator.of(context).pop(),
+                      onUseAtCheckout: () {
+                        Navigator.of(context).pop();
+                        onMyPurchase();
+                      },
+                    ),
+                  ),
+                );
+              },
             ),
 
             // ==================================================

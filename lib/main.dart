@@ -18,6 +18,7 @@ import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/services/cart_service.dart';
 import 'package:cartzy/auth/email_verification_screen.dart';
 import 'package:cartzy/widgets/access_denied_screen.dart';
+import 'package:cartzy/buyer/vouchers_screen.dart';
 
 void main() {
   runApp(const CartzyApp());
@@ -286,7 +287,24 @@ class _CartzyHomeState extends State<CartzyHome> {
           onProfileClick: () {
             goTo('accountSettings');
           },
+          onVouchersClick: () {
+            goTo('vouchers');
+          },
           onLogout: logout,
+        );
+
+      // ========================================================
+      // MY VOUCHERS
+      // ========================================================
+
+      case 'vouchers':
+        return VouchersScreen(
+          onBack: () {
+            goTo('dashboard');
+          },
+          onUseAtCheckout: () {
+            goTo('checkout');
+          },
         );
 
       // ========================================================

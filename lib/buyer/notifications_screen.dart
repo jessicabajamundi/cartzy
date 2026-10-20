@@ -161,7 +161,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             border: Border.all(color: CartzyColors.border),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
@@ -262,9 +262,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             // ── Header ───────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: CartzyColors.background,
-                border: Border(bottom: BorderSide(color: CartzyColors.border)),
+                border: const Border(bottom: const BorderSide(color: CartzyColors.border)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

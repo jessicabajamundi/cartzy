@@ -138,7 +138,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   String? _contactNoErrorMessage;
   bool _birthdayError = false;
   String? _birthdayErrorMessage;
-  bool _isCheckingEmail = false;
+  final bool _isCheckingEmail = false;
 
   // ========================================================
   // ADDRESS

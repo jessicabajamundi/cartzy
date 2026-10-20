@@ -18,11 +18,12 @@ import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:cartzy/buyer/reviews_screen.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
 import 'package:cartzy/buyer/track_order_screen.dart';
-import 'package:cartzy/address/my_addresses_screen.dart';
+import 'package:cartzy/buyer/vouchers_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
   final VoidCallback? onProfileClick;
+  final VoidCallback? onVouchersClick;
   final VoidCallback? onLogout;
   final String? userName;
 
@@ -30,6 +31,7 @@ class DashboardScreen extends StatefulWidget {
     super.key,
     this.onCartClick,
     this.onProfileClick,
+    this.onVouchersClick,
     this.onLogout,
     this.userName,
   });
@@ -99,7 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss Profile Menu',
-      barrierColor: Colors.black.withOpacity(0.08),
+      barrierColor: Colors.black.withValues(alpha: 0.08),
       transitionDuration: const Duration(milliseconds: 180),
       pageBuilder: (ctx, anim1, anim2) {
         final screenWidth = MediaQuery.of(context).size.width;
@@ -128,13 +130,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     border: Border.all(color: const Color(0xFFF0E5E7), width: 1.2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.09),
+                        color: Colors.black.withValues(alpha: 0.09),
                         blurRadius: 26,
                         spreadRadius: 2,
                         offset: const Offset(0, 10),
                       ),
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -222,6 +224,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             );
                           }
                         },
+                        hoverColor: const Color(0xFFF7F2F4),
                         borderRadius: BorderRadius.circular(8),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
@@ -267,6 +270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           );
                         },
+                        hoverColor: const Color(0xFFF7F2F4),
                         borderRadius: BorderRadius.circular(8),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
@@ -290,9 +294,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
 
+                      // Item 3: My Vouchers
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          if (widget.onVouchersClick != null) {
+                            widget.onVouchersClick!();
+                          } else {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => VouchersScreen(
+                                  onBack: () => Navigator.of(context).pop(),
+                                  onUseAtCheckout: () {
+                                    Navigator.of(context).pop();
+                                    widget.onCartClick?.call();
+                                  },
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        hoverColor: const Color(0xFFF7F2F4),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.confirmation_number_outlined, size: 20, color: Color(0xFF7A6E72)),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Text(
+                                  'My Vouchers',
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF231F20),
+                                  ),
+                                ),
+                              ),
+                              const Icon(Icons.chevron_right, size: 18, color: Color(0xFFC4B8BA)),
+                            ],
+                          ),
+                        ),
+                      ),
+
                       const Divider(height: 1, thickness: 1, color: Color(0xFFF3ECEE)),
 
-                      // Item 3: Sign out
+                      // Item 4: Sign out
                       InkWell(
                         onTap: () {
                           Navigator.pop(ctx);
@@ -364,7 +412,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Dismiss Collection Menu',
-      barrierColor: Colors.black.withOpacity(0.04),
+      barrierColor: Colors.black.withValues(alpha: 0.04),
       transitionDuration: const Duration(milliseconds: 160),
       pageBuilder: (ctx, anim1, anim2) {
         return Stack(
@@ -388,7 +436,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     border: Border.all(color: const Color(0xFFDCC8CA), width: 1.2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.09),
+                        color: Colors.black.withValues(alpha: 0.09),
                         blurRadius: 20,
                         spreadRadius: 1,
                         offset: const Offset(0, 8),
@@ -1097,9 +1145,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // BOTTOM NAV BAR
             // ─────────────────────────────────────────────────
             Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: CartzyColors.surface,
-                border: Border(top: BorderSide(color: CartzyColors.border)),
+                border: const Border(top: const BorderSide(color: CartzyColors.border)),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               child: Row(
