@@ -42,23 +42,26 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
     return _orders.where((order) {
       final matchesQuery = query.isEmpty ||
           order.id.toString().contains(query) ||
+          'ord-mtr-${order.id}'.contains(query) ||
           order.buyerName.toLowerCase().contains(query) ||
           order.deliveryAddress.toLowerCase().contains(query) ||
+          order.storePartner.toLowerCase().contains(query) ||
           order.itemsSummary.toLowerCase().contains(query);
 
       if (!matchesQuery) return false;
 
       if (_activeFilter == 'COD') {
-        // Assume COD if totalAmount > 0
-        return order.totalAmount > 0;
+        return order.paymentMethod.toUpperCase() == 'COD';
       } else if (_activeFilter == 'Prepaid') {
-        return order.totalAmount == 0;
+        return order.paymentMethod.toUpperCase() != 'COD';
       }
       return true;
     }).toList();
   }
 
-  double get _codTotal => _orders.fold(0.0, (sum, o) => sum + o.totalAmount);
+  double get _codTotal => _orders
+      .where((order) => order.paymentMethod.toUpperCase() == 'COD')
+      .fold(0.0, (sum, order) => sum + order.totalAmount);
 
   Future<void> _startDelivery(RiderOrder order) async {
     final delivered = await Navigator.of(context).push<bool>(
@@ -70,6 +73,34 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
       setState(() {
         _orders.removeWhere((o) => o.id == order.id);
       });
+      final messenger = ScaffoldMessenger.of(context);
+      messenger
+        ..hideCurrentMaterialBanner()
+        ..showMaterialBanner(
+          MaterialBanner(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            leading: Container(
+              width: 24,
+              height: 24,
+              decoration: const BoxDecoration(color: Color(0xFFD1F5E6), shape: BoxShape.circle),
+              child: const Icon(Icons.check, size: 15, color: Color(0xFF13845B)),
+            ),
+            content: Text(
+              'Parcel successfully marked as DELIVERED! Customer and seller have been notified.',
+              style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF176B4E)),
+            ),
+            backgroundColor: const Color(0xFFF0FFF8),
+            elevation: 0,
+            dividerColor: const Color(0xFFA9E5CA),
+            actions: [
+              IconButton(
+                tooltip: 'Dismiss',
+                onPressed: messenger.hideCurrentMaterialBanner,
+                icon: const Icon(Icons.close, size: 17, color: Color(0xFF13845B)),
+              ),
+            ],
+          ),
+        );
     }
   }
 
@@ -81,12 +112,12 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
         children: [
           RiderCommonAppBar(
             title: 'Items for Delivery',
-            sector: 'Metro South Sector',
+            sector: 'Metro South (Laguna & NCR)',
             onBack: widget.onBack,
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -115,7 +146,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
             Text(
               'Active Delivery Queue',
               style: GoogleFonts.cormorantGaramond(
-                fontSize: 26,
+                fontSize: 22,
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF261E30),
                 letterSpacing: -0.4,
@@ -125,7 +156,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
             Text(
               'Parcels out for doorstep delivery across your assigned sector',
               style: GoogleFonts.dmSans(
-                fontSize: 13,
+                fontSize: 11,
                 color: const Color(0xFF8A7780),
               ),
             ),
@@ -223,6 +254,11 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
                       color: const Color(0xFFBAABB0),
                     ),
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
+                    focusedErrorBorder: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -362,119 +398,131 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
       );
     }
 
-    // Active parcels list
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: orders.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final order = orders[index];
-        return Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEFE8EA)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3ECEF),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'TRACKING: #CRTZ-${order.id}',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF46333D),
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: order.totalAmount > 0
-                          ? const Color(0xFFFFF9EE)
-                          : const Color(0xFFEAF6ED),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      order.totalAmount > 0
-                          ? 'COD: ₱${order.totalAmount.toStringAsFixed(2)}'
-                          : 'PREPAID',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: order.totalAmount > 0
-                            ? const Color(0xFFB45309)
-                            : const Color(0xFF2E7D32),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                order.buyerName,
-                style: GoogleFonts.dmSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF261E30),
-                ),
-              ),
-              const SizedBox(height: 3),
-              Row(
-                children: [
-                  const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF8A7780)),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      order.deliveryAddress,
-                      style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF554B62)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Items: ${order.itemsSummary}',
-                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF8A7780)),
-              ),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _startDelivery(order),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF46333D),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                    ),
-                    icon: const Icon(Icons.local_shipping_outlined, size: 14),
-                    label: Text(
-                      'Start Delivery',
-                      style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) => _buildDeliveryCard(orders[index], index),
     );
   }
+
+  Widget _buildDeliveryCard(RiderOrder order, int index) {
+    final isCod = order.paymentMethod.toUpperCase() == 'COD';
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final paymentBadge = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isCod ? const Color(0xFFFFF6E5) : const Color(0xFFEAF9F2),
+        border: Border.all(color: isCod ? const Color(0xFFFFD98A) : const Color(0xFFA9E5CA)),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Text(
+        isCod ? 'COLLECT COD: ₱${order.totalAmount.toStringAsFixed(2)}' : 'ONLINE PAID (₱0.00)',
+        style: GoogleFonts.dmSans(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          color: isCod ? const Color(0xFF9A5A00) : const Color(0xFF188257),
+        ),
+      ),
+    );
+
+    final details = Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 7,
+            runSpacing: 5,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF261E30))),
+              paymentBadge,
+              Text('Order: ORD-MTR-${order.id}', style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF8A7780))),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(order.buyerName, style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF261E30))),
+          const SizedBox(height: 2),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.location_on_outlined, size: 13, color: Color(0xFF8A7780)),
+              const SizedBox(width: 3),
+              Expanded(child: Text(order.deliveryAddress, style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF554B62)))),
+            ],
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'Store: ${order.storePartner}  •  Items: ${order.itemsSummary}',
+            maxLines: isMobile ? 2 : 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF8A7780)),
+          ),
+        ],
+      ),
+    );
+
+    final actions = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: order.buyerPhone.isEmpty ? 'Phone number unavailable' : 'Call ${order.buyerName}',
+          onPressed: order.buyerPhone.isEmpty
+              ? null
+              : () => ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Contact ${order.buyerName}: ${order.buyerPhone}')),
+                  ),
+          icon: const Icon(Icons.call_outlined, size: 17),
+          style: IconButton.styleFrom(
+            foregroundColor: const Color(0xFF554B62),
+            backgroundColor: const Color(0xFFFAF8FA),
+            side: const BorderSide(color: Color(0xFFE7E2E8)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(width: 5),
+        ElevatedButton.icon(
+          onPressed: () => _startDelivery(order),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF554B62),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 10 : 13, vertical: 9),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          icon: const Icon(Icons.check, size: 13),
+          label: Text('Confirm Delivery', style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700)),
+        ),
+      ],
+    );
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14, vertical: isMobile ? 13 : 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: const Color(0xFFEFE8EA)),
+        boxShadow: const [BoxShadow(color: Color(0x0A261E30), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+      child: isMobile
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [_deliveryIndexBadge(index), const SizedBox(width: 10), details]),
+                const SizedBox(height: 10),
+                Align(alignment: Alignment.centerRight, child: actions),
+              ],
+            )
+          : Row(children: [_deliveryIndexBadge(index), const SizedBox(width: 10), details, const SizedBox(width: 12), actions]),
+    );
+  }
+
+  Widget _deliveryIndexBadge(int index) => Container(
+        width: 28,
+        height: 28,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: const Color(0xFFF3ECEF), borderRadius: BorderRadius.circular(8)),
+        child: Text('#${index + 1}', style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF554B62))),
+      );
 }

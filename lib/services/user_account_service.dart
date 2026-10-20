@@ -364,6 +364,13 @@ class UserAccountService {
       );
     }
 
+    if (expectedRole != null && account.role != expectedRole) {
+      return AuthResponse(
+        success: false,
+        error: 'Invalid email or password.',
+      );
+    }
+
     // TC-BUY-028: Log in before verifying the email
     if (account.status == 'Unverified') {
       return AuthResponse(

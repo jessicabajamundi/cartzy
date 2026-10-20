@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -2335,11 +2336,7 @@ class CartzyRegisterHeader extends StatelessWidget {
             ),
           ),
         Center(
-          child: Image.asset(
-            'assets/cartzy_splash.png',
-            height: 34,
-            fit: BoxFit.contain,
-          ),
+          child: const CartzyLogo(height: 34),
         ),
         const SizedBox(height: 14),
         Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 
 
 class WelcomeScreen extends StatelessWidget {
@@ -22,12 +23,7 @@ class WelcomeScreen extends StatelessWidget {
               // ==================================
               // CARTZY LOGO
               // ==================================
-              Image.asset(
-                'assets/cartzy_splash.png',
-                width: 170,
-                height: 170,
-                fit: BoxFit.contain,
-              ),
+              const CartzyLogo(height: 110, width: 300),
               const SizedBox(height: 16),
 
               // ==================================

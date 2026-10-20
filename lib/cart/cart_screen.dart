@@ -197,8 +197,6 @@ class _CartScreenState extends State<CartScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     _buildCartTableCard(isWide: true),
-                                    const SizedBox(height: 18),
-                                    _buildContinueShoppingLink(),
                                   ],
                                 ),
                               ),
@@ -218,8 +216,6 @@ class _CartScreenState extends State<CartScreen> {
                               _buildCartTableCard(isWide: false),
                               const SizedBox(height: 20),
                               _buildOrderSummaryCard(),
-                              const SizedBox(height: 18),
-                              _buildContinueShoppingLink(),
                             ],
                           );
                         }
@@ -243,6 +239,8 @@ class _CartScreenState extends State<CartScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildContinueShoppingLink(),
+        const SizedBox(height: 10),
         Text(
           'YOUR NEXT FINDS',
           style: GoogleFonts.dmSans(
@@ -1031,25 +1029,6 @@ class _CartScreenState extends State<CartScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 13.5,
                 color: const Color(0xFF7A6E72),
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: widget.onBack,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4452),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'Continue Shopping',
-                style: GoogleFonts.dmSans(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13.5,
-                ),
               ),
             ),
           ],

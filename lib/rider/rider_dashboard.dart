@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/barcode_scanner_page.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:cartzy/services/mock_data.dart';
 import 'rider_pickup_dashboard.dart';
 import 'rider_delivery_dashboard.dart';
@@ -128,28 +129,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF865561),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 16,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'cartzy',
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 19,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF261E30),
-                  letterSpacing: -0.4,
-                ),
-              ),
+              const CartzyLogo(height: 30),
               const SizedBox(width: 6),
               Container(
                 padding:
@@ -477,66 +457,92 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 _sidebarItem(
                   icon: Icons.inventory_2_outlined,
                   title: 'Items for Pickup',
+                  isSelected: _selectedNav == 'Items for Pickup',
                   badge: '${MockData.availablePickups.length}',
                   badgeColor: const Color(0xFFD97850),
-                  onTap: () => _push(
-                    RiderPickupDashboard(
-                      token: widget.token,
-                      onBack: () => Navigator.of(context).pop(),
-                    ),
-                  ),
+                  onTap: () {
+                    setState(() => _selectedNav = 'Items for Pickup');
+                    _push(
+                      RiderPickupDashboard(
+                        token: widget.token,
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                    );
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.local_shipping_outlined,
                   title: 'Items for Delivery',
-                  onTap: () => _push(
-                    RiderDeliveryDashboard(
-                      token: widget.token,
-                      onBack: () => Navigator.of(context).pop(),
-                    ),
-                  ),
+                  isSelected: _selectedNav == 'Items for Delivery',
+                  onTap: () {
+                    setState(() => _selectedNav = 'Items for Delivery');
+                    _push(
+                      RiderDeliveryDashboard(
+                        token: widget.token,
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                    );
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.payments_outlined,
                   title: 'Rider Earnings & Commissions',
-                  onTap: () => _push(
-                    RiderEarningsScreen(
-                      token: widget.token,
-                      onBack: () => Navigator.of(context).pop(),
-                    ),
-                  ),
+                  isSelected: _selectedNav == 'Rider Earnings & Commissions',
+                  onTap: () {
+                    setState(() => _selectedNav = 'Rider Earnings & Commissions');
+                    _push(
+                      RiderEarningsScreen(
+                        token: widget.token,
+                        onBack: () => Navigator.of(context).pop(),
+                      ),
+                    );
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.history_outlined,
                   title: 'Delivery History',
-                  onTap: () => _push(
-                    RiderDeliveryHistoryScreen(
-                      token: widget.token,
-                      onBack: () => Navigator.of(context).pop(),
-                    ),
-                  ),
+                  isSelected: _selectedNav == 'Delivery History',
+                  onTap: () {
+                    setState(() => _selectedNav = 'Delivery History');
+                    _push(
+                      RiderDeliveryHistoryScreen(
+                        token: widget.token,
+                        onBack: () => Navigator.of(context).pop(),
+                        onLogout: widget.onLogout,
+                      ),
+                    );
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.chat_bubble_outline,
                   title: 'Chat & Messages',
-                  onTap: () => _push(
-                    RiderChatListScreen(
-                      token: widget.token,
-                      myUserId: widget.userId,
-                      onBack: () => Navigator.of(context).pop(),
-                    ),
-                  ),
+                  isSelected: _selectedNav == 'Chat & Messages',
+                  onTap: () {
+                    setState(() => _selectedNav = 'Chat & Messages');
+                    _push(
+                      RiderChatListScreen(
+                        token: widget.token,
+                        myUserId: widget.userId,
+                        onBack: () => Navigator.of(context).pop(),
+                        onLogout: widget.onLogout,
+                      ),
+                    );
+                  },
                 ),
                 _sidebarItem(
                   icon: Icons.person_outline,
                   title: 'Account Management',
-                  onTap: () => _push(
-                    RiderAccountScreen(
-                      userId: widget.userId,
-                      onBack: () => Navigator.of(context).pop(),
-                      onLogout: widget.onLogout,
-                    ),
-                  ),
+                  isSelected: _selectedNav == 'Account Management',
+                  onTap: () {
+                    setState(() => _selectedNav = 'Account Management');
+                    _push(
+                      RiderAccountScreen(
+                        userId: widget.userId,
+                        onBack: () => Navigator.of(context).pop(),
+                        onLogout: widget.onLogout,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -591,58 +597,74 @@ class _RiderDashboardState extends State<RiderDashboard> {
     Color? badgeColor,
     required VoidCallback onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      child: Material(
-        color: isSelected ? const Color(0xFF554B62) : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  size: 18,
-                  color: isSelected ? Colors.white : const Color(0xFF756A7C),
-                ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 12.5,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
-                      color:
-                          isSelected ? Colors.white : const Color(0xFF2C2436),
-                    ),
-                  ),
-                ),
-                if (badge != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: badgeColor ?? const Color(0xFFE07B39),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      badge,
-                      style: const TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+    var isHovered = false;
+    return StatefulBuilder(
+      builder: (context, setHoverState) {
+        final highlighted = isSelected || isHovered;
+        return MouseRegion(
+          onEnter: (_) => setHoverState(() => isHovered = true),
+          onExit: (_) => setHoverState(() => isHovered = false),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            decoration: BoxDecoration(
+              gradient: highlighted
+                  ? const LinearGradient(
+                      colors: [Color(0xFF5A4A69), Color(0xFF936762)],
+                    )
+                  : null,
+              color: highlighted ? null : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        icon,
+                        size: 18,
+                        color: highlighted ? Colors.white : const Color(0xFF756A7C),
                       ),
-                    ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 12.5,
+                            fontWeight: highlighted ? FontWeight.w600 : FontWeight.w500,
+                            color: highlighted ? Colors.white : const Color(0xFF2C2436),
+                          ),
+                        ),
+                      ),
+                      if (badge != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: badgeColor ?? const Color(0xFFE07B39),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            badge,
+                            style: const TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

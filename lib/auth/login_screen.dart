@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/user_account_service.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 
 enum AccountType { buyer, rider, admin }
 
@@ -47,6 +48,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _emailHasFocus = false;
+  bool _passwordHasFocus = false;
 
   late AccountType _accountType;
 
@@ -125,6 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authResult = UserAccountService.instance.authenticate(
       email: email,
       password: password,
+      expectedRole: _selectedRole,
     );
 
     if (authResult.isUnverified) {
@@ -177,10 +181,17 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (authResult.success && authResult.account != null) {
-      setState(() => _isLoggingIn = false);
       final account = authResult.account!;
       final role = account.role;
       final user = account.toMap();
+
+      if (role != _selectedRole) {
+        setState(() => _isLoggingIn = false);
+        _showRoleMismatch();
+        return;
+      }
+
+      setState(() => _isLoggingIn = false);
 
       if (role == 'buyer') {
         widget.onLogin(AccountType.buyer, user, token: 'user-token');
@@ -194,7 +205,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     // Match against demo accounts
     final match = _demoAccounts.where(
-      (a) => a['email'] == email && a['password'] == password,
+      (a) =>
+          a['email'] == email &&
+          a['password'] == password &&
+          a['role'] == _selectedRole,
     ).firstOrNull;
 
     setState(() => _isLoggingIn = false);
@@ -230,6 +244,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  String get _selectedRole => _accountType == AccountType.rider ? 'rider' : 'buyer';
+
+  void _showRoleMismatch() {
+    final selectedLabel = _accountType == AccountType.rider ? 'Courier' : 'Buyer';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Please use a $selectedLabel account to sign in here.')),
+    );
+  }
+
   void _showForgotPasswordDialog() {
     showDialog(
       context: context,
@@ -238,7 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
         title: Text('Forgot Password',
             style: GoogleFonts.dmSans(color: const Color(0xFF231F20), fontWeight: FontWeight.bold)),
         content: Text(
-          'Use the sample accounts to sign in:\n\nBuyer:  buyer@cartzy.com\nRider:  rider@cartzy.com\nPassword: 123456',
+          'Use the sample accounts to sign in:\n\nBuyer:  buyer@cartzy.com\nCourier:  rider@cartzy.com\nPassword: 123456',
           style: GoogleFonts.dmSans(fontSize: 13.5, height: 1.5, color: const Color(0xFF4A3E4D)),
         ),
         actions: [
@@ -281,158 +304,209 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Back link: Continue to the shop ──
-              GestureDetector(
-                onTap: widget.onBackToGuest,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4, bottom: 20),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.arrow_back, size: 16, color: Color(0xFF865561)),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Continue to the shop',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF865561),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: widget.onBackToGuest,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.arrow_back_rounded,
+                              size: 14,
+                              color: Color(0xFF865561),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Continue to the shop',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF865561),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Brand Logo ──
-              Center(
-                child: Image.asset(
-                  'assets/cartzy_splash.png',
-                  height: 38,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // ── Title ──
-              Center(
-                child: Text(
-                  'Welcome back',
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF231F20),
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-
-              // ── Subtitle ──
-              Center(
-                child: Text(
-                  'Login to your account and continue shopping',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 13,
-                    color: const Color(0xFF7A6E72),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // ── Failed attempts warning ──
-              if (_loginAttempts > 0)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: _loginAttempts >= 4
-                          ? CartzyColors.error.withValues(alpha: 0.08)
-                          : Colors.orange.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: _loginAttempts >= 4
-                            ? CartzyColors.error.withValues(alpha: 0.4)
-                            : Colors.orange.withValues(alpha: 0.4),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 58),
+                  Center(
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          size: 18,
-                          color: _loginAttempts >= 4 ? CartzyColors.error : Colors.orange,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
+                        const CartzyLogo(height: 30),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6B4B68),
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.16),
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
                           child: Text(
-                            _loginAttempts >= _maxAttempts
-                                ? 'Account temporarily locked due to too many failed attempts.'
-                                : '${_maxAttempts - _loginAttempts} attempt(s) remaining before your account is locked.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _loginAttempts >= 4
-                                  ? CartzyColors.error
-                                  : Colors.orange.shade800,
+                            _accountType == AccountType.rider ? 'COURIER' : 'BUYER',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.7,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      'Welcome back',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF231F20),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Center(
+                    child: Text(
+                      'Login to your account and continue shopping',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 10,
+                        color: const Color(0xFF7A6E72),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_loginAttempts > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _loginAttempts >= 4
+                              ? CartzyColors.error.withValues(alpha: 0.08)
+                              : Colors.orange.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _loginAttempts >= 4
+                                ? CartzyColors.error.withValues(alpha: 0.4)
+                                : Colors.orange.withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              size: 18,
+                              color: _loginAttempts >= 4 ? CartzyColors.error : Colors.orange,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _loginAttempts >= _maxAttempts
+                                    ? 'Account temporarily locked due to too many failed attempts.'
+                                    : '${_maxAttempts - _loginAttempts} attempt(s) remaining before your account is locked.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: _loginAttempts >= 4
+                                      ? CartzyColors.error
+                                      : Colors.orange.shade800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
 
               // ── Email address ──
               Text(
                 'Email address',
                 style: GoogleFonts.dmSans(
-                  fontSize: 13.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF231F20),
                 ),
               ),
-              const SizedBox(height: 6),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _emailError != null
-                        ? const Color(0xFFD32F2F)
-                        : const Color(0xFFE5D7D7),
-                    width: 1.0,
+              const SizedBox(height: 5),
+              Focus(
+                onFocusChange: (hasFocus) {
+                  if (mounted) setState(() => _emailHasFocus = hasFocus);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _emailError != null
+                          ? const Color(0xFFD32F2F)
+                          : _emailHasFocus == true
+                              ? const Color(0xFFC66B5E)
+                              : const Color(0xFFE5D7D7),
+                      width: _emailHasFocus == true ? 1.4 : 1.0,
+                    ),
+                    boxShadow: _emailHasFocus == true
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFC66B5E).withValues(alpha: 0.18),
+                              blurRadius: 5,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
                   ),
-                ),
-                child: TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (_) {
-                    if (_emailError != null) setState(() => _emailError = null);
-                  },
-                  style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
-                  decoration: InputDecoration(
-                    hintText: 'Enter your email address',
-                    hintStyle: GoogleFonts.dmSans(
-                      fontSize: 13.5,
-                      color: const Color(0xFFAAA0A2),
+                  child: TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textAlignVertical: TextAlignVertical.center,
+                    onChanged: (_) {
+                      if (_emailError != null) setState(() => _emailError = null);
+                    },
+                    style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF231F20)),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'Enter your email address',
+                      hintStyle: GoogleFonts.dmSans(
+                        fontSize: 11.5,
+                        color: const Color(0xFFAAA0A2),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.mail_outline,
+                        size: 17,
+                        color: Color(0xFF865561),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
                     ),
-                    prefixIcon: const Icon(
-                      Icons.mail_outline,
-                      size: 20,
-                      color: Color(0xFF865561),
-                    ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    filled: false,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   ),
                 ),
               ),
@@ -443,62 +517,82 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
                 ),
               ],
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               // ── Password ──
               Text(
                 'Password',
                 style: GoogleFonts.dmSans(
-                  fontSize: 13.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF231F20),
                 ),
               ),
-              const SizedBox(height: 6),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _passwordError != null
-                        ? const Color(0xFFD32F2F)
-                        : const Color(0xFFE5D7D7),
-                    width: 1.0,
+              const SizedBox(height: 5),
+              Focus(
+                onFocusChange: (hasFocus) {
+                  if (mounted) setState(() => _passwordHasFocus = hasFocus);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _passwordError != null
+                          ? const Color(0xFFD32F2F)
+                          : _passwordHasFocus == true
+                              ? const Color(0xFFC66B5E)
+                              : const Color(0xFFE5D7D7),
+                      width: _passwordHasFocus == true ? 1.4 : 1.0,
+                    ),
+                    boxShadow: _passwordHasFocus == true
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFC66B5E).withValues(alpha: 0.18),
+                              blurRadius: 5,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
                   ),
-                ),
-                child: TextField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  onChanged: (_) {
-                    if (_passwordError != null) setState(() => _passwordError = null);
-                  },
-                  style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
-                  decoration: InputDecoration(
-                    hintText: 'Enter your password',
-                    hintStyle: GoogleFonts.dmSans(
-                      fontSize: 13.5,
-                      color: const Color(0xFFAAA0A2),
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.lock_outline,
-                      size: 20,
-                      color: Color(0xFF865561),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        size: 20,
-                        color: const Color(0xFF7A6E72),
+                  child: TextField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    textAlignVertical: TextAlignVertical.center,
+                    onChanged: (_) {
+                      if (_passwordError != null) setState(() => _passwordError = null);
+                    },
+                    style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF231F20)),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'Enter your password',
+                      hintStyle: GoogleFonts.dmSans(
+                        fontSize: 11.5,
+                        color: const Color(0xFFAAA0A2),
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      prefixIcon: const Icon(
+                        Icons.lock_outline,
+                        size: 17,
+                        color: Color(0xFF865561),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                          size: 17,
+                          color: const Color(0xFF7A6E72),
+                        ),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      suffixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
                     ),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    disabledBorder: InputBorder.none,
-                    filled: false,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   ),
                 ),
               ),
@@ -509,7 +603,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
                 ),
               ],
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
 
               // ── Remember me / Forgot password ──
               Row(
@@ -531,7 +625,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(width: 8),
                       Text(
                         'Remember me',
-                        style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF4A3E4D)),
+                        style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF4A3E4D)),
                       ),
                     ],
                   ),
@@ -540,7 +634,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       'Forgot password?',
                       style: GoogleFonts.dmSans(
-                        fontSize: 13,
+                        fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF865561),
                       ),
@@ -548,14 +642,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
               // ── Sign In to Account button ──
               GestureDetector(
                 onTap: _isLoggingIn ? null : _handleLogin,
                 child: Container(
                   width: double.infinity,
-                  height: 48,
+                  height: 32,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF4A3E4D), Color(0xFF865561)],
@@ -581,14 +675,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       : Text(
                           'Sign In to Account',
                           style: GoogleFonts.dmSans(
-                            fontSize: 15,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
 
               // ── Divider: or continue with ──
               Row(
@@ -607,21 +701,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
                 ],
               ),
-              const SizedBox(height: 20),
-
               // ── Continue with Google ──
               GestureDetector(
                 onTap: () {
-                  // Pre-fill demo buyer account for seamless testing
+                  // Simulate Google sign-in with a demo account for the selected role.
                   setState(() {
-                    _emailController.text = 'buyer@cartzy.com';
+                    _emailController.text = _accountType == AccountType.rider
+                        ? 'rider@cartzy.com'
+                        : 'buyer@cartzy.com';
                     _passwordController.text = '123456';
                   });
                   _handleLogin();
                 },
                 child: Container(
                   width: double.infinity,
-                  height: 48,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -640,7 +734,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Continue with Google',
                         style: GoogleFonts.dmSans(
-                          fontSize: 14,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF231F20),
                         ),
@@ -649,7 +743,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
 
               // ── Don't have an account? Sign up ──
               Center(
@@ -658,14 +752,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       "Don't have an account? ",
-                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+                      style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF7A6E72)),
                     ),
                     GestureDetector(
                       onTap: () => widget.onSignUp(_accountType),
                       child: Text(
                         'Sign up',
                         style: GoogleFonts.dmSans(
-                          fontSize: 13,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF865561),
                         ),
@@ -674,9 +768,50 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 8),
+              const Divider(height: 1, color: Color(0xFFEDE8EA)),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Not shopping? Log in to your workspace',
+                  style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF7A6E72)),
+                ),
+              ),
+              const SizedBox(height: 5),
+              Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _workspaceLink('Buyer', AccountType.buyer),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 9),
+                      child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 11)),
+                    ),
+                    _workspaceLink('Courier', AccountType.rider),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
             ],
           ),
+        ),
+      ),
+        ),
+      ),
+    );
+  }
+
+  Widget _workspaceLink(String label, AccountType type) {
+    final isSelected = _accountType == type;
+    return GestureDetector(
+      onTap: () => setState(() => _accountType = type),
+      child: Text(
+        label,
+        style: GoogleFonts.dmSans(
+          fontSize: 11,
+          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          color: isSelected ? const Color(0xFF865561) : const Color(0xFF7A6E72),
+          decoration: isSelected ? TextDecoration.underline : TextDecoration.none,
         ),
       ),
     );

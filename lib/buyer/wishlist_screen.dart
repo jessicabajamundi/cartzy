@@ -186,7 +186,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
               decoration: const BoxDecoration(
                 color: CartzyColors.background,
-                border: const Border(bottom: const BorderSide(color: CartzyColors.border)),
+                border: Border(bottom: BorderSide(color: CartzyColors.border)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

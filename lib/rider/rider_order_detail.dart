@@ -17,6 +17,10 @@ class RiderOrder {
   final String itemsSummary;
   final double totalAmount;
   final String createdAt;
+  final String storePartner;
+  final String paymentMethod;
+  final double riderPayout;
+  final String completedAt;
 
   RiderOrder({
     required this.id,
@@ -27,6 +31,10 @@ class RiderOrder {
     required this.itemsSummary,
     required this.totalAmount,
     required this.createdAt,
+    this.storePartner = 'Cartzy Marketplace',
+    this.paymentMethod = 'Prepaid',
+    this.riderPayout = 65.00,
+    this.completedAt = '',
   });
 
   factory RiderOrder.fromJson(Map<String, dynamic> json) {
@@ -39,6 +47,10 @@ class RiderOrder {
       itemsSummary: json['items_summary']?.toString() ?? 'Items unavailable',
       totalAmount: double.tryParse(json['total_amount']?.toString() ?? '') ?? 0,
       createdAt: json['created_at']?.toString() ?? '',
+      storePartner: json['store_partner']?.toString() ?? 'Cartzy Marketplace',
+      paymentMethod: json['payment_method']?.toString() ?? 'Prepaid',
+      riderPayout: double.tryParse(json['rider_payout']?.toString() ?? '') ?? 65.00,
+      completedAt: json['completed_at']?.toString() ?? '',
     );
   }
 

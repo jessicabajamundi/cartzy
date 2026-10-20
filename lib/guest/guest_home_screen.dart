@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -242,7 +243,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                     child: Row(
                       children: [
                         // Logo
-                        Image.asset('assets/cartzy_splash.png', height: 28, fit: BoxFit.contain),
+                        const CartzyLogo(height: 28),
                         const Spacer(),
                         // Login
                         GestureDetector(

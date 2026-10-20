@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -402,26 +403,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 children: [
                   // ── Cartzy Logo ──
                   Center(
-                    child: Image.asset(
-                      'assets/cartzy_splash.png',
-                      height: 40,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.shopping_cart, color: Color(0xFF2D2640), size: 28),
-                          const SizedBox(width: 6),
-                          Text(
-                            'cartzy',
-                            style: GoogleFonts.poppins(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF2D2640),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    child: const CartzyLogo(height: 40),
                   ),
                   const SizedBox(height: 14),
 

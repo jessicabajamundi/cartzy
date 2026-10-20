@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -565,7 +566,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: const EdgeInsets.fromLTRB(20, 14, 16, 0),
                     child: Row(
                       children: [
-                        Image.asset('assets/cartzy_splash.png', height: 28, fit: BoxFit.contain),
+                        const CartzyLogo(height: 28),
                         if (widget.userName != null && widget.userName!.isNotEmpty) ...[
                           const SizedBox(width: 10),
                           Flexible(
@@ -1147,7 +1148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               decoration: const BoxDecoration(
                 color: CartzyColors.surface,
-                border: const Border(top: const BorderSide(color: CartzyColors.border)),
+                border: Border(top: BorderSide(color: CartzyColors.border)),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               child: Row(

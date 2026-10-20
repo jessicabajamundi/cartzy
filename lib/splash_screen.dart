@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 
 class SplashScreen extends StatefulWidget {
   final VoidCallback onFinished;
@@ -27,13 +27,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: Colors.white,
       body: Center(
-        child: Image.asset(
-          'assets/cartzy_splash.png',
-          width: 170,
-          height: 170,
-          fit: BoxFit.contain,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final logoWidth = (constraints.maxWidth * 0.36).clamp(0.0, 180.0);
+            return CartzyLogo(height: 68, width: logoWidth);
+          },
         ),
       ),
     );

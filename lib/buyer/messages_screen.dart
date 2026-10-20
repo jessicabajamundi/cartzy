@@ -258,7 +258,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             decoration: const BoxDecoration(
               color: Colors.white,
               border:
-                  const Border(bottom: const BorderSide(color: CartzyColors.border)),
+                  Border(bottom: BorderSide(color: CartzyColors.border)),
             ),
             child: Row(
               children: [
@@ -348,7 +348,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: const Border(top: const BorderSide(color: CartzyColors.border)),
+              border: Border(top: BorderSide(color: CartzyColors.border)),
             ),
             child: Row(
               children: [
@@ -426,7 +426,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               decoration: const BoxDecoration(
                 color: CartzyColors.background,
                 border:
-                    const Border(bottom: const BorderSide(color: CartzyColors.border)),
+                    Border(bottom: BorderSide(color: CartzyColors.border)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

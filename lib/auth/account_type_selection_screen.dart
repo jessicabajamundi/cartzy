@@ -4,7 +4,7 @@ import 'login_screen.dart';
 
 // ================================================================
 // Shown right after tapping Login/Sign Up on the guest screen.
-// User picks Buyer / Rider, then lands on a login
+// User picks Buyer / Courier, then lands on a login
 // page already set up for that role.
 // ================================================================
 
@@ -85,7 +85,7 @@ class AccountTypeSelectionScreen extends StatelessWidget {
                   // ==================================================
 
                   _RoleCard(
-                    label: 'Rider',
+                    label: 'Courier',
                     description: 'Pick up and deliver orders',
                     icon: Icons.two_wheeler_outlined,
                     onTap: () => onSelected(AccountType.rider),

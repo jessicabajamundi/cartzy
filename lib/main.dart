@@ -80,6 +80,86 @@ class _CartzyHomeState extends State<CartzyHome> {
     goTo('guest');
   }
 
+  Future<void> confirmLogout() async {
+    final userName = loggedInUser?['name']?.toString().trim();
+    final displayName = (userName == null || userName.isEmpty)
+        ? 'your account'
+        : userName;
+    var signingOut = false;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: const Text(
+            'Sign out?',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          content: Text.rich(
+            TextSpan(
+              style: const TextStyle(fontSize: 12, color: Color(0xFF777083), height: 1.45),
+              children: [
+                const TextSpan(text: "You're signed in as "),
+                TextSpan(text: displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
+                const TextSpan(text: ". You'll need to log in again to continue."),
+              ],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            SizedBox(
+              width: 108,
+              height: 38,
+              child: OutlinedButton(
+                onPressed: signingOut ? null : () => Navigator.pop(dialogContext, false),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF514B5D),
+                  side: const BorderSide(color: Color(0xFFE7E2EB)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                  padding: EdgeInsets.zero,
+                  textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                ),
+                child: const Text('Stay signed in'),
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 108,
+              height: 38,
+              child: FilledButton(
+                onPressed: signingOut
+                    ? null
+                    : () async {
+                        setDialogState(() => signingOut = true);
+                        await Future<void>.delayed(const Duration(milliseconds: 450));
+                        if (dialogContext.mounted) Navigator.pop(dialogContext, true);
+                      },
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFC35C56),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFFC35C56),
+                  disabledForegroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                  padding: EdgeInsets.zero,
+                  textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                ),
+                child: Text(signingOut ? 'Signing out...' : 'Sign out'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed == true && mounted) logout();
+  }
+
   // ============================================================
   // ACCOUNT TYPE SELECTED
   // ============================================================
@@ -290,7 +370,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onVouchersClick: () {
             goTo('vouchers');
           },
-          onLogout: logout,
+          onLogout: confirmLogout,
         );
 
       // ========================================================
@@ -373,7 +453,7 @@ class _CartzyHomeState extends State<CartzyHome> {
               0,
           userName:
               loggedInUser?['name']?.toString() ?? 'Rider',
-          onLogout: logout,
+          onLogout: confirmLogout,
         );
 
       // ========================================================
@@ -392,7 +472,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onBack: () {
             goTo('dashboard');
           },
-          onLogout: logout,
+          onLogout: confirmLogout,
           onProfileUpdated: (updatedUser) {
             setState(() {
               loggedInUser = {
@@ -431,7 +511,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onMyPurchase: () {
             goTo('profile');
           },
-          onLogout: logout,
+          onLogout: confirmLogout,
           onAddresses: () {
             goTo('addresses');
           },

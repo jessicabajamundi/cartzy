@@ -50,6 +50,8 @@ class MockData {
       itemsSummary: '1x Stainless Steel Bento Lunchbox',
       totalAmount: 649.00,
       createdAt: '2026-10-04 08:45 AM',
+      storePartner: 'Logitech Official Store',
+      paymentMethod: 'Prepaid',
     ),
     RiderOrder(
       id: 1040,
@@ -60,6 +62,8 @@ class MockData {
       itemsSummary: '2x Linen Kitchen Apron, 1x Oven Mitts Pair',
       totalAmount: 820.00,
       createdAt: '2026-10-04 09:10 AM',
+      storePartner: 'TechZone Official Mall',
+      paymentMethod: 'COD',
     ),
   ];
 
@@ -73,6 +77,10 @@ class MockData {
       itemsSummary: '1x Double Wall Glass Tumbler 450ml',
       totalAmount: 499.00,
       createdAt: '2026-10-03 02:15 PM',
+      storePartner: 'Everyday Living Store',
+      paymentMethod: 'COD',
+      riderPayout: 65.00,
+      completedAt: '2026-10-03 02:15 PM',
     ),
     RiderOrder(
       id: 1036,
@@ -83,6 +91,10 @@ class MockData {
       itemsSummary: '4x Ceramic Coasters, 1x Table Runner',
       totalAmount: 780.00,
       createdAt: '2026-10-03 04:00 PM',
+      storePartner: 'Cartzy Home Official',
+      paymentMethod: 'Prepaid',
+      riderPayout: 65.00,
+      completedAt: '2026-10-03 04:00 PM',
     ),
     RiderOrder(
       id: 1037,
@@ -93,6 +105,24 @@ class MockData {
       itemsSummary: '2x Pour Over Coffee Dripper',
       totalAmount: 950.00,
       createdAt: '2026-10-03 05:45 PM',
+      storePartner: 'Brew Gear Official',
+      paymentMethod: 'COD',
+      riderPayout: 65.00,
+      completedAt: '2026-10-03 05:45 PM',
+    ),
+    RiderOrder(
+      id: 1038,
+      status: 'completed',
+      buyerName: 'Jessica Pambago',
+      buyerPhone: '+63 917 123 4567',
+      deliveryAddress: '1011, purok 4, Brgy. Masapang, Victoria, Laguna, 4011',
+      itemsSummary: 'Wireless accessories',
+      totalAmount: 1701.00,
+      createdAt: '2026-10-19 07:32 AM',
+      storePartner: 'Logitech Official Store',
+      paymentMethod: 'COD',
+      riderPayout: 65.00,
+      completedAt: '2026-10-19 07:32 AM',
     ),
   ];
 
