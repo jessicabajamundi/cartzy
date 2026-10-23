@@ -8,6 +8,15 @@
 @forelse($registrations as $user)
 <tr><td><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small><small>{{ $user->phone }}</small></td><td>{{ ucfirst($user->role) }}<small>{{ $user->business_name }}</small></td><td class="nowrap">{{ $user->created_at?->format('M j, Y') }}</td><td><span class="badge {{ $user->id_status === 'verified' ? 'good' : '' }}">{{ ucfirst($user->id_status) }}</span><small>Account: {{ $user->status }}</small></td><td>
 <details class="review-details"><summary>Review application</summary><div>
+@if($user->seller_type)
+<p><strong>Seller type:</strong> {{ ucwords(str_replace('_', ' ', $user->seller_type)) }}</p>
+<p><strong>Shop category:</strong> {{ $user->line_of_business }}</p>
+<p><strong>TIN:</strong> {{ $user->tin_number }}</p>
+<p><strong>Pickup address:</strong> {{ $user->address }}</p>
+@foreach(['sec_certificate' => 'SEC Certificate', 'bir_certificate' => 'BIR Form 2303'] as $field => $label)
+@if($user->{$field})<p><a class="text-link" href="{{ route('registration.document', [$user->id, $field]) }}" target="_blank" rel="noopener">View {{ $label }}</a></p>@endif
+@endforeach
+@endif
 <p><strong>ID type:</strong> {{ $user->id_type ?: 'Not supplied' }}</p><p><strong>ID number:</strong> {{ $user->id_number ?: 'Not supplied' }}</p>
 @if($user->id_photo)<a class="text-link" href="{{ asset('storage/'.$user->id_photo) }}" target="_blank" rel="noopener">View identity document ↗</a>@else<p class="muted">No identity document uploaded.</p>@endif
 @if($user->dti_permit)<p><a class="text-link" href="{{ asset('storage/'.$user->dti_permit) }}" target="_blank" rel="noopener">View business permit ↗</a></p>@endif

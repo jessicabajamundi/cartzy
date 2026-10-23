@@ -18,14 +18,14 @@
         @php
             $groups = [
                 'Workspace' => ['dashboard' => ['Overview', 'grid'], 'registrations' => ['Registrations', 'file'], 'users' => ['User accounts', 'users']],
-                'Operations' => ['compliance' => ['Product compliance', 'box'], 'disputes' => ['Disputes', 'shield'], 'commission' => ['Commission', 'wallet'], 'reports' => ['Reports', 'chart']],
+                'Operations' => ['compliance' => ['Product compliance', 'box'], 'archive' => ['Archive', 'archive'], 'disputes' => ['Disputes', 'shield'], 'commission' => ['Commission', 'wallet'], 'vouchers' => ['Vouchers', 'ticket'], 'shipping' => ['Shipping rates', 'truck'],'reports' => ['Reports', 'chart'], 'activity-logs' => ['Activity logs', 'activity']],
                 'Administration' => ['chat' => ['Messages', 'message'], 'settings' => ['Platform settings', 'settings'], 'account' => ['My account', 'user']],
             ];
         @endphp
         @foreach ($groups as $group => $links)
             <p class="nav-label">{{ $group }}</p>
             @foreach ($links as $route => [$label, $icon])
-                <a class="nav-link {{ request()->routeIs('admin.'.$route) ? 'active' : '' }}" href="{{ route('admin.'.$route) }}" @if(request()->routeIs('admin.'.$route)) aria-current="page" @endif>
+                <a class="nav-link {{ request()->routeIs('admin.'.$route.'*') ? 'active' : '' }}" href="{{ route('admin.'.$route) }}" @if(request()->routeIs('admin.'.$route.'*')) aria-current="page" @endif>
                     @include('admin.partials.icon', ['name' => $icon]) <span>{{ $label }}</span>
                 </a>
             @endforeach
@@ -57,5 +57,6 @@
 <script src="{{ asset('js/admin/admin.js') }}?v={{ filemtime(public_path('js/admin/admin.js')) }}" defer></script>
 @stack('scripts')
 @include('partials.prevent-back-cache')
+@include('partials.logout-confirm')
 </body>
 </html>

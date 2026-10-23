@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\{AppNotification, Order, Product, Seller, SellerOrder, User};
+use App\Models\{AppNotification, Category, Order, Product, Seller, SellerOrder, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\{DB, Hash, Mail};
 use Tests\TestCase;
@@ -26,7 +26,7 @@ class AdminPortalTest extends TestCase
 
     public function test_admin_requires_an_existing_active_admin_account(): void
     {
-        $this->get('/admin/dashboard')->assertRedirect(route('login'));
+        $this->get('/admin/dashboard')->assertRedirect(route('login.admin'));
         $this->assertDatabaseCount('users', 0);
         $this->actingAs(User::factory()->create())->get('/admin/dashboard')->assertForbidden();
         $this->actingAs(User::factory()->create(['role' => 'admin', 'status' => 'suspended']))->get('/admin/dashboard')->assertRedirect(route('login'));
@@ -35,7 +35,7 @@ class AdminPortalTest extends TestCase
     public function test_all_admin_pages_render_empty_database_states_without_demo_data(): void
     {
         $this->actingAs($this->admin());
-        foreach (['dashboard', 'registrations', 'users', 'compliance', 'disputes', 'commission', 'reports', 'settings', 'chat', 'account'] as $page) {
+        foreach (['dashboard', 'registrations', 'users', 'compliance', 'archive', 'disputes', 'commission', 'reports', 'settings', 'chat', 'account'] as $page) {
             $this->get('/admin/'.$page)->assertOk()->assertDontSee('TechZone')->assertDontSee('1,845,920')->assertDontSee('GlowBeauty');
         }
         $this->get('/admin/dashboard')->assertViewHas('stats', fn ($s) => $s['sales'] === 0 && $s['buyers'] === 0 && $s['pending'] === 0);
@@ -91,7 +91,7 @@ class AdminPortalTest extends TestCase
         $this->post('/admin/account/update', ['section' => 'password', 'current_password' => 'original-password', 'password' => 'new-password-long', 'password_confirmation' => 'new-password-long'])->assertRedirect();
         $this->assertTrue(Hash::check('new-password-long', $admin->fresh()->password));
         $this->post('/logout');
-        $this->post('/login', ['email' => 'updated@example.test', 'password' => 'new-password-long'])->assertRedirect(route('admin.dashboard'));
+        $this->post('/login', ['email' => 'updated@example.test', 'password' => 'new-password-long', 'portal' => 'admin'])->assertRedirect(route('admin.dashboard'));
         $this->assertAuthenticatedAs($admin->fresh());
     }
 
@@ -215,4 +215,129 @@ class AdminPortalTest extends TestCase
         $response->assertSee(route('admin.chat', ['contact' => $buyer->id]));
         $response->assertSee(route('admin.chat', ['contact' => $order->seller->user_id]));
     }
+
+    public function test_admin_sidebar_includes_archive_link(): void
+    {
+        $this->actingAs($this->admin())
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee(route('admin.archive'), false)
+            ->assertSee('<span>Archive</span>', false);
+    }
+
+    public function test_admin_archive_products_management_and_restoration(): void
+    {
+        $sellerUser = User::factory()->create(['role' => 'seller', 'status' => 'active']);
+        $seller = Seller::create(['user_id' => $sellerUser->id, 'name' => 'Archive Test Store', 'slug' => 'archive-test-store', 'status' => 'approved']);
+        $category = Category::create(['name' => 'Audio & Accessories', 'slug' => 'audio-accessories']);
+        $product = Product::create([
+            'seller_id' => $seller->id,
+            'category_id' => $category->id,
+            'name' => 'Archived Wireless Earbuds',
+            'slug' => 'archived-wireless-earbuds',
+            'price_minor' => 150000,
+            'is_active' => false,
+        ]);
+
+        $this->actingAs($this->admin());
+
+        // Check products tab lists the archived product
+        $this->get(route('admin.archive', ['tab' => 'products']))
+            ->assertOk()
+            ->assertSee('Archived Wireless Earbuds')
+            ->assertSee('Archive Test Store')
+            ->assertSee('Inactive Listing');
+
+        // Restore the product
+        $this->post(route('admin.archive.products.restore', $product->id))
+            ->assertRedirect();
+
+        $this->assertTrue($product->fresh()->is_active);
+        $this->assertDatabaseHas('admin_audit_logs', ['action' => 'Product restored from archive']);
+        $this->assertDatabaseHas('app_notifications', [
+            'user_id' => $sellerUser->id,
+            'type' => 'product_update',
+        ]);
+
+        // Soft-delete the product and verify it shows up as Soft-deleted
+        $product->delete();
+        $this->get(route('admin.archive', ['tab' => 'products']))
+            ->assertOk()
+            ->assertSee('Soft-deleted');
+
+        // Admin can restore soft-deleted product
+        $this->post(route('admin.archive.products.restore', $product->id))
+            ->assertRedirect();
+        $this->assertNull($product->fresh()->deleted_at);
+        $this->assertTrue($product->fresh()->is_active);
+
+        // Admin can permanently delete
+        $this->delete(route('admin.archive.products.force', $product->id))
+            ->assertRedirect();
+        $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    }
+
+    public function test_admin_archive_users_registrations_and_disputes(): void
+    {
+        $this->actingAs($this->admin());
+
+        // 1. Suspended User Tab
+        $suspendedUser = User::factory()->create([
+            'name' => 'Suspended Courier Rider',
+            'role' => 'courier',
+            'status' => 'suspended',
+            'is_suspended' => true,
+        ]);
+        $this->get(route('admin.archive', ['tab' => 'users']))
+            ->assertOk()
+            ->assertSee('Suspended Courier Rider')
+            ->assertSee('Suspended');
+
+        $this->post(route('admin.archive.users.restore', $suspendedUser->id))
+            ->assertRedirect();
+        $this->assertSame('active', $suspendedUser->fresh()->status);
+        $this->assertFalse($suspendedUser->fresh()->is_suspended);
+
+        // 2. Rejected Registration Tab
+        $rejectedApplicant = User::factory()->create([
+            'name' => 'Rejected Seller Applicant',
+            'role' => 'seller',
+            'status' => 'rejected',
+            'id_status' => 'rejected',
+            'id_rejection_reason' => 'Blurry permit image',
+        ]);
+        $this->get(route('admin.archive', ['tab' => 'registrations']))
+            ->assertOk()
+            ->assertSee('Rejected Seller Applicant')
+            ->assertSee('Blurry permit image');
+
+        $this->post(route('admin.archive.registrations.restore', $rejectedApplicant->id))
+            ->assertRedirect();
+        $this->assertSame('pending', $rejectedApplicant->fresh()->status);
+        $this->assertSame('pending', $rejectedApplicant->fresh()->id_status);
+        $this->assertNull($rejectedApplicant->fresh()->id_rejection_reason);
+
+        // 3. Resolved Dispute Tab
+        $order = $this->order();
+        $disputeId = DB::table('admin_disputes')->insertGetId([
+            'order_id' => $order->order->id,
+            'subject' => 'Settled shipping delay dispute',
+            'description' => 'Delivery arrived safely with voucher compensation.',
+            'status' => 'resolved',
+            'admin_notes' => 'Settled with customer agreement.',
+            'resolved_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->get(route('admin.archive', ['tab' => 'disputes']))
+            ->assertOk()
+            ->assertSee('Settled shipping delay dispute')
+            ->assertSee('Settled with customer agreement.');
+
+        $this->post(route('admin.archive.disputes.reopen', $disputeId))
+            ->assertRedirect();
+        $this->assertSame('open', DB::table('admin_disputes')->where('id', $disputeId)->value('status'));
+    }
 }
+

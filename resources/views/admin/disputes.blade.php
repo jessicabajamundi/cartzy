@@ -53,6 +53,28 @@
                 <p class="preserve-lines" style="margin-top: 4px;">{{ $dispute->description }}</p>
             </div>
 
+            @if($dispute->reporter_id)
+                @php
+                    $reportItems = json_decode($dispute->items ?? '[]', true) ?: [];
+                    $reportPhotos = json_decode($dispute->evidence ?? '[]', true) ?: [];
+                @endphp
+                <div class="dispute-report">
+                    <span class="badge warning">Reported by buyer</span>
+                    <dl>
+                        <div><dt>Buyer wants</dt><dd>{{ \App\Models\AdminDispute::RESOLUTIONS[$dispute->requested_resolution] ?? '—' }}</dd></div>
+                        <div><dt>Contact number</dt><dd>{{ $dispute->contact_phone ?: '—' }}</dd></div>
+                        <div><dt>Affected items</dt><dd>@forelse($reportItems as $item){{ $item['name'] }} ({{ $item['variation'] }} · x{{ $item['qty'] }})@if(!$loop->last), @endif @empty Whole order @endforelse</dd></div>
+                    </dl>
+                    @if($reportPhotos)
+                        <div class="dispute-photos">
+                            @foreach($reportPhotos as $i => $photo)
+                                <a href="{{ route('disputes.evidence', [$dispute->id, $i]) }}" target="_blank" rel="noopener"><img src="{{ route('disputes.evidence', [$dispute->id, $i]) }}" alt="Photo {{ $i + 1 }} from buyer" loading="lazy"></a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             {{-- Coordinated Parties: Buyer, Seller, Courier --}}
             <div style="background: var(--canvas); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin: 16px 0;">
                 <span class="eyebrow" style="margin-bottom: 8px; display: block;">Coordinate with Parties</span>
@@ -153,3 +175,14 @@
     @include('admin.partials.pagination', ['paginator' => $disputes])
 </section>
 @endsection
+
+@push('styles')
+<style>
+.dispute-report{background:var(--rose-soft);border:1px solid var(--rose-border);border-radius:8px;padding:14px 16px;margin:12px 0}
+.dispute-report dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 18px;margin:10px 0 0}
+.dispute-report dt{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--rose-ink)}
+.dispute-report dd{margin:2px 0 0;font-size:13px;color:var(--ink)}
+.dispute-photos{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.dispute-photos img{width:88px;height:88px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+</style>
+@endpush

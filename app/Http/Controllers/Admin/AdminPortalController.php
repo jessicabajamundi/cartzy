@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{AppNotification, Order, Product, Seller, SellerOrder, User};
+use App\Models\{ActivityLog, AppNotification, Order, Product, Seller, SellerOrder, User};
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB, Hash, Log, Mail};
@@ -153,6 +153,25 @@ class AdminPortalController extends Controller
         return back()->with('success', 'Account status saved.');
     }
 
+    public function activityLogs(Request $request)
+    {
+        $query = ActivityLog::with('user:id,name,email,role');
+        if (in_array($request->query('event'), [ActivityLog::LOGIN, ActivityLog::LOGOUT, ActivityLog::FAILED_LOGIN], true)) {
+            $query->where('event', $request->query('event'));
+        }
+        if ($request->filled('role')) $query->where('role', $request->string('role')->toString());
+        if ($request->filled('from')) $query->whereDate('created_at', '>=', $request->date('from'));
+        if ($request->filled('to')) $query->whereDate('created_at', '<=', $request->date('to'));
+        if ($request->filled('search')) {
+            $search = '%'.$request->string('search')->trim()->toString().'%';
+            $query->where(fn ($q) => $q->where('email', 'like', $search)->orWhere('ip_address', 'like', $search)
+                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $search)));
+        }
+        $logs = $query->latest('created_at')->latest('id')->paginate(25)->withQueryString();
+        $today = ActivityLog::whereDate('created_at', today())->selectRaw('event, count(*) as total')->groupBy('event')->pluck('total', 'event');
+        return view('admin.activity-logs', compact('logs', 'today'));
+    }
+
     public function compliance(Request $request)
     {
         $query = Product::with(['seller.user', 'category']);
@@ -286,6 +305,10 @@ class AdminPortalController extends Controller
             DB::table('admin_disputes')->where('id', $id)->update([
                 'status' => 'resolved', 'admin_notes' => $data['notes'], 'resolved_at' => now(), 'updated_at' => now(),
             ]);
+            if ($dispute->reporter_id) {
+                NotificationService::notify($dispute->reporter_id, 'dispute', 'Your report was resolved',
+                    "Case #{$id} ({$dispute->subject}): {$data['notes']}", route('buyer.dashboard', ['tab' => 'orders']));
+            }
             $this->audit('Dispute resolved', '#'.$id.' — '.$data['notes']);
         });
         return back()->with('success', 'Resolution recorded. No payment or refund was processed.');
@@ -408,7 +431,12 @@ class AdminPortalController extends Controller
     {
         $user = $request->user();
         if ($request->input('section') === 'password') {
-            $data = $request->validate(['current_password' => ['required', 'current_password'], 'password' => ['required', 'confirmed', Password::min(10)]]);
+            $data = $request->validate([
+                'current_password' => ['required', 'current_password'],
+                'password' => ['required', 'confirmed', Password::min(10)],
+            ], [
+                'current_password.current_password' => 'The provided current password is incorrect. If you forgot your password, please use the "Forgot password?" option to reset via OTP.',
+            ]);
             $user->password = Hash::make($data['password']);
             $user->remember_token = \Illuminate\Support\Str::random(60);
         } else {
@@ -424,5 +452,264 @@ class AdminPortalController extends Controller
             $this->audit('Admin account updated', 'Profile or security details updated.');
         });
         return back()->with('success', 'Account changes saved.');
+    }
+
+    public function archive(Request $request)
+    {
+        $tab = $request->query('tab', 'products');
+        if (!in_array($tab, ['products', 'users', 'registrations', 'disputes'], true)) {
+            $tab = 'products';
+        }
+
+        $counts = [
+            'products' => Product::withTrashed()->where(fn ($q) => $q->where('is_active', false)->orWhereNotNull('deleted_at'))->count(),
+            'users' => User::where('role', '!=', User::ROLE_ADMIN)->where(fn ($q) => $q->whereIn('status', ['suspended', 'deactivated'])->orWhere('is_suspended', true))->count(),
+            'registrations' => User::where('role', '!=', User::ROLE_ADMIN)->where(fn ($q) => $q->where('id_status', 'rejected')->orWhere('status', 'rejected'))->count(),
+            'disputes' => DB::table('admin_disputes')->where('status', 'resolved')->count(),
+        ];
+
+        $products = null;
+        $users = null;
+        $registrations = null;
+        $disputes = null;
+        $ordersMap = null;
+
+        if ($tab === 'products') {
+            $query = Product::withTrashed()
+                ->where(fn ($q) => $q->where('is_active', false)->orWhereNotNull('deleted_at'))
+                ->with(['seller.user', 'category', 'variants', 'coverImage']);
+
+            if ($request->filled('status')) {
+                if ($request->query('status') === 'trashed') {
+                    $query->whereNotNull('deleted_at');
+                } elseif ($request->query('status') === 'inactive') {
+                    $query->whereNull('deleted_at')->where('is_active', false);
+                }
+            }
+
+            if ($request->filled('search')) {
+                $search = '%' . $request->string('search')->trim()->toString() . '%';
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', $search)
+                        ->orWhere('description', 'like', $search)
+                        ->orWhereHas('seller', fn ($s) => $s->where('name', 'like', $search))
+                        ->orWhereHas('category', fn ($c) => $c->where('name', 'like', $search))
+                        ->orWhereHas('variants', fn ($v) => $v->where('sku', 'like', $search));
+                });
+            }
+
+            $products = $query->latest('updated_at')->paginate(15)->withQueryString();
+        } elseif ($tab === 'users') {
+            $query = User::where('role', '!=', User::ROLE_ADMIN)
+                ->where(fn ($q) => $q->whereIn('status', ['suspended', 'deactivated'])->orWhere('is_suspended', true));
+
+            if ($request->filled('role')) {
+                $query->where('role', $request->string('role')->toString());
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->string('status')->toString());
+            }
+
+            if ($request->filled('search')) {
+                $search = '%' . $request->string('search')->trim()->toString() . '%';
+                $query->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search)->orWhere('business_name', 'like', $search));
+            }
+
+            $users = $query->latest('updated_at')->paginate(15)->withQueryString();
+        } elseif ($tab === 'registrations') {
+            $query = User::where('role', '!=', User::ROLE_ADMIN)
+                ->where(fn ($q) => $q->where('id_status', 'rejected')->orWhere('status', 'rejected'));
+
+            if ($request->filled('role')) {
+                $query->where('role', $request->string('role')->toString());
+            }
+
+            if ($request->filled('search')) {
+                $search = '%' . $request->string('search')->trim()->toString() . '%';
+                $query->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search)->orWhere('business_name', 'like', $search));
+            }
+
+            $registrations = $query->latest('updated_at')->paginate(15)->withQueryString();
+        } elseif ($tab === 'disputes') {
+            $query = DB::table('admin_disputes')
+                ->join('orders', 'orders.id', '=', 'admin_disputes.order_id')
+                ->join('users', 'users.id', '=', 'orders.buyer_id')
+                ->select('admin_disputes.*', 'orders.reference', 'orders.id as order_id', 'users.name as buyer_name')
+                ->where('admin_disputes.status', 'resolved');
+
+            if ($request->filled('search')) {
+                $search = '%' . $request->string('search')->trim()->toString() . '%';
+                $query->where(fn ($q) => $q->where('orders.reference', 'like', $search)->orWhere('admin_disputes.subject', 'like', $search)->orWhere('users.name', 'like', $search));
+            }
+
+            $disputes = $query->orderByDesc('admin_disputes.resolved_at')->paginate(15)->withQueryString();
+
+            $orderIds = collect($disputes->items())->pluck('order_id')->unique();
+            $ordersMap = Order::whereIn('id', $orderIds)
+                ->with([
+                    'buyer',
+                    'sellerOrders.seller.user',
+                    'sellerOrders.shipment.rider.user',
+                ])
+                ->get()
+                ->keyBy('id');
+        }
+
+        return view('admin.archive', compact('tab', 'counts', 'products', 'users', 'registrations', 'disputes', 'ordersMap'));
+    }
+
+    public function restoreArchivedProduct(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $product = Product::withTrashed()->findOrFail($id);
+            if ($product->trashed()) {
+                $product->restore();
+            }
+            $product->update(['is_active' => true]);
+
+            if ($product->seller?->user_id) {
+                try {
+                    NotificationService::notify(
+                        $product->seller->user_id,
+                        'product_update',
+                        'Product Restored by Administrator',
+                        "Your listing '{$product->name}' has been restored to active status by marketplace administration.",
+                        route('seller.products', ['tab' => 'active', 'search' => $product->name])
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Product restore notification skipped: ' . $e->getMessage());
+                }
+            }
+
+            $this->audit('Product restored from archive', "Product '{$product->name}' (#{$product->id}) restored to active catalogue.");
+        });
+
+        return back()->with('success', 'Product has been restored and made active.');
+    }
+
+    public function archiveProduct(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $product = Product::findOrFail($id);
+            $product->update(['is_active' => false]);
+
+            if ($product->seller?->user_id) {
+                try {
+                    NotificationService::notify(
+                        $product->seller->user_id,
+                        'product_update',
+                        'Product Archived by Administrator',
+                        "Your listing '{$product->name}' was deactivated and moved to archive by administration.",
+                        route('seller.products', ['tab' => 'archived', 'search' => $product->name])
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Product archive notification skipped: ' . $e->getMessage());
+                }
+            }
+
+            $this->audit('Product archived', "Product '{$product->name}' (#{$product->id}) moved to archive.");
+        });
+
+        return back()->with('success', 'Product has been moved to the archive.');
+    }
+
+    public function forceDeleteProduct(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $product = Product::withTrashed()->findOrFail($id);
+            $name = $product->name;
+            $productId = $product->id;
+
+            $product->variants()->withTrashed()->forceDelete();
+            $product->forceDelete();
+
+            $this->audit('Product permanently deleted', "Product '{$name}' (#{$productId}) was permanently deleted from archive.");
+        });
+
+        return back()->with('success', 'Product listing permanently deleted from archive.');
+    }
+
+    public function restoreArchivedUser(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $user = User::findOrFail($id);
+            abort_if($user->isAdmin(), 422, 'Administrator access cannot be changed here.');
+
+            $user->update([
+                'status' => 'active',
+                'is_suspended' => false,
+            ]);
+
+            $user->seller()->update(['status' => 'approved']);
+            $user->rider()->update(['is_active' => true]);
+            $user->buyer()->update(['status' => 'active']);
+
+            try {
+                NotificationService::notify(
+                    $user->id,
+                    'account_restored',
+                    'Account Reactivated',
+                    'Your account has been reviewed and restored to active status by Cartzy administration.',
+                    url('/login')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Account restore notification skipped: ' . $e->getMessage());
+            }
+
+            $this->audit('Account restored from archive', "User '{$user->name}' (#{$user->id}, role: {$user->role}) reactivated.");
+        });
+
+        return back()->with('success', 'Account reactivated and restored to active status.');
+    }
+
+    public function restoreArchivedRegistration(Request $request, int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $user = User::where('role', '!=', 'admin')->findOrFail($id);
+
+            $user->update([
+                'status' => 'pending',
+                'id_status' => 'pending',
+                'id_rejection_reason' => null,
+            ]);
+
+            $user->seller()->update(['status' => 'pending', 'rejection_reason' => null]);
+            $user->logisticsProvider()->update(['status' => 'pending', 'rejection_reason' => null]);
+
+            try {
+                NotificationService::notify(
+                    $user->id,
+                    'registration_reopened',
+                    'Registration Reopened for Review',
+                    'Your registration application has been reopened for review by marketplace administration.',
+                    url('/login')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Registration reopened notification skipped: ' . $e->getMessage());
+            }
+
+            $this->audit('Registration reopened from archive', "Application for '{$user->name}' (#{$user->id}) reopened for review.");
+        });
+
+        return back()->with('success', 'Registration application reopened and moved to active pending review.');
+    }
+
+    public function reopenArchivedDispute(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $dispute = DB::table('admin_disputes')->where('id', $id)->first();
+            abort_unless($dispute, 404);
+
+            DB::table('admin_disputes')->where('id', $id)->update([
+                'status' => 'open',
+                'resolved_at' => null,
+                'updated_at' => now(),
+            ]);
+
+            $this->audit('Dispute reopened from archive', "Dispute case #{$id} reopened for active review.");
+        });
+
+        return back()->with('success', 'Dispute case reopened and moved to active complaints.');
     }
 }
