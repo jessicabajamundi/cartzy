@@ -1,12 +1,14 @@
 @extends('layouts.auth')
 
-@section('title', 'Log In | cartzy')
+@php($isBuyerPortal = $portal['key'] === 'buyer')
+@section('title', ($isBuyerPortal ? 'Log In' : $portal['title'].' Log In').' | cartzy')
 @section('auth_visual', 'products')
 
 @section('auth_form')
 
-    <h2 class="auth-title">Welcome back</h2>
-    <p class="auth-subtitle">Login to your account and continue shopping</p>
+    @unless($isBuyerPortal)<p class="auth-portal-badge">{{ $portal['label'] }} login</p>@endunless
+    <h2 class="auth-title">{{ $portal['title'] }}</h2>
+    <p class="auth-subtitle">{{ $portal['subtitle'] }}</p>
 
     @if(session('success'))
         <div class="alert alert-success">
@@ -36,11 +38,15 @@
             @foreach ($errors->all() as $error)
                 <p>• {{ $error }}</p>
             @endforeach
+            @if(session('portal_hint'))
+                <p><a href="{{ session('portal_hint.url') }}" class="auth-portal-hint">Go to the {{ session('portal_hint.label') }} login &rarr;</a></p>
+            @endif
         </div>
     @endif
 
     <form action="{{ route('login.submit') }}" method="POST">
         @csrf
+        <input type="hidden" name="portal" value="{{ $portal['key'] }}">
 
         <label class="field-label" for="email">Email address</label>
         <div class="input-group">
@@ -91,12 +97,13 @@
                 <input type="checkbox" name="remember">
                 <span>Remember me</span>
             </label>
-            <a href="{{ route('password.forgot') }}" class="forgot-link">Forgot password?</a>
+            <a href="{{ route('password.forgot', ['portal' => $portal['key'] ?? 'buyer']) }}" class="forgot-link">Forgot password?</a>
         </div>
 
-        <button type="submit" class="btn-primary">Sign In to Account</button>
+        <button type="submit" class="btn-primary">{{ $portal['button'] }}</button>
     </form>
 
+    @if($isBuyerPortal)
     <div class="divider">or continue with</div>
 
     <a href="{{ route('auth.google') }}" class="btn-google">
@@ -108,11 +115,24 @@
         </svg>
         <span>Continue with Google</span>
     </a>
+    @endif
 
-    <div class="auth-foot">
-        Don't have an account?
-        <a href="{{ route('register') }}">Sign up</a>
-    </div>
+    @if($portal['register'])
+        <div class="auth-foot">
+            Don't have an account?
+            <a href="{{ $portal['register'] }}">{{ $isBuyerPortal ? 'Sign up' : 'Apply as a '.strtolower($portal['label']) }}</a>
+        </div>
+    @endif
+
+    <nav class="auth-portals" aria-label="Log in to another portal">
+        <p>{{ $isBuyerPortal ? 'Not shopping? Log in to your workspace' : 'Log in as a different account type' }}</p>
+        <div>
+            @foreach($portals as $key => $other)
+                @continue($key === $portal['key'])
+                <a href="{{ route($other['route']) }}">{{ $other['label'] }}</a>
+            @endforeach
+        </div>
+    </nav>
 
 @push('scripts')
 <script src="{{ asset('js/auth/login.js') }}"></script>

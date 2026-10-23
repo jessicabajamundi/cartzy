@@ -18,7 +18,7 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!Auth::check()) {
-            return redirect()->route('login')->with('info', 'Please log in to access this portal.');
+            return redirect()->route(\App\Http\Controllers\AuthController::loginRouteForPath($request->path()))->with('info', 'Please log in to access this portal.');
         }
 
         $user = Auth::user();

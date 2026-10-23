@@ -17,9 +17,14 @@
         Thank you, <strong style="color:#111;">{{ $pending_name }}</strong>!
     </p>
     <p style="font-size:0.88rem;color:#6b7280;line-height:1.6;margin-bottom:24px;">
-        Your registration has been submitted successfully. Please wait for the
-        <strong style="color:#374151;">administrator's approval</strong>, which will be
-        sent to your email:
+        Your registration has been submitted successfully.
+        @if (($pending_role ?? '') === 'courier')
+            Please wait for approval from your <strong style="color:#374151;">chosen logistics partner</strong>.
+            You will receive an update at:
+        @else
+            Please wait for the <strong style="color:#374151;">administrator's approval</strong>, which will be
+            sent to your email:
+        @endif
     </p>
 
     <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px 20px;margin-bottom:28px;display:inline-block;">
@@ -35,10 +40,19 @@
             <span>What happens next?</span>
         </p>
         <ul style="font-size:0.85rem;color:#6F6382;padding-left:18px;line-height:1.8;margin:0;">
-            <li>Our team will review your submitted registration details.</li>
+            @if (($pending_role ?? '') === 'courier')
+                <li>Your chosen logistics partner will review your registration, vehicle details, and documents.</li>
+            @else
+                <li>Our team will review your submitted registration details.</li>
+            @endif
             <li>You will receive an email once your account is approved.</li>
             @if (($pending_role ?? '') === 'logistics')
                 <li>Once approved, riders can apply to your company and you can manage deliveries on cartzy.</li>
+            @elseif (($pending_role ?? '') === 'seller')
+                <li>You can log in now to open your seller dashboard, set up your store profile, and submit your ID and business permits in Store Settings.</li>
+                <li>Product creation and selling will be locked until an administrator reviews and approves your account and documents.</li>
+            @elseif (($pending_role ?? '') === 'courier')
+                <li>Once approved, you can log in to start accepting delivery assignments.</li>
             @else
                 <li>Once approved, you can log in to start managing your store and selling products on cartzy.</li>
             @endif
@@ -46,7 +60,7 @@
     </div>
 
     <a href="{{ route('login') }}" class="btn-primary" style="display:inline-block;width:auto;padding:14px 40px;text-decoration:none;border-radius:9999px;">
-        Back to Login
+        {{ ($pending_role ?? '') === 'seller' ? 'Log in to Seller Dashboard' : 'Back to Login' }}
     </a>
 </div>
 

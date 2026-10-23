@@ -28,6 +28,7 @@ function showRegistrationError(id, message, focus = false) {
 function validateRegistrationPhone(focus = false) {
     const value = document.getElementById('phone').value.trim();
     let message = '';
+    if (!value && document.getElementById('role_input').value === 'seller') message = 'Please enter your mobile number.';
     if (value) {
         if (!/^[0-9]+$/.test(value)) {
             message = 'Please enter digits only.';
@@ -38,6 +39,43 @@ function validateRegistrationPhone(focus = false) {
         }
     }
     return showRegistrationError('phone', message, focus);
+}
+
+async function checkPhoneAvailability(focus = false) {
+    const phoneInput = document.getElementById('phone');
+    if (!phoneInput) return true;
+    const value = phoneInput.value.trim();
+    if (!value || value.length !== 10) return true;
+
+    const form = document.getElementById('registerForm');
+    const checkUrl = form ? form.getAttribute('data-check-phone-url') : '/register/check-phone';
+    if (!checkUrl) return true;
+
+    try {
+        const token = document.querySelector('input[name="_token"]')?.value;
+        const res = await fetch(checkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token || '',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                phone: value,
+                phone_country_code: '+63',
+            }),
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (!data.available) {
+                showRegistrationError('phone', data.message || 'This mobile number is already in use.', focus);
+                return false;
+            }
+        }
+    } catch (e) {
+        // Continue if network fails, backend will validate
+    }
+    return true;
 }
 
 function validateRegistrationPasswords(focus = false) {
@@ -71,12 +109,17 @@ function validateRegistrationNames(focusInvalid = false) {
     ['first_name', 'last_name'].forEach(id => {
         const input = document.getElementById(id);
         const error = document.getElementById(id + '_error');
+        if (!input) return;
         const value = input.value.trim();
         let message = '';
         if (!value) {
-            message = id === 'first_name' ? 'Please enter your first name.' : 'Please enter your last name.';
-        } else if (!/^(?:\p{L}\p{M}*| )+$/u.test(value)) {
-            message = 'Only letters are allowed.';
+            if (focusInvalid) {
+                message = id === 'first_name' ? 'Please enter your first name.' : 'Please enter your last name.';
+            }
+        } else if (Array.from(value).length > 50) {
+            message = `${id === 'first_name' ? 'First' : 'Last'} name must not exceed 50 characters.`;
+        } else if (/[^\p{L}\p{M} ]/u.test(value)) {
+            message = 'Special characters and numbers are not allowed.';
         }
         if (error) {
             error.textContent = message;
@@ -91,7 +134,7 @@ function validateRegistrationNames(focusInvalid = false) {
 }
 
 function validateRegistrationBirthday(focus = false) {
-    if (document.getElementById('role_input')?.value === 'logistics') return true;
+    if (['logistics', 'seller'].includes(document.getElementById('role_input')?.value)) return true;
     const input = document.getElementById('birthday');
     let message = '';
     if (!input.value) {
@@ -138,6 +181,13 @@ function updateStepperUI() {
             panelEl.style.display = (i === currentStep) ? 'block' : 'none';
         }
     }
+    if (currentStep === 3) {
+        const applicant = document.getElementById('verificationApplicant');
+        const name = [document.getElementById('first_name').value.trim(), document.getElementById('last_name').value.trim()].filter(Boolean).join(' ');
+        const role = document.getElementById('role_input').value;
+        if (applicant) applicant.textContent = `${name} — ${role === 'logistics' ? 'logistics partner' : role} account. Enter the 6-digit code sent to ${document.getElementById('email').value.trim()}.`;
+        updateOtpPreviewUI();
+    }
 
     const line1 = document.getElementById('line-1');
     const line2 = document.getElementById('line-2');
@@ -162,9 +212,11 @@ async function nextStep(targetStep) {
     if (otpRequestPending) return;
     // Validate Step 1
     if (currentStep === 1) {
+        if (!validateSellerDetails(true)) return;
         if (!validateRegistrationBirthday(true)) return;
         if (!validateRegistrationNames(true)) return;
         if (!validateRegistrationPhone(true)) return;
+        if (!await checkPhoneAvailability(true)) return;
         const firstNameEl = document.getElementById('first_name');
         const lastNameEl = document.getElementById('last_name');
         const firstName = firstNameEl ? firstNameEl.value.trim() : '';
@@ -251,6 +303,61 @@ function togglePasswordVisibility(inputId, btnEl) {
     }
 }
 
+let latestOtpPreview = null;
+let latestMailSent = true;
+
+function fillOtpBoxes(code) {
+    if (!code) return;
+    const otpInputs = document.querySelectorAll('.otp-input');
+    const digits = code.toString().split('');
+    digits.forEach((d, i) => {
+        if (otpInputs[i]) {
+            otpInputs[i].value = d;
+            otpInputs[i].classList.add('filled');
+        }
+    });
+    const hiddenOtp = document.getElementById('email_verification_otp');
+    if (hiddenOtp) hiddenOtp.value = code;
+}
+
+function updateOtpPreviewUI() {
+    const devBanner = document.getElementById('devOtpBanner');
+    const devCode = document.getElementById('devOtpCode');
+    const devNotice = document.getElementById('devMailStatusNotice');
+    const autofillBtn = document.getElementById('btnAutofillOtp');
+    const otpSentBanner = document.getElementById('otpSentNotice');
+
+    if (latestOtpPreview) {
+        if (devCode) devCode.innerText = latestOtpPreview;
+        if (devNotice) {
+            if (!latestMailSent) {
+                devNotice.innerText = '⚠️ Email server could not be reached via SMTP. Use this test verification code:';
+                devNotice.style.color = '#b91c1c';
+            } else {
+                devNotice.innerText = '✓ Verification email sent via Gmail. (Preview displayed for local testing)';
+                devNotice.style.color = '#15803d';
+            }
+        }
+        if (devBanner) devBanner.style.display = 'block';
+
+        if (autofillBtn) {
+            autofillBtn.onclick = function() {
+                fillOtpBoxes(latestOtpPreview);
+            };
+        }
+
+        if (otpSentBanner && !latestMailSent) {
+            otpSentBanner.style.backgroundColor = '#fffbeb';
+            otpSentBanner.style.borderColor = '#fde68a';
+            otpSentBanner.style.color = '#92400e';
+            const bannerText = otpSentBanner.querySelector('.banner-text');
+            if (bannerText) bannerText.innerText = 'Mail server unreachable. Use the test code below to continue.';
+            const bannerIcon = otpSentBanner.querySelector('.banner-icon');
+            if (bannerIcon) bannerIcon.innerText = '⚠️';
+        }
+    }
+}
+
 // Send Automatic OTP via AJAX
 async function sendAutomaticOtp() {
     if (otpRequestPending || !validateRegistrationEmail(true)) return false;
@@ -264,6 +371,10 @@ async function sendAutomaticOtp() {
     if (!email) return;
 
     otpRequestPending = true;
+    const sendButton = document.getElementById('sendVerificationCodeButton');
+    const sendLabel = document.getElementById('sendVerificationCodeLabel');
+    if (sendButton) sendButton.disabled = true;
+    if (sendLabel) sendLabel.textContent = 'Sending code...';
     try {
         const response = await fetch(requestOtpUrl, {
             method: 'POST',
@@ -274,6 +385,15 @@ async function sendAutomaticOtp() {
             },
             body: JSON.stringify({ email: email, name: name, role: document.getElementById('role_input').value, phone: document.getElementById('phone').value.trim(), phone_country_code: '+63' })
         });
+        if (response.status === 419) {
+            throw new Error('Your session has expired. Refresh this page and try again.');
+        }
+        if (response.status === 429) {
+            throw new Error('Too many requests. Please wait a minute before requesting another code.');
+        }
+        if (!response.headers.get('content-type')?.includes('application/json')) {
+            throw new Error('The verification service is temporarily unavailable. Please try again shortly.');
+        }
         const data = await response.json();
         if (!response.ok || !data.success) {
             const field = data.errors?.phone ? 'phone' : 'email';
@@ -282,14 +402,21 @@ async function sendAutomaticOtp() {
             showRegistrationError(field, data.errors?.[field]?.[0] || data.message || 'Unable to send verification code. Please try again.', true);
             return false;
         }
+        latestOtpPreview = data.otp_preview || null;
+        latestMailSent = data.mail_sent !== false;
+        updateOtpPreviewUI();
         return true;
     } catch (error) {
         currentStep = 2;
         updateStepperUI();
-        showRegistrationError('email', 'Unable to send verification code. Please try again.', true);
+        showRegistrationError('email', error instanceof TypeError
+            ? 'Cannot connect to the verification service. Check your connection and try again.'
+            : error.message || 'Unable to send verification code. Please try again.', true);
         return false;
     } finally {
         otpRequestPending = false;
+        if (sendButton) sendButton.disabled = false;
+        if (sendLabel) sendLabel.textContent = 'Send verification code';
     }
 }
 
@@ -334,8 +461,13 @@ async function triggerResendOtp() {
     const feedback = document.getElementById('otpFeedbackMsg');
     if (feedback) {
         feedback.style.display = 'block';
-        feedback.style.color = '#059669';
-        feedback.innerText = 'A new verification code has been sent to your email!';
+        if (latestMailSent) {
+            feedback.style.color = '#059669';
+            feedback.innerText = 'A new verification code has been sent to your email!';
+        } else {
+            feedback.style.color = '#d97706';
+            feedback.innerText = 'A new verification code has been generated (see code preview below).';
+        }
     }
 }
 
@@ -343,9 +475,9 @@ async function triggerResendOtp() {
 function selectRole(role) {
     const birthdayInput = document.getElementById('birthday');
     if (birthdayInput) {
-        birthdayInput.disabled = role === 'logistics';
-        birthdayInput.required = role !== 'logistics';
-        if (role === 'logistics') showRegistrationError('birthday', '');
+        birthdayInput.disabled = ['seller', 'logistics'].includes(role);
+        birthdayInput.required = !birthdayInput.disabled;
+        if (birthdayInput.disabled) showRegistrationError('birthday', '');
     }
     const roleInput = document.getElementById('role_input');
     const buyerOpt = document.getElementById('roleOptionBuyer');
@@ -358,8 +490,15 @@ function selectRole(role) {
     const googleSignupDivider = document.getElementById('googleSignupDivider');
     const authTitle = document.getElementById('authTitle');
     const authSubtitle = document.getElementById('authSubtitle');
-    const footNoticeText = document.getElementById('footNoticeText');
+
     const linkLogisticsApply = document.getElementById('linkLogisticsApply');
+    const linkLogisticsSeller = document.getElementById('linkLogisticsSeller');
+    const logisticsSellerDivider = document.getElementById('logisticsSellerDivider');
+    if (linkLogisticsSeller) linkLogisticsSeller.style.display = role === 'logistics' ? 'inline' : 'none';
+    if (logisticsSellerDivider) logisticsSellerDivider.style.display = role === 'logistics' ? 'inline' : 'none';
+    if (linkLogisticsApply) {
+        linkLogisticsApply.href = linkLogisticsApply.href.split('?')[0] + '?role=' + (role === 'logistics' ? 'buyer' : 'logistics');
+    }
 
     if (roleInput) {
         roleInput.value = role;
@@ -374,23 +513,23 @@ function selectRole(role) {
         if (googleSignupDivider) googleSignupDivider.style.display = 'none';
         if (authTitle) authTitle.innerText = 'Become a Logistics Partner';
         if (authSubtitle) authSubtitle.innerText = 'Register your delivery company and manage your own riders on CARTZY.';
-        if (footNoticeText) footNoticeText.innerText = 'Want to register as buyer or seller?';
+
         if (linkLogisticsApply) {
-            linkLogisticsApply.innerText = 'Switch here';
+            linkLogisticsApply.innerText = 'Create new account';
             linkLogisticsApply.setAttribute('onclick', "selectRole('buyer'); return false;");
         }
     } else {
         if (standardRoleWrapper) standardRoleWrapper.style.display = 'block';
-        if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = 'block';
+        if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = role === 'seller' ? 'none' : 'block';
         if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'none';
         if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'none';
         if (googleSignupWrapper) googleSignupWrapper.style.display = 'block';
         if (googleSignupDivider) googleSignupDivider.style.display = 'flex';
         if (authTitle) authTitle.innerText = 'Create your account';
         if (authSubtitle) authSubtitle.innerText = 'Join cartzy and discover your everyday favorites';
-        if (footNoticeText) footNoticeText.innerText = 'Do you want to be a logistics in cartzy?';
+
         if (linkLogisticsApply) {
-            linkLogisticsApply.innerText = 'Apply here';
+            linkLogisticsApply.innerText = 'Become a logistics partner';
             linkLogisticsApply.setAttribute('onclick', "selectRole('logistics'); return false;");
         }
 
@@ -402,11 +541,109 @@ function selectRole(role) {
             if (buyerOpt) buyerOpt.classList.add('selected');
         }
     }
+    updateSellerDetails(role);
 }
 window.selectRole = selectRole;
 
+function updateSellerDetails(role = document.getElementById('role_input').value) {
+    const seller = role === 'seller';
+    const wrapper = document.getElementById('sellerFieldsWrapper');
+    if (!wrapper) return;
+    wrapper.style.display = seller ? 'block' : 'none';
+    document.getElementById('sellerNoticeBox').style.display = seller ? 'block' : 'none';
+    document.getElementById('phone').required = seller;
+    document.querySelector('.btn-details-continue').textContent = seller ? 'Continue to sign-in details' : 'Continue';
+    wrapper.querySelectorAll('[data-seller-required]').forEach(input => {
+        input.required = seller;
+        if (input.tagName !== 'SELECT' || !input.classList.contains('psgc-' + input.id)) input.disabled = !seller;
+    });
+    const type = document.getElementById('seller_type').value;
+    wrapper.querySelectorAll('[data-document-types]').forEach(block => {
+        const applies = block.dataset.documentTypes === 'all' || block.dataset.documentTypes === type
+            || (block.dataset.documentTypes === 'business' && ['sole_proprietorship', 'corporation'].includes(type));
+        block.hidden = false;
+        block.querySelector('.seller-required').hidden = !seller || !applies;
+        const input = block.querySelector('input');
+        input.required = seller && applies;
+        input.disabled = !seller;
+    });
+}
+
+function validateSellerDetails(focus = false) {
+    if (document.getElementById('role_input').value !== 'seller') return true;
+    let firstInvalid = null;
+    document.querySelectorAll('#sellerFieldsWrapper [data-seller-required], #sellerFieldsWrapper [data-seller-document]').forEach(input => {
+        if (input.hasAttribute('data-seller-document') && input.disabled) return;
+        input.setCustomValidity('');
+        if (input.type === 'text') input.value = input.value.trim();
+        let message = '';
+        if (input.required && !input.value) {
+            message = 'Please complete this field.';
+        }
+        if (input.disabled && input.hasAttribute('data-seller-required')) message = 'Choose the preceding location first, or retry loading locations.';
+        if (!message && input.type === 'file' && input.files && input.files[0]) {
+            const file = input.files[0];
+            if (file.size > 5 * 1024 * 1024) message = 'File must not exceed 5 MB.';
+            else if (!/\.(jpe?g|png|pdf)$/i.test(file.name)) message = 'Choose a JPG, PNG or PDF file.';
+        }
+        if (!message && !input.checkValidity()) message = input.validationMessage;
+        showRegistrationError(input.id, message);
+        if (message && !firstInvalid) firstInvalid = input;
+    });
+    if (firstInvalid && focus) firstInvalid.focus();
+    return !firstInvalid;
+}
+
 // 6-Box OTP Input Handling (Paste, Auto-focus, Backspace)
+function formatRegistrationTin(value) {
+    return value.replace(/\D/g, '').slice(0, 12).replace(/(\d{3})(?=\d)/g, '$1-');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    const tinInput = document.getElementById('tin_number');
+    if (tinInput) {
+        const formatTin = () => {
+            const digitsBeforeCaret = tinInput.value.slice(0, tinInput.selectionStart ?? tinInput.value.length).replace(/\D/g, '').length;
+            tinInput.value = formatRegistrationTin(tinInput.value);
+            const caret = Math.min(tinInput.value.length, digitsBeforeCaret + Math.floor(Math.max(0, digitsBeforeCaret - 1) / 3));
+            tinInput.setSelectionRange(caret, caret);
+            showRegistrationError('tin_number', '');
+        };
+        tinInput.value = formatRegistrationTin(tinInput.value);
+        tinInput.addEventListener('input', formatTin);
+        tinInput.addEventListener('beforeinput', event => {
+            const start = tinInput.selectionStart;
+            const end = tinInput.selectionEnd;
+            if (start !== end) return;
+            // Include the neighboring digit when deleting across a separator.
+            if (event.inputType === 'deleteContentBackward' && tinInput.value[start - 1] === '-') {
+                tinInput.setSelectionRange(Math.max(0, start - 2), start);
+            } else if (event.inputType === 'deleteContentForward' && tinInput.value[start] === '-') {
+                tinInput.setSelectionRange(start, start + 2);
+            }
+        });
+        tinInput.addEventListener('paste', event => {
+            const pasted = event.clipboardData?.getData('text');
+            if (pasted === undefined) return;
+            event.preventDefault();
+            tinInput.setRangeText(pasted.replace(/\D/g, ''), tinInput.selectionStart, tinInput.selectionEnd, 'end');
+            formatTin();
+        });
+    }
+    document.getElementById('seller_type')?.addEventListener('change', () => updateSellerDetails());
+    document.querySelectorAll('#sellerFieldsWrapper [data-seller-document]').forEach(input => {
+        input.addEventListener('change', () => {
+            let msg = '';
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 5 * 1024 * 1024) msg = 'File must not exceed 5 MB.';
+                else if (!/\.(jpe?g|png|pdf)$/i.test(file.name)) msg = 'Choose a JPG, PNG or PDF file.';
+            } else if (input.required) {
+                msg = 'Please complete this field.';
+            }
+            showRegistrationError(input.id, msg);
+        });
+    });
     ['register_password', 'password_confirmation'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', () => validateRegistrationPasswords());
     });
@@ -440,29 +677,79 @@ document.addEventListener('DOMContentLoaded', function() {
         phoneInput.setRangeText(digits, phoneInput.selectionStart, phoneInput.selectionEnd, 'end');
         phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
+    phoneInput?.addEventListener('blur', async () => {
+        if (validateRegistrationPhone()) {
+            await checkPhoneAvailability();
+        }
+    });
     document.getElementById('email')?.addEventListener('input', () => showRegistrationError('email', ''));
     document.getElementById('email')?.addEventListener('blur', () => validateRegistrationEmail());
     ['first_name', 'last_name'].forEach(id => {
         const input = document.getElementById(id);
-        input?.addEventListener('beforeinput', event => {
+        if (!input) return;
+
+        let warningTimer = null;
+        const flashDisallowedWarning = () => {
+            showRegistrationError(id, 'Special characters and numbers are not allowed.');
+            if (warningTimer) clearTimeout(warningTimer);
+            warningTimer = setTimeout(() => {
+                const currentVal = input.value.trim();
+                if (!currentVal || /^(?:\p{L}\p{M}*| )+$/u.test(currentVal)) {
+                    showRegistrationError(id, '');
+                }
+            }, 2500);
+        };
+
+        // Prevent typing disallowed characters (numbers and special symbols)
+        input.addEventListener('beforeinput', event => {
             if (!event.isComposing && event.inputType === 'insertText' && event.data && /[^\p{L}\p{M} ]/u.test(event.data)) {
                 event.preventDefault();
+                flashDisallowedWarning();
             }
         });
-        const cleanName = () => {
+
+        // Strip any pasted or autofilled numbers / special characters so they never stay in the box
+        input.addEventListener('input', event => {
+            if (event.isComposing) return;
             const original = input.value;
-            const position = input.selectionStart;
-            input.value = original.replace(/[^\p{L}\p{M} ]/gu, '');
-            if (position !== null && original !== input.value) {
-                const caret = original.slice(0, position).replace(/[^\p{L}\p{M} ]/gu, '').length;
-                input.setSelectionRange(caret, caret);
+            if (/[^\p{L}\p{M} ]/u.test(original)) {
+                const caret = input.selectionStart;
+                input.value = original.replace(/[^\p{L}\p{M} ]/gu, '');
+                if (caret !== null) {
+                    const newPos = original.slice(0, caret).replace(/[^\p{L}\p{M} ]/gu, '').length;
+                    input.setSelectionRange(newPos, newPos);
+                }
+                flashDisallowedWarning();
+            } else {
+                if (warningTimer) {
+                    clearTimeout(warningTimer);
+                    warningTimer = null;
+                }
+                showRegistrationError(id, '');
             }
-            validateRegistrationNames();
-        };
-        input?.addEventListener('input', event => {
-            if (!event.isComposing) cleanName();
         });
-        input?.addEventListener('compositionend', cleanName);
+
+        input.addEventListener('compositionend', () => {
+            const original = input.value;
+            if (/[^\p{L}\p{M} ]/u.test(original)) {
+                input.value = original.replace(/[^\p{L}\p{M} ]/gu, '');
+                flashDisallowedWarning();
+            }
+        });
+
+        input.addEventListener('blur', () => {
+            const val = input.value.trim();
+            if (!val) {
+                const msg = id === 'first_name' ? 'Please enter your first name.' : 'Please enter your last name.';
+                showRegistrationError(id, msg);
+            } else if (Array.from(val).length > 50) {
+                showRegistrationError(id, `${id === 'first_name' ? 'First' : 'Last'} name must not exceed 50 characters.`);
+            } else if (/[^\p{L}\p{M} ]/u.test(val)) {
+                showRegistrationError(id, 'Special characters and numbers are not allowed.');
+            } else {
+                showRegistrationError(id, '');
+            }
+        });
     });
     const otpInputs = document.querySelectorAll('.otp-input');
     const hiddenOtp = document.getElementById('email_verification_otp');
@@ -525,6 +812,13 @@ document.addEventListener('DOMContentLoaded', function() {
             validateRegistrationBirthday(true);
         });
         form.addEventListener('submit', function(e) {
+            if (!validateSellerDetails()) {
+                e.preventDefault();
+                currentStep = 1;
+                updateStepperUI();
+                validateSellerDetails(true);
+                return;
+            }
             if (!validateRegistrationBirthday()) {
                 e.preventDefault();
                 currentStep = 1;
@@ -590,8 +884,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialRole = document.getElementById('role_input')?.value || 'buyer';
     selectRole(initialRole);
     if (['email', 'register_password', 'password_confirmation'].some(id => document.getElementById(id + '_error')?.textContent.trim())
-        && !['first_name', 'last_name', 'phone', 'birthday'].some(id => document.getElementById(id + '_error')?.textContent.trim())) {
+        && !['first_name', 'last_name', 'phone', 'birthday'].some(id => document.getElementById(id + '_error')?.textContent.trim())
+        && !Array.from(document.querySelectorAll('#sellerFieldsWrapper .seller-field-error')).some(error => error.textContent.trim())) {
         currentStep = 2;
     }
     updateStepperUI();
+    form?.addEventListener('invalid', event => {
+        const step = event.target.closest('[id^="step-"]');
+        if (step) {
+            currentStep = Number(step.id.replace('step-', ''));
+            updateStepperUI();
+        }
+    }, true);
 });

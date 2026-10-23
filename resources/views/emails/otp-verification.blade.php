@@ -114,7 +114,7 @@
         </div>
 
         <p class="meta-notice">
-            Enter this 6-digit code on the registration screen within 15 minutes to complete creating your <strong>cartzy</strong> account.
+            Enter this 6-digit code on the registration screen within 10 minutes to complete creating your <strong>cartzy</strong> account.
         </p>
 
         <div class="security-badge">

@@ -27,6 +27,7 @@
 
     <div class="divider" id="googleSignupDivider" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'none' : 'flex' }}; margin: 0 0 24px 0;">or register with email</div>
 
+    <div id="sellerNoticeBox" class="logistics-notice-box" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'block' : 'none' }};">Seller accounts require email verification and administrator approval before you can start selling.</div>
     <!-- Cartzy Original Stepper Component -->
     <div class="stepper">
         <div class="step">
@@ -57,10 +58,11 @@
         </div>
     @endif
 
-    <form action="{{ route('register.submit') }}" method="POST" id="registerForm" enctype="multipart/form-data"
+    <form action="{{ route('register.submit', [], false) }}" method="POST" id="registerForm" enctype="multipart/form-data"
           data-initial-role="{{ old('role', $selectedRole ?? 'buyer') }}"
-          data-request-otp-url="{{ route('register.request_otp') }}"
-          data-verify-otp-url="{{ route('register.verify_otp') }}">
+          data-check-phone-url="{{ route('register.check_phone', [], false) }}"
+          data-request-otp-url="{{ route('register.request_otp', [], false) }}"
+          data-verify-otp-url="{{ route('register.verify_otp', [], false) }}">
         @csrf
 
         <input type="hidden" name="name" id="name" value="{{ old('name') }}">
@@ -131,6 +133,7 @@
                             type="text"
                             name="first_name"
                             id="first_name"
+                            maxlength="50"
                             aria-describedby="first_name_error"
                             aria-invalid="{{ $errors->has('first_name') ? 'true' : 'false' }}"
                             value="{{ old('first_name') }}"
@@ -153,6 +156,7 @@
                             type="text"
                             name="last_name"
                             id="last_name"
+                            maxlength="50"
                             aria-describedby="last_name_error"
                             aria-invalid="{{ $errors->has('last_name') ? 'true' : 'false' }}"
                             value="{{ old('last_name') }}"
@@ -197,7 +201,7 @@
             </div>
 
             <!-- Birthday applies to individual account registrations. -->
-            <div id="birthdayFieldWrapper" style="{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'display: none; ' : '' }}margin-bottom: 26px;">
+            <div id="birthdayFieldWrapper" style="{{ in_array(old('role', $selectedRole ?? 'buyer'), ['seller', 'logistics']) ? 'display: none; ' : '' }}margin-bottom: 26px;">
                 <label class="field-label" for="birthday">Birthday</label>
                 <div class="input-group">
                     <span class="input-icon">
@@ -212,7 +216,7 @@
                         type="date"
                         name="birthday"
                         id="birthday"
-                        @disabled(old('role', $selectedRole ?? 'buyer') === 'logistics')
+                        @disabled(in_array(old('role', $selectedRole ?? 'buyer'), ['seller', 'logistics']))
                         value="{{ old('birthday') }}"
                         class="auth-input"
                         max="{{ now()->subYearsNoOverflow(18)->toDateString() }}"
@@ -270,6 +274,7 @@
                 </div>
             </div>
 
+            @include('auth.partials.seller-details')
             <button type="button" class="btn-primary btn-single btn-details-continue" style="margin-top: 26px;" onclick="nextStep(2)">Continue</button>
         </div>
 
@@ -372,8 +377,9 @@
                 </div>
                 <p id="password_confirmation_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" hidden></p>
                 <p id="password-entry-note" style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">We'll send a six-digit verification code to this email address. You'll need the code to finish creating your CARTZY account.</p>
             </div>
+
+            <p class="field-subheading" style="margin-bottom: 20px;">We'll send a six-digit verification code to this email address to finish creating your Cartzy account.</p>
 
             <div class="form-btn-row">
                 <button type="button" class="btn-action-back" onclick="prevStep(1)">
@@ -383,8 +389,8 @@
                     </svg>
                     Back
                 </button>
-                <button type="button" class="btn-action-continue" onclick="nextStep(3)">
-                    Continue
+                <button type="button" class="btn-action-continue" id="sendVerificationCodeButton" onclick="nextStep(3)">
+                    <span id="sendVerificationCodeLabel">Send verification code</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h14m-6-6 6 6-6 6"/>
                     </svg>
@@ -402,7 +408,7 @@
 
             <div class="security-section">
                 <label class="field-heading">Email verification code</label>
-                <p class="field-subheading" style="margin-bottom: 8px;">Enter the 6-digit code sent to your email.</p>
+                <p class="field-subheading" id="verificationApplicant" style="margin-bottom: 8px;">Enter the 6-digit code sent to your email.</p>
 
                 <div class="otp-boxes-wrapper">
                     <input type="text" maxlength="1" class="otp-input" data-index="0" placeholder="0" inputmode="numeric" autocomplete="one-time-code">
@@ -414,6 +420,14 @@
                 </div>
                 <input type="hidden" name="email_verification_otp" id="email_verification_otp" value="">
                 <p style="font-size: 0.78rem; color: #6b7280; margin-top: 8px;">Your code expires after 10 minutes. You can paste all six digits here.</p>
+
+                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
+                        <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
+                    </div>
+                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: #64748b;"></div>
+                </div>
             </div>
 
             <div id="otpFeedbackMsg" style="display:none; margin-top: 10px; font-size: 0.82rem; font-weight: 600;"></div>
@@ -437,12 +451,36 @@
         <a href="{{ route('login') }}">Log in</a>
     </div>
 
-    <div class="auth-foot" style="margin-top: 10px; padding-top: 12px; border-top: 1px dashed #e5e7eb; font-size: 0.88rem; color: #4b5563;">
-        <span id="footNoticeText">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Want to register as buyer or seller?' : 'Do you want to be a logistics in cartzy?' }}</span>
-        <a href="{{ route('register') }}" id="linkLogisticsApply" onclick="selectRole('{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'buyer' : 'logistics' }}'); return false;" style="font-weight: 700; color: #6F6382; margin-left: 4px; text-decoration: underline;">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Switch here' : 'Apply here' }}</a>
+    <div class="auth-foot registration-partner-row">
+        <a href="{{ route('register', ['role' => old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'buyer' : 'logistics']) }}" id="linkLogisticsApply" onclick="selectRole('{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'buyer' : 'logistics' }}'); return false;">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Create new account' : 'Become a logistics partner' }}</a>
+        <span id="logisticsSellerDivider" aria-hidden="true" class="registration-partner-divider" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'inline' : 'none' }};">|</span>
+        <a href="{{ route('register', ['role' => 'seller']) }}" id="linkLogisticsSeller" onclick="selectRole('seller'); return false;" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'inline' : 'none' }};">Sell in cartzy</a>
+        <span aria-hidden="true" class="registration-partner-divider">|</span>
+        <a href="{{ route('register.rider') }}" id="linkRiderApply">Become a rider</a>
     </div>
 
 <style>
+    .auth-foot.registration-partner-row {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 10px;
+        padding-top: 12px;
+        border-top: 1px dashed #e5e7eb;
+        font-size: clamp(0.6rem, 2.3vw, 0.82rem);
+        color: #4b5563;
+        white-space: nowrap;
+    }
+    .registration-partner-row a {
+        margin-left: 0;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+    .registration-partner-divider {
+        color: #d1d5db;
+    }
     .registration-phone-group .registration-phone-prefix {
         position: absolute;
         left: 48px;
@@ -818,6 +856,7 @@
     });
 </script>
 <script src="{{ asset('js/auth/register.js') }}?v={{ file_exists(public_path('js/auth/register.js')) ? filemtime(public_path('js/auth/register.js')) : time() }}"></script>
+<script src="{{ asset('js/buyer/address-modal.js') }}?v={{ filemtime(public_path('js/buyer/address-modal.js')) }}"></script>
 @endpush
 
 @endsection

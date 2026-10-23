@@ -41,6 +41,7 @@
                 type="email"
                 name="email"
                 id="fp_email"
+                value="{{ old('email', request('email')) }}"
                 required
                 autofocus
                 placeholder="Enter your registered email"
@@ -57,7 +58,14 @@
 
         <div class="auth-foot" style="margin-top: 24px;">
             Remember your password?
-            <a href="{{ route('login') }}">Back to login</a>
+            @php($fpPortal = request('portal'))
+            @if($fpPortal === 'admin' || (auth()->check() && auth()->user()->isAdmin()))
+                <a href="{{ auth()->check() ? route('admin.account') : route('login.admin') }}">Back to {{ auth()->check() ? 'My account' : 'admin login' }}</a>
+            @elseif($fpPortal && in_array($fpPortal, ['seller', 'logistics', 'courier']))
+                <a href="{{ route('login.'.$fpPortal) }}">Back to {{ $fpPortal }} login</a>
+            @else
+                <a href="{{ route('login') }}">Back to login</a>
+            @endif
         </div>
     </div>
 
@@ -99,6 +107,7 @@
     <div id="fp-step-3" style="display: none;">
         <form action="{{ route('password.reset.submit') }}" method="POST" id="fp-reset-form">
             @csrf
+            <input type="hidden" name="portal" value="{{ request('portal') }}">
             <input type="hidden" name="email" id="fp_reset_email">
             <input type="hidden" name="otp" id="fp_reset_otp">
 

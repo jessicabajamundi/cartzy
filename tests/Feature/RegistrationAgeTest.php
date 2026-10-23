@@ -6,11 +6,12 @@ use Tests\TestCase;
 
 class RegistrationAgeTest extends TestCase
 {
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
     public function test_individual_roles_require_a_valid_adult_birthday(): void
     {
         $this->travelTo(\Carbon\Carbon::parse('2026-10-12 12:00:00'));
 
-        foreach (['buyer', 'seller', 'courier'] as $role) {
+        foreach (['buyer', 'courier'] as $role) {
             foreach ([null, '', 'invalid', '2008-02-30', '2008-10-13', '2010-01-01', '2026-10-12', '2027-01-01'] as $birthday) {
                 $this->postJson('/register', ['role' => $role, 'birthday' => $birthday])
                     ->assertUnprocessable()->assertJsonValidationErrors(['birthday']);
@@ -39,7 +40,7 @@ class RegistrationAgeTest extends TestCase
     public function test_registration_form_limits_birthdays_for_individual_roles(): void
     {
         $this->travelTo(\Carbon\Carbon::parse('2026-10-12 12:00:00'));
-        foreach (['buyer', 'seller', 'courier'] as $role) {
+        foreach (['buyer', 'courier'] as $role) {
             $this->get('/register?role=' . $role)->assertOk()
                 ->assertSee('max="2008-10-12"', false)
                 ->assertSee('You must be at least 18 years old to register.')

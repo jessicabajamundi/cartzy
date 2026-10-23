@@ -7,11 +7,12 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * User Roles Constants
@@ -36,6 +37,7 @@ class User extends Authenticatable
         'birthday',
         'age',
         'phone',
+        'telephone',
         'address',
         'street_address',
         'region',
@@ -44,6 +46,10 @@ class User extends Authenticatable
         'barangay',
         'postal_code',
         'business_name',
+        'tin_number',
+        'seller_type',
+        'sec_certificate',
+        'bir_certificate',
         'line_of_business',
         'dti_permit',
         'id_photo',
@@ -224,6 +230,11 @@ class User extends Authenticatable
     public function seller()
     {
         return $this->hasOne(Seller::class);
+    }
+
+    public function followedSellers()
+    {
+        return $this->belongsToMany(Seller::class, 'seller_followers')->withTimestamps();
     }
 
     public function logisticsProvider()
