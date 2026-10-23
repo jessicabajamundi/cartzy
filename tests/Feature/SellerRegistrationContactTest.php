@@ -11,10 +11,12 @@ use Tests\TestCase;
 class SellerRegistrationContactTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\SellerSignupFields;
 
     private function registration(array $overrides = []): array
     {
         return array_replace([
+            ...$this->sellerSignupFields(),
             'role' => 'seller',
             'birthday' => '1995-06-15',
             'first_name' => 'Maria Clara',
@@ -95,5 +97,33 @@ class SellerRegistrationContactTest extends TestCase
                 ->assertUnprocessable()->assertJsonValidationErrors(['phone' => 'Mobile number must be exactly 11 digits.']);
         }
         $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_buyer_registration_and_check_phone_reject_duplicate_mobile(): void
+    {
+        User::factory()->create(['phone' => '09170000001']);
+
+        // Check phone endpoint
+        $this->postJson('/register/check-phone', ['phone' => '9170000001', 'phone_country_code' => '+63'])
+            ->assertOk()->assertJson(['available' => false, 'message' => 'This mobile number is already in use.']);
+
+        $this->postJson('/register/check-phone', ['phone' => '9179999999', 'phone_country_code' => '+63'])
+            ->assertOk()->assertJson(['available' => true]);
+
+        // Buyer registration fails with duplicate mobile
+        $buyerData = [
+            'role' => 'buyer',
+            'first_name' => 'Maria',
+            'last_name' => 'Clara',
+            'birthday' => '1995-06-15',
+            'email' => 'buyer.test@example.com',
+            'phone' => '09170000001',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'email_verification_otp' => '123456',
+        ];
+        $this->postJson('/register', $buyerData)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['phone' => 'This mobile number is already in use.']);
     }
 }

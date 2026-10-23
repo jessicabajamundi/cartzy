@@ -45,7 +45,7 @@ class SyncCatalogStores extends Command
                     continue;
                 }
                 $store = $stores->first();
-                $order->update(['seller_id' => $store->id, 'commission_minor' => (int) round($order->subtotal_minor * $store->commission_bps / 10000)]);
+                $order->update(['seller_id' => $store->id, 'commission_minor' => SellerOrder::commissionFor($order->subtotal_minor)]);
                 $updated++;
             }
 

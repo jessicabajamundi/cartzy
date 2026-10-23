@@ -15,6 +15,7 @@ class ProductVariant extends Model
         'sku',
         'name',
         'image_path',
+        'gallery',
         'options',
         'price_minor',
         'stock',
@@ -24,6 +25,7 @@ class ProductVariant extends Model
 
     protected $casts = [
         'options'      => 'array',
+        'gallery'      => 'array',
         'price_minor'  => 'integer',
         'stock'        => 'integer',
         'weight_grams' => 'integer',
@@ -35,9 +37,30 @@ class ProductVariant extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function scopeAtStockAlertLevel(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where(fn ($stock) => $stock
+            ->where('product_variants.stock', '<=', Product::MIN_LOW_STOCK_THRESHOLD)
+            ->orWhereHas('product', fn ($product) => $product
+                ->whereColumn('product_variants.stock', '<=', 'products.low_stock_threshold')));
+    }
+
     public function cartItems()
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function getSalePriceMinorAttribute(): int
+    {
+        $product = $this->product;
+        if (!$product?->sale_is_active) return $this->price_minor;
+        $value = (float) ($product?->discount_value ?? 0);
+        $discount = match ($product?->discount_type) {
+            'percentage' => (int) round($this->price_minor * $value / 100),
+            'fixed' => (int) round($value * 100),
+            default => 0,
+        };
+        return max(1, $this->price_minor - max(0, $discount));
     }
 
     public function getPriceAttribute(): float
@@ -56,6 +79,14 @@ class ProductVariant extends Model
         }
 
         return asset('storage/' . $this->image_path);
+    }
+
+    /** Every photo of this option as a URL, first photo first (falls back to the single image_path). */
+    public function getGalleryUrlsAttribute(): array
+    {
+        $paths = $this->gallery ?: array_filter([$this->image_path]);
+
+        return array_values(array_map(fn ($path) => preg_match('~^(https?://|/)~', $path) ? $path : asset('storage/'.$path), $paths));
     }
 
     public function getResolvedImageUrlAttribute(): string

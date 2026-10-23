@@ -6,6 +6,21 @@ use Tests\TestCase;
 
 class SellerRegistrationValidationTest extends TestCase
 {
+    public function test_name_fields_accept_fifty_characters_and_reject_fifty_one(): void
+    {
+        foreach (['buyer', 'seller', 'logistics', 'courier'] as $role) {
+            $this->postJson('/register', [
+                'role' => $role, 'first_name' => str_repeat('A', 50), 'last_name' => str_repeat('é', 50),
+            ])->assertUnprocessable()->assertJsonMissingValidationErrors(['first_name', 'last_name']);
+            $this->postJson('/register', [
+                'role' => $role, 'first_name' => str_repeat('A', 51), 'last_name' => str_repeat('é', 51),
+            ])->assertUnprocessable()->assertJsonValidationErrors([
+                'first_name' => 'First name must not exceed 50 characters.',
+                'last_name' => 'Last name must not exceed 50 characters.',
+            ]);
+        }
+    }
+
     public function test_all_registration_roles_reject_special_characters_and_digits_in_names(): void
     {
         foreach (['buyer', 'seller', 'logistics', 'courier'] as $role) {

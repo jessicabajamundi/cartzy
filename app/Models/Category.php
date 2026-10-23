@@ -36,4 +36,9 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    public function allProducts()
+    {
+        return $this->belongsToMany(Product::class, 'category_product')->withTimestamps();
+    }
 }

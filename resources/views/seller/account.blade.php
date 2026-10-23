@@ -1,5 +1,5 @@
 @extends('layouts.seller')
-@section('page_title', 'Store settings')
+@section('page_title', 'Account')
 
 @section('content')
 @php
@@ -57,13 +57,16 @@
 <div class="page-heading">
     <div>
         <div class="eyebrow">YOUR STORE</div>
-        <h1>Store settings</h1>
+        <h1>Account</h1>
         <p class="subtitle">Manage your business profile, owner information, verification documents, and courier pickup address.</p>
     </div>
     @if($shop)
         <span class="badge {{ $shop->status === 'approved' ? 'badge-success' : 'badge-warning' }}">
             {{ ucfirst($shop->status) }} store
         </span>
+        @if($shop->status === 'approved')
+            <a class="button" href="{{ route('store.show', $shop->slug) }}" target="_blank" rel="noopener">View public store &middot; {{ number_format($shop->followers()->count()) }} {{ \Illuminate\Support\Str::plural('follower', $shop->followers()->count()) }}</a>
+        @endif
     @endif
 </div>
 
@@ -126,12 +129,16 @@
 
             <label>
                 First name <span style="color:#ef4444">*</span>
-                <input type="text" name="first_name" value="{{ $firstName }}" required maxlength="120" placeholder="First name">
+                <input type="text" name="first_name" value="{{ $firstName }}" required maxlength="120" placeholder="First name"
+                    oninput="const err = document.getElementById('seller_first_name_error'); if(/[^\p{L}\p{M} ]/u.test(this.value)){err.hidden=false; this.style.borderColor='#ef4444';} else {err.hidden=true; this.style.borderColor='';}">
+                <small id="seller_first_name_error" style="color:#ef4444; font-weight: 500;" hidden>Special characters and numbers are not allowed.</small>
             </label>
 
             <label>
                 Last name <span style="color:#ef4444">*</span>
-                <input type="text" name="last_name" value="{{ $lastName }}" required maxlength="120" placeholder="Last name">
+                <input type="text" name="last_name" value="{{ $lastName }}" required maxlength="120" placeholder="Last name"
+                    oninput="const err = document.getElementById('seller_last_name_error'); if(/[^\p{L}\p{M} ]/u.test(this.value)){err.hidden=false; this.style.borderColor='#ef4444';} else {err.hidden=true; this.style.borderColor='';}">
+                <small id="seller_last_name_error" style="color:#ef4444; font-weight: 500;" hidden>Special characters and numbers are not allowed.</small>
             </label>
 
             <label>

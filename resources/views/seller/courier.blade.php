@@ -2,6 +2,9 @@
 @section('page_title', 'Shipping')
 @section('content')
 <div class="page-heading"><div><div class="eyebrow">FULFILLMENT</div><h1>Shipping & pickup</h1><p class="subtitle">Request collection for packed orders and follow their shipment status.</p></div></div>
+@if(request()->filled('status'))
+<div class="notice">Showing {{ request('status') === 'ready_to_ship' ? 'orders ready for pickup' : 'shipped orders' }}. <a href="{{ route('seller.courier') }}">View all shipments</a></div>
+@endif
 @forelse($orders as $order)
 <section class="panel shipping-card"><div class="page-heading"><div><h2>{{ $order->order->reference }}</h2><p class="subtitle">{{ $order->order->buyer?->name }} · {{ $order->shipment?->tracking_code ?? 'Tracking not assigned' }}</p></div><span class="badge">{{ ucfirst(str_replace('_',' ',$order->shipment?->status ?? 'Awaiting pickup request')) }}</span></div><p class="muted">{{ $order->shipment?->logisticsProvider?->name ?? 'Choose a logistics provider' }}@if($order->shipment?->rider?->user) · Rider: {{ $order->shipment->rider->user->name }}@endif</p>@if($order->note)<p class="subtitle preserve">{{ $order->note }}</p>@endif
 @if($order->status === 'ready_to_ship' && (!$order->shipment || $order->shipment->status === 'unassigned'))

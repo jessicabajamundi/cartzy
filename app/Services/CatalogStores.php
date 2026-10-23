@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Seller;
+use App\Models\SellerOrder;
 use App\Models\User;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -30,7 +31,7 @@ class CatalogStores
 
         return Seller::firstOrCreate(['user_id' => $user->id], [
             'name' => $name, 'slug' => 'catalog-' . $slug, 'status' => 'approved',
-            'description' => 'Catalog store for ' . $name . '.', 'commission_bps' => 0,
+            'description' => 'Catalog store for ' . $name . '.', 'commission_bps' => SellerOrder::COMMISSION_BPS,
         ]);
     }
 }

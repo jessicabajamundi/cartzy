@@ -11,11 +11,13 @@ use Tests\TestCase;
 class SellerRegistrationSecurityTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Support\SellerSignupFields;
 
     private function data(array $overrides = []): array
     {
         Cache::put('otp_seller@example.com', ['otp' => '123456']);
         return array_replace([
+            ...$this->sellerSignupFields(),
             'role' => 'seller', 'first_name' => 'Maria Clara', 'last_name' => 'Dela Cruz',
             'birthday' => '1995-06-15',
             'email' => 'seller@example.com', 'phone' => '09189876543',
