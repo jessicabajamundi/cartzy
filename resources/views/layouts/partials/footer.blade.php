@@ -29,7 +29,7 @@
                 </div>
             </div>
 
-            <!-- 3. Free Shipping Nationwide -->
+            <!-- 3. Shipping Vouchers -->
             <div class="flex items-center gap-4 group">
                 <div class="w-14 h-14 rounded-xl bg-white text-[#564B68] flex items-center justify-center shrink-0 border border-[#ECE7F2] shadow-sm group-hover:border-[#564B68]/40 transition-colors">
                     <svg class="w-7 h-7 text-[#564B68]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -37,8 +37,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h4 class="font-extrabold text-[15px] text-gray-900 leading-tight">Free Shipping Nationwide</h4>
-                    <p class="text-[13px] text-gray-500 mt-1 leading-snug">Enjoy free delivery vouchers with live tracking</p>
+                    <h4 class="font-extrabold text-[15px] text-gray-900 leading-tight">Shipping Vouchers</h4>
+                    <p class="text-[13px] text-gray-500 mt-1 leading-snug">Save on delivery with vouchers and live tracking</p>
                 </div>
             </div>
 
@@ -95,7 +95,7 @@
                 <h5 class="font-bold text-gray-900 uppercase tracking-wider mb-4 text-sm">DISCOVER</h5>
                 <ul class="space-y-3 text-sm">
                     <li><a href="{{ route('home') }}#daily-discover-section" class="text-gray-500 hover:text-black transition">New arrivals</a></li>
-                    <li><a href="{{ route('home') }}#flash-sale" class="text-gray-500 hover:text-black transition">Today's Deals</a></li>
+                    <li><a href="{{ route('sale') }}" class="text-gray-500 hover:text-black transition">Today's Deals</a></li>
                     <li><a href="{{ route('home') }}#browse-categories" class="text-gray-500 hover:text-black transition">Popular Categories</a></li>
                     <li><a href="{{ route('home') }}#daily-discover-section" class="text-gray-500 hover:text-black transition">Curated for You</a></li>
                 </ul>
@@ -121,7 +121,7 @@
                 <h5 class="font-bold text-gray-900 uppercase tracking-wider mb-4 text-sm">PARTNERS</h5>
                 <ul class="space-y-3 text-sm">
                     <li><a href="{{ route('register', ['role' => 'seller']) }}" class="text-gray-500 hover:text-black transition">Sell on cartzy</a></li>
-                    <li><a href="{{ route('register', ['role' => 'courier']) }}" class="text-gray-500 hover:text-black transition">Become a courier</a></li>
+                    <li><a href="{{ route('register.rider') }}" class="text-gray-500 hover:text-black transition">Become a rider</a></li>
                     <li><a href="{{ route('login') }}" class="text-gray-500 hover:text-black transition">Partner portal</a></li>
                 </ul>
             </div>

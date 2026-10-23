@@ -19,7 +19,7 @@
         <nav aria-label="{{ $sellerMode ? 'Seller' : 'Buyer' }} navigation">
             <span class="nav-label">WORKSPACE</span>
             @if($sellerMode)
-                @foreach(['dashboard' => ['Overview','grid'], 'orders' => ['Orders','bag'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'chat' => ['Messages','chat'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'account' => ['Store settings','settings']] as $key => [$label,$icon])
+                @foreach(['dashboard' => ['Overview','grid'], 'orders' => ['Orders','bag'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'], 'vouchers' => ['Vouchers','ticket'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'chat' => ['Messages','chat'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'account' => ['Account','user']] as $key => [$label,$icon])
                     @php($navActive = request()->routeIs('seller.'.$key.'*'))
                     <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
                     @if($key === 'dashboard')
@@ -31,7 +31,7 @@
                 <a class="nav-link active" href="{{ route('buyer.messages') }}">@include('seller.partials.icon', ['name' => 'chat'])Messages</a>
             @endif
         </nav>
-        <div class="sidebar-footer"><small>Signed in as</small><strong>{{ auth()->user()->name }}</strong><form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit">Sign out &rarr;</button></form></div>
+        <div class="sidebar-footer"><small>Signed in as</small><strong>{{ auth()->user()->name }}</strong><form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit" aria-label="Sign out" title="Sign out">@include('seller.partials.icon', ['name' => 'logout', 'size' => 22])</button></form></div>
     </aside>
     <div class="workspace">
         <header class="topbar"><div class="inline"><button class="icon-button mobile-menu" id="menu-toggle" aria-controls="seller-sidebar" aria-expanded="false" aria-label="Toggle navigation">☰</button><span class="muted">{{ $sellerMode ? 'Seller workspace' : 'Buyer workspace' }}</span><span class="breadcrumb">/</span><strong>@yield('page_title', 'Overview')</strong></div>@unless($sellerMode) @include('layouts.partials.account-navigation') @endunless<a class="button small secondary" href="{{ route('home') }}">Marketplace ↗</a></header>
@@ -39,30 +39,55 @@
             @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="notice error" role="alert"><strong>Please check your entries.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             @if($sellerMode && (auth()->user()->status !== 'active' || ($shop && !$shop->isApproved())))
-                <div class="notice" style="background: #FFFBEB; border: 1.5px solid #FDE68A; color: #92400E; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px;">
-                    <div>
-                        <strong>Account Pending Admin Approval:</strong> Your seller account is currently under review by our administration team. You will be able to sell products once your account has been approved.
+                <div class="notice" style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-left: 5px solid #F59E0B; color: #92400E; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 22px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">🔒</span>
+                        <div>
+                            <strong>Account Pending Administrator Approval:</strong> Your seller account is currently under review. You can view your dashboard and store settings, but adding products and selling are locked until your business permits and documents are approved.
+                        </div>
                     </div>
-                    <a href="{{ route('seller.account') }}" class="button small" style="white-space: nowrap;">Check status &rarr;</a>
+                    <a href="{{ route('seller.account') }}" class="button small" style="white-space: nowrap; background: #92400E; color: #fff;">Upload / Check documents &rarr;</a>
                 </div>
             @elseif($sellerMode && !$shop && !request()->routeIs('seller.account*'))
                 <div class="notice">Finish setting up your store to start managing products. <a href="{{ route('seller.account') }}">Set up store &rarr;</a></div>
             @endif
-            @if($sellerMode && ($stockAlertCount ?? 0) > 0)
-                <section class="notice stock-alert" role="alert" aria-label="Stock alert">
-                    <strong>Stock alert: {{ $stockAlertCount }} {{ $stockAlertCount === 1 ? 'variation needs' : 'variations need' }} restocking</strong>
-                    <p>May stock na 10 o mas kaunti. Mag-restock para tuloy ang benta.</p>
-                    <ul>
+            @if($sellerMode && ($stockAlertCount ?? 0) > 0 && !request()->routeIs('seller.inventory'))
+                @php($stockLowCount = $stockAlertCount - ($stockOutCount ?? 0))
+                <dialog class="restock-dialog" id="restock-dialog" aria-labelledby="restock-title" aria-describedby="restock-summary" data-restock-autoopen="{{ ($restockPrompt ?? false) ? 'true' : 'false' }}">
+                    <div class="restock-panel">
+                    <header class="restock-head">
+                        <span class="restock-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></span>
+                        <div class="restock-titles">
+                            <h2 id="restock-title">Time to restock</h2>
+                            <p id="restock-summary">{{ $stockAlertCount }} {{ $stockAlertCount === 1 ? 'item has' : 'items have' }} reached the low-stock limit. Restock now so buyers can keep ordering.</p>
+                        </div>
+                        <button type="button" class="restock-close" data-restock-close aria-label="Close restock reminder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+                    </header>
+                    <div class="restock-stats">
+                        @if(($stockOutCount ?? 0) > 0)<span class="restock-stat is-out"><strong>{{ $stockOutCount }}</strong> out of stock</span>@endif
+                        @if($stockLowCount > 0)<span class="restock-stat is-low"><strong>{{ $stockLowCount }}</strong> running low</span>@endif
+                    </div>
+                    <ul class="restock-list">
                         @foreach($stockAlerts as $stockAlert)
                             <li>
-                                <a href="{{ route('seller.inventory', ['search' => $stockAlert->sku]) }}">{{ $stockAlert->product->name }} — {{ $stockAlert->name }}</a>:
-                                <strong>{{ $stockAlert->stock > 0 ? $stockAlert->stock.' left' : 'Out of stock' }}</strong>
+                                <a class="restock-item" href="{{ route('seller.inventory', ['search' => $stockAlert->sku]) }}">
+                                    <span class="restock-thumb">@if($stockAlert->product->coverImage || $stockAlert->image_url)<img src="{{ $stockAlert->resolved_image_url }}" alt="" loading="lazy">@else{{ mb_strtoupper(mb_substr($stockAlert->product->name, 0, 1)) }}@endif</span>
+                                    <span class="restock-item-text">
+                                        <strong>{{ $stockAlert->product->name }}</strong>
+                                        <small>{{ $stockAlert->name }}@if($stockAlert->sku) &middot; SKU {{ $stockAlert->sku }}@endif</small>
+                                    </span>
+                                    <span class="restock-pill {{ $stockAlert->stock > 0 ? 'is-low' : 'is-out' }}">{{ $stockAlert->stock > 0 ? $stockAlert->stock.' left' : 'Out of stock' }}</span>
+                                    <svg class="restock-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                                </a>
                             </li>
                         @endforeach
                     </ul>
-                    @if($stockAlertCount > $stockAlerts->count())<p>Showing {{ $stockAlerts->count() }} of {{ $stockAlertCount }} variations.</p>@endif
-                    <a class="button small secondary" href="{{ route('seller.inventory') }}">Manage stock &rarr;</a>
-                </section>
+                    <footer class="restock-actions">
+                        <small>@if($stockAlertCount > $stockAlerts->count())Showing {{ $stockAlerts->count() }} of {{ $stockAlertCount }} items @else&nbsp;@endif</small>
+                        <div><button type="button" class="button secondary" data-restock-close>Remind me later</button><a class="button" href="{{ route('seller.inventory', ['tab' => 'low_stock']) }}">Manage stock &rarr;</a></div>
+                    </footer>
+                    </div>
+                </dialog>
             @endif
             @yield('content')
         </main>
@@ -79,7 +104,9 @@ document.addEventListener('keydown', event => {
 });
 </script>
 @stack('scripts')
+@if($sellerMode)<script src="{{ asset('js/seller-restock.js') }}?v={{ filemtime(public_path('js/seller-restock.js')) }}" defer></script>@endif
 @if($sellerMode)<script src="{{ asset('js/seller-notifications.js') }}?v={{ filemtime(public_path('js/seller-notifications.js')) }}" defer></script>@endif
 @include('partials.prevent-back-cache')
+@include('partials.logout-confirm')
 </body>
 </html>

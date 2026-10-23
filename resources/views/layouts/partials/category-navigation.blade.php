@@ -18,7 +18,7 @@
                     <button type="button" data-shop-department="{{ $department }}" aria-controls="category-mega-dropdown" aria-expanded="false">{{ $label }} <span aria-hidden="true">⌄</span></button>
                 @endif
             @endforeach
-            <a class="shop-sale-link" href="{{ route('home') }}#flash-sale" onclick="if(window.filterFeaturedSection) return filterFeaturedSection('sale', event);">Sale</a>
+            <a class="shop-sale-link" href="{{ route('sale') }}" @if(request()->routeIs('sale')) aria-current="page" @endif>Sale</a>
         </div>
     </div>
     <div id="category-mega-dropdown" class="shop-category-panel hidden">

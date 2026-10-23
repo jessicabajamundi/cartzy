@@ -319,6 +319,16 @@
             text-decoration: none; margin-left: 4px;
         }
         .auth-foot a:hover { color: #564B68; text-decoration: underline; }
+        .auth-portal-badge { display: inline-block; margin: 0 0 10px; padding: 4px 12px; border-radius: 999px; background: #F1EFF5; color: #564B68; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+        .auth-portal-hint { color: inherit; font-weight: 700; text-decoration: underline; }
+        /* Matches the "Become a logistics partner | Become a rider" row on the sign-up page */
+        .auth-portals { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e5e7eb; text-align: center; }
+        .auth-portals p { margin: 0 0 6px; color: #4b5563; font-size: 0.82rem; }
+        .auth-portals div { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; font-size: 0.86rem; }
+        .auth-portals a { padding: 2px 0; color: var(--rose-dark, #8C5A50); font-weight: 800; text-decoration: none; transition: color .18s ease; }
+        .auth-portals a + a::before { content: "|"; display: inline-block; margin: 0 8px; color: #d1d5db; font-weight: 400; }
+        .auth-portals a:hover { color: var(--brand-lavender, #6F6382); text-decoration: underline; }
+        .auth-portals a:focus-visible { outline: 2px solid #564B68; outline-offset: 2px; border-radius: 4px; }
 
         .alert {
             border-radius: 10px; padding: 13px 18px;
@@ -457,9 +467,6 @@
         </div>
 
         <footer class="page-footer">
-            <div class="page-footer-links">
-                <a href="#">About</a><a href="#">Terms</a><a href="#">Privacy</a><a href="#">Help</a>
-            </div>
             <div>© 2026 cartzy. All rights reserved.</div>
         </footer>
 
@@ -471,5 +478,6 @@
 
     @stack('scripts')
     @include('partials.prevent-back-cache')
+@include('partials.logout-confirm')
 </body>
 </html>

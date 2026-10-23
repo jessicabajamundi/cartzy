@@ -10,7 +10,7 @@ class AdminDemoAuthMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user()) return redirect()->route('login');
+        if (!$request->user()) return redirect()->route(\App\Http\Controllers\AuthController::loginRouteForPath($request->path()));
         abort_unless($request->user()->isAdmin() && $request->user()->status === 'active' && !$request->user()->is_suspended, 403);
         return $next($request);
     }

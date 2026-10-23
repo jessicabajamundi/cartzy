@@ -1,5 +1,6 @@
 @php
-    $buyerHeader = request()->routeIs('home') || (Auth::check() && Auth::user()->isBuyer());
+    $buyerHeader = request()->routeIs('home', 'sale', 'category.show', 'products.show', 'cart.*', 'checkout', 'checkout.*')
+        || (Auth::check() && Auth::user()->isBuyer());
 @endphp
 <header class="{{ $buyerHeader ? 'buyer-header' : (Auth::check() ? 'account-header' : '') }} sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
     <!-- Main Navigation & Search Bar -->
@@ -14,7 +15,7 @@
             <nav class="header-primary-links" aria-label="Main shopping navigation">
                 <a href="{{ route('home') }}" @if(request()->routeIs('home') && !request()->query()) aria-current="page" @endif>Home</a>
                 <a href="{{ route('home') }}#pick-trending-title">New</a>
-                <a href="{{ route('home') }}#flash-sale" class="header-primary-sale">Sale</a>
+                <a href="{{ route('sale') }}" class="header-primary-sale" @if(request()->routeIs('sale')) aria-current="page" @endif>Sale</a>
                 <a href="{{ route('home') }}#daily-discover-section">Shop All</a>
                 @include('layouts.partials.shop-all-dropdown')
             </nav>
@@ -246,17 +247,6 @@
                         <div id="cart-popover-box" class="bg-white text-gray-800 rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
                             @auth
                                 @if(isset($cartItems) && count($cartItems) > 0)
-                                    @auth
-                                        @if(!Auth::user()->isIdVerified())
-                                            <div class="px-3 py-2 bg-amber-50 border-b border-amber-200 text-[11px] text-amber-800 font-bold flex items-center justify-between">
-                                                <span class="flex items-center gap-1.5">
-                                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                                    <span>ID Verification Required to Checkout</span>
-                                                </span>
-                                                <a href="{{ route('buyer.dashboard', ['tab' => 'profile']) }}" class="underline hover:text-amber-950 font-black">Verify Now</a>
-                                            </div>
-                                        @endif
-                                    @endauth
                                     <div class="p-3 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-700 uppercase tracking-wider">
                                         Cart ({{ $cartCount }} {{ $cartCount === 1 ? 'item' : 'items' }})
                                     </div>

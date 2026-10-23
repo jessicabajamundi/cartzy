@@ -1,5 +1,13 @@
 <?php
 
+\Illuminate\Support\Facades\Route::get('/registration-documents/{user}/{document}', function (\App\Models\User $user, string $document) {
+    abort_unless(auth()->user()->role === 'admin' || auth()->id() === $user->id, 403);
+    abort_unless(in_array($document, ['sec_certificate', 'bir_certificate'], true), 404);
+    $path = $user->{$document};
+    abort_unless($path && \Illuminate\Support\Facades\Storage::disk('local')->exists($path), 404);
+    return \Illuminate\Support\Facades\Storage::disk('local')->response($path);
+})->middleware('auth')->name('registration.document');
+
 use App\Http\Controllers\Admin\AdminPortalController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Buyer\AccountController;
@@ -13,15 +21,23 @@ use Illuminate\Support\Facades\Route;
 
 // Public Marketplace Homepage (Buyer facing)
 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/sale', [\App\Http\Controllers\HomeController::class, 'sale'])->name('sale');
+Route::get('/products/{id}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+Route::post('/products/{id}/comments', [\App\Http\Controllers\ProductController::class, 'comment'])->whereNumber('id')->middleware(['auth', 'role:buyer,seller', 'throttle:10,1'])->name('products.comments.store');
+Route::post('/comments/{commentId}/react', [\App\Http\Controllers\ProductController::class, 'react'])->whereNumber('commentId')->middleware(['auth', 'role:buyer,seller', 'throttle:60,1'])->name('products.comments.react');
 Route::get('/category/{slug}', [\App\Http\Controllers\HomeController::class, 'category'])->name('category.show');
+Route::get('/store/{slug}', [\App\Http\Controllers\StoreController::class, 'show'])->name('store.show');
+Route::post('/store/{slug}/follow', [\App\Http\Controllers\StoreController::class, 'toggleFollow'])->middleware(['auth', 'role:buyer', 'throttle:30,1'])->name('store.follow');
+
+Route::view('/buyer-account-required', 'auth.buyer-required')->middleware('auth')->name('buyer.required');
 
 // Shopping Cart Routes (Available to all visitors & registered buyers)
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
-Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
-Route::post('/cart/selection', [CartController::class, 'selection'])->middleware('auth')->name('cart.selection');
+Route::get('/cart', [CartController::class, 'index'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'add'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('cart.add');
+Route::post('/cart/update', [CartController::class, 'update'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('cart.update');
+Route::post('/cart/remove', [CartController::class, 'remove'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('cart.remove');
+Route::post('/cart/clear', [CartController::class, 'clear'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('cart.clear');
+Route::post('/cart/selection', [CartController::class, 'selection'])->middleware('auth')->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('cart.selection');
 
 // Quick Demo Login (Works 100% without XAMPP MySQL Database)
 Route::get('/demo-login/{role?}', [AuthController::class, 'demoLogin'])->name('demo.login');
@@ -29,25 +45,31 @@ Route::get('/demo-login/{role?}', [AuthController::class, 'demoLogin'])->name('d
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::get('/seller/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'seller')->name('login.seller');
+    Route::get('/logistics/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'logistics')->name('login.logistics');
+    Route::get('/courier/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'courier')->name('login.courier');
+    Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'admin')->name('login.admin');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
+    Route::get('/register/rider', [AuthController::class, 'showRiderRegisterForm'])->name('register.rider');
     Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
     Route::post('/register/request-otp', [AuthController::class, 'requestOtp'])->name('register.request_otp');
     Route::post('/register/verify-otp', [AuthController::class, 'verifyOtp'])->name('register.verify_otp');
     Route::get('/register/otp-status', [AuthController::class, 'checkOtpStatus'])->name('register.otp_status');
+    Route::post('/register/check-phone', [AuthController::class, 'checkPhone'])->name('register.check_phone');
     Route::get('/register/pending', [AuthController::class, 'showPendingApproval'])->name('register.pending');
-
-    // Forgot Password & Reset Routes (OTP-based)
-    Route::get('/forgot-password', [AuthController::class, 'showForgotForm'])->name('password.forgot');
-    Route::post('/forgot-password/send-otp', [AuthController::class, 'sendResetOtp'])->name('password.send_otp');
-    Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyResetOtp'])->name('password.verify_otp');
-    Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.submit');
 
     // Google OAuth Routes
     Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
     Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 });
+
+// Forgot Password & Reset Routes (OTP-based, accessible by guests and logged-in users)
+Route::get('/forgot-password', [AuthController::class, 'showForgotForm'])->name('password.forgot');
+Route::post('/forgot-password/send-otp', [AuthController::class, 'sendResetOtp'])->name('password.send_otp');
+Route::post('/forgot-password/verify-otp', [AuthController::class, 'verifyResetOtp'])->name('password.verify_otp');
+Route::post('/forgot-password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.submit');
 
 // Logout Route
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -74,6 +96,15 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
         Route::post('/compliance/sellers/{id}/warning', [AdminPortalController::class, 'issueSellerWarning'])->name('compliance.seller.warning');
         Route::post('/compliance/sellers/{id}/suspend', [AdminPortalController::class, 'suspendSeller'])->name('compliance.seller.suspend');
 
+        // 4b. Archive & Historical Records
+        Route::get('/archive', [AdminPortalController::class, 'archive'])->name('archive');
+        Route::post('/archive/products/{id}/restore', [AdminPortalController::class, 'restoreArchivedProduct'])->name('archive.products.restore');
+        Route::post('/archive/products/{id}/archive', [AdminPortalController::class, 'archiveProduct'])->name('archive.products.archive');
+        Route::delete('/archive/products/{id}/force', [AdminPortalController::class, 'forceDeleteProduct'])->name('archive.products.force');
+        Route::post('/archive/users/{id}/restore', [AdminPortalController::class, 'restoreArchivedUser'])->name('archive.users.restore');
+        Route::post('/archive/registrations/{id}/restore', [AdminPortalController::class, 'restoreArchivedRegistration'])->name('archive.registrations.restore');
+        Route::post('/archive/disputes/{id}/reopen', [AdminPortalController::class, 'reopenArchivedDispute'])->name('archive.disputes.reopen');
+
         // 5. Manage Complaints and Disputes
           Route::get('/disputes', [AdminPortalController::class, 'disputes'])->name('disputes');
           Route::post('/disputes', [AdminPortalController::class, 'storeDispute'])->name('disputes.store');
@@ -82,8 +113,24 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
         // 6. Manage Commission (10%)
         Route::get('/commission', [AdminPortalController::class, 'commission'])->name('commission');
 
+        // 6b. Vouchers (platform-funded discounts and free shipping)
+        Route::get('/vouchers', [\App\Http\Controllers\Admin\VoucherController::class, 'index'])->name('vouchers');
+        Route::post('/vouchers', [\App\Http\Controllers\Admin\VoucherController::class, 'store'])->name('vouchers.store');
+        Route::get('/vouchers/{voucher}', [\App\Http\Controllers\Admin\VoucherController::class, 'show'])->whereNumber('voucher')->name('vouchers.show');
+        Route::post('/vouchers/{voucher}/update', [\App\Http\Controllers\Admin\VoucherController::class, 'update'])->whereNumber('voucher')->name('vouchers.update');
+        Route::post('/vouchers/{voucher}/toggle', [\App\Http\Controllers\Admin\VoucherController::class, 'toggle'])->whereNumber('voucher')->name('vouchers.toggle');
+        Route::post('/vouchers/{voucher}/assign', [\App\Http\Controllers\Admin\VoucherController::class, 'assign'])->whereNumber('voucher')->name('vouchers.assign');
+        Route::delete('/vouchers/{voucher}', [\App\Http\Controllers\Admin\VoucherController::class, 'destroy'])->whereNumber('voucher')->name('vouchers.destroy');
+
+        // 6c. Location-based shipping fees per zone (each store ships its own parcel)
+        Route::get('/shipping', [\App\Http\Controllers\Admin\ShippingRateController::class, 'index'])->name('shipping');
+        Route::post('/shipping', [\App\Http\Controllers\Admin\ShippingRateController::class, 'update'])->name('shipping.update');
+
         // 7. Generate Reports
         Route::get('/reports', [AdminPortalController::class, 'reports'])->name('reports');
+
+        // 7b. Activity Logs (sign-in / sign-out history)
+        Route::get('/activity-logs', [AdminPortalController::class, 'activityLogs'])->name('activity-logs');
 
         // 8. Manage Platform Settings
         Route::get('/settings', [AdminPortalController::class, 'settings'])->name('settings');
@@ -108,10 +155,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/wishlist/toggle', [BuyerDashboardController::class, 'toggleWishlist'])->name('wishlist.toggle');
     Route::post('/wishlist/remove', [BuyerDashboardController::class, 'removeWishlist'])->name('wishlist.remove');
     Route::post('/reviews', [BuyerDashboardController::class, 'submitReview'])->name('reviews.store');
-    Route::post('/orders/{reference}/pay', [BuyerDashboardController::class, 'payOrder'])->name('orders.pay');
+    Route::post('/orders/{reference}/pay', [BuyerDashboardController::class, 'payOrder'])->middleware('role:buyer')->name('orders.pay');
     Route::post('/seller-orders/{id}/cancel', [BuyerDashboardController::class, 'cancelOrder'])->name('orders.cancel');
+    Route::get('/seller-orders/{id}/report', [\App\Http\Controllers\Buyer\ProblemReportController::class, 'create'])->whereNumber('id')->middleware('role:buyer')->name('orders.report');
+    Route::post('/seller-orders/{id}/report', [\App\Http\Controllers\Buyer\ProblemReportController::class, 'store'])->whereNumber('id')->middleware(['role:buyer', 'throttle:10,1'])->name('orders.report.store');
+    Route::get('/dispute-evidence/{dispute}/{index}', [\App\Http\Controllers\Buyer\ProblemReportController::class, 'evidence'])->whereNumber(['dispute', 'index'])->name('disputes.evidence');
     Route::post('/notifications/{id}/read', [BuyerDashboardController::class, 'markNotificationRead'])->name('notifications.read');
     Route::post('/notifications/mark-all-read', [BuyerDashboardController::class, 'markAllNotificationsRead'])->name('notifications.markAllRead');
+    Route::post('/notifications/{id}/archive', [BuyerDashboardController::class, 'archiveNotification'])->whereNumber('id')->name('notifications.archive');
+    Route::post('/notifications/{id}/restore', [BuyerDashboardController::class, 'restoreNotification'])->whereNumber('id')->name('notifications.restore');
 
     // Buyer / User Account Portal
     Route::prefix('user')->name('account.')->group(function () {
@@ -132,13 +184,19 @@ Route::middleware('auth')->group(function () {
     });
 
     // Buyer Checkout Routes (ID Verification Required)
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
-    Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+    Route::get('/checkout', [CheckoutController::class, 'index'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'process'])->middleware(\App\Http\Middleware\EnsureBuyerShopping::class)->name('checkout.process');
+    Route::post('/checkout/voucher', [CheckoutController::class, 'applyCode'])->middleware([\App\Http\Middleware\EnsureBuyerShopping::class, 'throttle:20,1'])->name('checkout.voucher');
+    Route::post('/vouchers/claim', [BuyerDashboardController::class, 'claimVoucher'])->middleware(['role:buyer', 'throttle:20,1'])->name('vouchers.claim');
 
     // Seller portal uses the authenticated account.
     Route::middleware('role:seller')->prefix('seller')->name('seller.')->group(function () {
         Route::get('/notifications', [\App\Http\Controllers\Seller\NotificationController::class, 'index'])->name('notifications');
         Route::post('/notifications/{id}/read', [\App\Http\Controllers\Seller\NotificationController::class, 'read'])->name('notifications.read');
+        Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Seller\NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+        Route::post('/notifications/{id}/archive', [\App\Http\Controllers\Seller\NotificationController::class, 'archive'])->whereNumber('id')->name('notifications.archive');
+        Route::post('/notifications/{id}/restore', [\App\Http\Controllers\Seller\NotificationController::class, 'restore'])->whereNumber('id')->name('notifications.restore');
+        Route::delete('/notifications/{id}', [\App\Http\Controllers\Seller\NotificationController::class, 'destroy'])->whereNumber('id')->name('notifications.destroy');
         // 1. Dashboard Overview (Stats, Charts)
         Route::get('/', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard']);
         Route::get('/dashboard', [\App\Http\Controllers\Seller\SellerPortalController::class, 'dashboard'])->name('dashboard');
@@ -164,19 +222,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventory', [\App\Http\Controllers\Seller\SellerPortalController::class, 'inventory'])->name('inventory');
         Route::get('/products', [\App\Http\Controllers\Seller\SellerPortalController::class, 'inventory'])->name('products');
         Route::post('/products/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addProduct'])->name('products.add');
+        Route::get('/products/{id}/sale', [\App\Http\Controllers\Seller\SellerPortalController::class, 'productSale'])->name('products.sale');
+        Route::post('/products/{id}/sale', [\App\Http\Controllers\Seller\SellerPortalController::class, 'saveProductSale'])->name('products.sale.save');
         Route::post('/products/{id}/update', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProduct'])->name('products.update');
+        Route::get('/products/{id}/edit', [\App\Http\Controllers\Seller\SellerPortalController::class, 'editProduct'])->whereNumber('id')->name('products.edit');
+        Route::post('/products/{id}/details', [\App\Http\Controllers\Seller\SellerPortalController::class, 'saveProductDetails'])->whereNumber('id')->name('products.details');
+        Route::post('/products/{id}/options', [\App\Http\Controllers\Seller\SellerPortalController::class, 'saveProductOptions'])->whereNumber('id')->name('products.options');
+        Route::delete('/products/{id}', [\App\Http\Controllers\Seller\SellerPortalController::class, 'deleteProduct'])->whereNumber('id')->name('products.delete');
         Route::post('/products/{id}/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'toggleArchiveProduct'])->name('products.archive');
         Route::post('/inventory/{id}/stock', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateStock'])->name('inventory.stock');
         Route::post('/inventory/add', [\App\Http\Controllers\Seller\SellerPortalController::class, 'addProduct'])->name('inventory.add');
         Route::post('/inventory/{id}/update', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProduct'])->name('inventory.update');
         Route::post('/inventory/{id}/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'toggleArchiveProduct'])->name('inventory.archive');
+        Route::get('/archive', [\App\Http\Controllers\Seller\SellerPortalController::class, 'archive'])->name('archive');
+        Route::delete('/archive/{id}', [\App\Http\Controllers\Seller\SellerPortalController::class, 'deleteArchivedProduct'])->name('archive.delete');
 
         // 7. Paid sales reports and CSV export
         Route::get('/reports', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reports'])->name('reports');
 
+        // 7b. Shop vouchers (seller-funded, usable only on this store's items)
+        Route::get('/vouchers', [\App\Http\Controllers\Seller\VoucherController::class, 'index'])->name('vouchers');
+        Route::get('/vouchers/create', [\App\Http\Controllers\Seller\VoucherController::class, 'create'])->name('vouchers.create');
+        Route::post('/vouchers', [\App\Http\Controllers\Seller\VoucherController::class, 'store'])->name('vouchers.store');
+        Route::get('/vouchers/{voucher}/edit', [\App\Http\Controllers\Seller\VoucherController::class, 'edit'])->whereNumber('voucher')->name('vouchers.edit');
+        Route::post('/vouchers/{voucher}/update', [\App\Http\Controllers\Seller\VoucherController::class, 'update'])->whereNumber('voucher')->name('vouchers.update');
+        Route::post('/vouchers/{voucher}/toggle', [\App\Http\Controllers\Seller\VoucherController::class, 'toggle'])->whereNumber('voucher')->name('vouchers.toggle');
+        Route::delete('/vouchers/{voucher}', [\App\Http\Controllers\Seller\VoucherController::class, 'destroy'])->whereNumber('voucher')->name('vouchers.destroy');
+
         // 8. Chat / Messaging
         Route::get('/chat', [\App\Http\Controllers\Seller\MessageController::class, 'index'])->name('chat');
         Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Seller\MessageController::class, 'send'])->middleware('throttle:30,1')->name('chat.send');
+        Route::post('/chat/inquiries/{inquiryId}/send', [\App\Http\Controllers\Seller\MessageController::class, 'sendInquiry'])->whereNumber('inquiryId')->middleware('throttle:30,1')->name('chat.inquiry.send');
 
         // 9. Store profile and pickup address
         Route::get('/account', [\App\Http\Controllers\Seller\SellerPortalController::class, 'account'])->name('account');
@@ -184,19 +260,59 @@ Route::middleware('auth')->group(function () {
         Route::post('/account/address', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateAddress'])->name('account.address');
     });
 
+    Route::post('/chat/typing', [\App\Http\Controllers\Seller\MessageController::class, 'recordTyping'])->middleware('auth')->name('chat.typing');
+
     Route::middleware('role:buyer')->group(function () {
         Route::get('/buyer/messages', [\App\Http\Controllers\Seller\MessageController::class, 'index'])->name('buyer.messages');
         Route::post('/buyer/messages/{contactId}', [\App\Http\Controllers\Seller\MessageController::class, 'send'])->middleware('throttle:30,1')->name('buyer.messages.send');
+        Route::post('/buyer/inquiries/{inquiryId}', [\App\Http\Controllers\Seller\MessageController::class, 'sendInquiry'])->whereNumber('inquiryId')->middleware('throttle:30,1')->name('buyer.inquiries.send');
+        Route::post('/products/{productId}/message-seller', [\App\Http\Controllers\Seller\MessageController::class, 'startInquiry'])->whereNumber('productId')->middleware('throttle:20,1')->name('products.inquire');
+        Route::get('/buyer/chat-popup', [\App\Http\Controllers\Seller\MessageController::class, 'popupConversations'])->name('buyer.popup.conversations');
+        Route::get('/buyer/chat-popup/inquiries/{inquiryId}', [\App\Http\Controllers\Seller\MessageController::class, 'popupInquiry'])->whereNumber('inquiryId')->name('buyer.popup.inquiry');
+        Route::get('/buyer/chat-popup/orders/{contactId}', [\App\Http\Controllers\Seller\MessageController::class, 'popupOrder'])->whereNumber('contactId')->name('buyer.popup.order');
+        Route::post('/store/{slug}/message', [\App\Http\Controllers\Seller\MessageController::class, 'startStoreInquiry'])->middleware('throttle:20,1')->name('store.message');
     });
 
     // Courier / Rider Hub Routes
     Route::middleware('role:courier')->prefix('courier')->name('courier.')->group(function () {
+        // 1. Dashboard Overview
+        Route::get('/', [CourierDashboardController::class, 'index']);
         Route::get('/dashboard', [CourierDashboardController::class, 'index'])->name('dashboard');
+
+        // 2. Items for Pickup & Pickup Process
+        Route::get('/pickups', [CourierDashboardController::class, 'pickups'])->name('pickups');
+        Route::post('/pickups/{id}/accept', [CourierDashboardController::class, 'acceptPickup'])->name('pickups.accept');
+
+        // 3. Items for Delivery & Delivery Process
+        Route::get('/deliveries', [CourierDashboardController::class, 'deliveries'])->name('deliveries');
+        Route::post('/deliver/{id}', [CourierDashboardController::class, 'confirmDelivery'])->name('deliver');
+        Route::post('/scan', [CourierDashboardController::class, 'scan'])->name('scan');
+
+        // 4. Profit & Earnings Dashboard
+        Route::get('/earnings', [CourierDashboardController::class, 'earnings'])->name('earnings');
+        Route::post('/earnings/remit', [CourierDashboardController::class, 'recordRemittance'])->name('earnings.remit');
+
+        // 5. Delivery History
+        Route::get('/history', [CourierDashboardController::class, 'history'])->name('history');
+
+        // 6. Chat / Messaging
+        Route::get('/chat', [CourierDashboardController::class, 'chat'])->name('chat');
+        Route::post('/chat/{contactId}/send', [CourierDashboardController::class, 'sendMessage'])->name('chat.send');
+
+        // 7. Account Management
+        Route::get('/account', [CourierDashboardController::class, 'account'])->name('account');
+        Route::post('/account/profile', [CourierDashboardController::class, 'updateProfile'])->name('account.profile');
+        Route::post('/account/toggle-status', [CourierDashboardController::class, 'toggleOnlineStatus'])->name('account.toggle-status');
     });
 });
 
 // Logistics / Sorting Center Portal Routes
 Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logistics')->name('logistics.')->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\Logistics\NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\Logistics\NotificationController::class, 'readAll'])->name('notifications.readAll');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Logistics\NotificationController::class, 'read'])->whereNumber('id')->name('notifications.read');
+    Route::post('/notifications/{id}/archive', [\App\Http\Controllers\Logistics\NotificationController::class, 'archive'])->whereNumber('id')->name('notifications.archive');
+    Route::post('/notifications/{id}/restore', [\App\Http\Controllers\Logistics\NotificationController::class, 'restore'])->whereNumber('id')->name('notifications.restore');
     // 1. Dashboard
     Route::get('/', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard']);
     Route::get('/dashboard', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dashboard'])->name('dashboard');

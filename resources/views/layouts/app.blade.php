@@ -178,6 +178,9 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap">
     <link rel="stylesheet" href="{{ asset('css/header-primary.css') }}?v={{ filemtime(public_path('css/header-primary.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/rose-gold-borders.css') }}?v={{ filemtime(public_path('css/rose-gold-borders.css')) }}">
+    @if(Auth::check() && Auth::user()->isBuyer() && Auth::user()->status === 'active')
+    <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
+    @endif
 
 </head>
 <body class="min-h-screen flex flex-col text-neutral-900 antialiased selection:bg-[#A8A0B2] selection:text-white">
@@ -204,7 +207,13 @@
         window.registerUrl = "{{ route('register', ['from' => 'cart']) }}";
     </script>
     <script src="{{ asset('js/buyer-navigation-counts.js') }}?v={{ filemtime(public_path('js/buyer-navigation-counts.js')) }}"></script>
+    @if(Auth::check() && Auth::user()->isBuyer() && Auth::user()->status === 'active')
+        <script src="{{ asset('js/chat-dock.js') }}?v={{ filemtime(public_path('js/chat-dock.js')) }}"></script>
+        @include('partials.chat-widget')
+        <script src="{{ asset('js/chat-widget.js') }}?v={{ filemtime(public_path('js/chat-widget.js')) }}"></script>
+    @endif
     <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
     @include('partials.prevent-back-cache')
+@include('partials.logout-confirm')
 </body>
 </html>

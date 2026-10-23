@@ -21,11 +21,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Sellers get the restock reminder once, on the first seller page after signing in.
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
+            if (method_exists($event->user, 'isSeller') && $event->user->isSeller()) {
+                Session::put('seller_restock_prompt', true);
+            }
+        });
+
         // Share cart items and active categories with all views
         View::composer('*', function ($view) {
             $cart = app(\App\Services\BuyerCart::class)->all();
             $view->with('cartItems', array_values($cart));
-            $view->with('cartCount', array_sum(array_column($cart, 'quantity')));
+            $view->with('cartCount', count($cart));
 
             try {
                 $categories = \App\Models\Category::where('is_active', true)->orderBy('position')->get();

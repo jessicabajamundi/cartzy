@@ -22,6 +22,8 @@ class PreventBackHistory
             /** @var Response $response */
             $response = $next($request);
         } catch (Throwable $e) {
+            // Report before rendering so server errors still reach the log.
+            app(ExceptionHandler::class)->report($e);
             $response = app(ExceptionHandler::class)->render($request, $e);
         }
 

@@ -8,17 +8,25 @@
         $profileLinks[] = ['seller.dashboard', 'Seller Centre', 'store'];
     } elseif ($profileUser->isCourier()) {
         $profileLinks[] = ['courier.dashboard', 'Rider Hub', 'box'];
+    } elseif ($profileUser->isLogistics()) {
+        $profileLinks[] = ['logistics.dashboard', 'Logistics Workspace', 'grid'];
     }
     $profileLinks = array_merge($profileLinks, [
-        ['buyer.dashboard', 'Account Settings', 'user', 'settings'],
+        $profileUser->isLogistics()
+            ? ['logistics.account', 'Account Management', 'user']
+            : ['buyer.dashboard', 'Account Settings', 'user', 'settings'],
         ['buyer.dashboard', 'Reviews & Ratings', 'bag', 'reviews'],
     ]);
+    if ($profileUser->isBuyer()) {
+        $profileLinks[] = ['buyer.dashboard', 'My Vouchers', 'ticket', 'vouchers'];
+    }
     $profileIcons = [
         'grid' => 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
         'store' => 'M3 10h18L19 3H5L3 10Z M5 10v11h14V10 M9 21v-7h6v7',
         'box' => 'm12 3 9 5-9 5-9-5 9-5Z M3 8v9l9 5 9-5V8 M12 13v9 M7.5 5.5l9 5',
         'user' => 'M19 21v-2a7 7 0 0 0-14 0v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
         'bag' => 'M5 7h14l1 14H4L5 7Z M9 7V5a3 3 0 0 1 6 0v2',
+        'ticket' => 'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z M9 9l6 6',
     ];
 @endphp
 
