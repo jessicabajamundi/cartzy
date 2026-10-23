@@ -57,6 +57,9 @@ header .storefront-header-main .header-auth-links > a svg { width: 18px; height:
 header .storefront-header-main .buyer-top-link { width: 40px; min-width: 40px; min-height: 44px; }
 header .storefront-header-main .buyer-top-icon > svg { width: 24px; height: 24px; }
 #pick-trending-title { scroll-margin-top: 140px; }
+@media (min-width: 1251px) {
+    header .storefront-header-main .header-actions { margin-right: 20px; }
+}
 @media (max-width: 1250px) {
     header .header-main.storefront-header-main { flex-wrap: wrap; gap: 8px 20px; }
     .header-primary-links { flex: 1; }
@@ -71,7 +74,8 @@ header .storefront-header-main .buyer-top-icon > svg { width: 24px; height: 24px
     header .storefront-header-main #header-search-input { font-size: 14px; }
     header .storefront-header-main .header-search { flex-basis: 100%; max-width: none; }
     header .storefront-header-main .header-actions { width: 100%; justify-content: space-between; }
-    header .storefront-header-main .header-icons { min-width: 0; }
+    header .storefront-header-main .header-icons { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+    header .storefront-header-main .header-actions { flex-wrap: wrap; gap: 8px; }
     #pick-trending-title { scroll-margin-top: 220px; }
 }
 @media (max-width: 380px) {

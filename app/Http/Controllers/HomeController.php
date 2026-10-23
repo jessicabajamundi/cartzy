@@ -250,18 +250,57 @@ class HomeController extends Controller
             }
         }
 
+        $discoveryProducts = \App\Models\Product::query()
+            ->where('is_active', true)
+            ->whereHas('seller', fn ($query) => $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
+            ->whereHas('variants', fn ($query) => $query->where('is_active', true))
+            ->with([
+                'seller',
+                'category',
+                'coverImage',
+                'variants' => fn ($query) => $query->where('is_active', true)->orderBy('price_minor')
+            ])
+            ->withAvg('reviews', 'rating')
+            ->withSum(['orderItems as sold_quantity' => fn ($items) => $items->whereHas('sellerOrder', fn ($order) => $order->whereIn('status', ['delivered', 'completed']))], 'quantity')
+            ->latest('id')
+            ->get();
+
         return view('home', compact(
             'categories',
             'activeCategory',
             'searchQuery',
             'departmentCounts',
-            'wishlistRefs'
+            'wishlistRefs',
+            'discoveryProducts'
         ));
     }
 
     /**
      * Dedicated Category landing / filter route: /category/{slug}
      */
+    public function sale(Request $request)
+    {
+        $perPage = (int) $request->query('per_page', 25);
+        if (!in_array($perPage, [10, 15, 20, 25], true)) $perPage = 25;
+        $now = now();
+        $available = fn ($query) => $query->where('is_active', true)->where('stock', '>', 0)->where('price_minor', '>', 1)
+            ->whereHas('product', fn ($promo) => $promo->where('discount_type', 'fixed')
+                ->orWhereRaw('ROUND(product_variants.price_minor * products.discount_value / 100) >= 1'));
+        $products = \App\Models\Product::query()
+            ->where('is_active', true)
+            ->whereIn('discount_type', ['percentage', 'fixed'])->where('discount_value', '>', 0)
+            ->where(fn ($query) => $query->whereNull('discount_starts_at')->orWhere('discount_starts_at', '<=', $now))
+            ->where(fn ($query) => $query->whereNull('discount_ends_at')->orWhere('discount_ends_at', '>', $now))
+            ->whereHas('seller', fn ($query) => $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
+            ->whereHas('variants', $available)
+            ->with(['seller', 'coverImage', 'variants' => $available])
+            ->withAvg('reviews', 'rating')
+            ->withSum(['orderItems as sold_quantity' => fn ($items) => $items->whereHas('sellerOrder', fn ($order) => $order->whereIn('status', ['delivered', 'completed']))], 'quantity')
+            ->latest()->orderByDesc('id')->paginate($perPage)->withQueryString();
+        return view('sale', ['products' => $products, 'categories' => $this->getCategoriesWithMeta(),
+            'wishlistRefs' => $request->user() ? \App\Models\Wishlist::where('user_id', $request->user()->id)->pluck('ref')->all() : []]);
+    }
+
     public function category(string $slug, Request $request)
     {
         $request->merge(['category' => $slug]);

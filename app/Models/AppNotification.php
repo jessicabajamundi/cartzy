@@ -14,10 +14,12 @@ class AppNotification extends Model
         'message',
         'link',
         'is_read',
+        'archived_at',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'archived_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

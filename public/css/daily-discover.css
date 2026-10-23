@@ -11,16 +11,23 @@
     padding: 16px 0 0;
 }
 #daily-discover-section .discovery-heading {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
     padding: 20px 24px;
     margin-bottom: 20px;
-    border: 1px solid var(--discovery-border);
-    border-radius: 12px;
-    background: linear-gradient(110deg, var(--brand-light, #F1EFF5), var(--accent-soft, #FFF5F3));
     font-family: inherit;
+}
+#daily-discover-section .discovery-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: var(--discovery-border);
 }
 #daily-discover-section .discovery-eyebrow {
     display: inline-flex;
@@ -63,31 +70,50 @@
     box-shadow: 0 3px 12px #794A4308;
     transform: none;
     translate: none;
-    transition: border-color .18s, box-shadow .18s;
+    transition: border-color .25s ease, box-shadow .35s ease, transform .4s cubic-bezier(.22, 1, .36, 1);
 }
 #daily-discover-section .discovery-card:hover { border-color: var(--discovery-rose) !important; box-shadow: 0 10px 26px #794A4314; transform: none; translate: none; }
 #daily-discover-section .discovery-media { aspect-ratio: 1 / 1; max-height: none; margin: 9px 9px 0; border-radius: 8px; background: var(--brand-soft, #FAF9FB); isolation: isolate; }
 #daily-discover-section .discovery-card:focus-within { border-color: var(--discovery-rose) !important; box-shadow: 0 0 0 3px #B76E791F; }
-#daily-discover-section .discovery-media img { width: 100%; height: 100%; object-fit: cover; transform: none; scale: none; transition: transform .35s ease; }
-@media (hover: hover) { #daily-discover-section .discovery-card:hover .discovery-media img { transform: scale(1.045); } }
+#daily-discover-section .discovery-media img { width: 100%; height: 100%; object-fit: cover; transform: none; scale: none; transform-origin: center; transition: transform .65s cubic-bezier(.22, 1, .36, 1); }
+
+/* Keep the details steady while the product gently lifts into view. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    #daily-discover-section .discovery-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 18px 34px -12px rgb(111 99 130 / 28%), 0 6px 14px rgb(183 110 121 / 10%);
+    }
+
+    #daily-discover-section .discovery-card:hover .discovery-media img {
+        transform: translateY(-3px) scale(1.075) rotate(-1deg);
+    }
+}
+/* Photo badges: solid "Official" seal on the left, discount on the right */
 #daily-discover-section .discovery-seller {
-    display: inline-block;
-    background: #FFF;
-    color: var(--discovery-rose);
-    border: 1px solid var(--accent-muted, #F5CFC7);
-    border-radius: 6px;
-    padding: 6px 9px;
-    font-size: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--brand-darkest, #282133);
+    color: #FFF;
+    border-radius: 999px;
+    padding: 4px 9px 4px 5px;
+    font-size: 10.5px;
     line-height: 1.2;
     font-weight: 700;
-    box-shadow: none;
+    letter-spacing: .01em;
+    box-shadow: 0 2px 6px #2821332e;
 }
-#daily-discover-section .discovery-discount { background: var(--accent-light, #FCEAE6); color: var(--discovery-rose); border: 1px solid var(--discovery-border); border-radius: 6px; padding: 6px 9px; font-size: 11px; line-height: 1.2; font-weight: 700; box-shadow: none; }
-#daily-discover-section .discovery-body { padding: 18px !important; }
+#daily-discover-section .discovery-seller svg { width: 13px; height: 13px; color: #C9A86A; flex: none; }
+#daily-discover-section .discovery-discount { background: var(--discovery-rose); color: #FFF; border: 0; border-radius: 999px; padding: 4px 9px; font-size: 11px; line-height: 1.2; font-weight: 700; box-shadow: 0 2px 6px #8C5A503d; }
+#daily-discover-section .discovery-body { gap: 10px; padding: 14px 16px 16px !important; }
+
+/* Store · name · tags */
+#daily-discover-section .discovery-info { display: grid; gap: 4px; align-content: start; }
+#daily-discover-section .discovery-store-link { overflow: hidden; color: var(--discovery-muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
+#daily-discover-section .discovery-store-link:hover { color: var(--discovery-rose); text-decoration: underline; text-underline-offset: 2px; }
+#daily-discover-section .discovery-tag { justify-self: start; margin-top: 4px; padding: 2px 7px; border: 1px solid var(--accent-muted, #F5CFC7); border-radius: 4px; background: var(--accent-soft, #FFF5F3); color: var(--discovery-rose); font-size: 10.5px; font-weight: 700; line-height: 1.4; }
 #daily-discover-section .discovery-wishlist {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
+    position: relative;
     z-index: 1;
     display: grid;
     place-items: center;
@@ -102,6 +128,9 @@
     transition: color .2s, background .2s, box-shadow .2s;
 }
 #daily-discover-section .discovery-wishlist svg { width: 21px; height: 21px; }
+#daily-discover-section .discovery-actions { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: end; gap: 8px; margin-top: 10px; }
+#daily-discover-section .discovery-actions > button { min-width: 0; min-height: 44px; margin-top: 0 !important; }
+#daily-discover-section .discovery-actions .discovery-wishlist-form { margin: 0; }
 #daily-discover-section .discovery-wishlist:hover { background: var(--accent-light, #FCEAE6); color: var(--discovery-rose); box-shadow: 0 4px 14px #984C5B20; }
 #daily-discover-section .discovery-wishlist[aria-pressed="true"] { color: var(--discovery-rose); background: var(--accent-light, #FCEAE6); border-color: var(--accent-deep, #C08B7F); }
 #daily-discover-section .discovery-wishlist[aria-pressed="true"] svg { fill: currentColor; }
@@ -110,46 +139,67 @@
     font-family: inherit;
     font-size: 14px !important;
     line-height: 1.5 !important;
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: -.015em;
     color: var(--discovery-ink);
     min-height: 3em;
     -webkit-line-clamp: 2;
     margin: 0;
 }
-#daily-discover-section .discovery-body > div:first-child { min-height: 74px; }
-#daily-discover-section .discovery-body .flex.items-center.gap-1 span { font-size: 11px !important; line-height: 1.4; padding: 3px 6px !important; color: var(--discovery-rose); background: var(--accent-soft, #FFF5F3); border-color: var(--accent-muted, #F5CFC7); }
-#daily-discover-section .discovery-pricing { margin-top: 12px !important; padding-top: 12px !important; border-color: var(--brand-border, #E1DDE7); }
-#daily-discover-section .discovery-price { gap: 3px; font-variant-numeric: tabular-nums; color: var(--discovery-ink); }
-#daily-discover-section .discovery-price > span:first-child { color: var(--discovery-rose); font-size: 15px; padding: 0; }
-#daily-discover-section .discovery-price > span:last-child { font-size: 23px !important; font-weight: 700; letter-spacing: -.04em; line-height: 1.3; color: var(--discovery-ink); }
-#daily-discover-section .discovery-rating { font-size: 12px; line-height: 1.5; margin-top: 8px !important; margin-bottom: 12px; color: var(--discovery-muted); gap: 4px; }
-#daily-discover-section .discovery-rating > div { gap: 4px; }
-#daily-discover-section .discovery-rating > div > span:first-child { color: #A47740; font-size: 14px; }
-#daily-discover-section .discovery-rating > div > span:last-child { color: var(--brand-dark, #564B68); font-weight: 700; }
+#daily-discover-section .discovery-card h3:hover { color: var(--discovery-rose); }
+
+/* Price · rating · stock, pinned to the bottom so every card lines up */
+#daily-discover-section .discovery-pricing { display: grid; gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--brand-border, #E1DDE7); }
+#daily-discover-section .discovery-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
+#daily-discover-section .discovery-price-now { color: var(--discovery-ink); font-size: 21px; font-weight: 700; letter-spacing: -.03em; line-height: 1.2; }
+#daily-discover-section .discovery-currency { margin-right: 1px; color: var(--discovery-rose); font-size: .68em; font-weight: 700; vertical-align: .18em; }
+#daily-discover-section .discovery-price-was { color: #9A90A3; font-size: 12px; }
+#daily-discover-section .discovery-rating { display: flex; align-items: center; gap: 8px; color: var(--discovery-muted); font-size: 12px; line-height: 1.4; }
+#daily-discover-section .discovery-score { display: inline-flex; align-items: center; gap: 3px; color: var(--brand-dark, #564B68); font-weight: 700; }
+#daily-discover-section .discovery-score > span { color: #D9A13B; font-size: 13px; }
+#daily-discover-section .discovery-dot { width: 3px; height: 3px; border-radius: 50%; background: #C9C1CF; }
+#daily-discover-section .discovery-stock { display: flex; align-items: center; gap: 6px; margin: 0; color: #3F7A55; font-size: 12px; font-weight: 700; line-height: 1.4; }
+#daily-discover-section .discovery-stock-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent); }
+#daily-discover-section .discovery-stock.is-low { color: #B4651E; }
+#daily-discover-section .discovery-stock.is-out { color: #9A90A3; }
+#daily-discover-section .discovery-actions { margin-top: 6px; }
 #daily-discover-section .discovery-card button[onclick] {
     min-height: 44px;
     padding: 10px 12px !important;
     margin-top: 0 !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--discovery-border);
-    background: linear-gradient(110deg, var(--brand-deep, #6F6382), var(--discovery-rose));
+    border-radius: 12px !important;
+    border: 1px solid var(--accent-primary, #D4A69A);
+    background-color: var(--brand-dark, #564B68);
+    background-image: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--brand-deep, #6F6382) 35%, var(--accent-dark, #8C5A50) 70%, var(--accent-darkest, #4A2520) 100%);
+    background-size: 280% 100%;
+    background-position: 0% 50%;
     color: #FFF;
     font-family: inherit;
     font-size: 13px !important;
     font-weight: 700;
     line-height: 1.4;
     gap: 8px;
-    box-shadow: 0 3px 9px #6F638218;
-    transition: box-shadow .2s, border-color .2s;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%), 0 4px 10px rgb(111 99 130 / 18%);
+    transition: background-position .65s cubic-bezier(.22, 1, .36, 1), box-shadow .3s ease, border-color .3s ease;
 }
-#daily-discover-section .discovery-card button[onclick]:hover {
-    background: linear-gradient(110deg, var(--brand-dark, #564B68), var(--accent-darkest, #4A2520));
-    border-color: var(--discovery-rose);
-    box-shadow: 0 4px 12px #9E58632B;
+@media (hover: hover) and (pointer: fine) {
+    #daily-discover-section .discovery-card button[onclick]:hover:not(:disabled) {
+        background-position: 100% 50%;
+        border-color: var(--accent-deep, #C08B7F);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 20%), 0 6px 16px rgb(140 90 80 / 25%);
+    }
 }
-#daily-discover-section .discovery-card button[onclick]:active {
-    background: linear-gradient(110deg, var(--discovery-ink), var(--accent-darkest, #4A2520));
+#daily-discover-section .discovery-card button[onclick]:focus-visible {
+    background-position: 100% 50%;
+    border-color: var(--accent-deep, #C08B7F);
+}
+#daily-discover-section .discovery-card button[onclick]:active:not(:disabled) {
+    background-position: 100% 50%;
+    box-shadow: inset 0 2px 5px rgb(40 33 51 / 25%);
+}
+#daily-discover-section .discovery-card button[onclick]:disabled {
+    opacity: .6;
+    cursor: not-allowed;
     box-shadow: none;
 }
 #daily-discover-section .discovery-card button[onclick] svg { width: 17px !important; height: 17px !important; flex-shrink: 0; }
@@ -164,18 +214,70 @@
     #browse-categories { scroll-margin-top: 220px; }
     #daily-discover-section { scroll-margin-top: 220px; }
     #daily-discover-section .discovery-heading { align-items: flex-start; flex-direction: column; gap: 14px; padding: 16px; border-radius: 12px; margin-bottom: 16px; }
+    #daily-discover-section .discovery-heading::after { left: 16px; right: 16px; }
     #daily-discover-section .discovery-heading h2 { font-size: 28px; }
     #daily-discover-section .discovery-browse { min-height: 44px; }
     #daily-discover-section .daily-discover-grid { gap: 12px !important; }
-    #daily-discover-section .discovery-body { padding: 11px !important; }
+    #daily-discover-section .discovery-body { gap: 8px; padding: 11px !important; }
+    #daily-discover-section .discovery-price-now { font-size: 18px; }
+    #daily-discover-section .discovery-store-link { font-size: 10px; }
     #daily-discover-section .discovery-card { border-radius: 12px; }
     #daily-discover-section .discovery-media { margin: 6px 6px 0; border-radius: 7px; }
     #daily-discover-section .discovery-card h3 { font-size: 13px !important; }
-    #daily-discover-section .discovery-price > span:last-child { font-size: 20px !important; }
     #daily-discover-section .discovery-card button[onclick] { padding-inline: 7px !important; font-size: 12px !important; gap: 5px; }
     #daily-discover-section .discovery-rating { flex-wrap: wrap; }
-    #daily-discover-section .discovery-seller { padding: 3px 5px; font-size: 10px; }
-    #daily-discover-section .discovery-discount { padding: 3px 5px; font-size: 11px; }
+    #daily-discover-section .discovery-seller { padding: 3px 7px 3px 4px; font-size: 10px; }
+    #daily-discover-section .discovery-discount { padding: 3px 7px; font-size: 10.5px; }
 }
 @media (max-width: 359px) { #daily-discover-section .daily-discover-grid { grid-template-columns: minmax(0, 1fr) !important; } }
 @media (prefers-reduced-motion: reduce) { #daily-discover-section .discovery-card, #daily-discover-section img, #daily-discover-section button, #daily-discover-section a { transition: none; } }
+
+/* Lavender actions and quiet rose-gold accents keep the catalog cohesive. */
+#daily-discover-section .discovery-card.hidden { display: none !important; }
+#daily-discover-section .discovery-heading {
+    background: linear-gradient(110deg, var(--brand-light, #F1EFF5), var(--accent-soft, #FFF5F3));
+    border-radius: 16px;
+}
+#daily-discover-section .discovery-pagination {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 28px;
+    padding: 20px 0;
+    border-top: 1px solid var(--discovery-border);
+}
+#daily-discover-section .discovery-pagination[hidden] { display: none; }
+#daily-discover-section .discovery-page-summary {
+    color: var(--discovery-muted);
+    font-size: 12px;
+    text-align: right;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+#daily-discover-section .discovery-page-controls { display: flex; justify-content: flex-end; gap: 6px; align-items: center; flex-wrap: wrap; }
+#daily-discover-section .discovery-page-controls button {
+    display: grid;
+    place-items: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--discovery-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--brand-dark, #564B68);
+    font: 700 13px 'Lato', sans-serif;
+    cursor: pointer;
+    transition: background .18s, border-color .18s;
+}
+#daily-discover-section .discovery-page-controls button:hover:not(:disabled) { background: var(--accent-soft, #FFF5F3); border-color: var(--discovery-rose); }
+#daily-discover-section .discovery-page-controls button[aria-current="page"] {
+    background: var(--brand-darkest, #282133);
+    color: #fff;
+    border-color: var(--brand-darkest, #282133);
+    box-shadow: 0 3px 8px #28213318;
+}
+#daily-discover-section .discovery-page-controls button[aria-current="page"]:hover { background: var(--brand-dark, #564B68); }
+#daily-discover-section .discovery-page-controls button:disabled { opacity: .4; cursor: default; }
+#daily-discover-section .discovery-page-controls > span { color: var(--discovery-muted); }
+#daily-discover-section .discovery-footer { margin-top: 28px; }

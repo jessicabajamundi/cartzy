@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Seller;
 use App\Models\User;
 use App\Models\Wishlist;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,16 +21,46 @@ class StorefrontWishlistTest extends TestCase
             'variation' => 'Standard'];
     }
 
+    private function setupStorefrontProduct(): Product
+    {
+        $sellerUser = User::factory()->create(['status' => 'active', 'role' => 'seller']);
+        $seller = Seller::create([
+            'user_id' => $sellerUser->id,
+            'name' => 'TechZone Official Mall',
+            'slug' => 'techzone-official-mall',
+            'status' => 'approved',
+        ]);
+        $category = Category::firstOrCreate(['slug' => 'smart-wearables'], ['name' => 'Smart Watches & Wearables', 'position' => 1, 'is_active' => true]);
+        $product = Product::create([
+            'seller_id' => $seller->id,
+            'category_id' => $category->id,
+            'name' => 'Smart Fitness Tracker Watch IP68',
+            'slug' => 'smart-fitness-tracker-watch-ip68',
+            'description' => 'Test',
+            'is_active' => true,
+        ]);
+        $product->variants()->create([
+            'name' => 'Standard',
+            'sku' => 'TEST-001',
+            'price_minor' => 129900,
+            'stock' => 10,
+            'is_active' => true,
+        ]);
+        return $product;
+    }
+
     public function test_guest_sees_wishlist_buttons_but_cannot_save(): void
     {
+        $this->setupStorefrontProduct();
         $response = $this->get('/')->assertOk()->assertSee('data-authenticated="false"', false);
-        $this->assertSame(31, substr_count($response->getContent(), 'class="discovery-wishlist"'));
+        $this->assertSame(1, substr_count($response->getContent(), 'class="discovery-wishlist"'));
         $this->postJson(route('wishlist.toggle'), $this->product())->assertUnauthorized();
         $this->assertDatabaseCount('wishlists', 0);
     }
 
     public function test_saved_heart_survives_reload_and_can_be_removed(): void
     {
+        $this->setupStorefrontProduct();
         $user = User::factory()->create();
         $this->actingAs($user)->postJson(route('wishlist.toggle'), $this->product())
             ->assertOk()->assertJson(['wished' => true, 'count' => 1]);
@@ -50,6 +83,7 @@ class StorefrontWishlistTest extends TestCase
 
     public function test_wishlist_form_uses_the_current_origin_even_behind_an_https_proxy(): void
     {
+        $this->setupStorefrontProduct();
         \Illuminate\Support\Facades\URL::forceRootUrl('http://internal-app.test');
         try {
             $response = $this->get('/')->assertOk();
@@ -59,7 +93,7 @@ class StorefrontWishlistTest extends TestCase
             @$dom->loadHTML($response->getContent());
             $xpath = new \DOMXPath($dom);
             $forms = $xpath->query('//form[@class="discovery-wishlist-form"]');
-            $this->assertCount(31, $forms);
+            $this->assertCount(1, $forms);
             $payload = [];
             foreach ($xpath->query('.//input', $forms->item(0)) as $input) {
                 $payload[$input->getAttribute('name')] = $input->getAttribute('value');

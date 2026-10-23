@@ -21,11 +21,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentCategory = 'all';
     let currentSearch = '';
+    const dailyGrid = document.getElementById('daily-discover-grid');
+    let dailyMatches = [];
+
+    function limitDailyRows() {
+        if (!dailyGrid || dailySection.style.display === 'none') return;
+        const columns = getComputedStyle(dailyGrid).gridTemplateColumns.split(/\s+/).filter(Boolean).length;
+        const limit = Math.max(1, columns) * 4;
+        dailyMatches.forEach((card, index) => card.classList.toggle('hidden', index >= limit));
+    }
+
+    if (dailyGrid) new ResizeObserver(limitDailyRows).observe(dailyGrid);
 
     // Product search and filtering (shared header controls live in header-navigation.js).
     function performSearch(query, shouldScroll = false) {
         currentSearch = (query || '').trim().toLowerCase();
-        
+
         if (searchClear) {
             if (currentSearch.length > 0) {
                 searchClear.classList.remove('hidden');
@@ -43,18 +54,19 @@ document.addEventListener('DOMContentLoaded', function() {
         let matchedCount = 0;
         let matchedInShoes = 0;
         let matchedInDaily = 0;
+        dailyMatches = [];
 
         allCards.forEach(card => {
             const name = (card.getAttribute('data-name') || '').toLowerCase();
             const brand = (card.getAttribute('data-brand') || '').toLowerCase();
             const categories = (card.getAttribute('data-category') || '').toLowerCase();
-            const cardText = (card.innerText || '').toLowerCase();
+            const cardText = (card.textContent || '').toLowerCase();
 
             // Search filter
-            const matchesSearch = !currentSearch || 
-                name.includes(currentSearch) || 
-                brand.includes(currentSearch) || 
-                categories.includes(currentSearch) || 
+            const matchesSearch = !currentSearch ||
+                name.includes(currentSearch) ||
+                brand.includes(currentSearch) ||
+                categories.includes(currentSearch) ||
                 cardText.includes(currentSearch);
 
             // Category filter
@@ -73,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     matchedInShoes++;
                 } else if (dailySection && dailySection.contains(card)) {
                     matchedInDaily++;
+                    dailyMatches.push(card);
                 }
             } else {
                 card.classList.add('hidden');
@@ -107,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (dailySection) {
             dailySection.style.display = (matchedInDaily > 0 || matchedCount > 0) ? '' : 'none';
         }
+        limitDailyRows();
 
         // No Results
         if (noResults) {
@@ -348,4 +362,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (initialCategory) {
         window.filterByCategory(initialCategory, '', true);
     }
+    if (!initialQuery && !initialCategory) applyFilters();
+
+    // Card navigation delegation (matching flash sale card behavior)
+    document.addEventListener('click', function(e) {
+        const card = e.target.closest('.discovery-card[data-href]');
+        if (!card) return;
+        if (e.target.closest('button, a, input, select, textarea, form, .discovery-wishlist-form, [onclick]')) return;
+        const href = card.getAttribute('data-href');
+        if (href) {
+            window.location.href = href;
+        }
+    });
 });

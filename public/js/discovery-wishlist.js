@@ -1,6 +1,6 @@
 (() => {
     function initWishlist() {
-        const section = document.getElementById('daily-discover-section');
+        const section = document.getElementById('daily-discover-section') || document.getElementById('sale-products') || document.getElementById('store-products-grid');
         if (!section || section.dataset.wishlistReady === 'true') return;
         section.dataset.wishlistReady = 'true';
 
@@ -51,6 +51,11 @@
                 const result = await response.json();
                 if (!result.success || typeof result.wished !== 'boolean') throw new Error('Invalid wishlist response');
                 window.updateBuyerNavCount?.('wishlist', result.count);
+                if (section.dataset.wishlistRefs) {
+                    const refs = new Set(JSON.parse(section.dataset.wishlistRefs));
+                    if (result.wished) refs.add(product.ref); else refs.delete(product.ref);
+                    section.dataset.wishlistRefs = JSON.stringify([...refs]);
+                }
 
                 button.setAttribute('aria-pressed', String(result.wished));
                 button.setAttribute('aria-label', `${result.wished ? 'Remove from wishlist' : 'Add to wishlist'}: ${product.name}`);

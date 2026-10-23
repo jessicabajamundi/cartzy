@@ -1,6 +1,7 @@
 /**
  * Cartzy Home Page Scripts
- * Handles live search, clear query, section toggling, and brand filtering
+ * Handles live search, clear query, 22-category database integration,
+ * category filtering, header mega menu, and department tabs.
  */
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -14,46 +15,68 @@ document.addEventListener('DOMContentLoaded', function() {
     const shoesSection = document.getElementById('shoes');
     const dailySection = document.getElementById('daily-discover-section');
 
+    const categoryBanner = document.getElementById('category-results-banner');
+    const categoryBannerName = document.getElementById('category-banner-name');
+    const categoryBannerCount = document.getElementById('category-banner-count');
+
+    let currentCategory = 'all';
+    let currentSearch = '';
+    const dailyGrid = document.getElementById('daily-discover-grid');
+    let dailyMatches = [];
+
+    function limitDailyRows() {
+        if (!dailyGrid || dailySection.style.display === 'none') return;
+        const columns = getComputedStyle(dailyGrid).gridTemplateColumns.split(/\s+/).filter(Boolean).length;
+        const limit = Math.max(1, columns) * 4;
+        dailyMatches.forEach((card, index) => card.classList.toggle('hidden', index >= limit));
+    }
+
+    if (dailyGrid) new ResizeObserver(limitDailyRows).observe(dailyGrid);
+
+    // Product search and filtering (shared header controls live in header-navigation.js).
     function performSearch(query, shouldScroll = false) {
-        query = (query || '').trim().toLowerCase();
-        
-        // Show or hide clear cross button
+        currentSearch = (query || '').trim().toLowerCase();
+
         if (searchClear) {
-            if (query.length > 0) {
+            if (currentSearch.length > 0) {
                 searchClear.classList.remove('hidden');
             } else {
                 searchClear.classList.add('hidden');
             }
         }
 
+        applyFilters(shouldScroll);
+    }
+
+    // ─── Unified Product Filtering (Category + Search + Brand) ─────────────
+    function applyFilters(shouldScroll = false) {
         const allCards = document.querySelectorAll('.product-card');
         let matchedCount = 0;
         let matchedInShoes = 0;
         let matchedInDaily = 0;
-
-        if (!query) {
-            // Restore everything
-            allCards.forEach(card => card.classList.remove('hidden'));
-            if (resultsBanner) resultsBanner.classList.add('hidden');
-            if (noResults) {
-                noResults.classList.add('hidden');
-                noResults.classList.remove('flex');
-            }
-            if (shoesSection) shoesSection.style.display = '';
-            if (dailySection) dailySection.style.display = '';
-            return;
-        }
+        dailyMatches = [];
 
         allCards.forEach(card => {
             const name = (card.getAttribute('data-name') || '').toLowerCase();
             const brand = (card.getAttribute('data-brand') || '').toLowerCase();
-            const category = (card.getAttribute('data-category') || '').toLowerCase();
-            const cardText = (card.innerText || '').toLowerCase();
+            const categories = (card.getAttribute('data-category') || '').toLowerCase();
+            const cardText = (card.textContent || '').toLowerCase();
 
-            const isMatch = name.includes(query) || 
-                            brand.includes(query) || 
-                            category.includes(query) || 
-                            cardText.includes(query);
+            // Search filter
+            const matchesSearch = !currentSearch ||
+                name.includes(currentSearch) ||
+                brand.includes(currentSearch) ||
+                categories.includes(currentSearch) ||
+                cardText.includes(currentSearch);
+
+            // Category filter
+            let matchesCategory = true;
+            if (currentCategory && currentCategory !== 'all') {
+                const catList = categories.split(/\s+/);
+                matchesCategory = catList.includes(currentCategory) || categories.includes(currentCategory);
+            }
+
+            const isMatch = matchesSearch && matchesCategory;
 
             if (isMatch) {
                 card.classList.remove('hidden');
@@ -62,28 +85,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     matchedInShoes++;
                 } else if (dailySection && dailySection.contains(card)) {
                     matchedInDaily++;
+                    dailyMatches.push(card);
                 }
             } else {
                 card.classList.add('hidden');
             }
         });
 
-        // Update banner
+        // Search Banner
         if (resultsBanner) {
-            resultsBanner.classList.remove('hidden');
-            if (queryDisplay) queryDisplay.textContent = query;
-            if (countDisplay) countDisplay.textContent = matchedCount;
+            if (currentSearch) {
+                resultsBanner.classList.remove('hidden');
+                if (queryDisplay) queryDisplay.textContent = currentSearch;
+                if (countDisplay) countDisplay.textContent = matchedCount;
+            } else {
+                resultsBanner.classList.add('hidden');
+            }
         }
 
-        // Toggle sections based on matches
+        // Category Banner
+        if (categoryBanner) {
+            if (currentCategory && currentCategory !== 'all') {
+                categoryBanner.classList.remove('hidden');
+                if (categoryBannerCount) categoryBannerCount.textContent = matchedCount;
+            } else {
+                categoryBanner.classList.add('hidden');
+            }
+        }
+
+        // Section visibility
         if (shoesSection) {
-            shoesSection.style.display = matchedInShoes > 0 ? '' : 'none';
+            shoesSection.style.display = (matchedInShoes > 0 || (!currentSearch && currentCategory === 'all')) ? '' : 'none';
         }
         if (dailySection) {
-            dailySection.style.display = matchedInDaily > 0 ? '' : 'none';
+            dailySection.style.display = (matchedInDaily > 0 || matchedCount > 0) ? '' : 'none';
         }
+        limitDailyRows();
 
-        // Show/hide no results box
+        // No Results
         if (noResults) {
             if (matchedCount === 0) {
                 noResults.classList.remove('hidden');
@@ -95,13 +134,157 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (shouldScroll) {
-            const target = resultsBanner || shoesSection;
+            const target = [categoryBanner, resultsBanner, noResults, shoesSection, dailySection]
+                .find(section => section && !section.classList.contains('hidden') && section.style.display !== 'none');
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
     }
 
+    // ─── Filter By Category ────────────────────────────────────────────────
+    window.filterByCategory = function(slug, name, shouldScroll = true) {
+        currentCategory = slug;
+
+        // Update Category Showcase Cards styling
+        document.querySelectorAll('.browse-category-card').forEach(card => {
+            const cardSlug = card.getAttribute('data-category-slug');
+            const indicator = card.querySelector('.cat-active-indicator');
+            const ring = card.querySelector('.cat-ring-box');
+
+            if (cardSlug === slug) {
+                card.classList.add('border-[#6F6382]', 'bg-[#FAF9FB]', 'shadow-md');
+                card.classList.remove('border-gray-200');
+                if (ring) ring.classList.add('ring-2', 'ring-[#6F6382]', 'ring-offset-2');
+                if (indicator) indicator.classList.remove('hidden');
+            } else {
+                card.classList.remove('border-[#6F6382]', 'bg-[#FAF9FB]', 'shadow-md');
+                card.classList.add('border-gray-200');
+                if (ring) ring.classList.remove('ring-2', 'ring-[#6F6382]', 'ring-offset-2');
+                if (indicator) indicator.classList.add('hidden');
+            }
+        });
+
+        // Update Header Navigation pills
+        document.querySelectorAll('.header-nav-pill').forEach(pill => {
+            pill.classList.remove('bg-[#6F6382]', 'text-white', 'font-bold');
+            pill.classList.add('text-gray-600');
+        });
+        const activeNavPill = document.getElementById('header-nav-cat-' + slug);
+        if (activeNavPill) {
+            activeNavPill.classList.add('bg-[#6F6382]', 'text-white', 'font-bold');
+            activeNavPill.classList.remove('text-gray-600');
+        }
+
+        // Update Category Filter Tab pills above products
+        document.querySelectorAll('.catalog-cat-pill').forEach(pill => {
+            pill.classList.remove('bg-[#6F6382]', 'text-white', 'font-bold');
+            pill.classList.add('bg-white', 'text-gray-700');
+        });
+        const activeCatalogPill = document.getElementById('catalog-pill-' + slug);
+        if (activeCatalogPill) {
+            activeCatalogPill.classList.add('bg-[#6F6382]', 'text-white', 'font-bold');
+            activeCatalogPill.classList.remove('bg-white', 'text-gray-700');
+        }
+
+        // Update category banner display
+        if (categoryBannerName) {
+            categoryBannerName.textContent = name || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // Update URL
+        const url = new URL(window.location);
+        url.searchParams.delete('cat');
+        if (slug && slug !== 'all') {
+            url.searchParams.set('category', slug);
+        } else {
+            url.searchParams.delete('category');
+        }
+        window.history.replaceState({}, '', url.toString());
+
+        applyFilters(shouldScroll);
+    };
+
+    window.clearCategoryFilter = function() {
+        window.filterByCategory('all', 'All Categories', false);
+    };
+
+    window.clearAllProductFilters = function() {
+        currentSearch = '';
+        if (searchInput) searchInput.value = '';
+        if (searchClear) searchClear.classList.add('hidden');
+        const url = new URL(window.location);
+        ['q', 'category', 'cat'].forEach(key => url.searchParams.delete(key));
+        window.history.replaceState({}, '', url.toString());
+        window.clearCategoryFilter();
+    };
+
+    // ─── Department Tabs within Categories Showcase ────────────────────────
+    window.filterDepartmentTabs = function(dept) {
+        document.querySelectorAll('.dept-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-[#6F6382]', 'text-white', 'shadow-xs');
+            btn.classList.add('bg-[#F1EFF5]', 'text-gray-600', 'hover:bg-[#E1DDE7]');
+        });
+
+        const activeBtn = document.getElementById('dept-tab-' + dept);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-[#6F6382]', 'text-white', 'shadow-xs');
+            activeBtn.classList.remove('bg-[#F1EFF5]', 'text-gray-600', 'hover:bg-[#E1DDE7]');
+        }
+
+        const cards = document.querySelectorAll('.browse-category-card');
+        cards.forEach(card => {
+            const cardDept = card.getAttribute('data-department');
+            if (dept === 'all' || cardDept === dept) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
+
+    // ─── Search within Category Cards ──────────────────────────────────────
+    window.searchCategoryCards = function(query) {
+        query = (query || '').toLowerCase().trim();
+        const cards = document.querySelectorAll('.browse-category-card');
+        cards.forEach(card => {
+            const name = (card.getAttribute('data-category-name') || '').toLowerCase();
+            if (!query || name.includes(query)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    };
+
+    // ─── Toggle All vs Compact View for Categories ─────────────────────────
+    let isAllCategoriesExpanded = false;
+    window.toggleAllCategoriesView = function() {
+        const extraCards = document.querySelectorAll('.category-card-extra');
+        const btn = document.getElementById('toggle-all-cats-btn');
+        const btnText = document.getElementById('toggle-all-cats-text');
+        const btnIcon = document.getElementById('toggle-all-cats-icon');
+
+        isAllCategoriesExpanded = !isAllCategoriesExpanded;
+
+        extraCards.forEach(card => {
+            if (isAllCategoriesExpanded) {
+                card.classList.remove('hidden');
+                card.style.display = '';
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        if (btnText) {
+            btnText.textContent = isAllCategoriesExpanded ? 'Show Less' : 'Explore All 22 Categories';
+        }
+        if (btnIcon) {
+            btnIcon.style.transform = isAllCategoriesExpanded ? 'rotate(180deg)' : '';
+        }
+    };
+
+    // ─── Clear Search ──────────────────────────────────────────────────────
     window.clearSearch = function() {
         if (searchInput) {
             searchInput.value = '';
@@ -109,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const url = new URL(window.location);
         url.searchParams.delete('q');
-        window.history.replaceState({}, '', url.pathname);
+        window.history.replaceState({}, '', url.toString());
         performSearch('', false);
     };
 
@@ -143,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Brand filter tab buttons inside Shoes & Sneakers section
+    // ─── Brand filter tab buttons inside Shoes & Sneakers section ──────────
     window.filterShoeBrand = function(brand) {
         document.querySelectorAll('.brand-tab-btn').forEach(btn => {
             btn.classList.remove('bg-white', 'text-black', 'shadow-2xs');
@@ -166,11 +349,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // Check if URL has q param on initial load
+    // ─── Initialize from URL Parameters ────────────────────────────────────
     const urlParams = new URLSearchParams(window.location.search);
     const initialQuery = urlParams.get('q');
+    const initialCategory = urlParams.get('category') || urlParams.get('cat');
+
     if (initialQuery) {
         if (searchInput) searchInput.value = initialQuery;
         performSearch(initialQuery, true);
     }
+
+    if (initialCategory) {
+        window.filterByCategory(initialCategory, '', true);
+    }
+    if (!initialQuery && !initialCategory) applyFilters();
+
+    // Card navigation delegation (matching flash sale card behavior)
+    document.addEventListener('click', function(e) {
+        const card = e.target.closest('.discovery-card[data-href]');
+        if (!card) return;
+        if (e.target.closest('button, a, input, select, textarea, form, .discovery-wishlist-form, [onclick]')) return;
+        const href = card.getAttribute('data-href');
+        if (href) {
+            window.location.href = href;
+        }
+    });
 });
