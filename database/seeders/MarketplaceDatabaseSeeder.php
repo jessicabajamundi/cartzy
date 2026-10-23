@@ -137,77 +137,12 @@ class MarketplaceDatabaseSeeder extends Seeder
                     'banner_path'       => 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1200&h=400&fit=crop&q=80',
                     'status'            => 'approved',
                     'rejection_reason'  => null,
-                    'commission_bps'    => 800, // 8.00%
+                    'commission_bps'    => 1000, // 10.00%
                     'pickup_address_id' => $sellerPickupAddress?->id,
                 ]
             );
 
-            // 6. Sample Products & Variants & Images
-            $p1 = Product::firstOrCreate(
-                ['slug' => 'anc-pro-wireless-noise-cancelling-earphones'],
-                [
-                    'seller_id'   => $seller->id,
-                    'category_id' => $audio->id,
-                    'name'        => 'ANC Pro Wireless Noise Cancelling Earphones',
-                    'description' => 'High-fidelity audio with active noise cancellation, 32-hour battery life, and ultra-low latency gaming mode.',
-                    'is_active'   => true,
-                ]
-            );
-            ProductVariant::firstOrCreate(
-                ['sku' => 'ANC-BLK'],
-                [
-                    'product_id'   => $p1->id,
-                    'name'         => 'Matte Black',
-                    'options'      => ['color' => 'Black'],
-                    'price_minor'  => 89000, // ₱890.00
-                    'stock'        => 50,
-                    'weight_grams' => 250,
-                    'is_active'    => true,
-                ]
-            );
-            ProductVariant::firstOrCreate(
-                ['sku' => 'ANC-WHT'],
-                [
-                    'product_id'   => $p1->id,
-                    'name'         => 'Glossy White',
-                    'options'      => ['color' => 'White'],
-                    'price_minor'  => 89000,
-                    'stock'        => 40,
-                    'weight_grams' => 250,
-                    'is_active'    => true,
-                ]
-            );
-            ProductImage::firstOrCreate(
-                ['product_id' => $p1->id, 'path' => 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&h=600&fit=crop&q=80'],
-                ['position' => 0]
-            );
-
-            $p2 = Product::firstOrCreate(
-                ['slug' => 'smart-fitness-tracker-watch-blood-oxygen'],
-                [
-                    'seller_id'   => $seller->id,
-                    'category_id' => $wearables->id,
-                    'name'        => 'Smart Fitness Tracker Watch with Blood Oxygen & Heart Rate',
-                    'description' => 'Track your vitals 24/7 with AMOLED display, IP68 water resistance, and 14-day standby time.',
-                    'is_active'   => true,
-                ]
-            );
-            $v2 = ProductVariant::firstOrCreate(
-                ['sku' => 'FIT-SMT-01'],
-                [
-                    'product_id'   => $p2->id,
-                    'name'         => 'Midnight Black / Standard Strap',
-                    'options'      => ['color' => 'Black', 'size' => 'Standard'],
-                    'price_minor'  => 129900, // ₱1,299.00
-                    'stock'        => 35,
-                    'weight_grams' => 180,
-                    'is_active'    => true,
-                ]
-            );
-            ProductImage::firstOrCreate(
-                ['product_id' => $p2->id, 'path' => 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&h=600&fit=crop&q=80'],
-                ['position' => 0]
-            );
+            // 6. Sample Products (Removed as requested by user)
         }
 
         // 7. Sample Logistics Provider and Rider
@@ -247,5 +182,198 @@ class MarketplaceDatabaseSeeder extends Seeder
                 ['quantity' => 1, 'selected' => true]
             );
         }
+
+        // 9. Adidas Official Store (Verified seller, no products)
+        $adidasUser = User::updateOrCreate(
+            ['email' => 'adidas@cartzy.com'],
+            [
+                'name'                => 'Adidas Philippines',
+                'password'            => \Illuminate\Support\Facades\Hash::make('Adidas@2026'),
+                'role'                => User::ROLE_SELLER,
+                'status'              => 'active',
+                'is_suspended'        => false,
+                'phone'               => '09178883344',
+                'street_address'      => 'Bonifacio High Street Central, 9th Ave',
+                'address'             => 'Bonifacio Global City, Taguig City, Metro Manila',
+                'region'              => 'NCR',
+                'province'            => 'Metro Manila',
+                'city'                => 'Taguig City',
+                'barangay'            => 'Fort Bonifacio',
+                'postal_code'         => '1634',
+                'business_name'       => 'Adidas Official Store',
+                'line_of_business'    => 'Sports, Fitness & Outdoors',
+                'seller_type'         => 'Corporation',
+                'tin_number'          => '123-456-789',
+                'id_type'             => 'DTI Business Registration',
+                'id_number'           => 'DTI-ADI-2026-8888',
+                'id_status'           => 'verified',
+                'id_verified_at'      => now(),
+                'email_verified_at'   => now(),
+                'id_rejection_reason' => null,
+            ]
+        );
+        $adidasUser->roles()->syncWithoutDetaching([$roles['seller']->id]);
+
+        $adidasAddress = Address::updateOrCreate(
+            [
+                'user_id' => $adidasUser->id,
+                'label'   => 'Adidas Main Logistics Hub',
+            ],
+            [
+                'recipient'   => 'Adidas Official Store Warehouse',
+                'phone'       => '09178883344',
+                'line1'       => 'Bonifacio High Street Central, 9th Ave',
+                'barangay'    => 'Fort Bonifacio',
+                'city'        => 'Taguig City',
+                'province'    => 'Metro Manila',
+                'postal_code' => '1634',
+                'is_default'  => true,
+            ]
+        );
+
+        Seller::updateOrCreate(
+            ['user_id' => $adidasUser->id],
+            [
+                'name'              => 'Adidas Official Store',
+                'slug'              => 'adidas',
+                'description'       => 'Official Adidas Store for authentic running shoes, sneakers, and athletic footwear.',
+                'logo_path'         => 'https://images.unsplash.com/photo-1518002171953-a080ee817e1f?w=200&h=200&fit=crop&q=80',
+                'banner_path'       => 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&h=400&fit=crop&q=80',
+                'status'            => 'approved',
+                'rejection_reason'  => null,
+                'commission_bps'    => 1000,
+                'pickup_address_id' => $adidasAddress->id,
+            ]
+        );
+
+        // 10. Nike Official Store (Verified seller, no products)
+        $nikeUser = User::updateOrCreate(
+            ['email' => 'nike@cartzy.com'],
+            [
+                'name'                => 'Nike Philippines',
+                'password'            => \Illuminate\Support\Facades\Hash::make('Nike@2026'),
+                'role'                => User::ROLE_SELLER,
+                'status'              => 'active',
+                'is_suspended'        => false,
+                'phone'               => '09179994455',
+                'street_address'      => 'Bonifacio High Street Central, 7th Ave',
+                'address'             => 'Bonifacio Global City, Taguig City, Metro Manila',
+                'region'              => 'NCR',
+                'province'            => 'Metro Manila',
+                'city'                => 'Taguig City',
+                'barangay'            => 'Fort Bonifacio',
+                'postal_code'         => '1634',
+                'business_name'       => 'Nike Official Store',
+                'line_of_business'    => 'Sports, Fitness & Outdoors',
+                'seller_type'         => 'Corporation',
+                'tin_number'          => '987-654-321',
+                'id_type'             => 'DTI Business Registration',
+                'id_number'           => 'DTI-NKE-2026-9999',
+                'id_status'           => 'verified',
+                'id_verified_at'      => now(),
+                'email_verified_at'   => now(),
+                'id_rejection_reason' => null,
+            ]
+        );
+        $nikeUser->roles()->syncWithoutDetaching([$roles['seller']->id]);
+
+        $nikeAddress = Address::updateOrCreate(
+            [
+                'user_id' => $nikeUser->id,
+                'label'   => 'Nike Main Logistics Hub',
+            ],
+            [
+                'recipient'   => 'Nike Official Store Warehouse',
+                'phone'       => '09179994455',
+                'line1'       => 'Bonifacio High Street Central, 7th Ave',
+                'barangay'    => 'Fort Bonifacio',
+                'city'        => 'Taguig City',
+                'province'    => 'Metro Manila',
+                'postal_code' => '1634',
+                'is_default'  => true,
+            ]
+        );
+
+        Seller::updateOrCreate(
+            ['user_id' => $nikeUser->id],
+            [
+                'name'              => 'Nike Official Store',
+                'slug'              => 'nike',
+                'description'       => 'Official Nike Store for authentic running shoes, sportswear, and athletic lifestyle gear.',
+                'logo_path'         => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop&q=80',
+                'banner_path'       => 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&h=400&fit=crop&q=80',
+                'status'            => 'approved',
+                'rejection_reason'  => null,
+                'commission_bps'    => 1000,
+                'pickup_address_id' => $nikeAddress->id,
+            ]
+        );
+
+        // 11. Logitech Official Store (Fully verified seller)
+        $logitechUser = User::updateOrCreate(
+            ['email' => 'logitech@cartzy.com'],
+            [
+                'name'                => 'Logitech Philippines',
+                'password'            => \Illuminate\Support\Facades\Hash::make('Logitech@2026'),
+                'role'                => User::ROLE_SELLER,
+                'status'              => 'active',
+                'is_suspended'        => false,
+                'phone'               => '09176662233',
+                'street_address'      => 'Cyberzone, SM Megamall, EDSA',
+                'address'             => 'Ortigas Center, Mandaluyong City, Metro Manila',
+                'region'              => 'NCR',
+                'province'            => 'Metro Manila',
+                'city'                => 'Mandaluyong City',
+                'barangay'            => 'Wack-Wack Greenhills',
+                'postal_code'         => '1550',
+                'business_name'       => 'Logitech Official Store',
+                'line_of_business'    => 'Computers, Gaming & Electronics',
+                'seller_type'         => 'Corporation',
+                'tin_number'          => '456-789-101',
+                'id_type'             => 'DTI Business Registration',
+                'id_number'           => 'DTI-LOGI-2026-7777',
+                'id_status'           => 'verified',
+                'id_verified_at'      => now(),
+                'email_verified_at'   => now(),
+                'id_rejection_reason' => null,
+            ]
+        );
+        $logitechUser->roles()->syncWithoutDetaching([$roles['seller']->id]);
+
+        $logitechAddress = Address::updateOrCreate(
+            [
+                'user_id' => $logitechUser->id,
+                'label'   => 'Logitech Main Logistics Hub',
+            ],
+            [
+                'recipient'   => 'Logitech Official Store Warehouse',
+                'phone'       => '09176662233',
+                'line1'       => 'Cyberzone, SM Megamall, EDSA',
+                'barangay'    => 'Wack-Wack Greenhills',
+                'city'        => 'Mandaluyong City',
+                'province'    => 'Metro Manila',
+                'postal_code' => '1550',
+                'is_default'  => true,
+            ]
+        );
+
+        Seller::updateOrCreate(
+            ['user_id' => $logitechUser->id],
+            [
+                'name'              => 'Logitech Official Store',
+                'slug'              => 'logitech',
+                'description'       => 'Official Logitech Store for high-performance gaming gear, mechanical keyboards, precision mice, webcams, and workspace essentials.',
+                'logo_path'         => 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop&q=80',
+                'banner_path'       => 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1200&h=400&fit=crop&q=80',
+                'status'            => 'approved',
+                'rejection_reason'  => null,
+                'commission_bps'    => 1000,
+                'pickup_address_id' => $logitechAddress->id,
+            ]
+        );
+
+        // 12. Gaabor Store (Verified seller, no products)
+        $this->call(GaaborStoreSeeder::class);
     }
 }
+
