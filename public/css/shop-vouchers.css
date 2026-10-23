@@ -1,0 +1,16 @@
+/* Public shop vouchers strip (store page and product page) */
+.shv { margin: 18px 0; padding: 16px 18px; border: 1px solid #f0d6dd; border-radius: 16px; background: linear-gradient(110deg, #fff7f9, #fbf6fb); }
+.shv-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 12px; }
+.shv-head h2 { display: flex; align-items: center; gap: 6px; margin: 0; font-family: inherit; font-size: 15px; font-weight: 700; color: #302738; }
+.shv-head small { color: #8a7f92; font-size: 12px; }
+.shv-list { display: flex; gap: 10px; margin: 0; padding: 0 0 4px; overflow-x: auto; list-style: none; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+.shv-ticket { display: flex; flex: none; min-width: 220px; overflow: hidden; border: 1px solid #f0d6dd; border-radius: 12px; background: #fff; scroll-snap-align: start; }
+.shv-stub { position: relative; display: grid; place-items: center; width: 92px; flex: none; padding: 10px 8px; background: linear-gradient(135deg, #a25369, #7c4a6b); color: #fff; text-align: center; }
+.shv-stub::after { content: ""; position: absolute; top: 0; bottom: 0; right: -5px; width: 10px; background: radial-gradient(circle at 5px 7px, #fff 3.5px, transparent 4px) 0 0 / 10px 14px repeat-y; }
+.shv-stub strong { font-size: 14px; line-height: 1.15; }
+.shv-body { display: grid; align-content: center; gap: 2px; min-width: 0; padding: 10px 14px; }
+.shv-body strong { color: #302738; font-size: 13px; }
+.shv-body small { color: #8a7f92; font-size: 11.5px; }
+.shv-body em { color: #b4651e; font-style: normal; font-weight: 700; }
+.shv.is-compact { margin: 0 0 20px; padding: 12px 14px; }
+.shv.is-compact .shv-ticket { min-width: 200px; }
