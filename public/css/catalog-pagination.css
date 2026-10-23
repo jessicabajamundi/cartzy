@@ -1,0 +1,96 @@
+/* Shared compact pagination for Daily Discover and Sale. */
+:is(#daily-discover-section, .flash-page) :is(.discovery-pagination, .flash-pagination) {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-top: 28px;
+    padding: 22px 0;
+    border-top: 1px solid #e8dfe9;
+}
+#daily-discover-section .discovery-pagination[hidden] { display: none; }
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-summary, .flash-page-summary) {
+    margin: 0;
+    color: #786d82;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: .01em;
+    text-align: right;
+    font-family: 'Lato', sans-serif;
+    font-variant-numeric: tabular-nums;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls, .flash-page-controls) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-wrap: wrap;
+    max-width: 100%;
+    padding: 5px;
+    border: 1px solid #e5d8df;
+    border-radius: 13px;
+    background: linear-gradient(120deg, #fff, #faf7fb 65%, #fff5f3);
+    box-shadow: 0 2px 6px #28213304, 0 5px 18px #6f638208;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls button, .flash-page-controls > a, .flash-page-controls > span) {
+    display: grid;
+    place-items: center;
+    box-sizing: border-box;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 9px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: #65596f;
+    font: 700 12px 'Lato', sans-serif;
+    box-shadow: none;
+    text-decoration: none;
+    transition: background .18s, color .18s, box-shadow .18s;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls button:hover:not(:disabled), .flash-page-controls a:hover) {
+    background: #f1e9ed;
+    color: #564b68;
+    border-color: transparent;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls, .flash-page-controls) [aria-current="page"] {
+    background: linear-gradient(145deg, #756585, #564b68);
+    border-color: #675773;
+    color: #fff;
+    box-shadow: 0 2px 5px #564b6826, inset 0 1px 0 #ffffff20;
+}
+#daily-discover-section .discovery-page-controls button[aria-current="page"]:hover {
+    background: #564b68;
+    color: #fff;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls, .flash-page-controls) > :is(:first-child, :last-child) {
+    background: #fff;
+    border-color: #eadce1;
+    color: #8c5a50;
+    font-size: 19px;
+    font-weight: 400;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls, .flash-page-controls) :is(button, a):focus-visible {
+    outline: 2px solid #8c5a50;
+    outline-offset: 2px;
+}
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls button:disabled, .flash-page-controls .is-disabled) { opacity: .35; }
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-controls > span, .flash-page-controls > .flash-page-gap) {
+    min-width: 14px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #786d82;
+}
+@media (max-width: 480px) {
+    :is(#daily-discover-section, .flash-page) :is(.discovery-pagination, .flash-pagination) {
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :is(#daily-discover-section, .flash-page) :is(.discovery-page-controls button, .flash-page-controls a) { transition: none; }
+}

@@ -45,7 +45,8 @@ class CatalogStoreTest extends TestCase
             ['id' => 3, 'name' => 'Wireless Earphones', 'price' => 890, 'quantity' => 1],
         ], 'COD', 'Test address');
         $this->assertCount(2, $order->sellerOrders);
-        $this->assertEquals(118000, $order->total_minor);
+        // Each store ships its own parcel (₱60 standard rate each), less the ₱50 Shipping Saver.
+        $this->assertEquals(124000, $order->total_minor);
         $this->assertEquals($order->total_minor, $order->sellerOrders->sum(fn ($so) => $so->subtotal_minor + $so->shipping_fee_minor));
         $this->assertEquals($order->total_minor, $order->sellerOrders->sum(fn ($so) => $so->shipment->cod_amount_minor));
         $this->assertCount(1, $order->payments);
