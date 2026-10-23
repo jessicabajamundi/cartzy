@@ -44,7 +44,15 @@
 .operations-dashboard a { text-decoration:none; }
 .operations-heading { display:flex; justify-content:space-between; align-items:center; gap:24px; margin:4px 0 28px; }
 .operations-kicker { margin:0 0 8px; font-size:10px; font-weight:700; color:#986E64; text-transform:uppercase; letter-spacing:.13em; }
-.operations-heading h2 { margin:0; font-size:30px; line-height:1.2; font-weight:700; color:var(--hub-ink); letter-spacing:-.035em; }
+.operations-heading h2 { margin:0; color:var(--hub-ink); }
+/* Main page titles for every logistics sidebar destination. */
+.logistics-portal .logistics-content :is(.operations-heading, .rider-heading, .pickup-heading, .parcel-heading, .sorting-heading, .assignment-heading, .monitor-heading, .notice-heading, .hub-chat-heading, .account-heading, .reports-heading) h2 {
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-size:clamp(40px, 4vw, 52px);
+    font-weight:700;
+    line-height:1.1;
+    letter-spacing:-.035em;
+}
 .operations-location { margin:9px 0 0; font-size:12px; line-height:1.5; color:var(--hub-muted); }
 .operations-heading-actions { display:flex; align-items:center; gap:20px; flex-shrink:0; }
 .operations-heading-actions time { font-size:11px; color:var(--hub-muted); white-space:nowrap; }
@@ -143,7 +151,6 @@
 @media(max-width:760px) {
     .logistics-content { padding:20px 16px; }
     .operations-heading { align-items:flex-start; flex-direction:column; gap:16px; margin-bottom:22px; }
-    .operations-heading h2 { font-size:27px; }
     .operations-heading-actions { width:100%; flex-direction:row; align-items:center; justify-content:space-between; }
     .operations-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .operations-metric { padding:17px; }
@@ -168,4 +175,140 @@
     .operations-period { display:none; }
     .operations-chart { height:220px; margin-inline:12px; }
     .operations-footer { flex-direction:column; gap:6px; }
+    .operations-filter-card { flex-direction:column; align-items:flex-start; gap:12px; padding:14px; }
+    .operations-filter-left { width:100%; flex-direction:column; align-items:flex-start; gap:10px; }
+    .operations-custom-form { width:100%; }
+}
+
+/* Operations Date Filter Bar */
+.operations-filter-card {
+    background: white;
+    border: 1px solid var(--hub-line);
+    border-radius: 8px;
+    padding: 14px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+.operations-filter-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+.operations-filter-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.operations-filter-icon-box {
+    width: 34px;
+    height: 34px;
+    background: #EEE9F2;
+    color: var(--hub-plum);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.operations-filter-indicator-text span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #986E64;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+.operations-filter-indicator-text strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--hub-ink);
+}
+.operations-preset-list {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.operations-preset-btn {
+    padding: 6px 12px;
+    background: #F4F1F6;
+    color: #564B68;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    transition: all .15s ease;
+    text-decoration: none;
+}
+.operations-preset-btn:hover {
+    background: #E8E2EE;
+    color: var(--hub-ink);
+}
+.operations-preset-btn.is-active {
+    background: var(--hub-plum);
+    color: white;
+    border-color: var(--hub-plum);
+}
+.operations-custom-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.operations-date-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--hub-muted);
+}
+.operations-date-input {
+    border: 1px solid #D9D2DE;
+    background: white;
+    color: var(--hub-ink);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 600;
+}
+.operations-date-input:focus {
+    outline: none;
+    border-color: var(--hub-plum);
+}
+.operations-filter-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: var(--hub-plum-dark);
+    color: white;
+    border: 1px solid var(--hub-plum-dark);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.operations-filter-submit-btn:hover {
+    background: #3E354C;
+}
+.operations-reset-link {
+    color: #9B5148;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 8px;
+    transition: color .15s;
+    text-decoration: none;
+}
+.operations-reset-link:hover {
+    text-decoration: underline;
+    color: #7A3931;
 }

@@ -14,7 +14,7 @@ return new class extends Migration
         // 1. Add fields to riders table
         Schema::table('riders', function (Blueprint $table) {
             if (!Schema::hasColumn('riders', 'status')) {
-                $table->enum('status', ['pending', 'approved', 'rejected'])->default('approved')->after('plate_no');
+                $table->enum('status', ['pending', 'approved', 'rejected', 'suspended'])->default('approved')->after('plate_no');
             }
             if (!Schema::hasColumn('riders', 'rejection_reason')) {
                 $table->text('rejection_reason')->nullable()->after('status');

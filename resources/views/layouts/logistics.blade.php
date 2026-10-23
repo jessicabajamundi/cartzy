@@ -222,6 +222,20 @@
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Reports</span>
                 </a>
 
+                @php
+                    $logisticsUnreadCount = \App\Models\AppNotification::where('user_id', Auth::id())->where('is_read', false)->count();
+                @endphp
+                <a href="{{ route('logistics.notifications') }}" title="Notifications{{ $logisticsUnreadCount ? ' (' . $logisticsUnreadCount . ' unread)' : '' }}" aria-label="Notifications, {{ $logisticsUnreadCount }} unread" @if(request()->routeIs('logistics.notifications*')) aria-current="page" @endif class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.notifications*') ? 'bg-[#6F6382] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-7 h-7 relative flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+                            @if($logisticsUnreadCount)<span class="sidebar-mini-only hidden absolute top-0 right-0 w-2 h-2 rounded-full bg-rose-500"></span>@endif
+                        </div>
+                        <span class="sidebar-full-only">Notifications</span>
+                    </div>
+                    @if($logisticsUnreadCount)<span class="sidebar-full-only rounded-full px-2 py-0.5 text-xs font-bold bg-purple-100 text-purple-800">{{ $logisticsUnreadCount > 99 ? '99+' : $logisticsUnreadCount }}</span>@endif
+                </a>
+
                 <!-- Chat -->
                 <a href="{{ route('logistics.chat') }}" title="Chat" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.chat*') ? 'bg-[#6F6382] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3 truncate">
@@ -355,5 +369,6 @@
     </script>
     @stack('scripts')
     @include('partials.prevent-back-cache')
+@include('partials.logout-confirm')
 </body>
 </html>

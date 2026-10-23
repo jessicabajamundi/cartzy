@@ -1,0 +1,64 @@
+.pickup-workspace { max-width:1400px; margin:4px auto 28px; font-family:'Lato',sans-serif; color:var(--hub-ink); }
+.logistics-portal .pickup-workspace :is(h2,h3) { font-family:'Lato',sans-serif; }
+.pickup-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:25px; }
+.pickup-heading .pickup-kicker { margin:0 0 9px; font-size:10px; font-weight:800; letter-spacing:.14em; color:#95695f; }
+.pickup-heading h2 { margin:0; font-size:30px; font-weight:900; letter-spacing:-.035em; color:var(--hub-plum-dark); }
+.pickup-heading p { margin:9px 0 0; font-size:13px; line-height:1.6; color:var(--hub-muted); }
+.pickup-heading-icon { width:58px; height:58px; border-radius:17px; display:grid; place-items:center; background:#eee8f3; color:var(--hub-plum); flex-shrink:0; }
+.pickup-overview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-bottom:26px; }
+.pickup-metric { display:flex; justify-content:space-between; align-items:center; padding:21px 23px; background:white; border:1px solid var(--hub-line); border-radius:12px; text-decoration:none; }
+.pickup-metric.is-rose { background:#faf0eb; border-color:#e8d6cf; }
+.pickup-metric > div { display:flex; flex-direction:column; gap:8px; }
+.pickup-metric > div > span { font-size:12px; color:var(--hub-plum-dark); font-weight:700; }
+.pickup-metric strong { font-size:30px; font-weight:900; line-height:1.1; color:var(--hub-plum-dark); font-variant-numeric:tabular-nums; }
+.pickup-metric.is-rose strong { color:#96695e; }
+.pickup-metric small { font-size:11px; color:var(--hub-muted); }
+.pickup-metric-icon { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:#f1ecf5; color:var(--hub-plum); }
+.is-rose .pickup-metric-icon { color:#95695f; background:#f0dfd7; }
+.pickup-metric:hover { border-color:var(--hub-plum); }
+.pickup-toolbar { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:15px 18px; background:white; border:1px solid var(--hub-line); border-radius:12px; }
+.pickup-tabs { display:flex; gap:6px; }
+.pickup-tabs a { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:7px; font-size:12px; font-weight:700; color:var(--hub-muted); }
+.pickup-tabs a[aria-current=page] { background:var(--hub-plum); color:white; }
+.pickup-tabs span { font-size:10px; padding:2px 6px; border-radius:4px; background:#f2ecf5; color:var(--hub-plum-dark); }
+.pickup-tabs a[aria-current=page] span { background:#ffffff26; color:white; }
+.pickup-search { display:flex; align-items:center; gap:9px; min-width:0; width:365px; padding-left:12px; border:1px solid #ded5e6; border-radius:8px; background:#faf8fc; }
+.pickup-search > span { color:var(--hub-plum); }
+.logistics-portal .pickup-search input[type=search] { width:100%; min-width:0; height:40px; border:0; background:transparent; font:400 12px 'Lato',sans-serif; color:var(--hub-ink); padding:6px 0; }
+.pickup-search button { align-self:stretch; padding:0 12px; border-left:1px solid #ded5e6; color:var(--hub-plum-dark); font-size:11px; font-weight:700; }
+.pickup-results { display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:space-between; margin:17px 2px 12px; font-size:11px; color:var(--hub-muted); }
+.pickup-results a { color:var(--hub-plum-dark); text-decoration:underline; }
+.pickup-list { display:grid; gap:14px; }
+.pickup-card { padding:21px 23px 0; border:1px solid var(--hub-line); border-radius:12px; background:white; overflow:hidden; }
+.pickup-card.is-pending { border-left:3px solid var(--hub-rose); }
+.pickup-card-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.pickup-seller { display:flex; align-items:center; gap:12px; min-width:0; }
+.pickup-seller > div { min-width:0; }
+.pickup-avatar { width:40px; height:40px; border-radius:11px; display:grid; place-items:center; background:#f1ecf5; color:var(--hub-plum); font-size:18px; font-weight:800; flex-shrink:0; }
+.pickup-reference { font-size:9px; font-weight:700; letter-spacing:.1em; color:var(--hub-muted); }
+.pickup-seller h3 { font-size:16px; font-weight:800; margin:3px 0 0; color:var(--hub-plum-dark); overflow-wrap:anywhere; }
+.pickup-badge { font-size:10px; font-weight:700; padding:5px 9px; border-radius:20px; background:#f0eaf5; color:var(--hub-plum-dark); }
+.is-pending .pickup-badge { background:#f5e6df; color:#8c6054; }
+.pickup-card-body { display:flex; align-items:center; gap:24px; margin:22px 0 18px; }
+.pickup-details { flex:1; min-width:0; display:grid; grid-template-columns:170px 130px minmax(180px,1fr); gap:20px; margin:0; }
+.pickup-details dt { margin-bottom:7px; font-size:10px; color:var(--hub-muted); }
+.pickup-details dd { font-size:12px; font-weight:700; line-height:1.6; margin:0; overflow-wrap:anywhere; }
+.pickup-details dd span { display:block; font-size:12px; font-weight:400; color:var(--hub-muted); margin-top:2px; }
+.pickup-action { flex-shrink:0; }
+.pickup-action button { display:flex; justify-content:center; align-items:center; gap:9px; background:var(--hub-plum); color:white; padding:12px 17px; border-radius:8px; font-size:12px; font-weight:700; min-height:44px; }
+.pickup-action button:hover { background:var(--hub-plum-dark); }
+.pickup-action button:disabled { opacity:.65; cursor:wait; }
+.pickup-completed { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--hub-plum); font-weight:700; }
+.pickup-note { display:flex; align-items:flex-start; gap:9px; padding:10px 12px; margin-bottom:16px; border:1px solid #ecdcd5; border-radius:7px; background:#fcf5f1; color:#8b6257; font-size:11px; line-height:1.6; }
+.pickup-note svg { flex-shrink:0; margin-top:1px; }
+.pickup-note p { margin:0; overflow-wrap:anywhere; }
+.pickup-card-footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:9px; border-top:1px solid #eee8ef; padding:12px 0; color:var(--hub-muted); font-size:10px; overflow-wrap:anywhere; }
+.pickup-card-footer span { min-width:0; }
+.pickup-empty { text-align:center; background:white; padding:48px 20px; border:1px solid var(--hub-line); border-radius:12px; }
+.pickup-empty > span { display:grid; place-items:center; width:68px; height:68px; margin:0 auto 18px; border-radius:22px; background:linear-gradient(135deg,#eee7f4,#f3e3db); color:var(--hub-plum); }
+.pickup-empty h3 { font-size:19px; font-weight:800; color:var(--hub-plum-dark); }
+.pickup-empty p { font-size:13px; margin:9px 0 18px; color:var(--hub-muted); }
+.pickup-empty a { font-size:12px; font-weight:700; color:var(--hub-plum-dark); }
+.pickup-pagination { margin-top:20px; }
+@media(max-width:1200px) { .pickup-card-body { flex-wrap:wrap; } .pickup-details { flex-basis:100%; grid-template-columns:1fr 1fr 2fr; } .pickup-action { margin-left:auto; } .pickup-toolbar { flex-wrap:wrap; } .pickup-search { flex:1; min-width:250px; } }
+@media(max-width:640px) { .pickup-heading h2 { font-size:26px; } .pickup-heading-icon { display:none; } .pickup-overview { gap:8px; } .pickup-metric { padding:13px 10px; } .pickup-metric-icon,.pickup-metric small { display:none; } .pickup-metric > div > span { font-size:10px; line-height:1.5; } .pickup-metric strong { font-size:24px; } .pickup-toolbar { padding:12px; gap:13px; } .pickup-tabs { width:100%; } .pickup-tabs a { flex:1; justify-content:center; padding:9px 7px; font-size:11px; } .pickup-search { width:100%; min-width:0; flex-basis:100%; } .pickup-card { padding:17px 15px 0; } .pickup-details { grid-template-columns:1fr 1fr; gap:17px; } .pickup-address { grid-column:1 / -1; } .pickup-action,.pickup-action form,.pickup-action button { width:100%; } .pickup-card-heading { gap:8px; } .pickup-seller h3 { font-size:14px; } .pickup-avatar { width:34px; height:34px; } }

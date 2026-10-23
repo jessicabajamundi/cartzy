@@ -1,117 +1,45 @@
 @extends('layouts.logistics')
-
 @section('title', 'Delivery Assignment | Logistics Hub | cartzy')
 @section('page_title', 'Delivery Assignment')
-@section('page_subtitle', 'Assign sorted parcels to riders per area')
-
+@section('page_subtitle', 'Match each parcel with a rider and keep deliveries moving')
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/logistics-assignments.css') }}?v={{ filemtime(public_path('css/logistics-assignments.css')) }}">
+@endpush
 @section('content')
-
-{{-- Area Filter --}}
-<div class="flex flex-wrap gap-2 mb-6">
-    <a href="{{ route('logistics.assignments', ['area'=>'all']) }}"
-       class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter==='all' ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
-        All Areas
-    </a>
-    @foreach($areas as $area)
-    <a href="{{ route('logistics.assignments', ['area'=>$area]) }}"
-       class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$area ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
-        {{ $area }}
-    </a>
-    @endforeach
-</div>
-
-{{-- Parcels --}}
-<div class="space-y-4">
-    @forelse($parcels as $parcel)
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden">
-        <div class="flex flex-col md:flex-row md:items-center gap-4 p-5">
-            {{-- Icon + Code --}}
-            <div class="shrink-0">
-                <div class="w-12 h-12 rounded-xl bg-violet-50 border border-violet-100 text-violet-600 flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                </div>
-            </div>
-
-            {{-- Details --}}
-            <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="text-xs font-black text-[#6F6382]">{{ $parcel['tracking_code'] }}</span>
-                    <span class="text-xs font-black bg-violet-100 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">{{ $parcel['delivery_area'] }}</span>
-                    @if($parcel['sort_status']==='assigned')
-                        <span class="text-xs font-black bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">Assigned</span>
-                    @endif
-                </div>
-                <div class="font-bold text-slate-800">{{ $parcel['recipient_name'] }}</div>
-                <div class="text-xs text-slate-500 mt-0.5 truncate">{{ $parcel['recipient_address'] }}</div>
-                <div class="flex flex-wrap gap-3 mt-1.5 text-xs text-slate-500">
-                    <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><span>{{ $parcel['items'] }}</span></span>
-                    <span class="inline-flex items-center gap-1"><svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg><span>{{ $parcel['weight_kg'] }}kg</span></span>
-                    @if($parcel['payment_method']==='COD')
-                        <span class="text-rose-600 font-bold">COD ₱{{ number_format($parcel['cod_amount'],2) }}</span>
-                    @else
-                        <span class="text-emerald-600 font-bold">Prepaid</span>
-                    @endif
-                </div>
-                @if($parcel['assigned_rider_name'])
-                    <div class="mt-1.5 text-xs text-emerald-600 font-bold flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="6.5" cy="16.5" r="2.5" stroke-width="1.8"/><circle cx="17.5" cy="16.5" r="2.5" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 16.5h5m-2.5-7l-3 7m2.5-7l4-2h3m-7 2l2-3h3"/></svg>
-                        <span>Assigned to: {{ $parcel['assigned_rider_name'] }}</span>
-                        @if($parcel['assigned_at'])<span class="text-slate-400 font-normal">&mdash; {{ $parcel['assigned_at'] }}</span>@endif
-                    </div>
-                @endif
-            </div>
-
-            {{-- Assign Form --}}
-            <div class="shrink-0">
+@php
+    $waiting = collect($parcels)->filter(fn($p) => !$p['assigned_rider_id'] && $p['sort_status'] !== 'assigned')->count();
+    $orderedParcels = collect($parcels)->sortBy(fn($p) => $p['assigned_rider_id'] || $p['sort_status'] === 'assigned' ? 1 : 0);
+@endphp
+<section class="assignment-workspace" aria-label="Delivery assignment">
+    <header class="assignment-heading"><div><span class="assignment-eyebrow">DISPATCH DESK</span><h2>The right rider. The next delivery.</h2><p>Find a parcel, choose an active rider, then select Assign rider.</p></div><a class="assignment-button secondary" href="{{ route('logistics.sorting') }}">Go to sorting <span aria-hidden="true">→</span></a></header>
+    <div class="assignment-metrics"><div class="rose"><span>Needs a rider</span><strong>{{ $waiting }}</strong><small>{{ $filter === 'all' ? 'Across all areas' : 'In the selected area' }}</small></div><div><span>Already assigned</span><strong>{{ count($parcels) - $waiting }}</strong><small>{{ $filter === 'all' ? 'Across all areas' : 'In the selected area' }}</small></div><div class="blend"><span>Active riders</span><strong>{{ count($riders) }}</strong><small>Approved riders in your hub</small></div></div>
+    <div class="assignment-panel">
+        <div class="assignment-toolbar"><div class="assignment-search"><label for="assignment-search">Find a parcel</label><input id="assignment-search" type="search" placeholder="Tracking number, recipient or address" autocomplete="off"></div><form action="{{ route('logistics.assignments') }}" method="GET" class="assignment-area"><div><label for="assignment-area">Delivery area</label><select id="assignment-area" name="area"><option value="all">All areas</option>@foreach($areas as $area)<option value="{{ $area }}" @selected($filter === $area)>{{ $area }}</option>@endforeach</select></div><button class="assignment-button secondary" type="submit">Apply area</button></form></div>
+        <div class="assignment-tabs" role="group" aria-label="Filter assignment status"><button type="button" data-assignment-filter="all" aria-pressed="true">All parcels <span>{{ count($parcels) }}</span></button><button type="button" data-assignment-filter="waiting" aria-pressed="false">Needs a rider <span>{{ $waiting }}</span></button><button type="button" data-assignment-filter="assigned" aria-pressed="false">Assigned <span>{{ count($parcels) - $waiting }}</span></button></div>
+        <div class="assignment-list-heading"><span id="assignment-result-count" role="status">{{ count($parcels) }} parcels</span><span>Parcels needing a rider appear first</span></div>
+        @if(!$riders)<div class="assignment-notice">No active riders available. <a href="{{ route('logistics.riders', ['filter'=>'inactive']) }}">Activate a rider</a> to start assigning deliveries.</div>@endif
+        @foreach($orderedParcels as $parcel)
+        @php
+            $assigned = (bool) $parcel['assigned_rider_id'] || $parcel['sort_status'] === 'assigned';
+            $matching = collect($riders)->filter(fn($r) => mb_strtolower(trim($r['area'])) === mb_strtolower(trim($parcel['delivery_area'] ?? '')));
+            $others = collect($riders)->reject(fn($r) => $matching->contains('id', $r['id']));
+        @endphp
+        <article class="assignment-row {{ $assigned ? '' : 'needs-rider' }}" data-assignment-state="{{ $assigned ? 'assigned' : 'waiting' }}" data-assignment-search="{{ $parcel['tracking_code'].' '.$parcel['recipient_name'].' '.$parcel['recipient_address'].' '.$parcel['delivery_area'].' '.$parcel['assigned_rider_name'] }}">
+            <div class="assignment-parcel"><div class="assignment-code-row"><strong>{{ $parcel['tracking_code'] }}</strong><span class="assignment-status {{ $assigned ? '' : 'waiting' }}">{{ $assigned ? 'Assigned' : 'Needs a rider' }}</span></div><h3>{{ $parcel['recipient_name'] }}</h3><p class="assignment-address">{{ $parcel['recipient_address'] }}</p><div class="assignment-meta"><span class="assignment-area-tag">{{ $parcel['delivery_area'] ?: 'Area not set' }}</span><span>{{ $parcel['weight_kg'] }} kg</span><span class="{{ $parcel['payment_method'] === 'COD' ? 'assignment-cod' : '' }}">{{ $parcel['payment_method'] === 'COD' ? 'COD ₱'.number_format($parcel['cod_amount'],2) : 'Prepaid' }}</span></div><details class="assignment-details"><summary>View items</summary><p>{{ $parcel['items'] }}</p></details></div>
+            <div class="assignment-action">
+                @if($assigned)<div class="assignment-rider"><span class="assignment-rider-check" aria-hidden="true">✓</span><div><small>Assigned rider</small><strong>{{ $parcel['assigned_rider_name'] ?: 'Rider unavailable' }}</strong>@if($parcel['assigned_at'])<time>{{ $parcel['assigned_at'] }}</time>@endif</div></div>@endif
                 @if($parcel['sort_status'] !== 'assigned')
-                <form method="POST" action="{{ route('logistics.assignments.assign', $parcel['id']) }}" class="flex flex-col gap-2 min-w-[200px]">
-                    @csrf
-                    <select name="rider_id" required class="border border-slate-200 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                        <option value="">Assign Rider</option>
-                        @foreach($riders as $rider)
-                        <option value="{{ $rider['id'] }}" data-name="{{ $rider['name'] }}">{{ $rider['name'] }} ({{ $rider['area'] ?? 'General Area' }})</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="bg-[#6F6382] hover:bg-[#564B68] text-white font-black text-sm px-4 py-2.5 rounded-xl transition inline-flex items-center justify-center gap-2" onclick="setRiderName(this)">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                        <span>Assign to Rider</span>
-                    </button>
-                    <input type="hidden" name="rider_name" id="riderName_{{ $parcel['id'] }}" value="">
-                </form>
-                @else
-                <div class="text-center">
-                    <div class="text-emerald-600 font-black text-sm flex items-center gap-1.5">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        Assigned
-                    </div>
-                </div>
+                    @if($assigned)<details class="assignment-change"><summary>Change rider</summary>@endif
+                    <form class="assignment-form" method="POST" action="{{ route('logistics.assignments.assign', ['id'=>$parcel['id']], false) }}">@csrf<label for="rider-{{ $parcel['id'] }}">{{ $assigned ? 'Choose a replacement rider' : 'Choose a rider' }}</label><select id="rider-{{ $parcel['id'] }}" name="rider_id" required @disabled(!$riders)><option value="">{{ $riders ? 'Select an active rider' : 'No active riders' }}</option>@if($matching->isNotEmpty())<optgroup label="Same delivery area">@foreach($matching as $rider)<option value="{{ $rider['id'] }}">{{ $rider['name'] }} — {{ $rider['area'] }}</option>@endforeach</optgroup>@endif @if($others->isNotEmpty())<optgroup label="{{ $matching->isNotEmpty() ? 'Other active riders' : 'Active riders' }}">@foreach($others as $rider)<option value="{{ $rider['id'] }}">{{ $rider['name'] }} — {{ $rider['area'] }}</option>@endforeach</optgroup>@endif</select><button class="assignment-button primary" type="submit" @disabled(!$riders)>{{ $assigned ? 'Update rider' : 'Assign rider' }} <span aria-hidden="true">→</span></button></form>
+                    @if($assigned)</details>@endif
                 @endif
             </div>
-        </div>
+        </article>
+        @endforeach
+        <div class="assignment-empty" id="assignment-empty" @if(count($parcels)) hidden @endif><h3>No parcels to show</h3><p>Try another search or area. Parcels appear here after sorting.</p><button type="button" class="assignment-button secondary" id="assignment-clear">Clear search & status</button><a href="{{ route('logistics.sorting') }}">Go to sorting →</a></div>
     </div>
-    @empty
-    <div class="text-center py-20 text-slate-400">
-        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-        </div>
-        <p class="font-bold text-lg">No parcels to assign in this area.</p>
-        <a href="{{ route('logistics.sorting') }}" class="mt-3 inline-block text-sm text-[#6F6382] hover:underline font-bold">→ Sort parcels first</a>
-    </div>
-    @endforelse
-</div>
-
+</section>
 @endsection
-
 @push('scripts')
-<script>
-function setRiderName(btn) {
-    const form = btn.closest('form');
-    const sel = form.querySelector('select[name="rider_id"]');
-    const opt = sel.options[sel.selectedIndex];
-    const hiddenName = form.querySelector('input[name="rider_name"]');
-    if (hiddenName && opt) hiddenName.value = opt.dataset.name || opt.text;
-}
-</script>
+<script src="{{ asset('js/logistics-assignments.js') }}?v={{ filemtime(public_path('js/logistics-assignments.js')) }}" defer></script>
 @endpush

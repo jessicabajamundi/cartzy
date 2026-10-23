@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class LogisticsPortalController extends Controller
 {
@@ -45,69 +47,116 @@ class LogisticsPortalController extends Controller
     /**
      * 1. Dashboard
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $hub      = Auth::user();
         $provider = $this->provider();
+
+        // Date range filtering logic
+        $activePreset = $request->query('preset');
+        $inputStart   = $request->query('start_date');
+        $inputEnd     = $request->query('end_date');
+
+        if ($activePreset === 'yesterday') {
+            $startDate   = today()->subDay()->startOfDay();
+            $endDate     = today()->subDay()->endOfDay();
+            $filterLabel = 'Yesterday (' . $startDate->format('M d, Y') . ')';
+        } elseif ($activePreset === 'week') {
+            $startDate   = today()->subDays(6)->startOfDay();
+            $endDate     = today()->endOfDay();
+            $filterLabel = 'Last 7 Days (' . $startDate->format('M d') . ' – ' . $endDate->format('M d, Y') . ')';
+        } elseif ($activePreset === 'month') {
+            $startDate   = today()->startOfMonth()->startOfDay();
+            $endDate     = today()->endOfDay();
+            $filterLabel = 'This Month (' . $startDate->format('M d') . ' – ' . $endDate->format('M d, Y') . ')';
+        } elseif ($inputStart || $inputEnd) {
+            $activePreset = 'custom';
+            $parsedStart  = $inputStart ? Carbon::parse($inputStart)->startOfDay() : today()->startOfDay();
+            $parsedEnd    = $inputEnd ? Carbon::parse($inputEnd)->endOfDay() : $parsedStart->copy()->endOfDay();
+            if ($parsedStart->gt($parsedEnd)) {
+                $temp        = $parsedStart;
+                $parsedStart = $parsedEnd->copy()->startOfDay();
+                $parsedEnd   = $temp->copy()->endOfDay();
+            }
+            $startDate = $parsedStart;
+            $endDate   = $parsedEnd;
+
+            if ($startDate->isSameDay($endDate)) {
+                $filterLabel = $startDate->format('M d, Y');
+            } else {
+                $filterLabel = $startDate->format('M d, Y') . ' – ' . $endDate->format('M d, Y');
+            }
+        } else {
+            $activePreset = 'today';
+            $startDate    = today()->startOfDay();
+            $endDate      = today()->endOfDay();
+            $filterLabel  = 'Today (' . today()->format('M d, Y') . ')';
+        }
+
+        $isToday = $startDate->isSameDay(today()) && $endDate->isSameDay(today());
 
         $totalRiders         = Rider::where('logistics_provider_id', $provider->id)->count();
         $activeRiders        = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->count();
         $pendingApplications = Rider::where('logistics_provider_id', $provider->id)->where('status', 'pending')->count();
 
-        $pickupsToday = PickupRequest::where('logistics_provider_id', $provider->id)
-            ->whereDate('pickup_date', today())
+        $pickupsCount = PickupRequest::where('logistics_provider_id', $provider->id)
+            ->whereBetween('pickup_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->count();
 
         $parcelsInHub = Shipment::where('logistics_provider_id', $provider->id)
             ->whereIn('status', ['unassigned', 'assigned', 'picked_up', 'in_transit'])
             ->count();
 
-        $sortedToday = Shipment::where('logistics_provider_id', $provider->id)
-            ->where(function ($q) {
-                $q->whereDate('sorted_at', today())
-                  ->orWhere(function ($sub) {
+        $sortedCount = Shipment::where('logistics_provider_id', $provider->id)
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('sorted_at', [$startDate, $endDate])
+                  ->orWhere(function ($sub) use ($startDate, $endDate) {
                       $sub->whereIn('sort_status', ['sorted', 'assigned'])
-                          ->whereDate('updated_at', today());
+                          ->whereBetween('updated_at', [$startDate, $endDate]);
                   });
             })
             ->count();
 
-        $outForDelivery = Shipment::where('logistics_provider_id', $provider->id)
+        $outForDeliveryCount = Shipment::where('logistics_provider_id', $provider->id)
             ->where('status', 'out_for_delivery')
+            ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
-        $deliveredToday = Shipment::where('logistics_provider_id', $provider->id)
+        $deliveredCount = Shipment::where('logistics_provider_id', $provider->id)
             ->where('status', 'delivered')
-            ->whereDate('updated_at', today())
+            ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
         $failedDeliveries = Shipment::where('logistics_provider_id', $provider->id)
             ->where('status', 'failed')
+            ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
         $totalDispatched = Shipment::where('logistics_provider_id', $provider->id)
             ->whereIn('status', ['delivered', 'failed', 'returned', 'out_for_delivery'])
+            ->whereBetween('updated_at', [$startDate, $endDate])
             ->count();
 
         $hubEfficiency = $totalDispatched > 0
-            ? round((Shipment::where('logistics_provider_id', $provider->id)->where('status', 'delivered')->count() / $totalDispatched) * 100, 1)
+            ? round(($deliveredCount / $totalDispatched) * 100, 1)
             : 94.2;
 
         $stats = [
             'total_riders'         => $totalRiders ?: 18,
             'active_riders'        => $activeRiders ?: 14,
             'pending_applications' => $pendingApplications,
-            'pickups_today'        => $pickupsToday ?: 42,
+            'pickups_today'        => $pickupsCount ?: ($isToday ? 42 : 0),
             'parcels_in_hub'       => $parcelsInHub ?: 187,
-            'sorted_today'         => $sortedToday ?: 134,
-            'out_for_delivery'     => $outForDelivery ?: 96,
-            'delivered_today'      => $deliveredToday ?: 78,
-            'failed_deliveries'    => $failedDeliveries ?: 5,
+            'sorted_today'         => $sortedCount ?: ($isToday ? 134 : 0),
+            'out_for_delivery'     => $outForDeliveryCount ?: ($isToday ? 96 : 0),
+            'delivered_today'      => $deliveredCount ?: ($isToday ? 78 : 0),
+            'failed_deliveries'    => $failedDeliveries ?: ($isToday ? 5 : 0),
             'hub_efficiency'       => $hubEfficiency,
         ];
 
-        // Recent Pickups from DB
+        // Recent Pickups from DB matching filtered range
         $recentPickupsQuery = PickupRequest::where('logistics_provider_id', $provider->id)
+            ->whereBetween('pickup_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->with(['seller.user'])
             ->latest()
             ->take(5)
@@ -126,8 +175,8 @@ class LogisticsPortalController extends Controller
             ];
         })->toArray();
 
-        // If no recent pickups, provide fallback display items
-        if (empty($recentPickups)) {
+        // If no recent pickups and it's today, provide baseline items
+        if (empty($recentPickups) && $isToday) {
             $recentPickups = [
                 [
                     'id'           => 1,
@@ -155,26 +204,37 @@ class LogisticsPortalController extends Controller
         // Recent parcels
         $recentParcels = $this->fetchFormattedParcels($provider, 5);
 
-        // Chart Data (Last 7 Days)
-        $chartLabels   = [];
-        $chartReceived = [];
-        $chartDelivered= [];
+        // Chart Data based on filtered date range
+        $diffDays       = $startDate->diffInDays($endDate);
+        $chartLabels    = [];
+        $chartReceived  = [];
+        $chartDelivered = [];
 
-        for ($i = 6; $i >= 0; $i--) {
-            $date = today()->subDays($i);
-            $chartLabels[] = $date->format('D');
+        if ($diffDays === 0) {
+            $day = $startDate->copy();
+            $chartLabels = ['8:00 AM', '11:00 AM', '2:00 PM', '5:00 PM'];
+            $rec = Shipment::where('logistics_provider_id', $provider->id)->whereDate('created_at', $day)->count();
+            $del = Shipment::where('logistics_provider_id', $provider->id)->where('status', 'delivered')->whereDate('updated_at', $day)->count();
 
-            $rec = Shipment::where('logistics_provider_id', $provider->id)
-                ->whereDate('created_at', $date)
-                ->count();
-            $del = Shipment::where('logistics_provider_id', $provider->id)
-                ->where('status', 'delivered')
-                ->whereDate('updated_at', $date)
-                ->count();
+            $chartReceived  = $rec > 0 ? [round($rec * 0.25), round($rec * 0.4), round($rec * 0.25), round($rec * 0.1)] : ($isToday ? [18, 36, 28, 12] : [0, 0, 0, 0]);
+            $chartDelivered = $del > 0 ? [round($del * 0.15), round($del * 0.35), round($del * 0.35), round($del * 0.15)] : ($isToday ? [12, 29, 25, 12] : [0, 0, 0, 0]);
+        } else {
+            $steps = min((int) $diffDays, 13);
+            for ($i = $steps; $i >= 0; $i--) {
+                $curDate = $endDate->copy()->subDays($i);
+                $chartLabels[] = $curDate->format('M d');
 
-            // Blend with realistic volume if baseline is quiet
-            $chartReceived[]  = $rec > 0 ? $rec : [45, 62, 58, 71, 88, 102, 94][6 - $i];
-            $chartDelivered[] = $del > 0 ? $del : [38, 55, 50, 67, 80, 95, 78][6 - $i];
+                $rec = Shipment::where('logistics_provider_id', $provider->id)
+                    ->whereDate('created_at', $curDate)
+                    ->count();
+                $del = Shipment::where('logistics_provider_id', $provider->id)
+                    ->where('status', 'delivered')
+                    ->whereDate('updated_at', $curDate)
+                    ->count();
+
+                $chartReceived[]  = $rec > 0 ? $rec : ($isToday ? [45, 62, 58, 71, 88, 102, 94][$i % 7] : 0);
+                $chartDelivered[] = $del > 0 ? $del : ($isToday ? [38, 55, 50, 67, 80, 95, 78][$i % 7] : 0);
+            }
         }
 
         $chartData = [
@@ -184,7 +244,7 @@ class LogisticsPortalController extends Controller
         ];
 
         // Notifications
-        $dbNotifs = AppNotification::where('user_id', $hub->id)->latest()->take(4)->get();
+        $dbNotifs = AppNotification::where('user_id', $hub->id)->whereNull('archived_at')->latest()->take(4)->get();
         if ($dbNotifs->count() > 0) {
             $notifications = $dbNotifs->map(function ($n) {
                 return [
@@ -239,7 +299,8 @@ class LogisticsPortalController extends Controller
         }
 
         return view('logistics.dashboard', compact(
-            'hub', 'stats', 'recentPickups', 'recentParcels', 'chartData', 'notifications'
+            'hub', 'stats', 'recentPickups', 'recentParcels', 'chartData', 'notifications',
+            'startDate', 'endDate', 'activePreset', 'filterLabel', 'isToday'
         ));
     }
 
@@ -250,9 +311,30 @@ class LogisticsPortalController extends Controller
     {
         $hub      = Auth::user();
         $provider = $this->provider();
-        $filter   = $request->query('filter', 'all');
-
-        $query = Rider::where('logistics_provider_id', $provider->id)->with('user');
+        $filter = $request->query('filter', 'all');
+        $filter = in_array($filter, ['all', 'pending', 'approved', 'active', 'inactive', 'suspended', 'rejected'], true) ? $filter : 'all';
+        $search = trim((string) $request->query('search', ''));
+        $base = Rider::where('logistics_provider_id', $provider->id);
+        $counts = [
+            'all' => (clone $base)->count(),
+            'pending' => (clone $base)->where('status', 'pending')->count(),
+            'approved' => (clone $base)->where('status', 'approved')->count(),
+            'active' => (clone $base)->where('status', 'approved')->where('is_active', true)->count(),
+            'inactive' => (clone $base)->where('status', 'approved')->where('is_active', false)->count(),
+            'suspended' => (clone $base)->where('status', 'suspended')->count(),
+            'rejected' => (clone $base)->where('status', 'rejected')->count(),
+        ];
+        $query = (clone $base)->with('user');
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->whereHas('user', function ($user) use ($search) {
+                    $user->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                })->orWhere('area', 'like', "%{$search}%")
+                    ->orWhere('plate_no', 'like', "%{$search}%");
+            });
+        }
 
         if ($filter === 'pending') {
             $query->where('status', 'pending');
@@ -261,30 +343,32 @@ class LogisticsPortalController extends Controller
         } elseif ($filter === 'active') {
             $query->where('status', 'approved')->where('is_active', true);
         } elseif ($filter === 'inactive') {
-            $query->where('is_active', false);
+            $query->where('status', 'approved')->where('is_active', false);
+        } elseif ($filter === 'suspended') {
+            $query->where('status', 'suspended');
         } elseif ($filter === 'rejected') {
             $query->where('status', 'rejected');
         }
 
-        $riders = $query->orderBy('status', 'asc')->latest()->get()->map(function ($r) {
+        $riders = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")->latest()->orderByDesc('id')->paginate(12)->withQueryString()->through(function ($r) {
             return [
                 'id'               => $r->id,
                 'name'             => $r->user->name ?? 'Rider',
                 'email'            => $r->user->email ?? 'N/A',
-                'phone'            => $r->user->phone ?? '09170000000',
+                'phone'            => $r->user->phone ?? '',
                 'vehicle_type'     => $r->vehicle_type ?: 'Motorcycle',
                 'plate_no'         => $r->plate_no ?: 'N/A',
                 'status'           => $r->status ?: 'approved',
                 'is_active'        => (bool) $r->is_active,
                 'deliveries_today' => $r->deliveries_today ?: 0,
-                'rating'           => $r->rating ?: 4.90,
+                'rating'           => $r->rating,
                 'applied_at'       => $r->created_at ? $r->created_at->format('M d, Y') : now()->format('M d, Y'),
                 'rejection_reason' => $r->rejection_reason,
-                'area'             => $r->area ?: 'Laguna Area',
+                'area'             => $r->area ?: 'Not assigned',
             ];
-        })->toArray();
+        });
 
-        return view('logistics.riders', compact('hub', 'riders', 'filter'));
+        return view('logistics.riders', compact('hub', 'riders', 'filter', 'counts', 'search'));
     }
 
     public function updateRiderStatus(Request $request, $id)
@@ -293,28 +377,60 @@ class LogisticsPortalController extends Controller
         $status   = $request->input('status');
         $reason   = $request->input('reason', '');
 
-        $rider = Rider::where('logistics_provider_id', $provider->id)->findOrFail($id);
+        $rider = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($id);
         $rider->status           = $status;
         $rider->rejection_reason = $status === 'rejected' ? $reason : null;
         if ($status === 'approved') {
             $rider->is_active = true;
+            if ($rider->user) {
+                $rider->user->is_suspended = false;
+                $rider->user->status = 'active';
+                $rider->user->save();
+            }
         } elseif ($status === 'rejected') {
             $rider->is_active = false;
+        } elseif ($status === 'suspended') {
+            $rider->is_active = false;
+            if ($rider->user) {
+                $rider->user->is_suspended = true;
+                $rider->user->status = 'suspended';
+                $rider->user->save();
+            }
         }
         $rider->save();
 
-        $msg = $status === 'approved' ? 'Rider application approved successfully in database!' : 'Rider application rejected.';
+        $msg = match ($status) {
+            'approved' => 'Rider status updated to Approved (Active).',
+            'pending' => 'Rider application returned to pending review.',
+            'suspended' => 'Rider has been suspended.',
+            default => 'Rider application rejected.',
+        };
         return back()->with('success', $msg);
     }
 
     public function toggleRiderActive(Request $request, $id)
     {
         $provider = $this->provider();
-        $rider    = Rider::where('logistics_provider_id', $provider->id)->findOrFail($id);
-        $rider->is_active = !$rider->is_active;
+        $rider    = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($id);
+
+        if ($rider->status === 'suspended') {
+            $rider->status = 'approved';
+            if ($rider->user) {
+                $rider->user->is_suspended = false;
+                $rider->user->status = 'active';
+                $rider->user->save();
+            }
+        }
+
+        if ($request->has('active')) {
+            $rider->is_active = $request->boolean('active');
+        } else {
+            $rider->is_active = !$rider->is_active;
+        }
         $rider->save();
 
-        return back()->with('success', 'Rider active status updated in database!');
+        $actionWord = $rider->is_active ? 'activated' : 'deactivated';
+        return back()->with('success', "Rider has been {$actionWord} successfully.");
     }
 
     /**
@@ -325,30 +441,46 @@ class LogisticsPortalController extends Controller
         $hub      = Auth::user();
         $provider = $this->provider();
         $filter   = $request->query('status', 'all');
+        $filter = in_array($filter, ['all', 'pending', 'confirmed'], true) ? $filter : 'all';
+        $search = trim($request->validate(['q' => ['nullable', 'string', 'max:100']])['q'] ?? '');
+        $base = PickupRequest::where('logistics_provider_id', $provider->id);
+        $counts = [
+            'all' => (clone $base)->count(),
+            'pending' => (clone $base)->where('status', 'pending')->count(),
+            'confirmed' => (clone $base)->where('status', 'confirmed')->count(),
+        ];
 
         $query = PickupRequest::where('logistics_provider_id', $provider->id)->with(['seller.user']);
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('address', 'like', '%' . $search . '%')
+                    ->orWhereHas('seller', fn ($seller) => $seller->where('name', 'like', '%' . $search . '%'))
+                    ->orWhereHas('seller.user', fn ($user) => $user->where('name', 'like', '%' . $search . '%')->orWhere('email', 'like', '%' . $search . '%'));
+            });
+        }
 
         if ($filter !== 'all') {
             $query->where('status', $filter);
         }
 
-        $pickups = $query->latest()->get()->map(function ($p) {
+        $pickups = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
+            ->orderBy('pickup_date')->orderBy('id')->paginate(15)->withQueryString()->through(function ($p) {
             return [
                 'id'           => $p->id,
                 'seller_name'  => $p->seller->name ?? ($p->seller->user->name ?? 'Shop Partner'),
                 'seller_email' => $p->seller->user->email ?? 'N/A',
                 'parcel_count' => $p->parcel_count,
                 'weight_kg'    => $p->weight_kg,
-                'pickup_date'  => $p->pickup_date ? Carbon::parse($p->pickup_date)->format('M d, Y') : now()->format('M d, Y'),
-                'pickup_time'  => $p->pickup_time ?: '2:00 PM',
+                'pickup_date'  => $p->pickup_date ? Carbon::parse($p->pickup_date)->format('M d, Y') : 'Not scheduled',
+                'pickup_time'  => $p->pickup_time ?: 'Time not specified',
                 'address'      => $p->address,
                 'status'       => $p->status,
                 'confirmed_at' => $p->confirmed_at ? $p->confirmed_at->format('M d, Y h:i A') : null,
                 'notes'        => $p->notes,
             ];
-        })->toArray();
+        });
 
-        return view('logistics.pickups', compact('hub', 'pickups', 'filter'));
+        return view('logistics.pickups', compact('hub', 'pickups', 'filter', 'search', 'counts'));
     }
 
     public function confirmPickup(Request $request, $id)
@@ -383,9 +515,28 @@ class LogisticsPortalController extends Controller
         $provider = $this->provider();
         $filter   = $request->query('status', 'all');
 
-        $parcels = $this->fetchFormattedParcels($provider, null, $filter);
+        $filter = in_array($filter, ['all', 'pending_receipt', 'received', 'at_hub'], true) ? $filter : 'all';
+        $search = trim((string) $request->query('search', ''));
+        $allParcels = collect($this->fetchFormattedParcels($provider));
+        $counts = [
+            'all' => $allParcels->count(),
+            'pending_receipt' => $allParcels->where('status', 'pending_receipt')->count(),
+            'received' => $allParcels->where('status', 'received')->count(),
+            'at_hub' => $allParcels->where('status', 'received')->where('delivery_status', 'at_hub')->count(),
+        ];
+        $filtered = $allParcels->filter(function ($parcel) use ($filter, $search) {
+            $matchesStatus = $filter === 'all' || ($filter === 'at_hub'
+                ? $parcel['status'] === 'received' && $parcel['delivery_status'] === 'at_hub'
+                : $parcel['status'] === $filter);
+            $haystack = implode(' ', [$parcel['tracking_code'], $parcel['seller_name'], $parcel['recipient_name'], $parcel['recipient_address']]);
+            return $matchesStatus && ($search === '' || mb_stripos($haystack, $search) !== false);
+        })->sortBy(fn ($parcel) => $parcel['status'] === 'pending_receipt' ? 0 : 1)->values();
+        $page = max(1, (int) $request->query('page', 1));
+        $parcels = new \Illuminate\Pagination\LengthAwarePaginator($filtered->forPage($page, 15)->values(), $filtered->count(), 15, $page, [
+            'path' => $request->url(), 'query' => $request->query(),
+        ]);
 
-        return view('logistics.parcels', compact('hub', 'parcels', 'filter'));
+        return view('logistics.parcels', compact('hub', 'parcels', 'filter', 'search', 'counts'));
     }
 
     public function receiveParcel(Request $request, $id)
@@ -393,6 +544,9 @@ class LogisticsPortalController extends Controller
         $provider = $this->provider();
         $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
 
+        if ($shipment->received_at) {
+            return back()->with('success', 'This parcel has already been received.');
+        }
         $shipment->received_at = now();
         if ($shipment->status === 'unassigned') {
             $shipment->status = 'unassigned';
@@ -408,7 +562,7 @@ class LogisticsPortalController extends Controller
             'occurred_at' => now(),
         ]);
 
-        return back()->with('success', 'Parcel marked as received at the hub in database!');
+        return back()->with('success', $shipment->tracking_code . ' received at the hub. Ready for sorting.');
     }
 
     /**
@@ -420,10 +574,18 @@ class LogisticsPortalController extends Controller
         $provider = $this->provider();
         $filter   = $request->query('status', 'all');
 
-        $parcels = $this->fetchFormattedParcels($provider, null);
-        if ($filter !== 'all') {
-            $parcels = array_values(array_filter($parcels, fn($p) => $p['sort_status'] === $filter));
+        $filter = in_array($filter, ['all', 'unsorted', 'sorted', 'assigned'], true) ? $filter : 'all';
+        $search = trim((string) $request->query('search', ''));
+        $all = collect($this->fetchFormattedParcels($provider));
+        $counts = ['all' => $all->count()];
+        foreach (['unsorted', 'sorted', 'assigned'] as $status) {
+            $counts[$status] = $all->where('sort_status', $status)->count();
         }
+        $parcels = $all->filter(function ($parcel) use ($filter, $search) {
+            $text = implode(' ', [$parcel['tracking_code'], $parcel['recipient_name'], $parcel['recipient_address'], $parcel['seller_name']]);
+            return ($filter === 'all' || $parcel['sort_status'] === $filter)
+                && ($search === '' || mb_stripos($text, $search) !== false);
+        })->sortBy(fn ($parcel) => ['unsorted' => 0, 'sorted' => 1, 'assigned' => 2][$parcel['sort_status']] ?? 3)->values()->all();
 
         $riders = Rider::where('logistics_provider_id', $provider->id)
             ->where('status', 'approved')
@@ -437,13 +599,13 @@ class LogisticsPortalController extends Controller
             ])
             ->toArray();
 
-        return view('logistics.sorting', compact('hub', 'parcels', 'riders', 'filter'));
+        return view('logistics.sorting', compact('hub', 'parcels', 'riders', 'filter', 'counts', 'search'));
     }
 
     public function sortParcel(Request $request, $id)
     {
         $provider = $this->provider();
-        $area     = $request->input('area');
+        $area = $request->validate(['area' => ['required', 'string', 'max:255']])['area'];
 
         $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
         $shipment->sort_status   = 'sorted';
@@ -460,7 +622,7 @@ class LogisticsPortalController extends Controller
             'occurred_at' => now(),
         ]);
 
-        return back()->with('success', "Parcel sorted to area: {$area} in database!");
+        return back()->with('success', "Parcel sorted to {$area}. Ready for rider assignment.");
     }
 
     /**
@@ -533,13 +695,26 @@ class LogisticsPortalController extends Controller
         $provider = $this->provider();
         $filter   = $request->query('status', 'all');
 
-        $parcels = $this->fetchFormattedParcels($provider, null);
-
-        if ($filter !== 'all') {
-            $parcels = array_values(array_filter($parcels, fn($p) => $p['delivery_status'] === $filter));
+        $labels = ['all' => 'All deliveries', 'failed' => 'Failed', 'out_for_delivery' => 'Out for delivery', 'in_transit' => 'In transit', 'at_hub' => 'At hub', 'delivered' => 'Delivered'];
+        $filter = array_key_exists($filter, $labels) ? $filter : 'all';
+        $search = trim((string) $request->query('search', ''));
+        $all = collect($this->fetchFormattedParcels($provider));
+        $counts = ['all' => $all->count()];
+        foreach (array_keys($labels) as $status) {
+            if ($status !== 'all') $counts[$status] = $all->where('delivery_status', $status)->count();
         }
+        $priority = ['failed' => 0, 'out_for_delivery' => 1, 'in_transit' => 2, 'at_hub' => 3, 'delivered' => 4];
+        $filtered = $all->filter(function ($parcel) use ($filter, $search) {
+            $text = implode(' ', [$parcel['tracking_code'], $parcel['recipient_name'], $parcel['recipient_address'], $parcel['delivery_area'], $parcel['assigned_rider_name']]);
+            return ($filter === 'all' || $parcel['delivery_status'] === $filter)
+                && ($search === '' || mb_stripos($text, $search) !== false);
+        })->sortBy(fn ($parcel) => $priority[$parcel['delivery_status']] ?? 5)->values();
+        $page = max(1, (int) $request->query('page', 1));
+        $parcels = new \Illuminate\Pagination\LengthAwarePaginator($filtered->forPage($page, 15)->values(), $filtered->count(), 15, $page, [
+            'path' => $request->url(), 'query' => $request->query(),
+        ]);
 
-        return view('logistics.monitoring', compact('hub', 'parcels', 'filter'));
+        return view('logistics.monitoring', compact('hub', 'parcels', 'filter', 'search', 'counts', 'labels'));
     }
 
     /**
@@ -804,25 +979,83 @@ class LogisticsPortalController extends Controller
 
     public function updateAccount(Request $request)
     {
-        $request->validate([
-            'name'          => ['required', 'string', 'max:255'],
-            'phone'         => ['nullable', 'string', 'max:20'],
+        // Store both accepted mobile formats consistently so uniqueness checks cannot be bypassed.
+        $phone = $request->input('phone');
+        if (is_string($phone) && preg_match('/\A\+639[0-9]{9}\z/', $phone)) {
+            $request->merge(['phone' => '0' . substr($phone, 3)]);
+        }
+        $hub = Auth::user();
+        $unusedNumber = function ($attribute, $value, $fail) use ($hub) {
+            $variants = [$value, '+63' . substr($value, 1), '63' . substr($value, 1)];
+            if (User::where('id', '<>', $hub->id)->where(function ($query) use ($variants) {
+                $query->whereIn('phone', $variants)->orWhereIn('telephone', $variants);
+            })->exists()) {
+                $fail('This number is already registered to another account. Please use a different number.');
+            }
+        };
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'middle_initial' => ['nullable', 'string', 'max:5'],
+            'sex' => ['required', 'in:Male,Female,Prefer not to say'],
+            'birthday' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'phone' => ['bail', 'required', 'string', 'regex:/\A09[0-9]{9}\z/', $unusedNumber],
+            'telephone' => ['bail', 'required', 'string', 'regex:/\A0[2-8][0-9]{8}\z/', $unusedNumber],
+            'region' => ['nullable', 'string', 'max:100'],
+            'province' => ['required', 'string', 'max:100'],
+            'city' => ['required', 'string', 'max:100'],
+            'barangay' => ['required', 'string', 'max:100'],
+            'street_address' => ['required', 'string', 'max:500'],
+            'postal_code' => ['required', 'string', 'regex:/\A[0-9]{4}\z/'],
             'business_name' => ['nullable', 'string', 'max:255'],
+            'tin_number' => ['nullable', 'string', 'regex:/\A[0-9]{9}\z/'],
+            'id_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'dti_permit' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+        ], [
+            'phone.regex' => 'Enter a valid mobile number: 09 followed by 9 digits, or +639 followed by 9 digits.',
+            'telephone.required' => 'Telephone number is required.',
+            'telephone.regex' => 'Telephone number must contain exactly 10 digits, including the area code (e.g. 0281234567 or 0491234567).',
+            'postal_code.required' => 'Postal code is required and must contain exactly 4 digits.',
+            'postal_code.string' => 'Postal code must contain exactly 4 digits.',
+            'postal_code.regex' => 'Postal code must contain exactly 4 digits.',
+            'tin_number.regex' => 'TIN must contain exactly 9 digits, without hyphens or a branch code.',
         ]);
 
-        $hub = Auth::user();
-        $hub->name          = $request->input('name');
-        $hub->phone         = $request->input('phone');
-        $hub->business_name = $request->input('business_name');
+        $data['name'] = trim($data['first_name']) . ' ' . trim($data['last_name']);
+        $data['age'] = (int) Carbon::parse($data['birthday'])->age;
+        $data['address'] = implode(', ', array_filter([
+            $data['street_address'], $data['barangay'], $data['city'], $data['province'],
+        ]));
+        unset($data['first_name'], $data['last_name'], $data['password'], $data['id_photo'], $data['dti_permit']);
         if ($request->filled('password')) {
-            $hub->password = Hash::make($request->input('password'));
+            $data['password'] = Hash::make($request->input('password'));
         }
-        $hub->save();
 
-        $provider = $this->provider();
-        $provider->name          = $hub->business_name ?: $hub->name;
-        $provider->contact_phone = $hub->phone;
-        $provider->save();
+        $uploads = [];
+        try {
+            foreach (['id_photo' => 'id_photos', 'dti_permit' => 'dti_permits'] as $field => $directory) {
+                if ($request->hasFile($field)) {
+                    $uploads[] = $data[$field] = $request->file($field)->store($directory, 'public');
+                }
+            }
+            if (isset($data['id_photo'])) {
+                $data['id_status'] = 'pending';
+                $data['id_verified_at'] = null;
+                $data['id_rejection_reason'] = null;
+            }
+            DB::transaction(function () use ($hub, $data) {
+                $hub->update($data);
+                // Only synchronize the provider owned by this account.
+                $hub->logisticsProvider()->update([
+                    'name' => $hub->business_name ?: $hub->name,
+                    'contact_phone' => $hub->phone,
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($uploads);
+            throw $exception;
+        }
 
         return back()->with('success', 'Account updated successfully in database!');
     }
@@ -884,6 +1117,8 @@ class LogisticsPortalController extends Controller
                 'delivery_area'       => $s->delivery_area,
                 'delivery_status'     => $deliveryStatus,
                 'assigned_rider_id'   => $s->rider_id,
+                'assigned_rider_user_id' => $s->rider?->user_id,
+                'updated_at'          => $s->updated_at?->timezone('Asia/Manila')->format('M d, Y g:i A'),
                 'assigned_rider_name' => $s->rider?->user?->name,
                 'received_at'         => $s->received_at ? $s->received_at->format('M d, Y h:i A') : null,
                 'sorted_at'           => $s->sorted_at ? $s->sorted_at->format('M d, Y h:i A') : null,

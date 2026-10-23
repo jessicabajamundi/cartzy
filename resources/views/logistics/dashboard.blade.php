@@ -18,16 +18,73 @@
         </div>
     </section>
 
+    {{-- Operations Date Filter Bar --}}
+    <section class="operations-filter-card" aria-label="Date range filter">
+        <div class="operations-filter-left">
+            <div class="operations-filter-indicator">
+                <span class="operations-filter-icon-box" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                </span>
+                <div class="operations-filter-indicator-text">
+                    <span>OPERATIONS DATE FILTER</span>
+                    <strong>{{ $filterLabel }}</strong>
+                </div>
+            </div>
+
+            <nav class="operations-preset-list" aria-label="Quick date presets">
+                @foreach([
+                    'today'     => 'Today',
+                    'yesterday' => 'Yesterday',
+                    'week'      => 'Last 7 Days',
+                    'month'     => 'This Month',
+                ] as $presetKey => $presetLabel)
+                    <a href="{{ route('logistics.dashboard', ['preset' => $presetKey]) }}"
+                       class="operations-preset-btn {{ $activePreset === $presetKey ? 'is-active' : '' }}">
+                        {{ $presetLabel }}
+                    </a>
+                @endforeach
+            </nav>
+        </div>
+
+        <form method="GET" action="{{ route('logistics.dashboard') }}" class="operations-custom-form">
+            <div class="operations-date-field">
+                <label for="start_date">From</label>
+                <input type="date" id="start_date" name="start_date" value="{{ $startDate->toDateString() }}" class="operations-date-input" required>
+            </div>
+            <div class="operations-date-field">
+                <label for="end_date">To</label>
+                <input type="date" id="end_date" name="end_date" value="{{ $endDate->toDateString() }}" class="operations-date-input" required>
+            </div>
+            <button type="submit" class="operations-filter-submit-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                <span>Filter</span>
+            </button>
+            @if(request()->has('start_date') || request()->has('end_date') || (request()->has('preset') && request('preset') !== 'today'))
+                <a href="{{ route('logistics.dashboard') }}" class="operations-reset-link" title="Reset date filter to today">
+                    Reset
+                </a>
+            @endif
+        </form>
+    </section>
+
     @php
+        $periodSuffix = $isToday ? 'today' : 'in period';
         $metrics = [
             ['Active riders', $stats['active_riders'], 'of '.$stats['total_riders'].' registered riders', 'users', 'logistics.riders'],
-            ['Pickups today', $stats['pickups_today'], 'Scheduled for today', 'truck', 'logistics.pickups'],
+            ['Pickups ' . $periodSuffix, $stats['pickups_today'], $isToday ? 'Scheduled for today' : 'Scheduled in period', 'truck', 'logistics.pickups'],
             ['Parcels in hub', $stats['parcels_in_hub'], 'Current hub inventory', 'box', 'logistics.parcels'],
-            ['Delivered today', $stats['delivered_today'], 'Completed deliveries', 'check', 'logistics.monitoring'],
+            ['Delivered ' . $periodSuffix, $stats['delivered_today'], $isToday ? 'Completed deliveries today' : 'Delivered in period', 'check', 'logistics.monitoring'],
             ['Hub efficiency', $stats['hub_efficiency'].'%', 'Delivery completion rate', 'chart', 'logistics.reports'],
         ];
     @endphp
-    <section class="operations-metrics" aria-label="Today’s hub metrics">
+    <section class="operations-metrics" aria-label="Hub metrics for selected period">
         @foreach($metrics as [$label, $value, $detail, $icon, $destination])
             <a class="operations-metric" href="{{ route($destination) }}">
                 <div class="operations-metric-label"><span>{{ $label }}</span>@include('seller.partials.icon', ['name' => $icon, 'size' => 18])</div>
@@ -38,22 +95,22 @@
     </section>
 
     <section class="operations-queue" aria-label="Operational status">
-        <a href="{{ route('logistics.sorting') }}"><span class="queue-dot"></span><strong>{{ $stats['sorted_today'] }}</strong> sorted today <span class="queue-arrow" aria-hidden="true">&rarr;</span></a>
+        <a href="{{ route('logistics.sorting') }}"><span class="queue-dot"></span><strong>{{ $stats['sorted_today'] }}</strong> sorted {{ $periodSuffix }} <span class="queue-arrow" aria-hidden="true">&rarr;</span></a>
         <a href="{{ route('logistics.monitoring') }}"><span class="queue-dot"></span><strong>{{ $stats['out_for_delivery'] }}</strong> out for delivery <span class="queue-arrow" aria-hidden="true">&rarr;</span></a>
         <a class="queue-attention" href="{{ route('logistics.riders') }}"><span class="queue-dot"></span><strong>{{ $stats['pending_applications'] }}</strong> rider applications <span class="queue-arrow" aria-hidden="true">&rarr;</span></a>
-        <a class="queue-attention" href="{{ route('logistics.monitoring') }}"><span class="queue-dot"></span><strong>{{ $stats['failed_deliveries'] }}</strong> failed deliveries <span class="queue-arrow" aria-hidden="true">&rarr;</span></a>
+        <a class="queue-attention" href="{{ route('logistics.monitoring') }}"><span class="queue-dot"></span><strong>{{ $stats['failed_deliveries'] }}</strong> failed deliveries {{ $periodSuffix }} <span class="queue-arrow" aria-hidden="true">&rarr;</span></a>
     </section>
 
     <div class="operations-main-grid">
         <section class="operations-panel operations-volume" aria-labelledby="volume-title">
             <div class="operations-panel-heading">
-                <div><h3 id="volume-title">Parcel movement</h3><p>Received and delivered over the last 7 days</p></div>
+                <div><h3 id="volume-title">Parcel movement</h3><p>Received and delivered ({{ $filterLabel }})</p></div>
                 <a class="operations-text-link" href="{{ route('logistics.reports') }}">View report <span aria-hidden="true">&nearr;</span></a>
             </div>
             <div class="operations-chart-summary">
                 <div><span class="chart-key"></span><span>Received</span><strong>{{ array_sum($chartData['received']) }}</strong></div>
                 <div><span class="chart-key chart-key-rose"></span><span>Delivered</span><strong>{{ array_sum($chartData['delivered']) }}</strong></div>
-                <span class="operations-period">Last 7 days</span>
+                <span class="operations-period">{{ $filterLabel }}</span>
             </div>
             <div class="operations-chart"><canvas id="volumeChart" aria-label="Received and delivered parcels over the last seven days" role="img"></canvas></div>
             <details class="operations-chart-data"><summary>View daily figures</summary><div class="operations-table-scroll"><table><thead><tr><th scope="col">Day</th><th scope="col">Received</th><th scope="col">Delivered</th></tr></thead><tbody>

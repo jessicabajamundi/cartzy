@@ -6,6 +6,10 @@
 
 @section('content')
 
+<header class="reports-heading mb-6">
+    <h2>Generation of Reports</h2>
+</header>
+
 {{-- Date Filter --}}
 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 mb-6">
     <form method="GET" action="{{ route('logistics.reports') }}" class="flex flex-wrap items-end gap-4">

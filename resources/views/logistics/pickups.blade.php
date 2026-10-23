@@ -1,85 +1,66 @@
 @extends('layouts.logistics')
-
 @section('title', 'Pickup Requests | Logistics Hub | cartzy')
 @section('page_title', 'Parcel Pickup Requests')
 @section('page_subtitle', 'Confirm and verify seller parcel pickup schedules')
-
 @section('content')
-
-{{-- Filter Tabs --}}
-<div class="flex flex-wrap gap-2 mb-6">
-    @foreach(['all'=>'All','pending'=>'Pending','confirmed'=>'Confirmed'] as $key=>$label)
-    <a href="{{ route('logistics.pickups', ['status'=>$key]) }}"
-       class="px-4 py-2 rounded-xl text-sm font-bold border transition
-              {{ $filter===$key ? 'bg-[#6F6382] text-white border-[#6F6382] shadow' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-[#6F6382]' }}">
-        {{ $label }}
-    </a>
-    @endforeach
-</div>
-
-{{-- Pickup Cards --}}
-<div class="space-y-4">
-    @forelse($pickups as $pickup)
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden">
-        <div class="flex flex-col md:flex-row md:items-center gap-4 p-5">
-            {{-- Icon --}}
-            <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#6F6382] border border-blue-100 flex items-center justify-center shrink-0">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            </div>
-
-            {{-- Info --}}
-            <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2 mb-1">
-                    <span class="font-black text-slate-800 text-base">{{ $pickup['seller_name'] }}</span>
-                    <span class="text-xs font-black px-2.5 py-0.5 rounded-full
-                        {{ $pickup['status']==='confirmed' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200' }}">
-                        {{ ucfirst($pickup['status']) }}
-                    </span>
-                </div>
-                <div class="flex flex-wrap gap-4 text-sm text-slate-500">
-                    <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> {{ $pickup['parcel_count'] }} parcels ({{ $pickup['weight_kg'] }} kg)</span>
-                    <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> {{ $pickup['pickup_date'] }} at {{ $pickup['pickup_time'] }}</span>
-                    <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> {{ $pickup['address'] }}</span>
-                </div>
-                @if($pickup['notes'])
-                <div class="mt-2 text-xs bg-amber-50 border border-amber-100 text-amber-800 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    <span>{{ $pickup['notes'] }}</span>
-                </div>
-                @endif
-                @if($pickup['confirmed_at'])
-                <div class="mt-1.5 text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    <span>Confirmed: {{ $pickup['confirmed_at'] }}</span>
-                </div>
-                @endif
-                <div class="mt-1 text-xs text-slate-400">Seller email: {{ $pickup['seller_email'] }}</div>
-            </div>
-
-            {{-- Action --}}
-            @if($pickup['status'] === 'pending')
-            <form method="POST" action="{{ route('logistics.pickups.confirm', $pickup['id']) }}" class="shrink-0">
-                @csrf
-                <button type="submit" class="bg-[#6F6382] hover:bg-[#564B68] text-white font-black text-sm px-5 py-2.5 rounded-xl transition shadow-sm hover:shadow">
-                    ✓ Confirm Pickup
-                </button>
+<div class="pickup-workspace">
+    <header class="pickup-heading"><div><p class="pickup-kicker">PARCEL OPERATIONS</p><h2>Pickup requests</h2><p>Review the details. Confirm the schedule. Keep parcels moving.</p></div><span class="pickup-heading-icon">@include('seller.partials.icon', ['name' => 'truck', 'size' => 28])</span></header>
+    <div class="pickup-overview" aria-label="Pickup totals">
+        @foreach(['pending' => ['Awaiting confirmation', 'Your next action', 'box'], 'confirmed' => ['Confirmed pickups', 'Schedules confirmed', 'check'], 'all' => ['Total requests', 'Across your hub', 'truck']] as $key => [$label, $hint, $icon])
+            <a href="{{ route('logistics.pickups', ['status' => $key]) }}" class="pickup-metric {{ $key === 'pending' ? 'is-rose' : '' }}"><div><span>{{ $label }}</span><strong>{{ $counts[$key] }}</strong><small>{{ $hint }}</small></div><span class="pickup-metric-icon">@include('seller.partials.icon', ['name' => $icon, 'size' => 21])</span></a>
+        @endforeach
+    </div>
+    <section aria-label="Pickup request list">
+        <div class="pickup-toolbar">
+            <nav class="pickup-tabs" aria-label="Pickup status filters">
+                @foreach(['all' => 'All', 'pending' => 'Pending', 'confirmed' => 'Confirmed'] as $key => $label)
+                    <a href="{{ route('logistics.pickups', ['status' => $key, 'q' => $search]) }}" @if($filter === $key) aria-current="page" @endif>{{ $label }} <span>{{ $counts[$key] }}</span></a>
+                @endforeach
+            </nav>
+            <form method="GET" action="{{ route('logistics.pickups') }}" class="pickup-search" role="search">
+                <input type="hidden" name="status" value="{{ $filter }}">
+                <label for="pickup-search" class="sr-only">Search seller, email or address</label>
+                <span aria-hidden="true">@include('seller.partials.icon', ['name' => 'search', 'size' => 17])</span>
+                <input id="pickup-search" type="search" name="q" value="{{ $search }}" maxlength="100" placeholder="Seller, email or address...">
+                <button type="submit">Search</button>
             </form>
-            @else
-            <div class="shrink-0 flex items-center gap-2 text-emerald-600 font-bold text-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                Confirmed
-            </div>
-            @endif
         </div>
-    </div>
-    @empty
-    <div class="text-center py-20 text-slate-400">
-        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <div class="pickup-results"><span>{{ $pickups->total() }} {{ \Illuminate\Support\Str::plural('request', $pickups->total()) }}@if($search !== '') matching &ldquo;{{ $search }}&rdquo;@endif</span><span>Pending first &middot; Earliest date first</span>@if($search !== '')<a href="{{ route('logistics.pickups', ['status' => $filter]) }}">Clear search</a>@endif</div>
+        <div class="pickup-list">
+        @forelse($pickups as $pickup)
+            <article class="pickup-card {{ $pickup['status'] === 'pending' ? 'is-pending' : '' }}">
+                <div class="pickup-card-heading">
+                    <div class="pickup-seller"><span class="pickup-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($pickup['seller_name'], 0, 1)) }}</span><div><span class="pickup-reference">REQUEST #{{ str_pad($pickup['id'], 4, '0', STR_PAD_LEFT) }}</span><h3>{{ $pickup['seller_name'] }}</h3></div></div>
+                    <span class="pickup-badge">{{ ucfirst($pickup['status']) }}</span>
+                </div>
+                <div class="pickup-card-body">
+                    <dl class="pickup-details">
+                        <div><dt>Pickup schedule</dt><dd>{{ $pickup['pickup_date'] }}<span>{{ $pickup['pickup_time'] }}</span></dd></div>
+                        <div><dt>Parcels &amp; weight</dt><dd>{{ $pickup['parcel_count'] }} parcels<span>{{ $pickup['weight_kg'] }} kg total</span></dd></div>
+                        <div class="pickup-address"><dt>Pickup address</dt><dd>{{ $pickup['address'] ?: 'No address provided' }}</dd></div>
+                    </dl>
+                    <div class="pickup-action">
+                        @if($pickup['status'] === 'pending')
+                            <form method="POST" action="{{ route('logistics.pickups.confirm', $pickup['id']) }}" data-pickup-confirm>@csrf<button type="submit">@include('seller.partials.icon', ['name' => 'check', 'size' => 17]) <span>Confirm pickup</span></button></form>
+                        @else
+                            <span class="pickup-completed">@include('seller.partials.icon', ['name' => 'check', 'size' => 18]) {{ ucfirst($pickup['status']) }}</span>
+                        @endif
+                    </div>
+                </div>
+                @if($pickup['notes'])<div class="pickup-note">@include('seller.partials.icon', ['name' => 'chat', 'size' => 16])<p><strong>Seller note:</strong> {{ $pickup['notes'] }}</p></div>@endif
+                <footer class="pickup-card-footer"><span>Seller email: {{ $pickup['seller_email'] }}</span>@if($pickup['confirmed_at'])<span>Confirmed: {{ $pickup['confirmed_at'] }}</span>@endif</footer>
+            </article>
+        @empty
+            <div class="pickup-empty"><span>@include('seller.partials.icon', ['name' => 'box', 'size' => 32])</span><h3>No pickup requests found.</h3><p>{{ $search !== '' ? 'Try another seller name, email or pickup address.' : 'New requests from sellers will appear here.' }}</p>@if($search !== '' || $filter !== 'all')<a href="{{ route('logistics.pickups') }}">View all pickup requests &rarr;</a>@endif</div>
+        @endforelse
         </div>
-        <p class="font-bold text-lg">No pickup requests found.</p>
-    </div>
-    @endforelse
+    </section>
+    @if($pickups->hasPages())<div class="pickup-pagination">{{ $pickups->links() }}</div>@endif
 </div>
-
 @endsection
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/logistics-pickups.css') }}?v={{ filemtime(public_path('css/logistics-pickups.css')) }}">
+@endpush
+@push('scripts')
+<script src="{{ asset('js/logistics-pickups.js') }}?v={{ filemtime(public_path('js/logistics-pickups.js')) }}"></script>
+@endpush

@@ -1,0 +1,113 @@
+/* Order workspace. Screen treatment is separate from the printable label. */
+.waybill-page .order-eyebrow { display: block; margin-bottom: 7px; color: #81758e; font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.waybill-page .order-overview { display: grid; grid-template-columns: 1.15fr 1.5fr 1fr 1fr; margin: 0 0 26px; padding: 22px 0; background: #fff; border: 1px solid #e6e3eb; border-radius: 12px; }
+.waybill-page .order-overview > div { padding: 0 22px; border-right: 1px solid #eeeaf2; min-width: 0; }
+.waybill-page .order-overview > div:last-child { border: 0; }
+.waybill-page .order-overview dt { margin-bottom: 8px; color: #777184; font-size: 11px; font-weight: 500; }
+.waybill-page .order-overview dt span { color: #81798c; }
+.waybill-page .order-overview dd { margin: 0; color: #30283e; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.waybill-page .order-overview .tracking-reference { font-family: ui-monospace, monospace; font-size: 12px; }
+.waybill-page .order-overview .overview-total { font-size: 20px; letter-spacing: -.5px; }
+.waybill-page .waybill-preview-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: -24px -24px 24px; padding: 20px 24px; border-bottom: 1px solid #e9e6ee; }
+.waybill-page .waybill-preview-heading h3 { margin: 0; font-size: 16px; font-weight: 650; }
+.waybill-page .print-ready { color: #467463; background: #f0f7f3; border: 1px solid #dcece3; border-radius: 6px; padding: 5px 8px; font-size: 10px; white-space: nowrap; }
+.waybill-page .current-step-label { margin-left: 5px; border-radius: 4px; background: #eee8f7; color: #695086; padding: 2px 5px; font-size: 9px; font-weight: 600; }
+@media screen {
+    .waybill-page { max-width: 1280px !important; color: #30283e; }
+    .waybill-page .page-heading { align-items: center; gap: 20px; margin-bottom: 26px; }
+    .waybill-page .back-link { color: #766b83; font-size: 12px; margin-bottom: 22px; }
+    .waybill-page .page-heading h1 { margin: 0 0 8px; }
+    .waybill-page .subtitle { margin: 0; font-size: 12px; color: #82798d; line-height: 1.7; }
+    .waybill-page .subtitle strong { color: #51455f; font-weight: 600; }
+    .waybill-page .heading-actions .button { background: #59466e; border: 1px solid #59466e; border-radius: 8px; padding: 12px 18px; font-size: 12px; box-shadow: 0 3px 7px #39294b12; }
+    .waybill-page .heading-actions .button:hover { background: #443354; }
+    .waybill-page a:focus-visible, .waybill-page button:focus-visible { outline: 3px solid #a892c1; outline-offset: 4px; }
+    .waybill-page .status-banner-wrapper { margin-bottom: 18px; }
+    .waybill-page .delivery-proof-card { border-radius: 12px; padding: 22px 24px; margin: 0; border-color: #ddd7e8; background: #f7f5fb; color: #4f4265; }
+    .waybill-page .delivery-proof-card.delivered { background: #f4faf7; border-color: #d6e8de; color: #315e48; }
+    .waybill-page .proof-header { gap: 16px; margin-bottom: 10px; align-items: center; }
+    .waybill-page .proof-icon-box { width: 46px; height: 46px; border-radius: 12px; }
+    .waybill-page .proof-icon-box.warning { color: #71598e; background: #eae3f3; }
+    .waybill-page .proof-icon-box.success { color: #37785b; background: #dceee3; }
+    .waybill-page .proof-badge { padding: 0; background: transparent; color: inherit; font-size: 9px; letter-spacing: .12em; }
+    .waybill-page .proof-meta h2 { font-size: 18px; letter-spacing: -.4px; font-weight: 650; color: #332a41; margin: 3px 0 6px; }
+    .waybill-page .proof-timestamp { font-size: 12px; line-height: 1.6; }
+    .waybill-page .proof-notice { margin-left: 62px; font-size: 12px; color: #7b7089; }
+    .waybill-page .order-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+    .waybill-page .tracking-timeline-panel { grid-column: 2; grid-row: 1; padding: 22px; margin: 0; border: 1px solid #e6e3eb; border-radius: 12px; box-shadow: 0 3px 12px #33264103; }
+    .waybill-page .panel-header { display: block; padding: 0 0 18px; margin: 0 0 20px; background: none; }
+    .waybill-page .panel-header h3 { font-size: 15px; font-weight: 650; margin-bottom: 7px; color: #30283e; }
+    .waybill-page .panel-header .last-updated { display: block; font-size: 10px; line-height: 1.6; color: #8a8194; }
+    .waybill-page .timeline-steps-container { display: flex; flex-direction: column; gap: 0; }
+    .waybill-page .timeline-step { display: flex; gap: 13px; padding: 0; }
+    .waybill-page .timeline-indicator { display: flex; flex-direction: column; align-items: center; margin: 0; width: 20px; flex-shrink: 0; }
+    .waybill-page .timeline-dot { width: 18px; height: 18px; margin-top: 2px; background: #fff; border: 2px solid #e4dfeb; }
+    .waybill-page .timeline-step.completed .timeline-dot { border-color: #70a48e; background: #70a48e; }
+    .waybill-page .timeline-step.current .timeline-dot { border-color: #80619e; background: #80619e; box-shadow: 0 0 0 4px #efe9f6; }
+    .waybill-page .timeline-bar { width: 1px; height: auto; min-height: 18px; margin: 5px 0; background: #e9e5ef; }
+    .waybill-page .timeline-step.completed .timeline-bar { background: #cbded5; }
+    .waybill-page .timeline-content { padding: 0 0 20px; min-width: 0; }
+    .waybill-page .timeline-step:last-child .timeline-content { padding-bottom: 0; }
+    .waybill-page .timeline-title { font-size: 12px; line-height: 1.6; font-weight: 600; color: #51465f; }
+    .waybill-page .timeline-time { font-size: 10px; color: #92889e; margin: 3px 0; }
+    .waybill-page .timeline-desc { font-size: 11px; color: #82788e; line-height: 1.5; }
+    .waybill-page .waybill-printable-card { grid-column: 1; grid-row: 1; min-width: 0; padding: 24px; border: 1px solid #e6e3eb; border-radius: 12px; box-shadow: 0 3px 12px #33264103; }
+    .waybill-page .awb-header { border-bottom: 1px solid #e3dfea; padding-bottom: 20px; }
+    .waybill-page .awb-logo { font-size: 25px; }
+    .waybill-page .awb-hub-name { font-weight: 400; font-size: 11px; }
+    .waybill-page .awb-tag { background: transparent; color: #84758e; padding: 0; font-size: 8px; }
+    .waybill-page .awb-barcode-block { border: 1px solid #e7e3ec; background: #fcfbfd; border-radius: 8px; padding: 18px 10px; }
+    .waybill-page .awb-barcode-container svg { max-width: 100%; height: auto; }
+    .waybill-page .awb-tracking-text { font-size: 10px; }
+    .waybill-page .awb-parties-grid, .waybill-page .awb-payment-strip, .waybill-page .awb-items-table-wrap { border: 1px solid #e5e1eb; border-radius: 8px; overflow: hidden; }
+    .waybill-page .awb-party-box, .waybill-page .awb-payment-box { padding: 16px; }
+    .waybill-page .awb-party-box.sender, .waybill-page .awb-payment-box { border-right: 1px solid #e5e1eb; }
+    .waybill-page .awb-party-header { border: 0; margin-bottom: 12px; }
+    .waybill-page .awb-label { font-size: 9px; color: #776c84; font-weight: 600; }
+    .waybill-page .awb-sublabel { display: none; }
+    .waybill-page .awb-name { font-size: 13px; }
+    .waybill-page .awb-contact, .waybill-page .awb-address { font-size: 11px; line-height: 1.7; font-weight: 400; }
+    .waybill-page .awb-payment-box.cod { background: #faf7f0; }
+    .waybill-page .payment-title { font-size: 9px; color: #86744f; }
+    .waybill-page .payment-amount { font-size: 23px; font-weight: 650; margin: 6px 0; }
+    .waybill-page .payment-hint { font-size: 9px; font-weight: 400; line-height: 1.6; }
+    .waybill-page .awb-order-meta-box { font-size: 10px; gap: 8px; background: #fff; }
+    .waybill-page .awb-table th { background: #f5f3f8; color: #756982; font-size: 9px; padding: 12px; font-weight: 600; }
+    .waybill-page .awb-table td { padding: 12px; font-size: 11px; }
+    .waybill-page .awb-table tfoot td { padding: 8px 12px; font-size: 11px; }
+    .waybill-page .awb-grand-total td { border-top: 1px solid #e5e1eb; background: #faf9fc; font-weight: 700; }
+    .waybill-page .awb-footer-grid { border-color: #ded8e7; }
+    .waybill-page .awb-instructions { font-size: 10px; color: #81758e; line-height: 1.7; }
+}
+@media screen and (max-width: 1200px) {
+    .waybill-page .order-detail-grid { grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; }
+    .waybill-page .order-overview { grid-template-columns: 1fr 1fr; gap: 22px 0; }
+    .waybill-page .order-overview > div:nth-child(2) { border-right: 0; }
+}
+@media screen and (max-width: 960px) {
+    .waybill-page .order-detail-grid { display: flex; flex-direction: column; }
+    .waybill-page .tracking-timeline-panel, .waybill-page .waybill-printable-card { width: 100%; box-sizing: border-box; }
+    .waybill-page .waybill-printable-card { order: -1; }
+}
+@media screen and (max-width: 560px) {
+    .waybill-page .page-heading { align-items: flex-start; flex-direction: column; }
+    .waybill-page .heading-actions, .waybill-page .heading-actions .button { width: 100%; }
+    .waybill-page .heading-actions .button { justify-content: center; }
+    .waybill-page .delivery-proof-card { padding: 18px; }
+    .waybill-page .proof-notice { margin-left: 0; }
+    .waybill-page .order-overview > div { padding: 0 14px; }
+    .waybill-page .order-overview dd { font-size: 12px; }
+    .waybill-page .waybill-printable-card { padding: 16px; }
+    .waybill-page .waybill-preview-heading { margin: -16px -16px 20px; padding: 16px; }
+    .waybill-page .awb-parties-grid, .waybill-page .awb-payment-strip, .waybill-page .awb-footer-grid { grid-template-columns: 1fr; }
+    .waybill-page .awb-party-box.sender, .waybill-page .awb-payment-box { border-right: 0; border-bottom: 1px solid #e5e1eb; }
+    .waybill-page .awb-table th, .waybill-page .awb-table td, .waybill-page .awb-table tfoot td { padding: 8px 5px; font-size: 10px; overflow-wrap: anywhere; }
+    .waybill-page .awb-logo { font-size: 20px; }
+    .waybill-page .awb-qr-area svg { max-width: 70px; height: auto; }
+    .waybill-page .awb-header { gap: 12px; }
+}
+@media print {
+    .portal, .workspace, .order-detail-grid { display: block !important; margin: 0 !important; }
+    .workspace main { padding: 0 !important; margin: 0 !important; }
+    .page-footer, .skip-link, .notice { display: none !important; }
+}
