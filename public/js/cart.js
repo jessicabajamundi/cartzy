@@ -96,7 +96,7 @@ window.addToCart = function(id, name, price, image, variation) {
     }
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    fetch('/cart/add', {
+    return fetch('/cart/add', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -119,6 +119,7 @@ window.addToCart = function(id, name, price, image, variation) {
             showToast('✓ Added: ' + (name.length > 28 ? name.substring(0, 28) + '…' : name), 'success');
             updateCartBadge(data.cartCount);
             updateCartPopover(data.cart, data.cartCount);
+            return true;
         } else if (data.redirect) {
             window.location.href = data.redirect;
         } else {

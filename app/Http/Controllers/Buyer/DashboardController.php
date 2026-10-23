@@ -23,15 +23,24 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
+        if ($user->isLogistics()) {
+            if (in_array($request->query('tab'), ['settings', 'profile', 'addresses'], true)) {
+                return redirect()->route('logistics.account');
+            }
+            if (!$request->has('tab')) {
+                return redirect()->route('logistics.dashboard');
+            }
+        }
+
         // Cart saved to the buyer's account.
         $cart = array_values(app(\App\Services\BuyerCart::class)->all());
         $cartSubtotal = collect($cart)->sum(fn ($i) => $i['price'] * $i['quantity']);
-        $cartCount = collect($cart)->sum('quantity');
+        $cartCount = count($cart);
 
         // Orders (database): one card per seller order
         $sellerOrders = SellerOrder::query()
             ->whereHas('order', fn ($q) => $q->where('buyer_id', $user->id))
-            ->with(['order.sellerOrders', 'order.payments', 'seller', 'items.product.coverImage', 'shipment.deliveryEvents', 'shipment.rider.user', 'shipment.logisticsProvider', 'logisticsProvider'])
+            ->with(['order.sellerOrders', 'order.payments', 'seller', 'items.product.coverImage', 'shipment.deliveryEvents', 'shipment.rider.user', 'shipment.logisticsProvider', 'logisticsProvider', 'reports'])
             ->latest()
             ->get();
 
@@ -41,8 +50,9 @@ class DashboardController extends Controller
         $wishlist = $this->wishlist($user->id);
         $reviews = $this->reviews($user->id, $sellerOrders);
 
-        $dbNotifications = \App\Services\NotificationService::getUserNotifications($user->id);
-        $notifications = $dbNotifications->map(fn ($n) => [
+        [$archivedDbNotifications, $dbNotifications] = \App\Services\NotificationService::getUserNotifications($user->id)
+            ->partition(fn ($n) => $n->archived_at !== null);
+        $notificationRow = fn ($n) => [
             'id'      => $n->id,
             'title'   => $n->title,
             'message' => $n->message,
@@ -50,7 +60,9 @@ class DashboardController extends Controller
             'type'    => $n->type,
             'unread'  => !$n->is_read,
             'link'    => $n->link,
-        ])->all();
+        ];
+        $notifications = $dbNotifications->map($notificationRow)->values()->all();
+        $archivedNotifications = $archivedDbNotifications->map($notificationRow)->values()->all();
 
         $stats = [
             'total_orders' => count($orders),
@@ -71,11 +83,21 @@ class DashboardController extends Controller
             'wishlist'      => $wishlist,
             'reviews'       => $reviews,
             'notifications' => $notifications,
+            'archivedNotifications' => $archivedNotifications,
+            'notificationBox' => $request->query('box') === 'archived' ? 'archived' : 'inbox',
             'unread'        => collect($notifications)->where('unread', true)->count(),
             'stats'         => $stats,
             'addresses'     => $this->addresses($user),
             'savedAddresses' => \App\Models\Address::where('user_id', $user->id)->orderByDesc('is_default')->orderBy('id')->get(),
             'tracking'      => $this->tracking($sellerOrders, $request->query('track')),
+            // Tracking lives inside the Orders tab; it opens from a card's "Track order" button or an old Track Order link.
+            'showTracking'  => $request->filled('track') || $request->query('tab') === 'track',
+            'vouchers'      => app(\App\Services\VoucherService::class)->options($user, (int) round($cartSubtotal * 100)),
+            // Shop code vouchers the buyer added; public shop vouchers apply automatically, so they are shown on store pages instead.
+            'walletShopVouchers' => \App\Models\Voucher::live()->whereNotNull('seller_id')->with('seller')
+                ->whereIn('id', \Illuminate\Support\Facades\DB::table('voucher_user')->where('user_id', $user->id)->select('voucher_id'))
+                ->where(fn ($q) => $q->whereNull('total_limit')->orWhereColumn('used_count', '<', 'total_limit'))
+                ->orderBy('ends_at')->get(),
             'tab'           => in_array($request->query('tab'), ['profile', 'addresses']) ? 'settings' : $request->query('tab', 'orders'),
         ]);
     }
@@ -191,6 +213,15 @@ class DashboardController extends Controller
         return redirect()->route('buyer.dashboard', ['tab' => 'orders'])->with('success', 'Payment recorded for ' . $order->reference . '.');
     }
 
+    public function claimVoucher(Request $request)
+    {
+        $data = $request->validate(['voucher_code' => ['required', 'string', 'max:40']]);
+        $voucher = app(\App\Services\VoucherService::class)->claimCode(Auth::user(), $data['voucher_code']);
+
+        return redirect()->route('buyer.dashboard', ['tab' => 'vouchers'])
+            ->with('success', 'Voucher "'.$voucher->name.'" added. It will be applied for you at checkout.');
+    }
+
     public function cancelOrder(Request $request, int $id)
     {
         $message = DB::transaction(function () use ($request, $id) {
@@ -260,6 +291,26 @@ class DashboardController extends Controller
         return response()->json(['success' => true, 'unread' => 0]);
     }
 
+    /**
+     * Move a notification out of the inbox into the archive.
+     */
+    public function archiveNotification(int $id)
+    {
+        \App\Models\AppNotification::where('user_id', Auth::id())->findOrFail($id)->update(['is_read' => true, 'archived_at' => now()]);
+
+        return redirect()->route('buyer.dashboard', ['tab' => 'notifications'])->with('success', 'Notification archived.');
+    }
+
+    /**
+     * Move an archived notification back to the inbox.
+     */
+    public function restoreNotification(int $id)
+    {
+        \App\Models\AppNotification::where('user_id', Auth::id())->findOrFail($id)->update(['archived_at' => null]);
+
+        return redirect()->route('buyer.dashboard', ['tab' => 'notifications', 'box' => 'archived'])->with('success', 'Notification moved back to your inbox.');
+    }
+
     /* ----------------------------------------------------------------------
      | Data builders
      * -------------------------------------------------------------------- */
@@ -293,12 +344,15 @@ class DashboardController extends Controller
         return [
             'id'       => $order->reference,
             'seller_order_id' => $so->id,
+            'tracking_code' => $so->shipment?->tracking_code,
             'can_cancel' => $so->cancellation_status !== 'pending' && $so->canBeCancelledByBuyer(),
             'cancellation_status' => $so->cancellation_status,
+            'report'   => $so->reports->sortByDesc('id')->first(),
+            'can_report' => $so->reports->where('status', 'open')->isEmpty() && $so->canBeReported(),
             'store'    => $so->seller->name ?? 'Cartzy Seller',
             'status'   => $this->dashboardStatus($so),
             'date'     => $order->created_at->format('M d, Y'),
-            'total'    => $singleSeller ? $order->total_minor / 100 : ($so->subtotal_minor + $so->shipping_fee_minor) / 100,
+            'total'    => $singleSeller ? $order->total_minor / 100 : $so->buyerDueMinor() / 100,
             'payment'  => match (strtoupper((string) ($order->payments->first()->method ?? $order->payment_method))) {
                 'WALLET', 'E-WALLET', 'GCASH' => 'GCash',
                 'COD', 'CASH ON DELIVERY'     => 'COD',
@@ -322,7 +376,20 @@ class DashboardController extends Controller
             'price'     => $w->price_minor / 100,
             'variation' => $w->variation ?: 'Standard',
             'image'     => $this->imageUrl($w->image),
+            'in_stock'  => $this->wishlistItemInStock($w),
         ])->all();
+    }
+
+    private function wishlistItemInStock(Wishlist $item): bool
+    {
+        try {
+            $variant = app(\App\Services\ProductPricing::class)->variant([
+                'id' => $item->ref, 'variation' => $item->variation ?: 'Standard',
+            ]);
+            return $variant && $variant->stock > 0;
+        } catch (\RuntimeException $e) {
+            return false;
+        }
     }
 
     private function reviews(int $userId, $sellerOrders): array

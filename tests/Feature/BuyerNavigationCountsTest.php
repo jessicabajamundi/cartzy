@@ -47,7 +47,7 @@ class BuyerNavigationCountsTest extends TestCase
         AppNotification::where('user_id', $buyer->id)->update(['is_read' => true]);
         AppNotification::create(['user_id' => $buyer->id, 'type' => 'order', 'title' => 'Update', 'message' => 'Ready', 'is_read' => false]);
         $this->actingAs($buyer)->getJson(route('buyer.navigation-counts'))->assertOk()->assertJson(['counts' => [
-            'orders' => 2, 'history' => 1, 'track' => 1, 'messages' => 1, 'notifications' => 1,
+            'orders' => 1, 'track' => 1, 'messages' => 1, 'notifications' => 1,
         ]]);
         SellerMessage::where('seller_order_id', $orders[0]->id)->update(['read_at' => now()]);
         $this->postJson(route('notifications.markAllRead'))->assertOk();

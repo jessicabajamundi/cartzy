@@ -9,7 +9,7 @@ class BuyerCart
 {
     private function cart(): ?Cart
     {
-        if (!auth()->check()) return null;
+        if (!auth()->user()?->isBuyer()) return null;
 
         return DB::transaction(function () {
             $cart = Cart::firstOrCreate(['user_id' => auth()->id()]);
@@ -36,11 +36,23 @@ class BuyerCart
             $item = $row->snapshot;
             if (!$item && $row->variant) {
                 $variant = $row->variant;
-                $item = ['id' => $variant->product_id, 'name' => $variant->product->name,
+                $item = ['id' => $variant->product_id, 'name' => $variant->product?->name ?? 'Deleted product',
                     'price' => $variant->price, 'variation' => $variant->name,
                     'image' => $variant->resolved_image_url];
             }
             if (!$item) continue;
+            if ($row->product_variant_id) $item['variant_id'] = $row->product_variant_id;
+            try {
+                $pricedVariant = app(ProductPricing::class)->variant($item);
+                if ($pricedVariant) {
+                    $item['variant_id'] = $pricedVariant->id;
+                    $item['price'] = $pricedVariant->sale_price_minor / 100;
+                    $item['original_price'] = $pricedVariant->price;
+                }
+            } catch (\RuntimeException $e) {
+                // Keep unavailable items removable; order placement rejects them.
+                $item['unavailable'] = true;
+            }
             $key = $row->cart_key ?? 'variant_'.$row->product_variant_id;
             $items[$key] = array_merge($item, ['cart_key' => $key, 'quantity' => $row->quantity, 'selected' => $row->selected]);
         }

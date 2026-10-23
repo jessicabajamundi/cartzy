@@ -254,8 +254,10 @@
                                         id="name"
                                         value="{{ old('name', $user->name) }}"
                                         required
+                                        oninput="const err = document.getElementById('buyer_name_error'); if(/[^\p{L}\p{M} .'-]/u.test(this.value)){err.hidden=false; this.style.borderColor='#ef4444';} else {err.hidden=true; this.style.borderColor='';}"
                                         class="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition bg-white shadow-2xs"
                                     >
+                                    <p id="buyer_name_error" class="text-xs text-red-600 mt-1.5 font-medium" hidden>Special characters and numbers are not allowed.</p>
                                 </div>
                                 <div>
                                     <label for="phone" class="block text-xs sm:text-sm font-bold text-gray-800 mb-1.5">Mobile number</label>

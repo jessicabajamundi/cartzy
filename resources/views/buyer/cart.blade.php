@@ -73,7 +73,7 @@
                                             <p class="text-[11px] text-gray-400 mt-1">Variation: <span class="font-medium text-gray-600">{{ $item['variation'] }}</span></p>
                                             
                                             {{-- Remove Button --}}
-                                            <form action="{{ route('cart.remove') }}" method="POST" class="mt-2 inline-block">
+                                            <form action="{{ route('cart.remove') }}" method="POST" class="cart-remove-form mt-2 inline-block">
                                                 @csrf
                                                 <input type="hidden" name="cart_key" value="{{ $key }}">
                                                 <button type="submit" class="text-[11px] font-semibold text-rose-600 hover:text-rose-800 hover:underline flex items-center gap-1 cursor-pointer">
@@ -86,28 +86,31 @@
 
                                     {{-- Unit Price --}}
                                     <div class="col-span-2 text-center text-xs sm:text-sm font-semibold text-gray-700">
+                                        @if(($item['original_price'] ?? 0) > $item['price'])
+                                            <small class="block text-gray-500"><s>PHP {{ number_format($item['original_price'], 2) }}</s> &middot; Sale</small>
+                                        @endif
                                         ₱{{ number_format($item['price'], 2) }}
                                     </div>
 
                                     {{-- Quantity Selector --}}
                                     <div class="col-span-2 flex items-center justify-center">
-                                        <form action="{{ route('cart.update') }}" method="POST" class="flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                        <form action="{{ route('cart.update') }}" method="POST" class="cart-qty-form flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white shadow-2xs">
                                             @csrf
                                             <input type="hidden" name="cart_key" value="{{ $key }}">
-                                            <button type="submit" name="quantity" value="{{ max(1, $item['quantity'] - 1) }}" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition">
+                                            <button type="submit" name="quantity" value="{{ max(1, $item['quantity'] - 1) }}" class="cart-qty-btn cart-qty-minus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition disabled:opacity-30 disabled:cursor-not-allowed" data-action="decrease" @disabled($item['quantity'] <= 1) aria-label="Decrease quantity">
                                                 -
                                             </button>
-                                            <span class="w-8 text-center text-xs font-bold text-gray-900 select-none">
+                                            <span class="cart-qty-val w-8 text-center text-xs font-bold text-gray-900 select-none transition-opacity duration-150">
                                                 {{ $item['quantity'] }}
                                             </span>
-                                            <button type="submit" name="quantity" value="{{ min(99, $item['quantity'] + 1) }}" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition">
+                                            <button type="submit" name="quantity" value="{{ min(99, $item['quantity'] + 1) }}" class="cart-qty-btn cart-qty-plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition disabled:opacity-30 disabled:cursor-not-allowed" data-action="increase" @disabled($item['quantity'] >= 99) aria-label="Increase quantity">
                                                 +
                                             </button>
                                         </form>
                                     </div>
 
                                     {{-- Row Total --}}
-                                    <div class="col-span-2 text-right text-sm sm:text-base font-black text-gray-900">
+                                    <div class="cart-row-total col-span-2 text-right text-sm sm:text-base font-black text-gray-900">
                                         ₱{{ number_format($item['price'] * $item['quantity'], 2) }}
                                     </div>
                                 </div>

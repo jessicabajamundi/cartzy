@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class AccountController extends Controller
@@ -30,6 +31,9 @@ class AccountController extends Controller
      */
     public function index(Request $request)
     {
+        if ($request->user()->isLogistics() && in_array($request->query('tab', 'settings'), ['settings', 'profile', 'addresses'], true)) {
+            return redirect()->route('logistics.account');
+        }
         $tab = $request->query('tab', 'settings');
         if ($tab === 'profile') $tab = 'settings';
         if ($tab === 'purchases') {
@@ -43,6 +47,9 @@ class AccountController extends Controller
      */
     public function profile()
     {
+        if (Auth::user()->isLogistics()) {
+            return redirect()->route('logistics.account');
+        }
         return redirect()->route('buyer.dashboard', ['tab' => 'settings']);
     }
 
@@ -59,6 +66,9 @@ class AccountController extends Controller
      */
     public function addresses()
     {
+        if (Auth::user()->isLogistics()) {
+            return redirect()->route('logistics.account');
+        }
         return redirect()->route('buyer.dashboard', ['tab' => 'addresses']);
     }
 
@@ -78,15 +88,17 @@ class AccountController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            'name'           => ['required', 'string', 'max:255'],
+            'name'           => ['required', 'string', 'max:255', 'regex:/\A(?:\p{L}\p{M}*|[ .\'\-])+\z/u'],
             'middle_initial' => ['nullable', 'string', 'max:5'],
-            'phone'          => ['nullable', 'string', 'regex:/\A[0-9]+\z/', 'max:11'],
+            'phone'          => ['nullable', 'string', 'regex:/\A[0-9]+\z/', 'max:11', Rule::unique('users', 'phone')->ignore($user?->id)],
             'sex'            => ['nullable', 'string', 'in:Male,Female,Prefer not to say,Other'],
             'birthday'       => ['nullable', 'bail', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYearsNoOverflow(18)->toDateString()],
             'id_type'        => ['nullable', 'string', 'max:100'],
             'id_number'      => ['nullable', 'string', 'max:100'],
             'id_photo'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
         ], [
+            'phone.unique'         => 'This mobile number is already in use.',
+            'name.regex'           => 'Special characters and numbers are not allowed.',
             'birthday.date_format' => 'Please enter a valid birthday.',
             'birthday.before_or_equal' => 'You must be at least 18 years old.',
         ]);

@@ -51,8 +51,10 @@
 
     async function fetchPsgc(url) {
         if (psgcCache.has(url)) return psgcCache.get(url);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         try {
-            const res = await fetch(url);
+            const res = await fetch(url, { signal: controller.signal });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
             psgcCache.set(url, data);
@@ -60,6 +62,8 @@
         } catch (err) {
             console.error('PSGC API request failed:', url, err);
             return null;
+        } finally {
+            clearTimeout(timeout);
         }
     }
 
@@ -241,7 +245,58 @@
         provSel.addEventListener('change', () => onProvinceChange());
         citySel.addEventListener('change', () => onCityChange());
 
-        if (initialRegion) {
+        async function loadRegions() {
+            const status = form.querySelector('[data-region-status]');
+            const retry = form.querySelector('[data-region-retry]');
+            const previousOptions = Array.from(regionSel.options, option => option.cloneNode(true));
+            const previousValue = regionSel.value;
+            setLoading(regionSel, 'Loading regions...');
+            if (status) status.textContent = 'Loading regions from PSGC…';
+            if (retry) retry.hidden = true;
+            const regions = await fetchPsgc(`${PSGC}/regions.json`);
+            if (!Array.isArray(regions) || !regions.length || regions.some(region => !region.code || !region.name)) {
+                regionSel.replaceChildren(...previousOptions);
+                regionSel.value = previousValue;
+                regionSel.disabled = false;
+                if (status) status.textContent = 'Could not load regions. Your saved address is unchanged. Please retry.';
+                if (retry) retry.hidden = false;
+                return;
+            }
+
+            populateSelect(regionSel, [], 'Select region');
+            // Keep existing stored abbreviations compatible; use API codes for new regions.
+            regions.sort((a, b) => String(a.code).localeCompare(String(b.code))).forEach(region => {
+                const code = String(region.code);
+                const legacyValue = Object.keys(regionMap).find(key => regionMap[key] === code);
+                const value = legacyValue || code;
+                regionMap[value] = code;
+                const option = document.createElement('option');
+                option.value = value;
+                option.dataset.code = code;
+                option.textContent = region.regionName && region.regionName !== region.name
+                    ? `${region.regionName} — ${region.name}` : region.name;
+                option.selected = [value, code, region.name, region.regionName].includes(initialRegion);
+                regionSel.appendChild(option);
+            });
+            if (initialRegion && !regionSel.value) {
+                const saved = document.createElement('option');
+                saved.value = initialRegion;
+                saved.textContent = `${initialRegion} (saved region)`;
+                saved.selected = true;
+                regionSel.appendChild(saved);
+            }
+            if (status) status.textContent = 'Select a region to load its provinces and cities.';
+            if (regionSel.value && regionMap[regionSel.value]) {
+                await onRegionChange(initialProv, initialCity, initialBrgy);
+            } else if (!regionSel.value) {
+                await onRegionChange();
+            }
+        }
+
+        if (regionSel.hasAttribute('data-api-regions')) {
+            form.querySelector('[data-region-retry]')?.addEventListener('click', loadRegions);
+            loadRegions();
+        } else if (initialRegion) {
             onRegionChange(initialProv, initialCity, initialBrgy);
         } else {
             provSel.disabled = true;
@@ -315,7 +370,8 @@
     });
 
     // Enforce numbers-only on Contact number & Postal code inputs
-    const isNumericTarget = el => el && (el.matches('input[name="phone"]') || el.matches('input[name="postal_code"]'));
+    const isNumericTarget = el => el && (el.matches('input[name="phone"]:not([data-international-phone])') || el.matches('input[name="postal_code"]') || el.matches('input[data-digits-only]'));
+    const numericLimit = el => el.maxLength > 0 ? el.maxLength : (el.name === 'postal_code' ? 4 : 11);
 
     document.addEventListener('keydown', e => {
         if (!isNumericTarget(e.target)) return;
@@ -330,7 +386,7 @@
     document.addEventListener('input', e => {
         if (!isNumericTarget(e.target)) return;
         e.target.value = e.target.value.replace(/\D/g, '');
-        e.target.value = e.target.value.slice(0, e.target.name === 'postal_code' ? 4 : 11);
+        e.target.value = e.target.value.slice(0, numericLimit(e.target));
     });
 
     document.addEventListener('paste', e => {
@@ -341,7 +397,7 @@
         const input = e.target;
         const start = input.selectionStart ?? input.value.length;
         const end = input.selectionEnd ?? start;
-        const limit = input.name === 'postal_code' ? 4 : 11;
+        const limit = numericLimit(input);
         const available = Math.max(0, limit - (input.value.length - (end - start)));
         input.setRangeText(digits.slice(0, available), start, end, 'end');
         input.dispatchEvent(new Event('input', { bubbles: true }));

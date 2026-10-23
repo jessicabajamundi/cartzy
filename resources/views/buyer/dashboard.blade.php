@@ -50,22 +50,94 @@
                 {{-- ---------- MY ORDERS ---------- --}}
                 <section data-panel="orders" class="dash-panel commerce-page hidden space-y-5">
                     <header class="commerce-heading">
-                        <div><p class="commerce-eyebrow">YOUR SHOPPING JOURNEY</p><h2>My Orders</h2><p>Every purchase, every update. Keep track of it all here.</p></div>
-                        <span class="commerce-count">{{ count($orders) }} {{ count($orders) === 1 ? 'order' : 'orders' }}</span>
+                        <div><p class="commerce-eyebrow">YOUR SHOPPING JOURNEY</p><h2>Orders</h2><p>Follow your active orders, track deliveries and look back at past purchases, all in one place.</p></div>
                     </header>
+                    @if($showTracking && $tracking)
+                        <div id="order-tracking" class="order-tracking-panel">
+                            <div class="order-tracking-heading"><div><p class="commerce-eyebrow">DELIVERY UPDATES</p><h3>Tracking {{ $tracking['order'] ?? $tracking['query'] ?? '' }}</h3></div><a href="{{ route('buyer.dashboard', ['tab' => 'orders']) }}" class="order-tracking-close">✕ Close tracking</a></div>
+                        @if($tracking && !($tracking['not_found'] ?? false))
+                            <div class="commerce-tracking-card">
+                                <div class="commerce-tracking-summary">
+                                    <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Order</p><p class="font-extrabold">{{ $tracking['order'] }}</p></div>
+                                    <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Tracking no.</p><p class="font-extrabold">{{ $tracking['tracking_no'] }}</p></div>
+                                    <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Estimated arrival</p><p class="font-extrabold text-[#E8C9C0]">{{ $tracking['eta'] }}</p></div>
+                                </div>
+                                <p class="mt-4 text-sm text-gray-500">Courier: <span class="font-bold text-gray-800">{{ $tracking['courier'] }}</span></p>
+                                <div class="tracking-status-panel">
+                                    <div><span class="tracking-caption">Latest confirmed stage</span><strong>{{ $tracking['current_status'] }}</strong></div>
+                                    <div><span class="tracking-caption">Last recorded update · Philippine time</span><strong>{{ $tracking['last_update'] }}</strong></div>
+                                </div>
+                                <dl class="tracking-details">
+                                    <div><dt>Assigned rider</dt><dd>{{ $tracking['rider'] }}</dd></div>
+                                    <div><dt>Delivery area</dt><dd>{{ $tracking['area'] }}</dd></div>
+                                    <div><dt>Delivery attempts</dt><dd>{{ $tracking['attempts'] ?: 'No attempt recorded' }}</dd></div>
+                                </dl>
+                                @if($tracking['attention'])
+                                    <p class="tracking-attention" role="status">{{ $tracking['attention'] }}</p>
+                                @endif
+                                <p class="tracking-explainer">Updates appear when the seller or courier records an action. This is not live GPS tracking. Refresh this page to check for new updates.</p>
+                                <a class="tracking-refresh" href="{{ request()->fullUrl() }}">Refresh tracking ↻</a>
+                                <h3 class="commerce-timeline-title">Delivery timeline</h3><ol class="mt-6 space-y-0">
+                                    @foreach($tracking['steps'] as $step)
+                                        <li class="relative flex gap-4 pb-7 last:pb-0">
+                                            @if(!$loop->last)<span class="absolute left-[15px] top-8 h-[calc(100%-1.5rem)] w-0.5 {{ $step['done'] && !($step['current'] ?? false) ? 'bg-[#C08B7F]' : 'bg-gray-200' }}"></span>@endif
+                                            <span class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold {{ ($step['current'] ?? false) ? 'bg-[#C08B7F] text-white ring-4 ring-[#C08B7F]/25' : ($step['done'] ? 'bg-[#564B68] text-white' : 'bg-gray-200 text-gray-400') }}">{{ $step['done'] ? '✓' : '•' }}</span>
+                                            <div>
+                                                <p class="text-sm font-bold {{ $step['done'] ? 'text-gray-900' : 'text-gray-500' }}">{{ $step['label'] }} @if($step['current'] ?? false)<span class="tracking-current">Latest confirmed</span>@endif</p>
+                                                <p class="text-xs text-gray-500">{{ $step['detail'] }}</p>
+                                                <p class="mt-0.5 text-[11px] font-semibold text-[#8C5A50]">{{ $step['time'] }}</p>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ol>
+                                <details class="tracking-history">
+                                    <summary>Detailed activity · {{ count($tracking['history']) }} recorded updates</summary>
+                                    <p class="tracking-explainer">Newest first. Repeated scans and delivery attempts are shown separately. All times are Philippine time.</p>
+                                    @forelse($tracking['history'] as $event)
+                                        <article>
+                                            <strong>{{ $event['label'] }}</strong>
+                                            <p>{{ $event['time'] }}@if($event['attempt'] > 1) · Attempt {{ $event['attempt'] }}@endif</p>
+                                            @if($event['note'])<p>{{ $event['note'] }}</p>@endif
+                                        </article>
+                                    @empty
+                                        <p class="tracking-explainer">No courier scans recorded yet.</p>
+                                    @endforelse
+                                </details>
+                            </div>
+                        @elseif($tracking && ($tracking['not_found'] ?? false))
+                            <div class="rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-sm">
+                                <span class="text-3xl">🔍</span>
+                                <h3 class="mt-2 text-base font-bold text-gray-900">Parcel not found</h3>
+                                <p class="mt-1 text-sm text-gray-500">No matching order or tracking number found for "<strong>{{ $tracking['query'] }}</strong>".</p>
+                            </div>
+                        @endif
+                        </div>
+                    @endif
                     @if(count($orders))
                         <div class="orders-filter-bar" id="orderFilters" role="group" aria-label="Filter orders by status">
                             <button type="button" data-filter="all" class="order-filter rounded-xl px-4 py-2 text-sm font-bold cursor-pointer">All <span class="ml-1 text-xs opacity-70">{{ count($orders) }}</span></button>
-                            @foreach($statusMap as $key => $s)
-                                <button type="button" data-filter="{{ $key }}" class="order-filter rounded-xl px-4 py-2 text-sm font-bold cursor-pointer">{{ $s['label'] }} <span class="ml-1 text-xs opacity-70">{{ $statusCounts[$key] ?? 0 }}</span></button>
+                            @foreach(['In progress' => ['to_pay', 'to_ship', 'to_receive'], 'Past' => ['completed', 'cancelled']] as $groupLabel => $groupKeys)
+                                <span class="order-filter-group" aria-hidden="true">{{ $groupLabel }}</span>
+                                @foreach($groupKeys as $key)
+                                    <button type="button" data-filter="{{ $key }}" class="order-filter rounded-xl px-4 py-2 text-sm font-bold cursor-pointer">{{ $statusMap[$key]['label'] }} <span class="ml-1 text-xs opacity-70">{{ $statusCounts[$key] ?? 0 }}</span></button>
+                                @endforeach
                             @endforeach
                         </div>
+                        <label class="orders-search">
+                            <span class="sr-only">Search orders</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.3-4.3M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg>
+                            <input type="search" id="orderSearch" placeholder="Search by order ID, store or product" autocomplete="off">
+                        </label>
                         <div class="space-y-4" id="orderList">
                             @foreach($orders as $o)
                                 @include('buyer.partials.order-card', ['o' => $o, 'statusMap' => $statusMap, 'peso' => $peso, 'btnPrimary' => $btnPrimary, 'btnGhost' => $btnGhost])
                             @endforeach
                         </div>
-                        <div id="orderEmpty" class="hidden orders-filter-empty" role="status"><strong>No orders in this status yet.</strong><p>Choose another status to see your other purchases.</p></div>
+                        <div id="orderEmpty" class="hidden orders-filter-empty" role="status"><strong>No matching orders.</strong><p>Choose another status or clear your search to see your other purchases.</p></div>
+                        <nav id="orderPagination" class="orders-pagination hidden" aria-label="Orders pagination">
+                            <p id="orderPageSummary" role="status" aria-live="polite"></p>
+                            <div><button type="button" id="orderPrevious">Previous</button><span id="orderPageNumber"></span><button type="button" id="orderNext">Next</button></div>
+                        </nav>
                     @else
                         @include('buyer.partials.commerce-empty', [
                             'emptyPath' => 'm12 3 9 5-9 5-9-5 9-5ZM3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5',
@@ -137,8 +209,9 @@
                                         <p class="wishlist-variant">{{ $w['variation'] ?? 'Standard' }}</p>
                                         <p class="wishlist-price">{{ $peso($w['price']) }}</p>
                                         <button type="button"
-                                                onclick="moveToCart('{{ $w['ref'] }}', {{ ctype_digit((string) $w['ref']) ? (int) $w['ref'] : crc32($w['name']) % 100000 }}, {{ json_encode($w['name']) }}, {{ $w['price'] }}, {{ json_encode($w['image']) }}, {{ json_encode($w['variation']) }})"
-                                                class="wishlist-cart"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01"/></svg>Move to cart</button>
+                                                @disabled(!$w['in_stock'])
+                                                @if($w['in_stock']) onclick="moveToCart('{{ $w['ref'] }}', {{ json_encode($w['ref']) }}, {{ json_encode($w['name']) }}, {{ $w['price'] }}, {{ json_encode($w['image']) }}, {{ json_encode($w['variation']) }})" @endif
+                                                class="wishlist-cart"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01"/></svg>{{ $w['in_stock'] ? 'Move to cart' : 'Out of Stock' }}</button>
                                     </div>
                                 </article>
                             @endforeach
@@ -158,134 +231,14 @@
                     @endif
                 </section>
 
-                {{-- ---------- ORDER HISTORY ---------- --}}
-                <section data-panel="history" class="dash-panel commerce-page hidden space-y-5">
-                    <header class="commerce-heading"><div><p class="commerce-eyebrow">YOUR PURCHASES</p><h2>Order History</h2><p>A clear record of your completed and cancelled orders.</p></div><span class="commerce-count">Purchase archive</span></header>
-                    @php
-                        $historyOrders = array_filter($orders, fn ($o) => in_array($o['status'], ['completed', 'cancelled']));
-                    @endphp
-                    @if(count($historyOrders))
-                        <div class="overflow-hidden rounded-3xl border border-[#E1DDE7] bg-white shadow-sm">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-[#F6F4F8] text-xs font-bold uppercase tracking-wider text-gray-500">
-                                        <tr><th class="px-5 py-3.5">Order</th><th class="px-5 py-3.5">Date</th><th class="px-5 py-3.5">Store</th><th class="px-5 py-3.5">Payment</th><th class="px-5 py-3.5 text-right">Total</th><th class="px-5 py-3.5">Status</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-100">
-                                        @foreach($historyOrders as $o)
-                                            <tr class="hover:bg-[#FAF9FB]">
-                                                <td class="px-5 py-4 font-bold text-gray-900">{{ $o['id'] }}</td>
-                                                <td class="px-5 py-4 text-gray-600">{{ $o['date'] }}</td>
-                                                <td class="px-5 py-4 text-gray-600">{{ $o['store'] }}</td>
-                                                <td class="px-5 py-4 text-gray-600">{{ $o['payment'] }}</td>
-                                                <td class="px-5 py-4 text-right font-extrabold text-gray-900">{{ $peso($o['total']) }}</td>
-                                                <td class="px-5 py-4"><span class="rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 {{ $statusMap[$o['status']]['cls'] }}">{{ $statusMap[$o['status']]['label'] }}</span></td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @else
-                        @include('buyer.partials.commerce-empty', [
-                            'emptyPath' => 'M6 3h12v18l-3-2-3 2-3-2-3 2V3ZM9 7h6M9 11h6M9 15h3',
-                            'eyebrow' => 'YOUR PURCHASES',
-                            'note' => 'Completed and cancelled purchases will appear here automatically.',
-                            'icon' => '📜',
-                            'title' => 'No past purchases yet',
-                            'text' => 'Completed and cancelled orders will be archived here for your records.',
-                            'cta' => 'Start shopping',
-                            'href' => route('home'),
-                            'btnPrimary' => $btnPrimary
-                        ])
-                    @endif
-                </section>
-
-                {{-- ---------- TRACK ORDER ---------- --}}
-                <section data-panel="track" class="dash-panel commerce-page hidden space-y-5">
-                    <header class="commerce-heading"><div><p class="commerce-eyebrow">DELIVERY UPDATES</p><h2>Track Order</h2><p>Follow your parcel, from order confirmation to your doorstep.</p></div><span class="commerce-count">Parcel tracking</span></header>
-
-                    {{-- Search bar to track any order by reference or tracking code --}}
-                    <form action="{{ route('buyer.dashboard') }}" method="GET" class="commerce-track-search">
-                        <label for="parcel-reference">Order reference or tracking number</label><div class="flex flex-col sm:flex-row gap-3">
-                        <input type="hidden" name="tab" value="track">
-                        <input id="parcel-reference" type="text" name="track" value="{{ request('track') }}" placeholder="Enter order reference (e.g. ORD-...) or courier tracking number" class="{{ $inputCls }}">
-                        <button type="submit" class="commerce-button whitespace-nowrap">Track parcel &rarr;</button></div>
-                    </form>
-
-                    @if($tracking && !($tracking['not_found'] ?? false))
-                        <div class="commerce-tracking-card">
-                            <div class="commerce-tracking-summary">
-                                <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Order</p><p class="font-extrabold">{{ $tracking['order'] }}</p></div>
-                                <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Tracking no.</p><p class="font-extrabold">{{ $tracking['tracking_no'] }}</p></div>
-                                <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Estimated arrival</p><p class="font-extrabold text-[#E8C9C0]">{{ $tracking['eta'] }}</p></div>
-                            </div>
-                            <p class="mt-4 text-sm text-gray-500">Courier: <span class="font-bold text-gray-800">{{ $tracking['courier'] }}</span></p>
-                            <div class="tracking-status-panel">
-                                <div><span class="tracking-caption">Latest confirmed stage</span><strong>{{ $tracking['current_status'] }}</strong></div>
-                                <div><span class="tracking-caption">Last recorded update · Philippine time</span><strong>{{ $tracking['last_update'] }}</strong></div>
-                            </div>
-                            <dl class="tracking-details">
-                                <div><dt>Assigned rider</dt><dd>{{ $tracking['rider'] }}</dd></div>
-                                <div><dt>Delivery area</dt><dd>{{ $tracking['area'] }}</dd></div>
-                                <div><dt>Delivery attempts</dt><dd>{{ $tracking['attempts'] ?: 'No attempt recorded' }}</dd></div>
-                            </dl>
-                            @if($tracking['attention'])
-                                <p class="tracking-attention" role="status">{{ $tracking['attention'] }}</p>
-                            @endif
-                            <p class="tracking-explainer">Updates appear when the seller or courier records an action. This is not live GPS tracking. Refresh this page to check for new updates.</p>
-                            <a class="tracking-refresh" href="{{ request()->fullUrl() }}">Refresh tracking ↻</a>
-                            <h3 class="commerce-timeline-title">Delivery timeline</h3><ol class="mt-6 space-y-0">
-                                @foreach($tracking['steps'] as $step)
-                                    <li class="relative flex gap-4 pb-7 last:pb-0">
-                                        @if(!$loop->last)<span class="absolute left-[15px] top-8 h-[calc(100%-1.5rem)] w-0.5 {{ $step['done'] && !($step['current'] ?? false) ? 'bg-[#C08B7F]' : 'bg-gray-200' }}"></span>@endif
-                                        <span class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold {{ ($step['current'] ?? false) ? 'bg-[#C08B7F] text-white ring-4 ring-[#C08B7F]/25' : ($step['done'] ? 'bg-[#564B68] text-white' : 'bg-gray-200 text-gray-400') }}">{{ $step['done'] ? '✓' : '•' }}</span>
-                                        <div>
-                                            <p class="text-sm font-bold {{ $step['done'] ? 'text-gray-900' : 'text-gray-500' }}">{{ $step['label'] }} @if($step['current'] ?? false)<span class="tracking-current">Latest confirmed</span>@endif</p>
-                                            <p class="text-xs text-gray-500">{{ $step['detail'] }}</p>
-                                            <p class="mt-0.5 text-[11px] font-semibold text-[#8C5A50]">{{ $step['time'] }}</p>
-                                        </div>
-                                    </li>
-                                @endforeach
-                            </ol>
-                            <details class="tracking-history">
-                                <summary>Detailed activity · {{ count($tracking['history']) }} recorded updates</summary>
-                                <p class="tracking-explainer">Newest first. Repeated scans and delivery attempts are shown separately. All times are Philippine time.</p>
-                                @forelse($tracking['history'] as $event)
-                                    <article>
-                                        <strong>{{ $event['label'] }}</strong>
-                                        <p>{{ $event['time'] }}@if($event['attempt'] > 1) · Attempt {{ $event['attempt'] }}@endif</p>
-                                        @if($event['note'])<p>{{ $event['note'] }}</p>@endif
-                                    </article>
-                                @empty
-                                    <p class="tracking-explainer">No courier scans recorded yet.</p>
-                                @endforelse
-                            </details>
-                        </div>
-                    @elseif($tracking && ($tracking['not_found'] ?? false))
-                        <div class="rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-sm">
-                            <span class="text-3xl">🔍</span>
-                            <h3 class="mt-2 text-base font-bold text-gray-900">Parcel not found</h3>
-                            <p class="mt-1 text-sm text-gray-500">No matching order or tracking number found for "<strong>{{ $tracking['query'] }}</strong>".</p>
-                        </div>
-                    @else
-                        @include('buyer.partials.commerce-empty', [
-                            'emptyPath' => 'm12 3 9 5-9 5-9-5 9-5ZM3 8v9l9 5 9-5V8M12 13v9M7.5 5.5l9 5',
-                            'eyebrow' => 'DELIVERY UPDATES',
-                            'note' => 'Find your order reference in My Orders.',
-                            'icon' => '📦',
-                            'title' => 'No active parcels to track',
-                            'text' => 'When you place an order, live shipping status and courier timeline will appear here.',
-                            'cta' => 'Browse products',
-                            'href' => route('home'),
-                            'btnPrimary' => $btnPrimary
-                        ])
-                    @endif
-                </section>
-
                 {{-- ---------- NOTIFICATIONS ---------- --}}
                 <section data-panel="notifications" class="dash-panel commerce-page hidden space-y-5">
                     @include('buyer.partials.notifications')
+                </section>
+
+                {{-- ---------- VOUCHERS ---------- --}}
+                <section data-panel="vouchers" class="dash-panel commerce-page hidden space-y-5" aria-labelledby="vouchers-title">
+                    @include('buyer.partials.vouchers', ['vouchers' => $vouchers])
                 </section>
 
                 {{-- ---------- REVIEWS ---------- --}}
@@ -355,6 +308,13 @@
     .order-filter { color: #6b7280; transition: all .15s; }
     .order-filter:hover { background: #F6F4F8; }
     .order-filter.is-active { background: #564B68; color: #fff; }
+    .orders-pagination:not(.hidden) { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 18px 0; color: #81738e; font-size: 13px; }
+    .orders-pagination > div { display: flex; align-items: center; gap: 12px; }
+    .orders-pagination button { min-height: 42px; padding: 9px 16px; border: 1px solid #e1dde7; border-radius: 10px; background: #fff; color: #564b68; font-weight: 700; cursor: pointer; }
+    .orders-pagination button:hover:not(:disabled) { background: #f1edf5; border-color: #9b899f; }
+    .orders-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+    .orders-pagination button:focus-visible { outline: 2px solid #6f6382; outline-offset: 3px; }
+    #orderFilters { scroll-margin-top: 120px; }
     .star.is-on { color: #fbbf24; }
 </style>
 
@@ -380,6 +340,12 @@
                 }, 120);
             }
         }
+        if (key === 'history') {
+            // Order History now lives inside Orders as the "Past" filters.
+            key = 'orders';
+            filterOrders('completed');
+        }
+        if (key === 'track') key = 'orders'; // Tracking is shown at the top of the Orders tab.
         if (!valid.includes(key)) key = 'orders';
         document.querySelectorAll('[data-buyer-nav]').forEach(link => {
             if (link.dataset.buyerNav === key) link.setAttribute('aria-current', 'page');
@@ -391,25 +357,65 @@
         const url = new URL(location.href);
         url.pathname = new URL(@json(route('buyer.dashboard'))).pathname;
         url.searchParams.set('tab', key);
+        if (key === 'orders' && orderFilter !== 'all') url.searchParams.set('status', orderFilter); else url.searchParams.delete('status');
         url.hash = key;
         history.replaceState(null, '', url);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const trackingPanel = key === 'orders' && document.getElementById('order-tracking');
+        if (trackingPanel) trackingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function filterOrders(f) {
-        let shown = 0;
-        document.querySelectorAll('#orderList [data-status]').forEach(c => {
-            const ok = f === 'all' || c.dataset.status === f;
-            c.classList.toggle('hidden', !ok);
-            if (ok) shown++;
-        });
+    let orderFilter = 'all';
+    let orderSearch = '';
+    let orderPage = 1;
+    const ordersPerPage = 10;
+    function renderOrders() {
+        const cards = Array.from(document.querySelectorAll('#orderList [data-status]'));
+        const matching = cards.filter(card => (orderFilter === 'all' || card.dataset.status === orderFilter)
+            && (!orderSearch || card.textContent.toLowerCase().includes(orderSearch)));
+        const pages = Math.max(1, Math.ceil(matching.length / ordersPerPage));
+        orderPage = Math.min(Math.max(1, orderPage), pages);
+        const start = (orderPage - 1) * ordersPerPage;
+        cards.forEach(card => card.classList.add('hidden'));
+        matching.slice(start, start + ordersPerPage).forEach(card => card.classList.remove('hidden'));
         const emptyEl = document.getElementById('orderEmpty');
-        if (emptyEl) emptyEl.classList.toggle('hidden', shown > 0);
+        if (emptyEl) emptyEl.classList.toggle('hidden', matching.length > 0);
+        const pagination = document.getElementById('orderPagination');
+        if (pagination) {
+            pagination.classList.toggle('hidden', matching.length <= ordersPerPage);
+            document.getElementById('orderPageSummary').textContent = matching.length ? `Showing ${start + 1}–${Math.min(start + ordersPerPage, matching.length)} of ${matching.length} orders` : '';
+            document.getElementById('orderPageNumber').textContent = `Page ${orderPage} of ${pages}`;
+            document.getElementById('orderPrevious').disabled = orderPage === 1;
+            document.getElementById('orderNext').disabled = orderPage === pages;
+        }
+    }
+    function filterOrders(f) {
+        if (!document.querySelector(`.order-filter[data-filter="${f}"]`)) f = 'all';
+        orderFilter = f;
+        orderPage = 1;
+        renderOrders();
         document.querySelectorAll('.order-filter').forEach(b => {
             b.classList.toggle('is-active', b.dataset.filter === f);
             b.setAttribute('aria-pressed', String(b.dataset.filter === f));
         });
+        const url = new URL(location.href);
+        if (url.searchParams.get('tab') === 'orders' || !url.searchParams.has('tab')) {
+            if (f === 'all') url.searchParams.delete('status'); else url.searchParams.set('status', f);
+            history.replaceState(null, '', url);
+        }
     }
+    document.getElementById('orderSearch')?.addEventListener('input', function () {
+        orderSearch = this.value.trim().toLowerCase();
+        orderPage = 1;
+        renderOrders();
+    });
+    [['orderPrevious', -1], ['orderNext', 1]].forEach(([id, step]) => {
+        document.getElementById(id)?.addEventListener('click', () => {
+            orderPage += step;
+            renderOrders();
+            document.getElementById('orderFilters')?.scrollIntoView({ block: 'start' });
+        });
+    });
 
     navs.forEach(n => n.addEventListener('click', () => show(n.dataset.nav, true)));
     document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
@@ -429,7 +435,7 @@
         });
     });
 
-    filterOrders('all');
+    filterOrders(new URL(location.href).searchParams.get('status') || 'all');
     const start = location.hash.replace('#', '') || @json($tab);
     show(start, false);
 
@@ -459,10 +465,10 @@ window.removeFromWishlist = function (ref) {
     .catch(() => alert('Could not remove item. Please try again.'));
 };
 
-window.moveToCart = function (ref, id, name, price, image, variation) {
-    if (typeof window.addToCart === 'function') {
-        window.addToCart(id, name, price, image, variation);
-    }
+window.moveToCart = async function (ref, id, name, price, image, variation) {
+    if (typeof window.addToCart !== 'function') return;
+    const added = await window.addToCart(id, name, price, image, variation);
+    if (!added) return;
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     fetch('{{ route('wishlist.remove') }}', {
         method: 'POST',

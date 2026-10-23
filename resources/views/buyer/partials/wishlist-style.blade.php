@@ -21,7 +21,8 @@
 .wishlist-price { margin:16px 0; padding-top:14px; border-top:1px solid var(--brand-border,#E1DDE7); font-size:22px; line-height:1.2; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:-.03em; color:var(--brand-dark,#564B68); }
 .wishlist-cart { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; margin-top:auto; padding:10px 12px; border:0; border-radius:9px; background:linear-gradient(110deg,var(--brand-deep,#6F6382),var(--accent-dark,#8C5A50)); color:#fff; font:700 13px/1.5 'Lato',sans-serif; cursor:pointer; }
 .wishlist-cart svg { width:18px; height:18px; }
-.wishlist-cart:hover { background:linear-gradient(110deg,var(--brand-dark,#564B68),var(--accent-darkest,#4A2520)); }
+.wishlist-cart:not(:disabled):hover { background:linear-gradient(110deg,var(--brand-dark,#564B68),var(--accent-darkest,#4A2520)); }
+.wishlist-cart:disabled { background:#f3f4f6; color:#9ca3af; cursor:not-allowed; pointer-events:none; animation:none; transition:none; transform:none; box-shadow:none; }
 .wishlist-page :is(button,a):focus-visible { outline:2px solid var(--brand-deep,#6F6382); outline-offset:3px; }
 @media(max-width:540px) {
     .wishlist-page .wishlist-heading { padding:20px; margin-bottom:18px; }

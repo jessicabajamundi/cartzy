@@ -46,6 +46,7 @@ class CartController extends Controller
 
         $validated = $request->validate([
             'id'        => 'required',
+            'variant_id' => 'nullable|integer|exists:product_variants,id',
             'name'      => 'required|string',
             'price'     => 'required|numeric|min:0',
             'image'     => 'nullable|string',
@@ -60,14 +61,32 @@ class CartController extends Controller
         $variation = $validated['variation'] ?? 'Standard';
         $quantity = (int) ($validated['quantity'] ?? 1);
 
+        try {
+            $variant = app(\App\Services\ProductPricing::class)->variant($validated);
+        } catch (\RuntimeException $e) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['variant_id' => $e->getMessage()]);
+        }
+        if ($variant) {
+            $name = $variant->product->name;
+            $price = $variant->sale_price_minor / 100;
+            $variation = $variant->name;
+            $image = $variant->resolved_image_url;
+        }
         $cart = app(\App\Services\BuyerCart::class)->all();
 
         // Key by product ID + variation
-        $cartKey = $id . '_' . md5($variation);
+        $cartKey = $variant ? 'variant_'.$variant->id : $id . '_' . md5($variation);
+
+        if ($variant && $quantity + (int) ($cart[$cartKey]['quantity'] ?? 0) > $variant->stock) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quantity' => 'Only '.$variant->stock.' item(s) are available for this option, including any already in your cart.',
+            ]);
+        }
 
         app(\App\Services\BuyerCart::class)->add($cartKey, [
                 'id'        => $id,
                 'cart_key'  => $cartKey,
+                'variant_id' => $variant?->id,
                 'name'      => $name,
                 'price'     => $price,
                 'image'     => $image,
@@ -76,7 +95,7 @@ class CartController extends Controller
             ]);
         $cart = app(\App\Services\BuyerCart::class)->all();
 
-        $totalCount = array_sum(array_column($cart, 'quantity'));
+        $totalCount = count($cart);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -108,7 +127,7 @@ class CartController extends Controller
             $cart = app(\App\Services\BuyerCart::class)->all();
         }
 
-        $totalCount = array_sum(array_column($cart, 'quantity'));
+        $totalCount = count($cart);
         $subtotal = 0;
         foreach ($cart as $item) {
             $subtotal += ($item['price'] * $item['quantity']);
@@ -143,7 +162,7 @@ class CartController extends Controller
             $cart = app(\App\Services\BuyerCart::class)->all();
         }
 
-        $totalCount = array_sum(array_column($cart, 'quantity'));
+        $totalCount = count($cart);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([

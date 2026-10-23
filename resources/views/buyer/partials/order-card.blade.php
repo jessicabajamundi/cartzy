@@ -1,6 +1,7 @@
+@php $trackUrl = route('buyer.dashboard', ['tab' => 'orders', 'track' => $o['tracking_code'] ?? $o['id']]); @endphp
 <article data-status="{{ $o['status'] }}" class="buyer-order-card">
     <div class="buyer-order-header">
-        <div class="buyer-order-store"><span class="buyer-store-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18l-2-7H5l-2 7ZM5 10v11h14V10M9 21v-7h6v7"/></svg></span><div><p>{{ $o['store'] }}</p><span>{{ $o['id'] }} &middot; {{ $o['date'] }}</span></div></div>
+        <div class="buyer-order-store"><span class="buyer-store-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18l-2-7H5l-2 7ZM5 10v11h14V10M9 21v-7h6v7"/></svg></span><div><p>{{ $o['store'] }}</p><span>{{ $o['id'] }} &middot; {{ $o['date'] }}@if(!empty($o['tracking_code'])) &middot; Tracking {{ $o['tracking_code'] }}@endif</span></div></div>
         <span class="buyer-order-status"><span aria-hidden="true"></span>{{ $statusMap[$o['status']]['label'] }}</span>
     </div>
     <div class="divide-y divide-gray-50 px-5">
@@ -22,11 +23,24 @@
     @elseif(($o['cancellation_status'] ?? null) === 'approved')
         <p class="px-5 py-3 text-sm text-gray-600">Cancellation approved by seller. If already paid, contact the seller to arrange your refund.</p>
     @endif
+    @if($report = $o['report'] ?? null)
+        @if($report->status === 'open')
+            <p class="buyer-order-report is-open" role="status"><strong>Problem reported · Case #{{ $report->id }}</strong> {{ $report->subject }}. Our team is reviewing it and will update you in Notifications.</p>
+        @else
+            <div class="buyer-order-report"><strong>Report resolved · Case #{{ $report->id }}</strong><p>{{ $report->admin_notes }}</p></div>
+        @endif
+    @endif
     <div class="buyer-order-footer">
-        <p class="buyer-order-total">Order total <strong>{{ $peso($o['total']) }}</strong></p>
+        <p class="buyer-order-total">Order total <strong>{{ $peso($o['total']) }}</strong>@if(!empty($o['payment']))<span class="buyer-order-payment">{{ $o['payment'] }}</span>@endif</p>
         <div class="buyer-order-actions">
             @if($o['can_cancel'])
                 <button type="button" class="buyer-order-secondary" data-cancel-order="{{ route('orders.cancel', $o['seller_order_id']) }}" data-order-reference="{{ $o['id'] }}" aria-haspopup="dialog">Cancel order</button>
+            @endif
+            @if($o['can_report'] ?? false)
+                <a href="{{ route('orders.report', $o['seller_order_id']) }}" class="buyer-order-secondary buyer-order-report-link">Report problem</a>
+            @endif
+            @if(!in_array($o['status'], ['cancelled', 'to_receive'], true))
+                <a href="{{ $trackUrl }}" class="buyer-order-secondary">Track order</a>
             @endif
             <a href="{{ route('buyer.messages', ['contact' => $o['seller_order_id']]) }}" class="buyer-order-secondary">Contact seller</a>
             @if($o['status'] === 'to_pay')
@@ -35,12 +49,12 @@
                     <button type="submit" class="commerce-button">Pay now</button>
                 </form>
             @elseif($o['status'] === 'to_receive')
-                <a href="{{ route('buyer.dashboard', ['tab' => 'track', 'track' => $o['id']]) }}" class="commerce-button">Track order</a>
+                <a href="{{ $trackUrl }}" class="commerce-button">Track order</a>
             @elseif($o['status'] === 'completed')
                 <button type="button" data-go="reviews" class="buyer-order-secondary">Rate</button>
-                <a href="{{ route('home') }}" class="commerce-button">Buy again</a>
+                <a href="{{ route('home') }}" class="commerce-button buyer-buy-again">Buy again</a>
             @elseif($o['status'] === 'cancelled')
-                <a href="{{ route('home') }}" class="commerce-button">Buy again</a>
+                <a href="{{ route('home') }}" class="commerce-button buyer-buy-again">Buy again</a>
             @else
             @endif
         </div>
