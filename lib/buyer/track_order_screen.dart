@@ -704,7 +704,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                 _buildTimelineStep(
                   title: 'In Transit — Metro Express Rider',
                   subtitle: isInTransit
-                      ? 'Rider assigned (Tiffany Leonardo • Metro South Sector)'
+                      ? 'Rider assigned • Metro South Sector'
                       : 'Pending pickup from local distribution center',
                   isCompleted: isDelivered,
                   isCurrent: isInTransit,
@@ -736,11 +736,13 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Need help with this order?',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    color: const Color(0xFF7A6F7B),
+                Flexible(
+                  child: Text(
+                    'Need help with this order?',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      color: const Color(0xFF7A6F7B),
+                    ),
                   ),
                 ),
                 TextButton(

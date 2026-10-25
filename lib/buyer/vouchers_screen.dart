@@ -107,15 +107,18 @@ class _VouchersScreenState extends State<VouchersScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        'Vouchers',
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF2D2640),
-                          letterSpacing: -0.5,
+                      Flexible(
+                        child: Text(
+                          'Vouchers',
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 34,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF2D2640),
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                         decoration: BoxDecoration(
@@ -273,12 +276,14 @@ class _VouchersScreenState extends State<VouchersScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          'Use my vouchers at checkout',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                        Flexible(
+                          child: Text(
+                            'Use my vouchers at checkout',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -302,7 +307,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
 
   Widget _buildVoucherCard(Voucher voucher) {
     return Container(
-      width: 370,
+      constraints: const BoxConstraints(maxWidth: 370),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -413,12 +418,14 @@ class _VouchersScreenState extends State<VouchersScreen> {
                             color: const Color(0xFF2E7D63),
                           ),
                         ),
-                        Text(
-                          'Ready to use on your cart',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2E7D63),
+                        Flexible(
+                          child: Text(
+                            'Ready to use on your cart',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF2E7D63),
+                            ),
                           ),
                         ),
                       ],

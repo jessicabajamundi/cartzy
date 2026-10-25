@@ -1,17 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
-import 'package:cartzy/services/user_account_service.dart';
+import 'package:cartzy/services/api_service.dart' show ApiException;
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 
+/// Second half of buyer sign-up: the server has emailed a 6-digit code, and
+/// entering it here creates the account and signs the buyer in.
 class EmailVerificationScreen extends StatefulWidget {
   final String email;
+
+  /// The registration form's details (see [AuthService.registerBuyer]).
+  final Map<String, dynamic>? registration;
   final ValueChanged<Map<String, dynamic>> onVerificationSuccess;
   final VoidCallback onBackToLogin;
 
   const EmailVerificationScreen({
     super.key,
     required this.email,
+    this.registration,
     required this.onVerificationSuccess,
     required this.onBackToLogin,
   });
@@ -21,13 +29,16 @@ class EmailVerificationScreen extends StatefulWidget {
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
+  /// Matches how long the server keeps a code.
+  static const _codeLifetimeSeconds = 600;
+
   final TextEditingController _otpController = TextEditingController();
   bool _isSubmitting = false;
+  bool _isResending = false;
   String? _errorMessage;
-  bool _simulateExpired = false;
 
   Timer? _countdownTimer;
-  int _secondsRemaining = 300; // 5 minutes
+  int _secondsRemaining = _codeLifetimeSeconds;
 
   @override
   void initState() {
@@ -37,7 +48,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
 
   void _startTimer() {
     _countdownTimer?.cancel();
-    _secondsRemaining = 300;
+    _secondsRemaining = _codeLifetimeSeconds;
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -68,60 +79,78 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _handleVerify() async {
+    final registration = widget.registration;
+    if (registration == null) {
+      setState(() => _errorMessage = 'Your sign-up details were lost. Please register again.');
+      return;
+    }
+
+    final entered = _otpController.text.trim();
+    if (entered.length != 6) {
+      setState(() => _errorMessage = 'Enter the 6-digit code from your email.');
+      return;
+    }
+
     setState(() {
       _errorMessage = null;
       _isSubmitting = true;
     });
 
-    final entered = _otpController.text.trim();
-
-    // Verify OTP using UserAccountService
-    final error = UserAccountService.instance.verifyOtp(
-      email: widget.email,
-      enteredOtp: entered,
-      simulateExpired: _simulateExpired,
-    );
-
-    if (error != null) {
+    try {
+      final response = await AuthService.registerBuyer(registration, otp: entered);
+      if (!mounted) return;
+      _countdownTimer?.cancel();
+      showCartzyFlash(context, 'Email verified successfully! Welcome to Cartzy.');
+      widget.onVerificationSuccess(
+        Map<String, dynamic>.from(response['user'] as Map? ?? const {}),
+      );
+    } on ApiException catch (e) {
+      if (!mounted) return;
       setState(() {
-        _errorMessage = error;
         _isSubmitting = false;
+        _errorMessage = e.message;
       });
-      return;
-    }
-
-    // Success (TC-BUY-023)
-    final account = UserAccountService.instance.findAccountByEmail(widget.email);
-    showCartzyFlash(context, 'Email verified successfully! Welcome to Cartzy.');
-
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() => _isSubmitting = false);
-
-    if (account != null) {
-      widget.onVerificationSuccess(account.toMap());
-    } else {
-      widget.onBackToLogin();
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        _errorMessage = "Couldn't reach the server. Check your connection and try again.";
+      });
     }
   }
 
-  void _handleResendOtp() {
-    final newCode = UserAccountService.instance.resendOtp(widget.email);
-    _startTimer();
+  Future<void> _handleResendOtp() async {
+    final registration = widget.registration;
+    if (registration == null || _isResending) return;
+
     setState(() {
-      _simulateExpired = false;
+      _isResending = true;
       _errorMessage = null;
-      _otpController.clear();
     });
 
-    showCartzyFlash(context, 'New OTP ($newCode) sent to ${widget.email}!');
+    try {
+      await AuthService.requestRegistrationCode(
+        email: widget.email,
+        name: '${registration['first_name']} ${registration['last_name']}',
+        phone: registration['phone']?.toString() ?? '',
+      );
+      if (!mounted) return;
+      _startTimer();
+      _otpController.clear();
+      showCartzyFlash(context, 'A new code was sent to ${widget.email}');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _errorMessage = e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _errorMessage = "Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      if (mounted) setState(() => _isResending = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final account = UserAccountService.instance.findAccountByEmail(widget.email);
-    final currentOtp = account?.otp ?? '482913';
-
     return Scaffold(
       backgroundColor: CartzyColors.background,
       appBar: AppBar(
@@ -184,113 +213,54 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   height: 1.4,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 6),
+              const Text(
+                "Can't find it? Check your spam folder.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: CartzyColors.gray),
+              ),
+              const SizedBox(height: 16),
 
-              // ============================================================
-              // MAIL CATCHER BANNER (for automated/manual testing)
-              // ============================================================
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: CartzyColors.brandLight,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: CartzyColors.brandBorder),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.mail_outline, size: 20, color: CartzyColors.brandDark),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Mail Catcher (Testing Simulator)',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: CartzyColors.brandDark,
-                            ),
-                          ),
+              // Code expiry
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _secondsRemaining > 0
+                        ? CartzyColors.brandDark.withValues(alpha: 0.1)
+                        : CartzyColors.error.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        size: 13,
+                        color: _secondsRemaining > 0 ? CartzyColors.brandDark : CartzyColors.error,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _secondsRemaining > 0 ? 'Code expires in ${_formatTimer()}' : 'Code expired',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: _secondsRemaining > 0 ? CartzyColors.brandDark : CartzyColors.error,
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: _secondsRemaining > 0
-                                ? CartzyColors.brandDark.withValues(alpha: 0.1)
-                                : CartzyColors.error.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.timer_outlined,
-                                size: 12,
-                                color: _secondsRemaining > 0 ? CartzyColors.brandDark : CartzyColors.error,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _secondsRemaining > 0 ? 'Expires in ${_formatTimer()}' : 'Expired',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: _secondsRemaining > 0 ? CartzyColors.brandDark : CartzyColors.error,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Latest OTP Code:',
-                          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            _otpController.text = currentOtp;
-                            setState(() => _errorMessage = null);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: CartzyColors.surface,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: CartzyColors.brandBorder),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  currentOtp,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 2,
-                                    color: CartzyColors.brandDark,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                const Icon(Icons.copy, size: 14, color: CartzyColors.gray),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // OTP Input Field
               TextField(
                 controller: _otpController,
-                keyboardType: TextInputType.text,
-                maxLength: 7, // allows entering test inputs of 5, 6, 7 chars
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                maxLength: 6,
+                autofillHints: const [AutofillHints.oneTimeCode],
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 22,
@@ -376,72 +346,42 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'VERIFY',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'VERIFY',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 20),
 
               // Resend OTP action
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text(
                     "Didn't receive the code? ",
                     style: TextStyle(fontSize: 13, color: CartzyColors.gray),
                   ),
                   TextButton(
-                    onPressed: _handleResendOtp,
-                    child: const Text(
-                      'Resend OTP',
-                      style: TextStyle(
+                    onPressed: _isResending ? null : _handleResendOtp,
+                    child: Text(
+                      _isResending ? 'Sending...' : 'Resend code',
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: CartzyColors.brandDark,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-              const Divider(color: CartzyColors.border),
-              const SizedBox(height: 12),
-
-              // Test helper: Simulate expired OTP for TC-BUY-026
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Checkbox(
-                    value: _simulateExpired,
-                    activeColor: CartzyColors.brandDark,
-                    onChanged: (val) {
-                      setState(() {
-                        _simulateExpired = val ?? false;
-                        if (_simulateExpired) {
-                          UserAccountService.instance.expireCurrentOtp(widget.email);
-                        }
-                      });
-                    },
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _simulateExpired = !_simulateExpired;
-                        if (_simulateExpired) {
-                          UserAccountService.instance.expireCurrentOtp(widget.email);
-                        }
-                      });
-                    },
-                    child: const Text(
-                      'Simulate expired code (> 5 minutes)',
-                      style: TextStyle(fontSize: 12, color: CartzyColors.gray),
                     ),
                   ),
                 ],

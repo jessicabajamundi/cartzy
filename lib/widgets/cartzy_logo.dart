@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
 
-/// Displays the horizontal Cartzy wordmark while cropping the asset's blank
-/// canvas so the logo remains legible at mobile header sizes.
+/// Clean, transparent horizontal Cartzy wordmark logo.
+/// Seamlessly blends with any background color without white boxes or clipping artifacts.
 class CartzyLogo extends StatelessWidget {
   final double height;
   final double? width;
+  final BoxFit fit;
 
-  const CartzyLogo({super.key, required this.height, this.width});
+  const CartzyLogo({
+    super.key,
+    required this.height,
+    this.width,
+    this.fit = BoxFit.contain,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      child: SizedBox(
-        width: width ?? height * 2.65,
-        height: height,
-        child: Image.asset(
-          'assets/cartzy_logo_new.png',
-          fit: BoxFit.cover,
-          // The source art sits slightly above the center of its white canvas.
-          alignment: const Alignment(0, -0.15),
-        ),
-      ),
+    final effectiveWidth = width ?? (height * 2.75);
+
+    return Image.asset(
+      'assets/logo-transparent.png',
+      height: height,
+      width: effectiveWidth,
+      fit: fit,
+      filterQuality: FilterQuality.high,
     );
   }
 }

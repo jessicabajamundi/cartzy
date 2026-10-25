@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/utils/input_rules.dart';
+import 'package:flutter/services.dart';
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 
 class EditBuyerProfileScreen extends StatefulWidget {
@@ -20,17 +23,21 @@ class _EditBuyerProfileScreenState
   // CONTROLLERS
   // =========================================================
 
+  // Prefilled from the signed-in buyer.
+  static String _user(String key) =>
+      AuthService.currentUser?[key]?.toString() ?? '';
+
   final TextEditingController _nameController =
-      TextEditingController(text: 'Tiffany Joy Leonardo');
+      TextEditingController(text: _user('name'));
 
   final TextEditingController _usernameController =
-      TextEditingController(text: 'tiffany');
+      TextEditingController(text: _user('email').split('@').first);
 
   final TextEditingController _emailController =
-      TextEditingController(text: 'email@example.com');
+      TextEditingController(text: _user('email'));
 
   final TextEditingController _contactController =
-      TextEditingController(text: '09123456789');
+      TextEditingController(text: _user('phone'));
 
   final TextEditingController _passwordController =
       TextEditingController();
@@ -82,6 +89,7 @@ class _EditBuyerProfileScreenState
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
     Widget? suffixIcon,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,6 +109,7 @@ class _EditBuyerProfileScreenState
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
+          inputFormatters: inputFormatters,
 
           decoration: InputDecoration(
             hintText: hintText,
@@ -281,12 +290,14 @@ class _EditBuyerProfileScreenState
   // =========================================================
 
   void _saveChanges() {
-    if (_nameController.text.trim().isEmpty) {
+    final nameError = InputRules.fullName(
+      _nameController.text,
+      label: 'full name',
+    );
+    if (nameError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter your full name.',
-          ),
+        SnackBar(
+          content: Text(nameError),
         ),
       );
 
@@ -317,12 +328,11 @@ class _EditBuyerProfileScreenState
       return;
     }
 
-    if (_contactController.text.trim().isEmpty) {
+    final phoneError = InputRules.phone(_contactController.text);
+    if (phoneError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter your contact number.',
-          ),
+        SnackBar(
+          content: Text(phoneError),
         ),
       );
 
@@ -460,6 +470,7 @@ class _EditBuyerProfileScreenState
                 label: 'Full Name',
                 controller: _nameController,
                 hintText: 'Enter your full name',
+                inputFormatters: InputRules.fullNameFormatters,
               ),
 
               // USERNAME
@@ -487,6 +498,7 @@ class _EditBuyerProfileScreenState
                 controller: _contactController,
                 hintText: 'Enter your contact number',
                 keyboardType: TextInputType.phone,
+                inputFormatters: InputRules.phoneFormatters,
               ),
 
               // PASSWORD

@@ -132,13 +132,15 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        'Discover products',
-                        style: GoogleFonts.dmSans(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
+                      Flexible(
+                        child: Text(
+                          'Discover products',
+                          style: GoogleFonts.dmSans(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),

@@ -308,7 +308,8 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
             child: Icon(icon, size: 16, color: iconColor),
           ),
           const SizedBox(width: 8),
-          Column(
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -331,6 +332,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
               ),
             ],
           ),
+          ),
         ],
       ),
     );
@@ -340,25 +342,33 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            const Icon(Icons.history, size: 16, color: Color(0xFF8A7780)),
-            const SizedBox(width: 6),
-            Text(
-              'Delivery Records (${_filteredOrders.length})',
-              style: GoogleFonts.dmSans(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF554B62),
+        Flexible(
+          child: Row(
+            children: [
+              const Icon(Icons.history, size: 16, color: Color(0xFF8A7780)),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Delivery Records (${_filteredOrders.length})',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF554B62),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-        Text(
-          'Ordered by completion time',
-          style: GoogleFonts.dmSans(
-            fontSize: 9,
-            color: const Color(0xFF8A7780),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            'Ordered by completion time',
+            textAlign: TextAlign.end,
+            style: GoogleFonts.dmSans(
+              fontSize: 9,
+              color: const Color(0xFF8A7780),
+            ),
           ),
         ),
       ],

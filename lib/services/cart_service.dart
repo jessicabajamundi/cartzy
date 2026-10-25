@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cartzy/utils/product_images.dart';
 
 class CartItem {
@@ -36,25 +39,82 @@ class CartItem {
   double get subtotal =>
       (price.isNaN || price.isInfinite ? 0.0 : price) *
       (quantity <= 0 ? 1 : quantity);
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'price': price,
+        'originalPrice': originalPrice,
+        'image': image,
+        'category': category,
+        'variation': variation,
+        'quantity': quantity,
+        'selected': selected,
+      };
+
+  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
+        id: json['id']?.toString() ?? '',
+        name: json['name']?.toString() ?? '',
+        price: (json['price'] as num?)?.toDouble() ?? 0.0,
+        originalPrice: json['originalPrice']?.toString(),
+        image: json['image']?.toString() ?? '',
+        category: json['category']?.toString() ?? '',
+        variation: json['variation']?.toString() ?? '',
+        quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+        selected: json['selected'] as bool? ?? true,
+      );
 }
 
 class CartService extends ChangeNotifier {
   static final CartService instance = CartService._internal();
 
   CartService._internal() {
-    _seedInitialItems();
+    _restore();
   }
 
   final List<CartItem> _items = [];
 
-  List<CartItem> get items {
-    // If the cart has old seed items from previous session, upgrade to the 5 design items
-    if (_items.any((item) => item.id == 'seed-1' || item.id == 'seed-2')) {
-      _items.clear();
-      _seedInitialItems();
+  /// The cart is kept on the device so it survives app restarts.
+  static const _storageKey = 'cart_items';
+  bool _restored = false;
+
+  Future<void> _restore() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_storageKey);
+      if (raw != null) {
+        final saved = (jsonDecode(raw) as List)
+            .map((e) => CartItem.fromJson(Map<String, dynamic>.from(e as Map)));
+        // Keep anything added while the saved cart was still loading.
+        _items.insertAll(0, saved);
+      }
+    } catch (e) {
+      debugPrint('Could not restore cart: $e');
     }
-    return List.unmodifiable(_items);
+    _restored = true;
+    notifyListeners();
   }
+
+  Future<void> _save() async {
+    // Saving before the restore finishes would overwrite the saved cart.
+    if (!_restored) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          _storageKey, jsonEncode(_items.map((i) => i.toJson()).toList()));
+    } catch (e) {
+      debugPrint('Could not save cart: $e');
+    }
+  }
+
+  /// Every cart change goes through here, so this is where it gets saved.
+  @override
+  void notifyListeners() {
+    super.notifyListeners();
+    _save();
+  }
+
+  List<CartItem> get items => List.unmodifiable(_items);
 
   List<CartItem> get selectedItems =>
       items.where((item) => item.selected == true).toList();
@@ -77,61 +137,6 @@ class CartService extends ChangeNotifier {
     if (selectedCount == 0) return false;
     if (selectedCount == _items.length) return true;
     return null; // Indeterminate (dash)
-  }
-
-  void _seedInitialItems() {
-    _items.addAll([
-      CartItem(
-        id: 'item-1',
-        name: 'ANC Pro Wireless Earphones BT5.3',
-        price: 890.00,
-        variation: 'Black',
-        category: 'Electronics',
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80',
-        quantity: 1,
-        selected: false,
-      ),
-      CartItem(
-        id: 'item-2',
-        name: 'Minimalist Chronograph Watch',
-        price: 459.00,
-        variation: 'Black',
-        category: 'Accessories',
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80',
-        quantity: 1,
-        selected: false,
-      ),
-      CartItem(
-        id: 'item-3',
-        name: 'Modern 3-Seater Scandinavian Sofa',
-        price: 12500.00,
-        variation: 'Grey Velvet',
-        category: 'Furniture',
-        image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80',
-        quantity: 1,
-        selected: false,
-      ),
-      CartItem(
-        id: 'item-4',
-        name: 'Vacuum Insulated Steel Tumbler 32oz',
-        price: 480.00,
-        variation: 'Midnight Blue',
-        category: 'Home & Living',
-        image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500&q=80',
-        quantity: 1,
-        selected: false,
-      ),
-      CartItem(
-        id: 'item-5',
-        name: 'Logitech Zone True Wireless Earbuds',
-        price: 899.00,
-        variation: 'Graphite',
-        category: 'Electronics',
-        image: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&q=80',
-        quantity: 1,
-        selected: true,
-      ),
-    ]);
   }
 
   static double parsePrice(dynamic price) {

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/utils/input_rules.dart';
+import 'package:flutter/services.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/psgc_api.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 
@@ -177,26 +180,9 @@ class _BuyerAccountScreenState
     try {
       await Future.delayed(const Duration(milliseconds: 200));
 
-      final user = {
-        'name': 'Tiffany Leonardo',
-        'middle_initial': 'M',
-        'email': 'buyer@cartzy.com',
-        'phone': '+63 917 123 4567',
-        'sex': 'Female',
-        'birthday': '2000-05-15',
-        'age': 26,
-        'street_address': '124 Rizal Street',
-        'address': '124 Rizal Street, Brgy. San Antonio, Pasig City',
-        'region': 'National Capital Region (NCR)',
-        'province': 'Metro Manila',
-        'city': 'Pasig City',
-        'barangay': 'San Antonio',
-        'postal_code': '1600',
-        'id_type': 'Passport',
-        'id_number': 'P1234567A',
-        'id_photo': '',
-        'id_original_filename': 'passport_id.jpg',
-        'id_status': 'verified',
+      // The signed-in buyer; fields the account doesn't have stay blank.
+      final user = <String, dynamic>{
+        ...?AuthService.currentUser,
       };
 
       if (!mounted) {
@@ -1036,9 +1022,14 @@ class _BuyerAccountScreenState
     final name =
         _nameController.text.trim();
 
-    if (name.isEmpty) {
+    final error = InputRules.fullName(name) ??
+        (_phoneController.text.trim().isEmpty
+            ? null
+            : InputRules.phone(_phoneController.text));
+
+    if (error != null) {
       _showMessage(
-        'Name is required.',
+        error,
         isError: true,
       );
 
@@ -1333,6 +1324,7 @@ class _BuyerAccountScreenState
     String? hint,
     TextInputType? keyboardType,
     bool enabled = true,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
@@ -1341,6 +1333,9 @@ class _BuyerAccountScreenState
 
       keyboardType:
           keyboardType,
+
+      inputFormatters:
+          inputFormatters,
 
       style: const TextStyle(
         fontSize: 14,
@@ -1566,7 +1561,8 @@ class _BuyerAccountScreenState
   // ============================================================
 
   Widget _genderSelector() {
-    return Row(
+    return Wrap(
+      runSpacing: 4,
       children: [
         _genderOption(
           'Male',
@@ -2131,6 +2127,8 @@ class _BuyerAccountScreenState
                 _nameController,
                 Icons.person_outline,
                 hint: 'Full Name',
+                inputFormatters:
+                    InputRules.fullNameFormatters,
               ),
 
               const SizedBox(
@@ -2145,6 +2143,8 @@ class _BuyerAccountScreenState
                 _middleInitialController,
                 Icons.badge_outlined,
                 hint: 'Middle Initial',
+                inputFormatters:
+                    InputRules.middleInitialFormatters,
               ),
 
               const SizedBox(
@@ -2178,6 +2178,8 @@ class _BuyerAccountScreenState
                 hint: 'Phone Number',
                 keyboardType:
                     TextInputType.phone,
+                inputFormatters:
+                    InputRules.phoneFormatters,
               ),
 
               const SizedBox(

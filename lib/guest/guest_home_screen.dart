@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:cartzy/widgets/cartzy_logo.dart';
+import 'package:cartzy/services/catalog_service.dart';
+import 'package:cartzy/widgets/banner_action_icon.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/home_sections.dart';
-import 'package:cartzy/utils/product_images.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/products/product_details_screen.dart';
-import 'package:cartzy/buyer/track_order_screen.dart';
+import 'package:cartzy/products/all_categories_screen.dart';
 
 class GuestHomeScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -25,166 +26,10 @@ class GuestHomeScreen extends StatefulWidget {
 
 class _GuestHomeScreenState extends State<GuestHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedNavTab = 'Home';
   String _selectedCategory = categoryIcons.first.label;
-
-  final _navTabs = ['Home', 'New', 'Sale', 'Shop All', 'Collection'];
-  final GlobalKey _collectionTabKey = GlobalKey();
-  bool _isCollectionOpen = false;
-
-  static const List<String> _collectionOptions = [
-    'General',
-    'Women Clothing',
-    'Beachwear',
-    'Kids',
-    'Curve',
-    'Men Clothing',
-    'Shoes',
-    'Jewelry & Accessories',
-    'Underwear & Sleepwear',
-    'Baby & Maternity',
-    'Bags & Luggage',
-    'Home & Living',
-    'Beauty & Health',
-    'Sports & Outdoors',
-    'Home Textiles',
-    'Cell Phones & Accessories',
-    'Electronics',
-    'Tools & Home Improvement',
-    'Toys & Games',
-    'Pet Supplies',
-    'Appliances',
-    'Office & School Supplies',
-    'Automotive',
-  ];
-
-  void _showCollectionDropdown(BuildContext context) {
-    Offset targetOffset = const Offset(200, 96);
-    if (_collectionTabKey.currentContext != null) {
-      final renderBox = _collectionTabKey.currentContext!.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final pos = renderBox.localToGlobal(Offset.zero);
-        final size = renderBox.size;
-        targetOffset = Offset(pos.dx, pos.dy + size.height);
-      }
-    }
-
-    setState(() {
-      _isCollectionOpen = true;
-      _selectedNavTab = 'Collection';
-    });
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final double leftPos = targetOffset.dx.clamp(8.0, screenWidth - 230.0);
-    final double topPos = targetOffset.dy.clamp(60.0, screenHeight - 200.0);
-    final double maxHeight = (screenHeight - topPos - 24.0).clamp(260.0, 480.0);
-
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Dismiss Collection Menu',
-      barrierColor: Colors.black.withValues(alpha: 0.04),
-      transitionDuration: const Duration(milliseconds: 160),
-      pageBuilder: (ctx, anim1, anim2) {
-        return Stack(
-          children: [
-            Positioned(
-              top: topPos,
-              left: leftPos,
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  width: 220,
-                  height: maxHeight,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                      topLeft: Radius.circular(2),
-                    ),
-                    border: Border.all(color: const Color(0xFFDCC8CA), width: 1.2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.09),
-                        blurRadius: 20,
-                        spreadRadius: 1,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(8),
-                      bottomRight: Radius.circular(8),
-                      topRight: Radius.circular(8),
-                    ),
-                    child: Theme(
-                      data: Theme.of(context).copyWith(
-                        scrollbarTheme: ScrollbarThemeData(
-                          thumbColor: WidgetStateProperty.all(const Color(0xFFBCAAA4)),
-                          thickness: WidgetStateProperty.all(4.0),
-                          radius: const Radius.circular(4),
-                        ),
-                      ),
-                      child: Scrollbar(
-                        thumbVisibility: true,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          itemCount: _collectionOptions.length,
-                          itemBuilder: (ctx, index) {
-                            final category = _collectionOptions[index];
-                            return InkWell(
-                              hoverColor: const Color(0xFFFAF2F4),
-                              splashColor: const Color(0xFFF3E5E7),
-                              onTap: () {
-                                Navigator.of(ctx).pop();
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => ProductListScreen(
-                                      initialCategory: category == 'General' ? 'All' : category,
-                                      title: category,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7.5),
-                                child: Text(
-                                  category,
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w400,
-                                    color: const Color(0xFF2C2829),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-      transitionBuilder: (ctx, anim1, anim2, child) {
-        return FadeTransition(
-          opacity: anim1,
-          child: child,
-        );
-      },
-    ).then((_) {
-      if (mounted) {
-        setState(() => _isCollectionOpen = false);
-      }
-    });
-  }
+  final GlobalKey<HeroBannerState> _heroKey = GlobalKey<HeroBannerState>();
+  final GlobalKey<DailyDiscoverSectionState> _discoverKey =
+      GlobalKey<DailyDiscoverSectionState>();
 
   void _showLoginRequiredDialog() {
     showDialog(
@@ -194,7 +39,8 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
         backgroundColor: CartzyColors.surface,
         title: Text(
           'Login Required',
-          style: GoogleFonts.playfairDisplay(color: CartzyColors.navy, fontWeight: FontWeight.w700),
+          style: GoogleFonts.playfairDisplay(
+              color: CartzyColors.navy, fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Please log in or create an account to continue.',
@@ -203,14 +49,17 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel', style: GoogleFonts.dmSans(color: CartzyColors.gray)),
+            child: Text('Cancel',
+                style: GoogleFonts.dmSans(color: CartzyColors.gray)),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               widget.onLogin();
             },
-            child: Text('Log In', style: GoogleFonts.dmSans(color: CartzyColors.burgundy, fontWeight: FontWeight.w700)),
+            child: Text('Log In',
+                style: GoogleFonts.dmSans(
+                    color: CartzyColors.burgundy, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -223,6 +72,16 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     super.dispose();
   }
 
+  void _openSearch() {
+    final query = _searchController.text.trim();
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ProductListScreen(
+        title: query.isEmpty ? 'All Products' : 'Search: $query',
+        initialQuery: query,
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,401 +90,303 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
         child: Column(
           children: [
             // ─────────────────────────────────────────────────
-            // HEADER: Logo + Nav Tabs + Search + Login/Signup
+            // Hero banner with an overlaid search, wishlist, and cart
             // ─────────────────────────────────────────────────
-            Container(
-              color: CartzyColors.surface,
-              child: Column(
-                children: [
-                  // Row 1: Logo + Login/Sign Up
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-                    child: Row(
+            Expanded(
+              child: RefreshIndicator(
+                color: CartzyColors.burgundy,
+                onRefresh: () async {
+                  CatalogService.clearCache();
+                  await Future.wait([
+                    _heroKey.currentState?.reload() ?? Future.value(),
+                    _discoverKey.currentState?.reload() ?? Future.value(),
+                  ]);
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 30),
+                  children: [
+                    // FULL-WIDTH HERO BANNER CAROUSEL (EDGE-TO-EDGE, NO GAPS)
+                    Stack(
                       children: [
-                        // Logo
-                        const CartzyLogo(height: 28),
-                        const Spacer(),
-                        // Login
-                        GestureDetector(
-                          onTap: widget.onLogin,
-                          child: Row(
-                            children: [
-                              const Icon(Icons.person_outline, size: 16, color: CartzyColors.navy),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Login',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: CartzyColors.navy,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        // Sign Up pill
-                        GestureDetector(
-                          onTap: widget.onSignUp,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: CartzyColors.navy,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.add, size: 13, color: Colors.white),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Sign up',
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                        HeroBanner(key: _heroKey, contentTopInset: 72),
+                        Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 10, 8, 12),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _searchController,
+                                      textInputAction: TextInputAction.search,
+                                      onSubmitted: (_) => _openSearch(),
+                                      style: GoogleFonts.dmSans(
+                                          fontSize: 13,
+                                          color: CartzyColors.navy),
+                                      decoration: InputDecoration(
+                                        hintText: 'Search...',
+                                        hintStyle: GoogleFonts.dmSans(
+                                            fontSize: 13,
+                                            color: CartzyColors.gray),
+                                        filled: true,
+                                        fillColor: CartzyColors.creamSection,
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 16, vertical: 8),
+                                        suffixIconConstraints:
+                                            const BoxConstraints(
+                                                minWidth: 40, minHeight: 40),
+                                        suffixIcon: IconButton(
+                                          tooltip: 'Search products',
+                                          style: IconButton.styleFrom(
+                                              minimumSize: const Size(40, 40),
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap),
+                                          onPressed: _openSearch,
+                                          icon: const Icon(Icons.search_rounded,
+                                              size: 19,
+                                              color: CartzyColors.burgundy),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                          borderSide: const BorderSide(
+                                              color: CartzyColors.pinkBorder),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                          borderSide: const BorderSide(
+                                              color: CartzyColors.pinkBorder),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                          borderSide: const BorderSide(
+                                              color: CartzyColors.burgundy),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                                  const SizedBox(width: 4),
+                                  IconButton(
+                                    tooltip: 'Wishlist',
+                                    onPressed: _showLoginRequiredDialog,
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: CartzyColors.burgundy,
+                                      minimumSize: const Size(48, 48),
+                                    ),
+                                    icon: const BannerActionIcon(
+                                        Icons.favorite_border_rounded),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Shopping cart',
+                                    onPressed: _showLoginRequiredDialog,
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: CartzyColors.burgundy,
+                                      minimumSize: const Size(48, 48),
+                                    ),
+                                    icon: const BannerActionIcon(
+                                        Icons.shopping_cart_outlined),
+                                  ),
+                                ],
+                              ),
+                            )),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: 24),
 
-                  // Row 2: Nav tabs
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                    child: Row(
-                      children: _navTabs.map((tab) {
-                        final isActive = tab == _selectedNavTab;
-                        final isSale   = tab == 'Sale';
-                        final isCollection = tab == 'Collection';
-
-                        Widget tabWidget;
-                        if (isCollection) {
-                          tabWidget = Container(
-                            key: _collectionTabKey,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: _isCollectionOpen ? Colors.white : Colors.transparent,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                              border: Border(
-                                top: BorderSide(
-                                  color: _isCollectionOpen ? const Color(0xFF9E404E) : Colors.transparent,
-                                  width: 1.2,
-                                ),
-                                left: BorderSide(
-                                  color: _isCollectionOpen ? const Color(0xFF9E404E) : Colors.transparent,
-                                  width: 1.2,
-                                ),
-                                right: BorderSide(
-                                  color: _isCollectionOpen ? const Color(0xFF9E404E) : Colors.transparent,
-                                  width: 1.2,
-                                ),
-                                bottom: const BorderSide(color: Colors.transparent, width: 1.2),
-                              ),
-                            ),
-                            child: Text(
-                              tab,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 14,
-                                fontWeight: isActive || _isCollectionOpen ? FontWeight.w600 : FontWeight.w400,
-                                color: _isCollectionOpen || isActive
-                                    ? CartzyColors.burgundy
-                                    : CartzyColors.gray,
-                              ),
-                            ),
-                          );
-                        } else {
-                          tabWidget = Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                            child: Text(
-                              tab,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 14,
-                                fontWeight: isActive || isSale ? FontWeight.w600 : FontWeight.w400,
-                                color: isSale
-                                    ? CartzyColors.burgundy
-                                    : isActive
-                                        ? CartzyColors.navy
-                                        : CartzyColors.gray,
-                              ),
-                            ),
-                          );
-                        }
-
-                        return GestureDetector(
-                          onTap: () {
-                            if (tab == 'Collection') {
-                              _showCollectionDropdown(context);
-                            } else if (tab == 'Home') {
-                              setState(() => _selectedNavTab = 'Home');
-                            } else if (tab == 'New') {
-                              setState(() => _selectedNavTab = 'New');
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const ProductListScreen(
-                                    title: 'New Arrivals',
-                                    initialCategory: 'All',
-                                  ),
-                                ),
-                              );
-                            } else if (tab == 'Sale') {
-                              setState(() => _selectedNavTab = 'Sale');
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const ProductListScreen(
-                                    initialCategory: 'Flash Deals',
-                                    title: 'Sale & Flash Deals',
-                                  ),
-                                ),
-                              );
-                            } else if (tab == 'Shop All') {
-                              setState(() => _selectedNavTab = 'Shop All');
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const ProductListScreen(
-                                    initialCategory: 'All',
-                                    title: 'Shop All Products',
-                                    randomize: true,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                tabWidget,
-                                const SizedBox(height: 4),
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  height: 2,
-                                  width: isActive && !_isCollectionOpen ? 20 : 0,
-                                  decoration: BoxDecoration(
-                                    color: CartzyColors.burgundy,
-                                    borderRadius: BorderRadius.circular(1),
-                                  ),
-                                ),
-                              ],
+                    // CATEGORY CARDS GRID
+                    CategoryCardGrid(
+                      onBrowseAllCategories: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AllCategoriesScreen(),
+                          ),
+                        );
+                      },
+                      onCategoryTap: (label) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductListScreen(
+                              initialCategory: label,
+                              title: label,
                             ),
                           ),
                         );
-                      }).toList(),
+                      },
                     ),
-                  ),
+                    const SizedBox(height: 24),
 
-                  // Row 3: Search bar
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-                    child: Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: CartzyColors.background,
-                        borderRadius: BorderRadius.circular(50),
-                        border: Border.all(color: CartzyColors.border, width: 1.2),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.navy),
-                              onSubmitted: (query) {
-                                if (query.trim().isNotEmpty) {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => ProductListScreen(
-                                        title: 'Search: $query',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Search products, brands, categories...',
-                                hintStyle: GoogleFonts.dmSans(
-                                  fontSize: 13,
-                                  color: CartzyColors.grayLight,
-                                ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                                filled: false,
-                                fillColor: Colors.transparent,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-                              ),
+                    // CATEGORY ICON ROW
+                    const SectionTitle(title: 'Shop by Category'),
+                    const SizedBox(height: 12),
+                    CategoryIconRow(
+                      selectedCategory: _selectedCategory,
+                      onSelected: (label) {
+                        setState(() => _selectedCategory = label);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductListScreen(
+                              initialCategory: label,
+                              title: label,
                             ),
                           ),
-                          // Search button
-                          GestureDetector(
-                            onTap: () {
-                              final query = _searchController.text.trim();
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ProductListScreen(
-                                    title: query.isNotEmpty ? 'Search: $query' : 'All Products',
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              width: 36,
-                              height: 36,
-                              margin: const EdgeInsets.only(right: 4),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Color(0xFF53414E), Color(0xFF865561)],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.search, size: 16, color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 26),
+
+                    // FLASH DEALS
+                    FlashDealsSection(
+                      onViewAll: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ProductListScreen(
+                              initialCategory: 'Flash Deals',
+                              title: 'Flash Deals',
+                            ),
+                          ),
+                        );
+                      },
+                      onProductTap: (p) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailsScreen(
+                              productId: p.id,
+                              name: p.name,
+                              category: p.category,
+                              price: p.price,
+                              originalPrice: p.originalPrice,
+                              isGuest: true,
+                              imageUrl: p.effectiveImageUrl,
+                              sellerName: p.sellerName,
+                              badge: p.badge,
+                              rating: p.rating,
+                              soldCount: p.soldCount,
+                              onBack: () => Navigator.of(context).pop(),
+                              onAddToCart: _showLoginRequiredDialog,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 26),
+
+                    // DAILY DISCOVER
+                    DailyDiscoverSection(
+                      key: _discoverKey,
+                      onBrowseCategories: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AllCategoriesScreen(),
+                          ),
+                        );
+                      },
+                      onProductTap: (p) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => ProductDetailsScreen(
+                              productId: p.id,
+                              name: p.name,
+                              category: p.category,
+                              price: p.price,
+                              originalPrice: p.originalPrice,
+                              isGuest: true,
+                              imageUrl: p.effectiveImageUrl,
+                              sellerName: p.sellerName,
+                              badge: p.badge,
+                              rating: p.rating,
+                              soldCount: p.soldCount,
+                              onBack: () => Navigator.of(context).pop(),
+                              onAddToCart: _showLoginRequiredDialog,
+                            ),
+                          ),
+                        );
+                      },
+                      onAddToCart: (_) => _showLoginRequiredDialog(),
+                    ),
+                  ],
+                ),
               ),
             ),
 
             // ─────────────────────────────────────────────────
-            // ICON STRIP  (quick-access icons)
+            // BOTTOM NAV BAR (Home, New, Sale, Shop All, Collection)
             // ─────────────────────────────────────────────────
             Container(
-              color: CartzyColors.surface,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _IconStrip(icon: Icons.view_in_ar_outlined,   onTap: () {}),
-                  _IconStrip(icon: Icons.chat_bubble_outline,    onTap: _showLoginRequiredDialog),
-                  _IconStrip(icon: Icons.shopping_cart_outlined, onTap: _showLoginRequiredDialog),
-                  _IconStrip(icon: Icons.favorite_border,        onTap: _showLoginRequiredDialog),
-                  _IconStrip(icon: Icons.history_outlined,       onTap: _showLoginRequiredDialog),
-                  _IconStrip(
-                    icon: Icons.location_on_outlined,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => TrackOrderScreen(
-                          onBack: () => Navigator.of(context).pop(),
-                          onBrowseProducts: () => Navigator.of(context).pop(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  _IconStrip(icon: Icons.notifications_outlined, onTap: _showLoginRequiredDialog),
-                ],
+              decoration: const BoxDecoration(
+                color: CartzyColors.surface,
+                border: Border(top: BorderSide(color: CartzyColors.border)),
               ),
-            ),
-
-            // thin divider
-            const Divider(height: 1, color: CartzyColors.border),
-
-            // ─────────────────────────────────────────────────
-            // SCROLLABLE BODY
-            // ─────────────────────────────────────────────────
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
                 children: [
-                  const SizedBox(height: 20),
-
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: HeroBanner(),
+                  _BottomNavItem(
+                    icon: Icons.home_rounded,
+                    label: 'Home',
+                    selected: true,
+                    onClick: () {},
                   ),
-                  const SizedBox(height: 24),
-
-                  // CATEGORY CARDS GRID
-                  CategoryCardGrid(
-                    onCategoryTap: (label) {
+                  _BottomNavItem(
+                    icon: Icons.auto_awesome_outlined,
+                    label: 'New',
+                    selected: false,
+                    onClick: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => ProductListScreen(
-                            initialCategory: label,
-                            title: label,
+                          builder: (_) => const ProductListScreen(
+                            title: 'New Arrivals',
+                            initialCategory: 'All',
                           ),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
-
-                  // CATEGORY ICON ROW
-                  const SectionTitle(title: 'Shop by Category'),
-                  const SizedBox(height: 12),
-                  CategoryIconRow(
-                    selectedCategory: _selectedCategory,
-                    onSelected: (label) {
-                      setState(() => _selectedCategory = label);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ProductListScreen(
-                            initialCategory: label,
-                            title: label,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 26),
-
-                  // FLASH DEALS
-                  FlashDealsSection(
-                    onViewAll: () {
+                  _BottomNavItem(
+                    icon: Icons.local_offer_outlined,
+                    label: 'Sale',
+                    selected: false,
+                    isSale: true,
+                    onClick: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const ProductListScreen(
                             initialCategory: 'Flash Deals',
-                            title: 'Flash Deals',
+                            title: 'Sale & Flash Deals',
                           ),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 26),
-
-                  // DAILY DISCOVER
-                  DailyDiscoverSection(
-                    onBrowseCategories: () {
+                  _BottomNavItem(
+                    icon: Icons.grid_view_outlined,
+                    label: 'Shop All',
+                    selected: false,
+                    onClick: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const ProductListScreen(
                             initialCategory: 'All',
-                            title: 'Browse Categories',
+                            title: 'Shop All Products',
+                            randomize: true,
                           ),
                         ),
                       );
                     },
-                    onProductTap: (p) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ProductDetailsScreen(
-                            name: p.name,
-                            category: p.badge,
-                            price: p.price,
-                            isGuest: true,
-                            imageUrl: (p.imageUrl != null && p.imageUrl!.isNotEmpty)
-                                ? p.imageUrl
-                                : CartzyProductImages.getImage(p.name, p.badge),
-                            onBack: () => Navigator.of(context).pop(),
-                            onAddToCart: _showLoginRequiredDialog,
-                          ),
-                        ),
-                      );
-                    },
-                    onAddToCart: (_) => _showLoginRequiredDialog(),
+                  ),
+                  _BottomNavItem(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Profile',
+                    selected: false,
+                    onClick: widget.onLogin,
                   ),
                 ],
               ),
@@ -638,19 +399,67 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 }
 
 // ──────────────────────────────────────────────────────────────
-// ICON STRIP BUTTON
+// BOTTOM NAV ITEM (Guest)
 // ──────────────────────────────────────────────────────────────
-class _IconStrip extends StatelessWidget {
+class _BottomNavItem extends StatelessWidget {
   final IconData icon;
-  final VoidCallback onTap;
+  final String label;
+  final bool selected;
+  final bool isSale;
+  final VoidCallback onClick;
 
-  const _IconStrip({required this.icon, required this.onTap});
+  const _BottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    this.isSale = false,
+    required this.onClick,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Icon(icon, size: 22, color: CartzyColors.navy),
+    final color = isSale
+        ? CartzyColors.burgundy
+        : selected
+            ? CartzyColors.burgundy
+            : CartzyColors.gray;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onClick,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 11,
+                  color: color,
+                  fontWeight:
+                      selected || isSale ? FontWeight.w600 : FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 2,
+                width: selected ? 16 : 0,
+                decoration: BoxDecoration(
+                  color: CartzyColors.burgundy,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

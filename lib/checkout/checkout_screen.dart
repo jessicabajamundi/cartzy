@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/utils/input_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/cart_service.dart';
 import 'package:cartzy/services/review_service.dart';
 import 'package:cartzy/services/voucher_service.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
-import 'package:cartzy/utils/product_images.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -23,13 +24,8 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  // ── Address State ──
-  Map<String, String>? _deliveryAddress = {
-    'name': 'Tiffany Joy O. Leonardo',
-    'phone': '0917 123 4567',
-    'street': 'Unit 402, Sunset Towers, 26th Street corner 4th Avenue',
-    'city': 'Bonifacio Global City, Taguig City, Metro Manila 1634',
-  };
+  // ── Address State ── (the buyer adds their own before placing an order)
+  Map<String, String>? _deliveryAddress;
 
   // ── Voucher Code Controller ──
   final TextEditingController _voucherCodeController = TextEditingController();
@@ -89,15 +85,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }).toList();
       }
     } catch (_) {}
-    return [
-      {
-        'name': 'Logitech Zone True Wireless Earbuds',
-        'variant': 'Graphite',
-        'price': 899.00,
-        'quantity': 1,
-        'image': CartzyProductImages.getImage('Logitech Zone True Wireless Earbuds'),
-      },
-    ];
+    return [];
   }
 
   int get totalItemCount {
@@ -140,10 +128,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // ── Add Address Modal ──
   void _showAddAddressDialog() {
-    final nameCtrl = TextEditingController(text: _deliveryAddress?['name'] ?? 'Tiffany Joy O. Leonardo');
-    final phoneCtrl = TextEditingController(text: _deliveryAddress?['phone'] ?? '09171234567');
-    final streetCtrl = TextEditingController(text: _deliveryAddress?['street'] ?? 'Unit 402, Sunset Towers, BGC');
-    final cityCtrl = TextEditingController(text: _deliveryAddress?['city'] ?? 'Taguig City, Metro Manila');
+    final user = AuthService.currentUser;
+    final nameCtrl = TextEditingController(text: _deliveryAddress?['name'] ?? user?['name']?.toString() ?? '');
+    final phoneCtrl = TextEditingController(text: _deliveryAddress?['phone'] ?? user?['phone']?.toString() ?? '');
+    final streetCtrl = TextEditingController(text: _deliveryAddress?['street'] ?? '');
+    final cityCtrl = TextEditingController(text: _deliveryAddress?['city'] ?? '');
 
     showDialog(
       context: context,
@@ -160,6 +149,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               children: [
                 TextField(
                   controller: nameCtrl,
+                  inputFormatters: InputRules.fullNameFormatters,
                   decoration: const InputDecoration(
                     labelText: 'Recipient Name',
                     isDense: true,
@@ -169,6 +159,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 TextField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: InputRules.phoneFormatters,
                   decoration: const InputDecoration(
                     labelText: 'Contact Phone',
                     isDense: true,
@@ -200,6 +191,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             ElevatedButton(
               onPressed: () {
+                final contactError = InputRules.fullName(nameCtrl.text, label: 'recipient name') ??
+                    InputRules.phone(phoneCtrl.text);
+                if (contactError != null) {
+                  showCartzyFlash(context, contactError);
+                  return;
+                }
                 if (streetCtrl.text.trim().isEmpty || cityCtrl.text.trim().isEmpty) {
                   showCartzyFlash(context, 'Please enter a valid address');
                   return;
@@ -248,6 +245,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _handlePlaceOrder() {
     if (_deliveryAddress == null) {
       showCartzyFlash(context, 'Add your delivery address before placing order');
+      return;
+    }
+    if (orderItems.isEmpty) {
+      showCartzyFlash(context, 'Select at least one item in your cart to check out');
       return;
     }
 
@@ -736,7 +737,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
+              Expanded(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -753,6 +755,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ],
               ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '₱${_formatCurrency(_deliveryFee)}',
                 style: GoogleFonts.dmSans(
@@ -962,12 +966,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Don\'t use a shipping voucher',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF231F20),
+                  Expanded(
+                    child: Text(
+                      'Don\'t use a shipping voucher',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF231F20),
+                      ),
                     ),
                   ),
                   Icon(
@@ -1178,12 +1184,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            'GCash',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF7A6E72),
+                          Flexible(
+                            child: Text(
+                              'GCash',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF7A6E72),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -1313,7 +1321,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
+              Expanded(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -1330,6 +1339,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ],
               ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '₱${_formatCurrency(totalPayment)}',
                 style: GoogleFonts.dmSans(
@@ -1345,10 +1356,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Payment method',
-                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+              Flexible(
+                child: Text(
+                  'Payment method',
+                  style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Cash on Delivery',
                 style: GoogleFonts.dmSans(
@@ -1446,10 +1460,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF6E6266)),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF6E6266)),
+          ),
         ),
+        const SizedBox(width: 8),
         Text(
           value,
           style: GoogleFonts.dmSans(
@@ -1510,12 +1527,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: GoogleFonts.dmSans(
-                  fontSize: 15.5,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF231F20),
+              Flexible(
+                child: Text(
+                  title,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF231F20),
+                  ),
                 ),
               ),
               if (titleBadge != null) ...[

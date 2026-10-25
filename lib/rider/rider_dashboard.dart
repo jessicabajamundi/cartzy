@@ -64,9 +64,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
   ];
 
   String get _displayName =>
-      widget.userName.isNotEmpty && widget.userName != 'Rider'
-          ? widget.userName
-          : 'Tiffany Leonardo';
+      widget.userName.trim().isNotEmpty ? widget.userName.trim() : 'Rider';
 
   String get _initials {
     final parts = _displayName.trim().split(RegExp(r'\s+'));
@@ -75,7 +73,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
     } else if (parts.isNotEmpty && parts[0].isNotEmpty) {
       return parts[0].substring(0, parts[0].length >= 2 ? 2 : 1).toUpperCase();
     }
-    return 'TL';
+    return 'R';
   }
 
   void _push(Widget screen) {

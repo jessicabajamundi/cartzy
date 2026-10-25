@@ -555,8 +555,10 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           const SizedBox(height: 16),
 
           // Legend
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 6,
             children: [
               Container(
                 width: 12,
@@ -808,7 +810,8 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
+              Expanded(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -829,6 +832,8 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                   ),
                 ],
               ),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '${_records.length} Records',
                 style: GoogleFonts.dmSans(

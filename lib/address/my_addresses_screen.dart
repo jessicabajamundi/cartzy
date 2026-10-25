@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
-import 'package:cartzy/services/mock_data.dart';
+import 'package:cartzy/services/api_service.dart';
 
 class MyAddressesScreen extends StatefulWidget {
   final int userId;
@@ -42,12 +42,20 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
       loadError = null;
     });
 
-    await Future.delayed(const Duration(milliseconds: 200));
-    if (!mounted) return;
-    setState(() {
-      addresses = List.from(MockData.addresses);
-      isLoading = false;
-    });
+    try {
+      final rows = await ApiService.getAddresses(widget.userId);
+      if (!mounted) return;
+      setState(() {
+        addresses = rows.map((row) => Map<String, dynamic>.from(row as Map)).toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+        loadError = e.toString();
+      });
+    }
   }
 
   // ------------------------------------------------------------
@@ -74,8 +82,12 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                MockData.addresses.removeWhere((a) => a['id'] == address['id']);
-                _showMessage('Address deleted.');
+                try {
+                  await ApiService.deleteAddress(address['id'] as int);
+                  _showMessage('Address deleted.');
+                } catch (e) {
+                  _showMessage('Could not delete the address. $e');
+                }
                 _loadAddresses();
               },
               child: const Text(
@@ -94,10 +106,12 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
   // ------------------------------------------------------------
 
   Future<void> _setDefaultAddress(Map<String, dynamic> address) async {
-    for (final a in MockData.addresses) {
-      a['is_default'] = (a['id'] == address['id']);
+    try {
+      await ApiService.setDefaultAddress(address['id'] as int);
+      _showMessage('Default address updated.');
+    } catch (e) {
+      _showMessage('Could not update the default address. $e');
     }
-    _showMessage('Default address updated.');
     _loadAddresses();
   }
 

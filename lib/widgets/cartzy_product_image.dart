@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/services/api_service.dart';
 
 class CartzyProductImage extends StatelessWidget {
   final String? imageUrl;
@@ -26,7 +27,7 @@ class CartzyProductImage extends StatelessWidget {
     final effectiveRadius = borderRadius ?? BorderRadius.zero;
     final bgColor = backgroundColor ?? CartzyColors.background;
 
-    final url = imageUrl?.trim() ?? '';
+    final url = ApiService.normalizeImageUrl(imageUrl);
 
     Widget imageContent;
 

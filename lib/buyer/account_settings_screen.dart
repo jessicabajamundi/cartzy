@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/utils/input_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/buyer/my_orders_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
+  final bool isLoggedIn;
+  final VoidCallback? onLogin;
+  final VoidCallback? onSignUp;
   final String userName;
   final String userEmail;
   final String userPhone;
@@ -13,9 +19,12 @@ class AccountSettingsScreen extends StatefulWidget {
 
   const AccountSettingsScreen({
     super.key,
+    required this.isLoggedIn,
+    this.onLogin,
+    this.onSignUp,
     required this.userName,
     required this.userEmail,
-    this.userPhone = '09171234567',
+    this.userPhone = '',
     required this.onBack,
     required this.onLogout,
     this.onProfileUpdated,
@@ -26,46 +35,41 @@ class AccountSettingsScreen extends StatefulWidget {
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-  int _activeTabIndex = 0; // 0: Personal details, 1: Security, 2: Delivery addresses
-
-  // Personal Details Controllers
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
-  late TextEditingController _idNumberController;
 
   String _selectedSex = 'Female';
-  final String _birthday = '14/10/2000';
-  String _selectedIdType = 'National ID';
-  String? _idFileName;
-  String? _profilePhotoName;
+  final String _selectedIdType = 'National ID';
+  bool _isIdVerified = true;
 
   // Security Controllers
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextEditingController _confirmSessionPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   // Saved Addresses
-  final List<Map<String, String>> _savedAddresses = [];
-
-  // Avatar image url
-  final String _avatarUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200';
+  final List<Map<String, String>> _savedAddresses = [
+    {
+      'label': 'Home',
+      'street': 'Blk 12 Lot 4 Dahlia St., San Antonio',
+      'city': 'Pasig City, Metro Manila',
+    },
+    {
+      'label': 'Office',
+      'street': 'Unit 802 Emerald Building, F. Ortigas Jr. Ave',
+      'city': 'Ortigas Center, Pasig City',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
-    final initialName = widget.userName.isNotEmpty && widget.userName != 'Buyer'
-        ? widget.userName
-        : 'Leonardo, Tiffany Joy O.';
-    final initialEmail = widget.userEmail.isNotEmpty && widget.userEmail != 'guest@cartzy.com'
-        ? widget.userEmail
-        : 'tiffany.leonardolspu@gmail.com';
-
-    _nameController = TextEditingController(text: initialName);
-    _phoneController = TextEditingController(text: widget.userPhone.isNotEmpty ? widget.userPhone : '09171234567');
-    _emailController = TextEditingController(text: initialEmail);
-    _idNumberController = TextEditingController();
+    _nameController = TextEditingController(text: widget.userName);
+    _phoneController = TextEditingController(text: widget.userPhone);
+    _emailController = TextEditingController(text: widget.userEmail);
   }
 
   @override
@@ -73,28 +77,69 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _idNumberController.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
-    _confirmSessionPasswordController.dispose();
     super.dispose();
+  }
+
+  String _getFirstName() {
+    final raw = _nameController.text.trim();
+    if (raw.isEmpty) return 'there';
+    // If format is "LastName, FirstName"
+    if (raw.contains(',')) {
+      final parts = raw.split(',');
+      if (parts.length > 1) {
+        final first = parts[1].trim().split(' ').first;
+        if (first.isNotEmpty) return first;
+      }
+    }
+    return raw.split(' ').first;
+  }
+
+  String _getInitials() {
+    final raw = _nameController.text.trim();
+    if (raw.isEmpty) return '';
+    if (raw.contains(',')) {
+      final parts = raw.split(',');
+      final lastInitial = parts[0].trim().isNotEmpty ? parts[0].trim()[0] : '';
+      final firstInitial = parts.length > 1 && parts[1].trim().isNotEmpty
+          ? parts[1].trim()[0]
+          : '';
+      if (firstInitial.isNotEmpty && lastInitial.isNotEmpty) {
+        return '$firstInitial$lastInitial'.toUpperCase();
+      }
+    }
+    final words = raw.split(' ').where((w) => w.isNotEmpty).toList();
+    if (words.length >= 2) {
+      return '${words[0][0]}${words[1][0]}'.toUpperCase();
+    }
+    return raw.substring(0, raw.length >= 2 ? 2 : 1).toUpperCase();
+  }
+
+  void _navigateToOrders() {
+    if (!widget.isLoggedIn) {
+      widget.onLogin?.call();
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyOrdersScreen(
+          onBack: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
   }
 
   Future<void> _pickProfilePhoto() async {
     try {
       final picker = ImagePicker();
-      final XFile? photo = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-      if (photo != null) {
-        setState(() {
-          _profilePhotoName = photo.name;
-        });
-        if (mounted) showCartzyFlash(context, 'Profile photo updated!');
+      final XFile? photo =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      if (photo != null && mounted) {
+        showCartzyFlash(context, 'Profile photo updated!');
       }
     } catch (_) {
-      setState(() {
-        _profilePhotoName = 'avatar_uploaded.png';
-      });
       if (mounted) showCartzyFlash(context, 'Profile photo updated!');
     }
   }
@@ -102,34 +147,426 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Future<void> _pickIdDocument() async {
     try {
       final picker = ImagePicker();
-      final XFile? file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final XFile? file =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (file != null) {
-        setState(() {
-          _idFileName = file.name;
-        });
-        if (mounted) showCartzyFlash(context, 'ID Document selected: ${file.name}');
+        setState(() => _isIdVerified = true);
+        if (mounted)
+          showCartzyFlash(context, 'ID Document uploaded: ${file.name}');
       }
     } catch (_) {
-      setState(() {
-        _idFileName = 'national_id.jpg';
-      });
-      if (mounted) showCartzyFlash(context, 'ID Document uploaded!');
+      setState(() => _isIdVerified = true);
+      if (mounted)
+        showCartzyFlash(context, 'ID Document submitted for verification!');
     }
   }
 
-  void _savePersonalDetails() {
-    showCartzyFlash(context, 'Profile details saved successfully!');
-    widget.onProfileUpdated?.call({
-      'name': _nameController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'sex': _selectedSex,
-      'birthday': _birthday,
-    });
+  // ==========================================
+  // PROFILE SETTINGS MODAL
+  // ==========================================
+  void _openProfileSettingsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Profile Settings',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF231F20),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 38,
+                          backgroundColor: CartzyColors.navy,
+                          child: Text(
+                            _getInitials(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () async {
+                              await _pickProfilePhoto();
+                              setModalState(() {});
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: CartzyColors.coral,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.camera_alt,
+                                  color: Colors.white, size: 16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Full Name',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF7A6E72))),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _nameController,
+                    inputFormatters: InputRules.fullNameFormatters,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFF9F7F8),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFEDE4E7))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFEDE4E7))),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text('Phone Number',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF7A6E72))),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: InputRules.phoneFormatters,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFF9F7F8),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFEDE4E7))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFEDE4E7))),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text('Sex / Gender',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF7A6E72))),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedSex,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFF9F7F8),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFEDE4E7))),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              const BorderSide(color: Color(0xFFEDE4E7))),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'Female', child: Text('Female')),
+                      DropdownMenuItem(value: 'Male', child: Text('Male')),
+                      DropdownMenuItem(
+                          value: 'Other', child: Text('Prefer not to say')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setModalState(() => _selectedSex = val);
+                    },
+                  ),
+                  const SizedBox(height: 22),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: CartzyColors.navy,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        final error = InputRules.fullName(_nameController.text) ??
+                            (_phoneController.text.trim().isEmpty
+                                ? null
+                                : InputRules.phone(_phoneController.text));
+                        if (error != null) {
+                          showCartzyFlash(context, error);
+                          return;
+                        }
+                        setState(() {});
+                        widget.onProfileUpdated?.call({
+                          'name': _nameController.text.trim(),
+                          'phone': _phoneController.text.trim(),
+                          'sex': _selectedSex,
+                        });
+                        Navigator.pop(ctx);
+                        showCartzyFlash(
+                            context, 'Profile updated successfully!');
+                      },
+                      child: Text('Save Changes',
+                          style: GoogleFonts.dmSans(
+                              fontSize: 15, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ==========================================
+  // ID VERIFICATION MODAL
+  // ==========================================
+  void _openIdVerificationModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'ID Verification',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF231F20)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFA7F3D0)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.verified, color: Color(0xFF059669), size: 24),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Identity Verified',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF065F46),
+                                fontSize: 13)),
+                        SizedBox(height: 2),
+                        Text(
+                            'Your Government-issued ID has been verified for secure shopping & orders.',
+                            style: TextStyle(
+                                color: Color(0xFF047857), fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading:
+                  const Icon(Icons.badge_outlined, color: CartzyColors.navy),
+              title: Text('ID Type',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 14, fontWeight: FontWeight.bold)),
+              subtitle: Text(_selectedIdType,
+                  style:
+                      const TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
+              trailing: TextButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await _pickIdDocument();
+                },
+                child: const Text('Update ID',
+                    style: TextStyle(
+                        color: CartzyColors.coral,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // SAVED ADDRESSES MODAL
+  // ==========================================
+  void _openSavedAddressesModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Saved Addresses',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF231F20)),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ...List.generate(_savedAddresses.length, (idx) {
+                  final addr = _savedAddresses[idx];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF8F9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFEDE4E7)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on,
+                            color: CartzyColors.coral, size: 22),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(addr['label'] ?? 'Address',
+                                  style: GoogleFonts.dmSans(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: const Color(0xFF231F20))),
+                              const SizedBox(height: 2),
+                              Text(addr['street'] ?? '',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Color(0xFF554B4F))),
+                              Text(addr['city'] ?? '',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Color(0xFF7A6E72))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 46,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: CartzyColors.navy),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    icon: const Icon(Icons.add,
+                        color: CartzyColors.navy, size: 18),
+                    label: Text('Add New Address',
+                        style: GoogleFonts.dmSans(
+                            fontWeight: FontWeight.bold,
+                            color: CartzyColors.navy)),
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showAddAddressDialog();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   void _showAddAddressDialog() {
     final streetController = TextEditingController();
-    final cityController = TextEditingController(text: 'Pasig City, Metro Manila');
+    final cityController =
+        TextEditingController(text: 'Pasig City, Metro Manila');
     final labelController = TextEditingController(text: 'Home');
 
     showDialog(
@@ -138,7 +575,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Add Delivery Address',
-          style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF231F20)),
+          style: GoogleFonts.dmSans(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF231F20)),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -146,17 +586,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             children: [
               TextField(
                 controller: labelController,
-                decoration: const InputDecoration(labelText: 'Address Label (e.g. Home, Work)'),
+                decoration: const InputDecoration(
+                    labelText: 'Address Label (e.g. Home, Work)'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: streetController,
-                decoration: const InputDecoration(labelText: 'House / Unit & Street Name'),
+                decoration: const InputDecoration(
+                    labelText: 'House / Unit & Street Name'),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: cityController,
-                decoration: const InputDecoration(labelText: 'City / Municipality & Province'),
+                decoration: const InputDecoration(
+                    labelText: 'City / Municipality & Province'),
               ),
             ],
           ),
@@ -164,7 +607,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFF7A6E72))),
+            child: const Text('Cancel',
+                style: TextStyle(color: Color(0xFF7A6E72))),
           ),
           ElevatedButton(
             onPressed: () {
@@ -181,7 +625,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4A3E4D),
+              backgroundColor: CartzyColors.navy,
               foregroundColor: Colors.white,
             ),
             child: const Text('Save Address'),
@@ -191,116 +635,117 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFFBF8F9),
-      body: SafeArea(
+  // ==========================================
+  // CHANGE PASSWORD MODAL
+  // ==========================================
+  void _openChangePasswordModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Top Header Row ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Back Button
-                        GestureDetector(
-                          onTap: widget.onBack,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.arrow_back, size: 16, color: Color(0xFF865561)),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Back to dashboard',
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF865561),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Text(
-                          'YOUR ACCOUNT, YOUR WAY',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2,
-                            color: const Color(0xFFA35D6A),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              'Account Settings',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF231F20),
-                                letterSpacing: -0.4,
-                              ),
-                            ),
-                            Text(
-                              '.',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF865561),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'A few personal touches. A smoother shopping experience.',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 13,
-                            color: const Color(0xFF7A6E72),
-                          ),
-                        ),
-                      ],
-                    ),
+                  Text(
+                    'Change Password',
+                    style: GoogleFonts.dmSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF231F20)),
                   ),
-                  // Shield security icon container
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3E7E9),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.shield_outlined,
-                      color: Color(0xFF865561),
-                      size: 22,
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                    onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // ── Tab Navigation Pills (Screenshot 2: 01, 02, 03) ──
-              _buildTabPills(),
-              const SizedBox(height: 24),
-
-              // ── Tab Content ──
-              if (_activeTabIndex == 0) _buildPersonalDetailsTab(),
-              if (_activeTabIndex == 1) _buildSecurityTab(),
-              if (_activeTabIndex == 2) _buildAddressesTab(),
-              const SizedBox(height: 30),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _currentPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Current Password',
+                  filled: true,
+                  fillColor: const Color(0xFFF9F7F8),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _newPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  filled: true,
+                  fillColor: const Color(0xFFF9F7F8),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirm New Password',
+                  filled: true,
+                  fillColor: const Color(0xFFF9F7F8),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CartzyColors.navy,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    _currentPasswordController.clear();
+                    _newPasswordController.clear();
+                    _confirmPasswordController.clear();
+                    Navigator.pop(ctx);
+                    showCartzyFlash(context, 'Password updated successfully!');
+                  },
+                  child: Text('Update Password',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
+                ),
+              ),
             ],
           ),
         ),
@@ -308,97 +753,58 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  // ============================================================
-  // TAB NAVIGATION PILLS (01 Personal details | 02 Security | 03 Delivery addresses)
-  // ============================================================
-
-  Widget _buildTabPills() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _tabPill(
-                index: 0,
-                icon: Icons.person_outline,
-                title: 'Personal details',
-                stepNum: '01',
-              ),
-              const SizedBox(width: 10),
-              _tabPill(
-                index: 1,
-                icon: Icons.lock_outline,
-                title: 'Security',
-                stepNum: '02',
-              ),
-              const SizedBox(width: 10),
-              _tabPill(
-                index: 2,
-                icon: Icons.location_on_outlined,
-                title: 'Delivery addresses',
-                stepNum: '03',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _tabPill({
-    required int index,
-    required IconData icon,
-    required String title,
-    required String stepNum,
-  }) {
-    final isActive = _activeTabIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _activeTabIndex = index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white : const Color(0xFFF3EDEE),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isActive ? const Color(0xFFE5D7D7) : Colors.transparent,
-            width: 1.2,
-          ),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : null,
+  // ==========================================
+  // TERMS & POLICIES MODAL
+  // ==========================================
+  void _openTermsModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              size: 17,
-              color: isActive ? const Color(0xFF231F20) : const Color(0xFF7A6E72),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Terms & Policies',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF231F20)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              title,
-              style: GoogleFonts.dmSans(
-                fontSize: 13,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? const Color(0xFF231F20) : const Color(0xFF7A6E72),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              stepNum,
-              style: GoogleFonts.dmSans(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isActive ? const Color(0xFF865561) : const Color(0xFFAAA0A2),
+            const SizedBox(height: 14),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Text(
+                  'Welcome to Cartzy Philippines.\n\n'
+                  '1. Account Security\n'
+                  'You are responsible for safeguarding your login credentials. Notify Cartzy immediately upon any unauthorized access.\n\n'
+                  '2. Orders and Payments\n'
+                  'All transactions are processed securely. Prices are quoted in Philippine Pesos (₱) and include applicable taxes.\n\n'
+                  '3. Return and Refund Policy\n'
+                  'Items are covered by our 7-day return guarantee if defective or differing significantly from seller description.\n\n'
+                  '4. Privacy and Data Protection\n'
+                  'Your personal details and delivery addresses are encrypted and kept strictly confidential in accordance with the Data Privacy Act of 2012.',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      height: 1.6,
+                      color: const Color(0xFF554B4F)),
+                ),
               ),
             ),
           ],
@@ -407,787 +813,806 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  // ============================================================
-  // TAB 1: PERSONAL DETAILS (Screenshot 2)
-  // ============================================================
-
-  Widget _buildPersonalDetailsTab() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEADBD9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Eyebrow
-          Text(
-            '01 / PROFILE',
-            style: GoogleFonts.dmSans(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-              color: const Color(0xFFA35D6A),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Profile information',
-            style: GoogleFonts.dmSans(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF231F20),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Make yourself at home. Keep your name and contact details up to date.',
-            style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF7A6E72)),
-          ),
-          const SizedBox(height: 20),
-
-          // ── Profile Photo Section ──
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDFBFB),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFF0E5E7)),
-            ),
-            child: Row(
+  // ==========================================
+  // HELP & SUPPORT MODAL
+  // ==========================================
+  void _openHelpModal() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    _avatarUrl,
-                    width: 52,
-                    height: 52,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 52,
-                      height: 52,
-                      color: const Color(0xFF865561),
-                      child: const Icon(Icons.person, color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Profile photo',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          GestureDetector(
-                            onTap: _pickProfilePhoto,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: const Color(0xFFD0C3C5)),
-                              ),
-                              child: Text(
-                                'Choose File',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF231F20),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _profilePhotoName ?? 'No file chosen',
-                              style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFF7A6E72)),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'JPG or PNG, up to 2 MB.',
-                        style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFFAAA0A2)),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _pickProfilePhoto,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE5D7D7)),
-                    ),
-                    child: Text(
-                      'Upload photo',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF231F20),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          // ── Full Name & Phone Number ──
-          _buildInputLabel('Full name'),
-          _buildTextField(controller: _nameController, hint: 'Full name'),
-          const SizedBox(height: 14),
-
-          _buildInputLabel('Phone number'),
-          _buildTextField(controller: _phoneController, hint: 'e.g. 09171234567', keyboardType: TextInputType.phone),
-          const SizedBox(height: 14),
-
-          // ── Email address (read-only with Google connected note) ──
-          _buildInputLabel('Email address'),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7F2F3),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE5D7D7)),
-            ),
-            child: Text(
-              _emailController.text,
-              style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF5A5255)),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Connected to your Google account.',
-            style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFAAA0A2)),
-          ),
-          const SizedBox(height: 14),
-
-          // ── Sex & Birthday ──
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInputLabel('Sex'),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE5D7D7)),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedSex,
-                          isExpanded: true,
-                          items: ['Female', 'Male', 'Prefer not to say'].map((s) {
-                            return DropdownMenuItem(value: s, child: Text(s, style: GoogleFonts.dmSans(fontSize: 13.5)));
-                          }).toList(),
-                          onChanged: (v) {
-                            if (v != null) setState(() => _selectedSex = v);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInputLabel('Birthday'),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE5D7D7)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _birthday,
-                              style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF231F20)),
-                            ),
-                          ),
-                          const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF865561)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'You must be at least 18 years old.',
-            style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFAAA0A2)),
-          ),
-          const SizedBox(height: 24),
-
-          // ── IDENTITY VERIFICATION SECTION (Screenshot 2) ──
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'IDENTITY VERIFICATION',
-                style: GoogleFonts.dmSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: const Color(0xFF231F20),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F2F3),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'Unverified',
+                Text(
+                  'Help & Support',
                   style: GoogleFonts.dmSans(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF7A6E72),
-                  ),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF231F20)),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Upload a clear photo or copy of a valid government ID (National ID, Driver\'s License, Passport, etc.) to verify your account.',
-            style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72), height: 1.4),
-          ),
-          const SizedBox(height: 14),
-
-          // ID Type & ID Number
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInputLabel('ID Type'),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE5D7D7)),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedIdType,
-                          isExpanded: true,
-                          items: ['National ID', 'Driver\'s License', 'Passport', 'UMID', 'Postal ID'].map((t) {
-                            return DropdownMenuItem(value: t, child: Text(t, style: GoogleFonts.dmSans(fontSize: 13)));
-                          }).toList(),
-                          onChanged: (v) {
-                            if (v != null) setState(() => _selectedIdType = v);
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInputLabel('ID Number (Optional)'),
-                    _buildTextField(controller: _idNumberController, hint: 'e.g. 1234-5678-9012'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Upload ID Document
-          _buildInputLabel('Upload ID Document'),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE5D7D7)),
-            ),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: _pickIdDocument,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7F2F3),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFD0C3C5)),
-                    ),
-                    child: Text(
-                      'Choose File',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF231F20),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    _idFileName ?? 'No file chosen',
-                    style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF7A6E72)),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                  onPressed: () => Navigator.pop(ctx),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-
-          // ── Bottom Save Changes Bar ──
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Keep your details up to date for easy deliveries.',
-                  style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFAAA0A2)),
-                ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: _savePersonalDetails,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4A3E4D), Color(0xFF865561)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF865561).withValues(alpha: 0.25),
-                        offset: const Offset(0, 4),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Save changes',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward, size: 14, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // TAB 2: SECURITY (Screenshot 3)
-  // ============================================================
-
-  Widget _buildSecurityTab() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEADBD9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '02 / SECURITY',
-            style: GoogleFonts.dmSans(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.0,
-              color: const Color(0xFFA35D6A),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFF3ECEE),
+                  child: Icon(Icons.email_outlined, color: CartzyColors.navy)),
+              title: const Text('Email Support',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              subtitle: const Text('support@cartzy.shop',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
+              onTap: () => showCartzyFlash(
+                  context, 'Support email copied: support@cartzy.shop'),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Security',
-            style: GoogleFonts.dmSans(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF231F20),
+            const ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                  backgroundColor: Color(0xFFF3ECEE),
+                  child: Icon(Icons.phone_outlined, color: CartzyColors.navy)),
+              title: Text('Customer Hotline',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              subtitle: Text('+63 (02) 8888-2278 (Mon-Sat, 8am-8pm)',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'A little peace of mind. Manage your password, verification, and signed-in devices.',
-            style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF7A6E72)),
-          ),
-          const SizedBox(height: 20),
-
-          // ── Email Verification Status ──
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFDFBFB),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFF0E5E7)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Email verification',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF231F20),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        'Verified',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF2E7D32),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _emailController.text,
-                  style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF5A5255)),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'You can sign in with Google. If you have not set a password, sign out and choose Forgot password on the login screen to set one before using these controls.',
-                  style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFF7A6E72), height: 1.4),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // ── Change Password ──
-          Text(
-            'Change password',
-            style: GoogleFonts.dmSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF231F20),
-            ),
-          ),
-          const SizedBox(height: 10),
-          _buildInputLabel('Current password'),
-          _buildTextField(controller: _currentPasswordController, hint: 'Current password', obscure: true),
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInputLabel('New password'),
-                    _buildTextField(controller: _newPasswordController, hint: 'New password', obscure: true),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInputLabel('Confirm new password'),
-                    _buildTextField(controller: _confirmPasswordController, hint: 'Confirm password', obscure: true),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Use at least 8 characters.',
-            style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFAAA0A2)),
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
-              if (_newPasswordController.text.length < 8) {
-                showCartzyFlash(context, 'Password must be at least 8 characters.');
-              } else if (_newPasswordController.text != _confirmPasswordController.text) {
-                showCartzyFlash(context, 'New passwords do not match.');
-              } else {
-                showCartzyFlash(context, 'Password updated successfully!');
-                _currentPasswordController.clear();
-                _newPasswordController.clear();
-                _confirmPasswordController.clear();
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A3E4D),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Update password',
-                style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // ── Other Devices ──
-          Text(
-            'Other devices',
-            style: GoogleFonts.dmSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF231F20),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Sign out of your other sessions. You will stay signed in on this device.',
-            style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
-          ),
-          const SizedBox(height: 10),
-          _buildInputLabel('Confirm your password'),
-          _buildTextField(controller: _confirmSessionPasswordController, hint: 'Confirm password', obscure: true),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () {
-              showCartzyFlash(context, 'Signed out of other devices.');
-              _confirmSessionPasswordController.clear();
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A3E4D),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                'Sign out other devices',
-                style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ============================================================
-  // TAB 3: DELIVERY ADDRESSES (Screenshot 3)
-  // ============================================================
-
-  Widget _buildAddressesTab() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEADBD9)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Saved addresses',
-            style: GoogleFonts.dmSans(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF231F20),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Add delivery locations and choose the one to use by default.',
-            style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF7A6E72)),
-          ),
-          const SizedBox(height: 20),
-
-          if (_savedAddresses.isEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFAF7F8),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFF0E5E7)),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'No saved addresses yet. Add your first delivery address below.',
-                style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
-                textAlign: TextAlign.center,
-              ),
-            )
-          else
-            ..._savedAddresses.map((addr) => Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAF7F8),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE5D7D7)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined, color: Color(0xFF865561)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(addr['label'] ?? 'Home', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                            Text(addr['street'] ?? '', style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF7A6E72))),
-                            Text(addr['city'] ?? '', style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFAAA0A2))),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
-
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: _showAddAddressDialog,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFD0C3C5), style: BorderStyle.solid),
-              ),
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.add, size: 16, color: Color(0xFF865561)),
-                  const SizedBox(width: 6),
-                  Text(
-                    '+ Add a new address',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF865561),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Helper Widgets ──
-
-  Widget _buildInputLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        label,
-        style: GoogleFonts.dmSans(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFF231F20),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    bool obscure = false,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE5D7D7)),
+  // ==========================================
+  // COMPLAINTS MODAL
+  // ==========================================
+  void _openComplaintsModal() {
+    final complaintController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'File a Complaint',
+                    style: GoogleFonts.dmSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF231F20)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Please describe the issue with your order, rider, or seller in detail:',
+                style: GoogleFonts.dmSans(
+                    fontSize: 12, color: const Color(0xFF7A6E72)),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: complaintController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: 'Enter your complaint or inquiry here...',
+                  filled: true,
+                  fillColor: const Color(0xFFF9F7F8),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CartzyColors.coral,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    showCartzyFlash(context,
+                        'Complaint ticket submitted. Support will contact you shortly.');
+                  },
+                  child: Text('Submit Ticket',
+                      style: GoogleFonts.dmSans(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: TextField(
-        controller: controller,
-        obscureText: obscure,
-        keyboardType: keyboardType,
-        style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF231F20)),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFFAAA0A2)),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-          filled: false,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    );
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Sign Out',
+          style: GoogleFonts.dmSans(
+              fontWeight: FontWeight.bold, color: const Color(0xFF231F20)),
+        ),
+        content: const Text(
+            'Are you sure you want to sign out from your Cartzy account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel',
+                style: TextStyle(color: Color(0xFF7A6E72))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              widget.onLogout();
+            },
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final firstName = _getFirstName();
+    final email = _emailController.text.trim();
+    final initials = _getInitials();
+
+    return Scaffold(
+      backgroundColor: CartzyColors.cream,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new,
+              size: 20, color: CartzyColors.navy),
+          onPressed: widget.onBack,
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ==========================================
+              // 1. TOP HEADER: YOUR CARTZY / Account
+              // ==========================================
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'YOUR CARTZY',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.5,
+                        color: CartzyColors.burgundy,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'My account',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w700,
+                        color: CartzyColors.navy,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              // ==========================================
+              // 2. USER PROFILE CARD (Hi, Jan / Email)
+              // ==========================================
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        CartzyColors.burgundy,
+                        CartzyColors.burgundyDeep
+                      ]),
+                  borderRadius: BorderRadius.circular(22),
+                  border:
+                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.025),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: !widget.isLoggedIn
+                    ? _buildGuestProfileCard()
+                    : Row(
+                        children: [
+                          // Circle Avatar with Initials
+                          Container(
+                            width: 52,
+                            height: 52,
+                            decoration: const BoxDecoration(
+                              color: CartzyColors.cream,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                initials,
+                                style: GoogleFonts.dmSans(
+                                  color: CartzyColors.burgundy,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Hi, $firstName',
+                                  style: GoogleFonts.playfairDisplay(
+                                    fontSize: 23,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  email,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 12.5,
+                                    color: CartzyColors.cream,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ==========================================
+              // 3. MY ORDERS SECTION (To ship, Shipped, Delivered, Cancelled)
+              // ==========================================
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'MY ORDERS',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                      color: CartzyColors.gray,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: _navigateToOrders,
+                    child: Row(
+                      children: [
+                        Text(
+                          'View all',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: CartzyColors.navy,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_forward_rounded,
+                            size: 14, color: CartzyColors.navy),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: CartzyColors.creamLight,
+                  borderRadius: BorderRadius.circular(22),
+                  border:
+                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildOrderAction(
+                      icon: Icons.inventory_2_outlined,
+                      label: 'To ship',
+                      onTap: _navigateToOrders,
+                    ),
+                    _buildOrderAction(
+                      icon: Icons.local_shipping_outlined,
+                      label: 'Shipped',
+                      onTap: _navigateToOrders,
+                    ),
+                    _buildOrderAction(
+                      icon: Icons.check_circle_outline_rounded,
+                      label: 'Delivered',
+                      onTap: _navigateToOrders,
+                    ),
+                    _buildOrderAction(
+                      icon: Icons.cancel_outlined,
+                      label: 'Cancelled',
+                      onTap: _navigateToOrders,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ==========================================
+              // 4. SETTINGS SECTION
+              // ==========================================
+              Text(
+                'ACCOUNT & SETTINGS',
+                style: GoogleFonts.dmSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1,
+                  color: CartzyColors.gray,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: CartzyColors.creamLight,
+                  borderRadius: BorderRadius.circular(22),
+                  border:
+                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    // Messages
+                    _buildMenuTile(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      label: 'Messages',
+                      showChevron: false,
+                      onTap: () {
+                        showCartzyFlash(context, 'No new messages.');
+                      },
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Notifications (with badge 1)
+                    _buildMenuTile(
+                      icon: Icons.notifications_none_rounded,
+                      label: 'Notifications',
+                      badgeWidget: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text(
+                          '1',
+                          style: TextStyle(
+                            color: CartzyColors.creamLight,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      onTap: () {
+                        showCartzyFlash(
+                            context, 'You have 1 order update notification.');
+                      },
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // ID verification (with green checkmark)
+                    _buildMenuTile(
+                      icon: Icons.badge_outlined,
+                      label: 'ID verification',
+                      badgeWidget: _isIdVerified
+                          ? const Icon(Icons.verified,
+                              color: Color(0xFF10B981), size: 18)
+                          : null,
+                      onTap: _openIdVerificationModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Saved addresses
+                    _buildMenuTile(
+                      icon: Icons.location_on_outlined,
+                      label: 'Saved addresses',
+                      onTap: _openSavedAddressesModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Profile settings
+                    _buildMenuTile(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Profile settings',
+                      onTap: _openProfileSettingsModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Change password
+                    _buildMenuTile(
+                      icon: Icons.lock_outline_rounded,
+                      label: 'Change password',
+                      onTap: _openChangePasswordModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Terms & policies
+                    _buildMenuTile(
+                      icon: Icons.description_outlined,
+                      label: 'Terms & policies',
+                      onTap: _openTermsModal,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ==========================================
+              // 5. HELP SECTION (Help & support, Complaints)
+              // ==========================================
+              Text(
+                'HELP',
+                style: GoogleFonts.dmSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.1,
+                  color: CartzyColors.gray,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: CartzyColors.creamLight,
+                  borderRadius: BorderRadius.circular(22),
+                  border:
+                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    _buildMenuTile(
+                      icon: Icons.support_agent_rounded,
+                      label: 'Help & support',
+                      onTap: _openHelpModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+                    _buildMenuTile(
+                      icon: Icons.error_outline_rounded,
+                      label: 'Complaints',
+                      onTap: _openComplaintsModal,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ==========================================
+              // 6. SIGN OUT BUTTON
+              // ==========================================
+              if (widget.isLoggedIn)
+                Container(
+                  width: double.infinity,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: CartzyColors.creamLight,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: CartzyColors.navy, width: 1.4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: _confirmLogout,
+                      child: Center(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.logout_rounded,
+                                color: CartzyColors.navy, size: 19),
+                            const SizedBox(width: 8),
+                            Text(
+                              'SIGN OUT',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.1,
+                                color: CartzyColors.navy,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+
+              // ==========================================
+              // 7. FOOTER TAGLINE
+              // ==========================================
+              Center(
+                child: Text(
+                  'Driven by passion. Defined by your origin',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF8E8286),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 30),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // ORDER ACTION ITEM (BOX, TRUCK, CHECK, CANCEL)
+  // ==========================================
+  Widget _buildGuestProfileCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          const CircleAvatar(
+            radius: 22,
+            backgroundColor: CartzyColors.cream,
+            child: Icon(Icons.person_outline_rounded,
+                color: CartzyColors.burgundy, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Text('Welcome to Cartzy',
+                  style: GoogleFonts.playfairDisplay(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white))),
+        ]),
+        const SizedBox(height: 12),
+        Wrap(spacing: 12, runSpacing: 8, children: [
+          FilledButton(
+            onPressed: widget.onLogin,
+            style: FilledButton.styleFrom(
+              backgroundColor: CartzyColors.cream,
+              foregroundColor: CartzyColors.burgundy,
+              minimumSize: const Size(104, 40),
+            ),
+            child: const Text('Log in'),
+          ),
+          OutlinedButton(
+            onPressed: widget.onSignUp,
+            style: OutlinedButton.styleFrom(
+              backgroundColor: CartzyColors.cream,
+              foregroundColor: CartzyColors.burgundy,
+              side: const BorderSide(color: CartzyColors.pinkBorder),
+              minimumSize: const Size(104, 40),
+              shape: const StadiumBorder(),
+            ),
+            child: const Text('Sign up'),
+          ),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildOrderAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+        child: InkWell(
+            onTap: widget.isLoggedIn ? onTap : widget.onLogin,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: CartzyColors.roseSoft,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(icon, size: 24, color: CartzyColors.burgundy),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: CartzyColors.navy,
+                    ),
+                  ),
+                ],
+              ),
+            )));
+  }
+
+  // ==========================================
+  // MENU TILE ITEM
+  // ==========================================
+  Widget _buildMenuTile({
+    required IconData icon,
+    required String label,
+    Widget? badgeWidget,
+    bool showChevron = true,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: widget.isLoggedIn ? onTap : widget.onLogin,
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: CartzyColors.creamSection,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, size: 20, color: CartzyColors.burgundy),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: CartzyColors.navy,
+                ),
+              ),
+            ),
+            if (widget.isLoggedIn && badgeWidget != null) ...[
+              badgeWidget,
+              const SizedBox(width: 8),
+            ],
+            if (showChevron)
+              const Icon(Icons.chevron_right,
+                  size: 18, color: Color(0xFF8E8286)),
+          ],
         ),
       ),
     );

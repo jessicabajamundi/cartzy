@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'buyer_registration_validation.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +13,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/services/user_account_service.dart';
+import 'package:cartzy/services/google_sign_in_service.dart';
+import 'package:cartzy/services/api_service.dart' show ApiException;
+import 'package:cartzy/services/auth_service.dart';
 // ============================================================
 // PSGC API MODELS + SERVICE
 // ============================================================
@@ -119,7 +125,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
   final _lastNameController = TextEditingController();
   final _firstNameController = TextEditingController();
-  final _middleInitialController = TextEditingController();
   final _emailController = TextEditingController();
   final _contactNoController = TextEditingController();
   final _emailShakeKey = GlobalKey<ShakeWidgetState>();
@@ -205,7 +210,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   void dispose() {
     _lastNameController.dispose();
     _firstNameController.dispose();
-    _middleInitialController.dispose();
     _emailController.dispose();
     _contactNoController.dispose();
     _houseStreetController.dispose();
@@ -395,52 +399,26 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
     final lName = _lastNameController.text.trim();
 
     setState(() {
-      // First Name validation
-      if (fName.isEmpty) {
-        _firstNameError = true;
-        _firstNameErrorMessage = 'First name is required';
-      } else if (fName.length < 2) {
-        _firstNameError = true;
-        _firstNameErrorMessage = 'First name must be at least 2 characters';
-      } else if (!RegExp(r"^[a-zA-Z\s\-\'\.]+$").hasMatch(fName)) {
-        _firstNameError = true;
-        _firstNameErrorMessage = 'First name can only contain letters, hyphens, and spaces';
-      } else {
-        _firstNameError = false;
-        _firstNameErrorMessage = null;
-      }
-
-      // Last Name validation
-      if (lName.isEmpty) {
-        _lastNameError = true;
-        _lastNameErrorMessage = 'Last name is required';
-      } else if (lName.length < 2) {
-        _lastNameError = true;
-        _lastNameErrorMessage = 'Last name must be at least 2 characters';
-      } else if (!RegExp(r"^[a-zA-Z\s\-\'\.]+$").hasMatch(lName)) {
-        _lastNameError = true;
-        _lastNameErrorMessage = 'Last name can only contain letters, hyphens, and spaces';
-      } else {
-        _lastNameError = false;
-        _lastNameErrorMessage = null;
-      }
-
+      _firstNameErrorMessage = BuyerRegistrationValidation.name(fName, 'first name');
+      _firstNameError = _firstNameErrorMessage != null;
+      _lastNameErrorMessage = BuyerRegistrationValidation.name(lName, 'last name');
+      _lastNameError = _lastNameErrorMessage != null;
       _sexError = _selectedSex.isEmpty;
 
       // Birthday & Age validation (18+ requirement)
       if (_birthday.isEmpty) {
         _birthdayError = true;
-        _birthdayErrorMessage = 'Please select your birthday';
+        _birthdayErrorMessage = 'Please enter your birthday.';
       } else if (_age != null && _age! < 18) {
         _birthdayError = true;
-        _birthdayErrorMessage = 'You must be at least 18 years old to register as a buyer';
+        _birthdayErrorMessage = 'You must be at least 18 years old to register.';
       } else {
         _birthdayError = false;
         _birthdayErrorMessage = null;
       }
 
       // Email validation (TC-BUY-010, TC-BUY-011, TC-BUY-012)
-      final emailFormatError = UserAccountService.validateEmailFormat(trimmedEmail);
+      final emailFormatError = BuyerRegistrationValidation.email(trimmedEmail);
       if (emailFormatError != null) {
         _emailError = true;
         _emailErrorMessage = emailFormatError;
@@ -454,11 +432,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       }
 
       // Phone: normalize +63 to 09 on blur before validation (TC-BUY-016)
-      final normalizedPhone = UserAccountService.normalizePhone(trimmedPhone);
-      _contactNoController.text = normalizedPhone;
+      final normalizedPhone = BuyerRegistrationValidation.phoneForApi(trimmedPhone);
+
 
       // Mobile number validation (TC-BUY-013, TC-BUY-014, TC-BUY-015, TC-BUY-016)
-      final phoneFormatError = UserAccountService.validatePhoneFormat(normalizedPhone);
+      final phoneFormatError = BuyerRegistrationValidation.phone(trimmedPhone);
       if (phoneFormatError != null) {
         _contactNoError = true;
         _contactNoErrorMessage = phoneFormatError;
@@ -665,11 +643,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             ),
           ),
           const SizedBox(height: 8),
-          item(hasLength, 'At least 8 characters (TC-BUY-017)'),
-          item(hasUpper, 'At least one uppercase letter [A-Z] (TC-BUY-018)'),
-          item(hasLower, 'At least one lowercase letter [a-z] (TC-BUY-018)'),
-          item(hasNumber, 'At least one number [0-9] (TC-BUY-018)'),
-          item(hasSpecial, 'At least one special character [!@#\$%...] (TC-BUY-018)'),
+          item(hasLength, 'At least 8 characters (required)'),
+          item(hasUpper, 'At least one uppercase letter [A-Z] (recommended)'),
+          item(hasLower, 'At least one lowercase letter [a-z] (recommended)'),
+          item(hasNumber, 'At least one number [0-9] (recommended)'),
+          item(hasSpecial, 'At least one special character [!@#\$%...] (recommended)'),
         ],
       ),
     );
@@ -685,7 +663,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
     setState(() {
       // TC-BUY-017, TC-BUY-018: Password length and complexity
-      final passError = UserAccountService.validatePassword(_passwordController.text);
+      final passError = BuyerRegistrationValidation.password(_passwordController.text);
       if (passError != null) {
         _passwordError = true;
         _passwordErrorMessage = passError;
@@ -699,7 +677,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         _confirmPasswordMessage = 'Please confirm your password';
         _confirmPasswordError = true;
       } else if (_confirmPasswordController.text != _passwordController.text) {
-        _confirmPasswordMessage = 'Passwords do not match';
+        _confirmPasswordMessage = 'The password confirmation does not match.';
         _confirmPasswordError = true;
       } else {
         _confirmPasswordError = false;
@@ -722,60 +700,61 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
     setState(() => _isSubmitting = true);
 
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim().toLowerCase();
+    final phone = BuyerRegistrationValidation.phoneForApi(_contactNoController.text.trim());
+
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      final firstName = _firstNameController.text.trim();
-      final lastName = _lastNameController.text.trim();
-      final middleInitial = _middleInitialController.text.trim();
-      final email = _emailController.text.trim();
-      final phone = _contactNoController.text.trim();
-
-      // Register account in UserAccountService
-      final createdAccount = UserAccountService.instance.registerBuyer(
+      // The server emails the code; the account is created once it's entered.
+      await AuthService.requestRegistrationCode(
         email: email,
+        name: '$firstName $lastName',
         phone: phone,
-        password: _passwordController.text,
-        firstName: firstName,
-        lastName: lastName,
-        middleInitial: middleInitial,
-        extraData: {
-          'sex': _selectedSex,
-          'birthday': _birthdayForDatabase(),
-          'age': _age ?? 25,
-          'street_address': _houseStreetController.text.trim(),
-          'address': _houseStreetController.text.trim(),
-          'province': _selectedProvince.isNotEmpty ? _selectedProvince : 'Metro Manila',
-          'city': _selectedMunicipality.isNotEmpty ? _selectedMunicipality : 'Pasig City',
-          'barangay': _selectedBarangay.isNotEmpty ? _selectedBarangay : 'San Antonio',
-          'postal_code': '1600',
-          'id_type': 'Government ID',
-          'id_number': 'ID-2026-001',
-          'id_status': 'verified',
+      );
+
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      showCartzyFlash(context, 'We sent a 6-digit code to $email');
+
+      widget.onRegistrationSubmitted({
+        'first_name': firstName,
+        'last_name': lastName,
+        'email': email,
+        'phone': phone,
+        'birthday': _birthdayForDatabase(),
+        'password': _passwordController.text,
+        'address': {
+          'name': '$firstName $lastName',
+          'phone': phone,
+          'street': _houseStreetController.text.trim(),
+          'barangay': _selectedBarangay,
+          'municipality': _selectedMunicipality,
+          'province': _selectedProvince,
         },
-      );
-
+      });
+    } on ApiException catch (e) {
       if (!mounted) return;
-
+      final errors = e.body['errors'];
+      setState(() {
+        _isSubmitting = false;
+        // Taken email or phone: send the buyer back to fix it on step 1.
+        if (errors is Map && errors['email'] is List) {
+          _emailError = true;
+          _emailErrorMessage = (errors['email'] as List).first.toString();
+          _currentStep = 1;
+        }
+        if (errors is Map && errors['phone'] is List) {
+          _contactNoError = true;
+          _contactNoErrorMessage = (errors['phone'] as List).first.toString();
+          _currentStep = 1;
+        }
+      });
+      showCartzyFlash(context, e.message);
+    } catch (_) {
+      if (!mounted) return;
       setState(() => _isSubmitting = false);
-
-      showCartzyFlash(context, 'Account created! Please verify your email.');
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (!mounted) return;
-
-      widget.onRegistrationSubmitted(createdAccount.toMap());
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() => _isSubmitting = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Registration failed: $e'),
-        ),
-      );
+      showCartzyFlash(context, "Couldn't reach the server. Check your connection and try again.");
     }
   }
 
@@ -797,7 +776,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
               const SizedBox(height: 12),
               StepIndicator(
                 currentStep: _currentStep,
-                labels: const ['Details', 'Address', 'Security'],
+                labels: const ['Details', 'Sign-in', 'Verify'],
               ),
               const SizedBox(height: 16),
               if (_currentStep == 1) _buildStep1(),
@@ -847,6 +826,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         RegistrationTextField(
           controller: _firstNameController,
           label: 'First name *',
+          validator: (value) => BuyerRegistrationValidation.name(value, 'first name'),
+          maxLength: 50,
+          inputFormatters: [FilteringTextInputFormatter.allow(BuyerRegistrationValidation.nameCharacters)],
           icon: Icons.person_outline,
           isError: _firstNameError,
           errorMessage: _firstNameErrorMessage ?? 'First name is required',
@@ -864,6 +846,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         RegistrationTextField(
           controller: _lastNameController,
           label: 'Last name *',
+          validator: (value) => BuyerRegistrationValidation.name(value, 'last name'),
+          maxLength: 50,
+          inputFormatters: [FilteringTextInputFormatter.allow(BuyerRegistrationValidation.nameCharacters)],
           icon: Icons.person_outline,
           isError: _lastNameError,
           errorMessage: _lastNameErrorMessage ?? 'Last name is required',
@@ -879,15 +864,10 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         const SizedBox(height: 16),
 
         RegistrationTextField(
-          controller: _middleInitialController,
-          label: 'Middle Initial (Optional)',
-          icon: Icons.person_outline,
-        ),
-        const SizedBox(height: 16),
-
-        RegistrationTextField(
           controller: _contactNoController,
           label: 'Mobile number *',
+          validator: BuyerRegistrationValidation.phone,
+          validateOnChange: true,
           isPhone: true,
           isError: _contactNoError,
           errorMessage: _contactNoErrorMessage ?? 'Contact number is required',
@@ -906,7 +886,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           birthday: _birthday,
           onClick: _openBirthdayPicker,
           isError: _birthdayError,
-          errorMessage: _birthdayErrorMessage ?? 'Please select your birthday',
+          errorMessage: _birthdayErrorMessage ?? 'Please enter your birthday.',
         ),
         const SizedBox(height: 16),
 
@@ -928,6 +908,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           child: RegistrationTextField(
             controller: _emailController,
             label: 'E-mail *',
+            validator: BuyerRegistrationValidation.email,
+            maxLength: 255,
+            keyboardType: TextInputType.emailAddress,
             icon: Icons.email_outlined,
             isError: _emailError,
             errorMessage: _emailErrorMessage ?? 'Email is required',
@@ -1063,6 +1046,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
         RegistrationTextField(
           controller: _houseStreetController,
+          maxLength: 500,
           label: 'Street / House Number *',
           icon: Icons.home_outlined,
           isError: _houseStreetError,
@@ -1144,6 +1128,8 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         RegistrationTextField(
           controller: _passwordController,
           label: 'Password *',
+          validator: BuyerRegistrationValidation.password,
+          validateOnChange: true,
           icon: Icons.lock_outline,
           isError: _passwordError,
           errorMessage: _passwordErrorMessage ?? 'Password is required',
@@ -1170,6 +1156,8 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         RegistrationTextField(
           controller: _confirmPasswordController,
           label: 'Confirm Password *',
+          validator: (value) => value == _passwordController.text ? null : 'The password confirmation does not match.',
+          validateOnChange: true,
           icon: Icons.lock_outline,
           isError: _confirmPasswordError,
           errorMessage: _confirmPasswordMessage,
@@ -1347,7 +1335,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: _isSubmitting ? 'Creating...' : 'Create account',
+                text: _isSubmitting ? 'Sending code...' : 'Create account',
                 onClick: _isSubmitting ? () {} : _registerBuyer,
               ),
             ),
@@ -1373,6 +1361,7 @@ class RegistrationUploadField extends StatelessWidget {
   final bool isError;
   final String errorMessage;
   final VoidCallback onTap;
+  final String? helperText;
 
   const RegistrationUploadField({
     super.key,
@@ -1381,6 +1370,7 @@ class RegistrationUploadField extends StatelessWidget {
     required this.isError,
     required this.errorMessage,
     required this.onTap,
+    this.helperText,
   });
 
   @override
@@ -1456,6 +1446,15 @@ class RegistrationUploadField extends StatelessWidget {
             errorMessage,
             style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
           ),
+        ] else if (helperText != null) ...[
+          const SizedBox(height: 5),
+          Text(
+            helperText!,
+            style: GoogleFonts.dmSans(
+              fontSize: 11.5,
+              color: const Color(0xFF7A6E72),
+            ),
+          ),
         ],
       ],
     );
@@ -1473,6 +1472,9 @@ class RegistrationDateField extends StatelessWidget {
   final VoidCallback onClick;
   final bool isError;
   final String errorMessage;
+  final String label;
+  final String hint;
+  final String helperText;
 
   const RegistrationDateField({
     super.key,
@@ -1480,6 +1482,9 @@ class RegistrationDateField extends StatelessWidget {
     required this.onClick,
     this.isError = false,
     this.errorMessage = '',
+    this.label = 'Birthday',
+    this.hint = 'Select your birthday',
+    this.helperText = 'You must be at least 18 years old to register.',
   });
 
   @override
@@ -1489,7 +1494,7 @@ class RegistrationDateField extends StatelessWidget {
       children: [
         RichText(
           text: TextSpan(
-            text: 'Birthday',
+            text: label,
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
@@ -1512,12 +1517,13 @@ class RegistrationDateField extends StatelessWidget {
               readOnly: true,
               style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
               decoration: InputDecoration(
-                hintText: 'Select your birthday',
+                hintText: hint,
                 hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
                 prefixIcon: const Icon(Icons.calendar_today_outlined, color: Color(0xFF9E8F91), size: 20),
                 suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
                 errorText: isError ? errorMessage : null,
-                errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
+            errorMaxLines: 3,
+                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -1543,7 +1549,7 @@ class RegistrationDateField extends StatelessWidget {
         ),
         const SizedBox(height: 5),
         Text(
-          'You must be at least 18 years old to register.',
+          helperText,
           style: GoogleFonts.dmSans(
             fontSize: 11.5,
             color: const Color(0xFF7A6E72),
@@ -1890,7 +1896,8 @@ class RegistrationDropdown extends StatelessWidget {
                       )
                     : const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
                 errorText: isError ? errorMessage : null,
-                errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
+            errorMaxLines: 3,
+                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -2214,7 +2221,8 @@ class SexDropdown extends StatelessWidget {
                 prefixIcon: Icon(_selectedIcon, color: const Color(0xFF9E8F91), size: 20),
                 suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
                 errorText: isError ? errorMessage : null,
-                errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
+            errorMaxLines: 3,
+                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -2315,12 +2323,16 @@ class CartzyRegisterHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onBack;
+  final ValueChanged<Map<String, dynamic>>? onGoogleSuccess;
+  final bool showGoogleSignUp;
 
   const CartzyRegisterHeader({
     super.key,
     this.title = 'Create your account',
     this.subtitle = 'Join cartzy and discover your everyday favorites',
     this.onBack,
+    this.onGoogleSuccess,
+    this.showGoogleSignUp = true,
   });
 
   @override
@@ -2358,34 +2370,55 @@ class CartzyRegisterHeader extends StatelessWidget {
             color: const Color(0xFF7A6E72),
           ),
         ),
+        if (showGoogleSignUp) ...[
         const SizedBox(height: 18),
-        Container(
-          width: double.infinity,
-          height: 46,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE5D7D7), width: 1.2),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.network(
-                'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
-                width: 18,
-                height: 18,
-                errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Sign up with Google',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+        GestureDetector(
+          onTap: () async {
+            try {
+              final response = await GoogleSignInService.signIn();
+              if (response != null && response['user'] != null && onGoogleSuccess != null) {
+                final user = Map<String, dynamic>.from(response['user'] as Map);
+                onGoogleSuccess!(user);
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Google Sign-In: $e'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE5D7D7), width: 1.2),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.network(
+                  'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                  width: 18,
+                  height: 18,
+                  errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
                 ),
-              ),
-            ],
+                const SizedBox(width: 10),
+                Text(
+                  'Sign up with Google',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF231F20),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 18),
@@ -2405,6 +2438,7 @@ class CartzyRegisterHeader extends StatelessWidget {
             const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
           ],
         ),
+        ],
       ],
     );
   }
@@ -2619,8 +2653,8 @@ class RegistrationFooter extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 18),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        Wrap(
+          alignment: WrapAlignment.center,
           children: [
             Text(
               'Already have an account? ',
@@ -2639,23 +2673,21 @@ class RegistrationFooter extends StatelessWidget {
             ),
           ],
         ),
-        if (onSwitchRole != null) ...[
+        if (!isBuyer && onSwitchRole != null) ...[
           const SizedBox(height: 16),
           const Divider(color: Color(0xFFE5D7D7), height: 1),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
             children: [
               Text(
-                isBuyer
-                    ? 'Do you want to be a logistics in cartzy? '
-                    : 'Looking to shop on cartzy instead? ',
+                'Looking to shop on cartzy instead? ',
                 style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
               ),
               GestureDetector(
                 onTap: onSwitchRole,
                 child: Text(
-                  isBuyer ? 'Apply here' : 'Register as buyer',
+                  'Register as buyer',
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -2677,7 +2709,7 @@ class RegistrationFooter extends StatelessWidget {
 // TEXT FIELD (Screenshot Reference)
 // ============================================================
 
-class RegistrationTextField extends StatelessWidget {
+class RegistrationTextField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
   final IconData? icon;
@@ -2689,6 +2721,11 @@ class RegistrationTextField extends StatelessWidget {
   final String? helperText;
   final bool isPhone;
   final String? customHint;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextInputType? keyboardType;
+  final String? Function(String)? validator;
+  final bool validateOnChange;
 
   const RegistrationTextField({
     super.key,
@@ -2703,8 +2740,81 @@ class RegistrationTextField extends StatelessWidget {
     this.helperText,
     this.isPhone = false,
     this.customHint,
+    this.maxLength,
+    this.inputFormatters,
+    this.keyboardType,
+    this.validator,
+    this.validateOnChange = false,
   });
 
+  @override
+  State<RegistrationTextField> createState() => _RegistrationTextFieldState();
+}
+
+class _RegistrationTextFieldState extends State<RegistrationTextField> {
+  final _focusNode = FocusNode();
+  Timer? _warningTimer;
+  String? _warning;
+  String? _validationError;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _warningTimer?.cancel();
+        setState(() {
+          _warning = null;
+          _validationError = widget.validator?.call(widget.controller.text);
+        });
+      }
+    });
+  }
+
+  TextEditingValue _checkInput(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (!newValue.composing.isCollapsed) return newValue;
+    final isName = widget.label.toLowerCase().contains('name');
+    String? message;
+    if (isName && RegExp(r'[^\p{L}\p{M} ]', unicode: true).hasMatch(newValue.text)) {
+      message = 'Special characters and numbers are not allowed.';
+    } else if (widget.maxLength != null && newValue.text.runes.length > widget.maxLength!) {
+      final label = widget.label.replaceAll('*', '').trim();
+      message = '$label must not exceed ${widget.maxLength} characters.';
+    } else if (widget.isPhone && RegExp(r'[^0-9]').hasMatch(newValue.text)) {
+      message = 'Please enter digits only.';
+    } else if (widget.isPhone && newValue.text.length > 10) {
+      message = 'Enter exactly 10 digits after +63.';
+    }
+    _warningTimer?.cancel();
+    setState(() => _warning = message);
+    if (message != null) {
+      _warningTimer = Timer(const Duration(milliseconds: 2500), () {
+        if (mounted) setState(() => _warning = null);
+      });
+    }
+    return newValue;
+  }
+
+  @override
+  void dispose() {
+    _warningTimer?.cancel();
+    _focusNode.dispose();
+    super.dispose();
+  }
+  TextEditingController get controller => widget.controller;
+  String get label => widget.label;
+  IconData? get icon => widget.icon;
+  bool get isError => widget.isError;
+  String get errorMessage => widget.errorMessage;
+  bool get obscureText => widget.obscureText;
+  Widget? get trailing => widget.trailing;
+  ValueChanged<String>? get onChanged => widget.onChanged;
+  String? get helperText => widget.helperText;
+  bool get isPhone => widget.isPhone;
+  String? get customHint => widget.customHint;
+  int? get maxLength => widget.maxLength;
+  List<TextInputFormatter>? get inputFormatters => widget.inputFormatters;
+  TextInputType? get keyboardType => widget.keyboardType;
   @override
   Widget build(BuildContext context) {
     final displayLabel = label.replaceAll('*', '').trim();
@@ -2734,10 +2844,25 @@ class RegistrationTextField extends StatelessWidget {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          focusNode: _focusNode,
+          maxLength: checkPhone ? 10 : maxLength,
+          keyboardType: checkPhone ? TextInputType.phone : keyboardType,
+          inputFormatters: [
+            TextInputFormatter.withFunction(_checkInput),
+            if (checkPhone) FilteringTextInputFormatter.digitsOnly,
+            ...?widget.inputFormatters,
+          ],
           obscureText: obscureText,
-          onChanged: onChanged,
+          onChanged: (value) {
+            setState(() {
+              _validationError = widget.validateOnChange
+                  ? widget.validator?.call(value) : null;
+            });
+            widget.onChanged?.call(value);
+          },
           style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
           decoration: InputDecoration(
+            counterText: '',
             hintText: customHint ?? (checkPhone ? '9171234567' : displayLabel),
             hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
             prefixIcon: checkPhone
@@ -2760,8 +2885,9 @@ class RegistrationTextField extends StatelessWidget {
                   )
                 : (icon != null ? Icon(icon, color: const Color(0xFF9E8F91), size: 20) : null),
             suffixIcon: trailing,
-            errorText: isError ? errorMessage : null,
-            errorStyle: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFFD32F2F)),
+            errorText: _warning ?? _validationError ?? (isError ? errorMessage : null),
+            errorMaxLines: 3,
+            errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -2941,30 +3067,31 @@ class StepIndicator extends StatelessWidget {
 
     return Container(
       color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         children: [
           for (int i = 0; i < effectiveLabels.length; i++) ...[
-            Text(
+            Flexible(
+              flex: 2,
+              child: Text(
               effectiveLabels[i],
               style: GoogleFonts.dmSans(
-                fontSize: 13,
-                fontWeight: currentStep == i + 1
-                    ? FontWeight.w700
-                    : (currentStep > i + 1 ? FontWeight.w600 : FontWeight.w500),
-                color: currentStep == i + 1
-                    ? const Color(0xFF231F20)
-                    : (currentStep > i + 1 ? const Color(0xFF865561) : const Color(0xFFA59799)),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: currentStep >= i + 1
+                    ? (accent ?? const Color(0xFF705A7B))
+                    : (gray ?? const Color(0xFFAA9CB4)),
+              ),
               ),
             ),
             if (i < effectiveLabels.length - 1) ...[
               Expanded(
                 child: Container(
-                  height: 1.5,
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
+                  height: 2,
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
                   color: currentStep > i + 1
-                      ? const Color(0xFF865561)
-                      : const Color(0xFFE5D7D7),
+                      ? (accent ?? const Color(0xFF705A7B))
+                      : const Color(0xFFE2DCE8),
                 ),
               ),
             ],

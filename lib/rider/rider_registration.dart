@@ -1,12 +1,33 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:cartzy/widgets/cartzy_logo.dart';
+import 'package:flutter/services.dart';
+import 'package:cartzy/auth/buyer_registration.dart'
+    show
+        BirthdayWheelPicker,
+        CartzyRegisterHeader,
+        PrimaryButton,
+        RegistrationDateField,
+        RegistrationDropdown,
+        RegistrationFooter,
+        RegistrationTextField,
+        RegistrationUploadField,
+        RoleSelectionSection,
+        SecondaryButton,
+        StepIndicator;
+import 'package:cartzy/auth/buyer_registration_validation.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/services/government_id_parser.dart';
+import 'package:cartzy/widgets/id_scanner_screen.dart';
 
 // ============================================================
 // RIDER REGISTRATION
+// Built from the same widgets as buyer registration so both
+// sign-up flows look and behave alike.
 // ============================================================
 
 class RiderRegistration extends StatefulWidget {
@@ -30,13 +51,13 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   int _currentStep = 1;
 
   // ── Step 1: Personal Details ──
-  final _firstNameController = TextEditingController(text: 'driver');
-  final _lastNameController = TextEditingController(text: 'pila');
-  final _contactNoController = TextEditingController(text: '09566407337');
-  final _birthdayController = TextEditingController(text: '28/09/2008');
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _contactNoController = TextEditingController();
+  String _birthday = '';
 
   // ── Step 1: Where you'll deliver ──
-  String _selectedLogisticsPartner = 'Metro South Sorting & Fulfillment Hub';
+  String _selectedLogisticsPartner = '';
   static const List<String> logisticsPartnerOptions = [
     'Metro South Sorting & Fulfillment Hub',
     'Laguna Express Logistics Hub',
@@ -46,9 +67,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   ];
 
   // ── Step 1: Your vehicle ──
-  String _selectedVehicle = 'Tricycle';
+  String _selectedVehicle = '';
   static const List<String> vehicleOptions = [
-    'Select vehicle',
     'Motorcycle',
     'Bicycle',
     'E-bike',
@@ -61,7 +81,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
   // ── Step 1: Driver's license ──
   final _licenseNumberController = TextEditingController();
-  final _licenseExpiryController = TextEditingController();
+  String _licenseExpiry = '';
 
   // ── Step 1: Documents ──
   String? _idLicenseFileName;
@@ -69,14 +89,29 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
   // Errors for Step 1
   bool _firstNameError = false;
+  String? _firstNameErrorMessage;
   bool _lastNameError = false;
+  String? _lastNameErrorMessage;
   bool _contactNoError = false;
+  String? _contactNoErrorMessage;
   bool _birthdayError = false;
+  bool _logisticsPartnerError = false;
+  bool _vehicleError = false;
   bool _plateNumberError = false;
   bool _licenseNumberError = false;
   bool _licenseExpiryError = false;
   bool _idLicenseError = false;
   bool _orCrError = false;
+
+  // ── Step 1: Valid government ID (required for every rider) ──
+  String _govIdType = '';
+  final _govIdNumberController = TextEditingController();
+  String? _govIdImagePath;
+  bool _isReadingGovId = false;
+  bool _govIdAutofilled = false;
+  bool _govIdTypeError = false;
+  bool _govIdNumberError = false;
+  bool _govIdImageError = false;
 
   // ── Step 2: Sign-in details ──
   final _emailController = TextEditingController();
@@ -97,53 +132,67 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   bool _otpError = false;
   bool _isSubmitting = false;
 
+  static final _upperCase = TextInputFormatter.withFunction(
+      (_, value) => value.copyWith(text: value.text.toUpperCase()));
+
+  /// LTO plates: letters and digits, e.g. NBC1234, ABC123 or 123ABC.
+  static String? _plateNumberRule(String value) {
+    final plate = value.trim();
+    if (plate.isEmpty) return 'Plate number is required';
+    if (!RegExp(r'^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{5,8}$').hasMatch(plate)) {
+      return 'Enter a valid plate number (e.g. NBC1234 or 123ABC).';
+    }
+    return null;
+  }
+
+  /// LTO license number format: A00-00-000000.
+  static String? _licenseNumberRule(String value) {
+    final license = value.trim();
+    if (license.isEmpty) return 'License number is required';
+    if (!RegExp(r'^[A-Z]\d{2}-\d{2}-\d{6}$').hasMatch(license)) {
+      return 'Use the format A00-00-000000 (e.g. H83-78-937937).';
+    }
+    return null;
+  }
+
+  /// Bicycle and e-bike riders don't need a plate, license or OR/CR.
+  bool get _isNonMotorized =>
+      _selectedVehicle == 'Bicycle' || _selectedVehicle == 'E-bike';
+
   @override
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _contactNoController.dispose();
-    _birthdayController.dispose();
     _plateNumberController.dispose();
     _licenseNumberController.dispose();
-    _licenseExpiryController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _otpController.dispose();
+    _govIdNumberController.dispose();
     super.dispose();
   }
 
   // ── Date Pickers ──
-  Future<void> _pickBirthday() async {
-    final now = DateTime.now();
-    final initialDate = DateTime(now.year - 18, now.month, now.day);
-    final picked = await showDatePicker(
+  void _openBirthdayPicker() {
+    showModalBottomSheet(
       context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1940),
-      lastDate: now,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF5A4452),
-              onPrimary: Colors.white,
-              onSurface: Color(0xFF231F20),
-            ),
-          ),
-          child: child!,
-        );
-      },
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BirthdayWheelPicker(
+        currentBirthday: _birthday,
+        accent: CartzyColors.coral,
+        onDismiss: () => Navigator.of(context).pop(),
+        onDateSelected: (date) {
+          Navigator.of(context).pop();
+          setState(() {
+            _birthday = date;
+            _birthdayError = false;
+          });
+        },
+      ),
     );
-    if (picked != null) {
-      final day = picked.day.toString().padLeft(2, '0');
-      final month = picked.month.toString().padLeft(2, '0');
-      final year = picked.year.toString();
-      setState(() {
-        _birthdayController.text = '$day/$month/$year';
-        _birthdayError = false;
-      });
-    }
   }
 
   Future<void> _pickLicenseExpiry() async {
@@ -157,7 +206,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF5A4452),
+              primary: Color(0xFF865561),
               onPrimary: Colors.white,
               onSurface: Color(0xFF231F20),
             ),
@@ -167,21 +216,28 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       },
     );
     if (picked != null) {
-      final day = picked.day.toString().padLeft(2, '0');
-      final month = picked.month.toString().padLeft(2, '0');
-      final year = picked.year.toString();
       setState(() {
-        _licenseExpiryController.text = '$day/$month/$year';
+        _licenseExpiry = _formatDate(picked);
         _licenseExpiryError = false;
       });
     }
+  }
+
+  /// Same "January 5, 2030" format the birthday picker produces.
+  static String _formatDate(DateTime date) {
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   // ── File Pickers ──
   Future<void> _pickIdLicenseFile() async {
     try {
       final picker = ImagePicker();
-      final XFile? file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final XFile? file =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (file != null) {
         setState(() {
           _idLicenseFileName = file.name;
@@ -199,7 +255,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   Future<void> _pickOrCrFile() async {
     try {
       final picker = ImagePicker();
-      final XFile? file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final XFile? file =
+          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (file != null) {
         setState(() {
           _orCrFileName = file.name;
@@ -214,20 +271,111 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     }
   }
 
+  // ── Government ID scan ──
+  Future<void> _scanGovernmentId() async {
+    final result = await Navigator.of(context).push<IdScanResult>(
+      MaterialPageRoute(
+        builder: (_) => IdScannerScreen(
+          preferredType: _govIdType.isEmpty ? null : _govIdType,
+        ),
+      ),
+    );
+    if (result != null) _applyIdScan(result);
+  }
+
+  Future<void> _uploadGovernmentId() async {
+    final XFile? file;
+    try {
+      file = await ImagePicker()
+          .pickImage(source: ImageSource.gallery, imageQuality: 90);
+    } catch (_) {
+      if (mounted) showCartzyFlash(context, "Couldn't open your photos.");
+      return;
+    }
+    if (file == null || !mounted) return;
+    setState(() => _isReadingGovId = true);
+    var fields = const GovernmentIdFields();
+    try {
+      fields = await IdScannerScreen.readIdImage(file.path,
+          preferredType: _govIdType.isEmpty ? null : _govIdType);
+    } catch (_) {
+      // Unreadable photo: keep it, the rider types the details.
+    }
+    if (!mounted) return;
+    setState(() => _isReadingGovId = false);
+    _applyIdScan(IdScanResult(imagePath: file.path, fields: fields));
+  }
+
+  /// Fills the form from the ID. Name and birthday are only filled when
+  /// empty so nothing the rider typed is overwritten.
+  void _applyIdScan(IdScanResult result) {
+    final f = result.fields;
+    setState(() {
+      _govIdImagePath = result.imagePath;
+      _govIdImageError = false;
+      if (f.idType != null) {
+        _govIdType = f.idType!;
+        _govIdTypeError = false;
+      }
+      if (f.idNumber != null) {
+        _govIdNumberController.text = f.idNumber!;
+        _govIdNumberError = false;
+      }
+      if (f.firstName != null && _firstNameController.text.trim().isEmpty) {
+        _firstNameController.text = f.firstName!;
+        _firstNameError = false;
+      }
+      if (f.lastName != null && _lastNameController.text.trim().isEmpty) {
+        _lastNameController.text = f.lastName!;
+        _lastNameError = false;
+      }
+      if (f.birthday != null && _birthday.isEmpty) {
+        _birthday = _formatDate(f.birthday!);
+        _birthdayError = false;
+      }
+      _govIdAutofilled = !f.isEmpty;
+    });
+    showCartzyFlash(
+      context,
+      f.isEmpty
+          ? "ID photo added. We couldn't read the details, so please type them in."
+          : 'Details filled in from your ID. Please check them.',
+    );
+  }
+
+  static String? _govIdNumberRule(String value) {
+    final id = value.trim();
+    if (id.isEmpty) return 'ID number is required';
+    if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9 \-]{3,24}$').hasMatch(id)) {
+      return 'Enter the ID number exactly as printed on your ID.';
+    }
+    return null;
+  }
+
   // ── Step 1 Validation ──
   void _validateAndContinueToStep2() {
-    final isNonMotorized = _selectedVehicle == 'Bicycle' || _selectedVehicle == 'E-bike';
-
     setState(() {
-      _firstNameError = _firstNameController.text.trim().isEmpty;
-      _lastNameError = _lastNameController.text.trim().isEmpty;
-      _contactNoError = _contactNoController.text.trim().isEmpty;
-      _birthdayError = _birthdayController.text.trim().isEmpty;
+      _firstNameErrorMessage = BuyerRegistrationValidation.name(
+          _firstNameController.text, 'first name');
+      _firstNameError = _firstNameErrorMessage != null;
+      _lastNameErrorMessage = BuyerRegistrationValidation.name(
+          _lastNameController.text, 'last name');
+      _lastNameError = _lastNameErrorMessage != null;
+      _contactNoErrorMessage =
+          BuyerRegistrationValidation.phone(_contactNoController.text.trim());
+      _contactNoError = _contactNoErrorMessage != null;
+      _birthdayError = _birthday.isEmpty;
+      _govIdTypeError = _govIdType.isEmpty;
+      _govIdNumberError = _govIdNumberRule(_govIdNumberController.text) != null;
+      _govIdImageError = _govIdImagePath == null;
+      _logisticsPartnerError = _selectedLogisticsPartner.isEmpty;
+      _vehicleError = _selectedVehicle.isEmpty;
 
-      if (!isNonMotorized) {
-        _plateNumberError = _plateNumberController.text.trim().isEmpty;
-        _licenseNumberError = _licenseNumberController.text.trim().isEmpty;
-        _licenseExpiryError = _licenseExpiryController.text.trim().isEmpty;
+      if (!_isNonMotorized) {
+        _plateNumberError = _plateNumberRule(_plateNumberController.text) != null;
+        _licenseNumberError =
+            _licenseNumberRule(_licenseNumberController.text) != null;
+        _licenseExpiryError = _licenseExpiry.isEmpty;
         _idLicenseError = _idLicenseFileName == null;
         _orCrError = _orCrFileName == null;
       } else {
@@ -239,10 +387,15 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       }
     });
 
-    if (_firstNameError ||
+    if (_govIdTypeError ||
+        _govIdNumberError ||
+        _govIdImageError ||
+        _firstNameError ||
         _lastNameError ||
         _contactNoError ||
         _birthdayError ||
+        _logisticsPartnerError ||
+        _vehicleError ||
         _plateNumberError ||
         _licenseNumberError ||
         _licenseExpiryError ||
@@ -264,22 +417,19 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     final confirm = _confirmPasswordController.text;
 
     setState(() {
-      _emailError = email.isEmpty || !email.contains('@');
-      _emailErrorMessage = email.isEmpty
-          ? 'Email address is required'
-          : (!email.contains('@') ? 'Enter a valid email address' : null);
+      _emailErrorMessage = BuyerRegistrationValidation.email(email);
+      _emailError = _emailErrorMessage != null;
 
-      _passwordError = password.isEmpty || password.length < 8;
-      _passwordErrorMessage = password.isEmpty
-          ? 'Password is required'
-          : (password.length < 8 ? 'Password must be at least 8 characters' : null);
+      _passwordErrorMessage = BuyerRegistrationValidation.password(password);
+      _passwordError = _passwordErrorMessage != null;
 
       if (confirm.isEmpty) {
         _confirmPasswordError = true;
-        _confirmPasswordErrorMessage = 'Please repeat your password';
+        _confirmPasswordErrorMessage = 'Please confirm your password';
       } else if (confirm != password) {
         _confirmPasswordError = true;
-        _confirmPasswordErrorMessage = 'Passwords do not match';
+        _confirmPasswordErrorMessage =
+            'The password confirmation does not match.';
       } else {
         _confirmPasswordError = false;
         _confirmPasswordErrorMessage = null;
@@ -299,6 +449,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
   // ── Step 3 / Submit Application ──
   Future<void> _submitApplication() async {
+    if (_isSubmitting) return;
+
     final otp = _otpController.text.trim();
     if (otp.length < 6) {
       setState(() => _otpError = true);
@@ -326,7 +478,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   }
 
   // ============================================================
-  // PENDING APPROVAL DIALOG (Original flow preserved)
+  // PENDING APPROVAL DIALOG
   // ============================================================
 
   void _showPendingApprovalDialog() {
@@ -335,7 +487,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
               Container(
@@ -344,15 +497,18 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   color: const Color(0xFFF7F2F3),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.hourglass_top, color: Color(0xFF865561), size: 22),
+                child: const Icon(Icons.hourglass_top,
+                    color: Color(0xFF865561), size: 22),
               ),
               const SizedBox(width: 12),
-              Text(
-                'Registration Submitted',
-                style: GoogleFonts.dmSans(
-                  color: const Color(0xFF231F20),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+              Flexible(
+                child: Text(
+                  'Registration Submitted',
+                  style: GoogleFonts.dmSans(
+                    color: const Color(0xFF231F20),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
             ],
@@ -361,7 +517,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             "After submitting your registration, please wait for the "
             "Logistics/Sorting Center's approval, which will be sent to "
             "your email.",
-            style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72), height: 1.4),
+            style: GoogleFonts.dmSans(
+                fontSize: 14, color: const Color(0xFF7A6E72), height: 1.4),
           ),
           actions: [
             TextButton(
@@ -394,102 +551,201 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 580),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Cartzy Logo ──
-                  Center(
-                    child: const CartzyLogo(height: 40),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // ── Pre-header ──
-                  Center(
-                    child: Text(
-                      'CARTZY PARTNERS',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.4,
-                        color: const Color(0xFF6B4B58),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // ── Headline ──
-                  Center(
-                    child: Text(
-                      'Become a rider',
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF231F20),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-
-                  // ── Subtitle ──
-                  Center(
-                    child: Text(
-                      'Apply to deliver for one of CARTZY\'s logistics partners.',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 13,
-                        color: const Color(0xFF7A6E72),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  // ── Info Notice Box ──
-                  _buildNoticeBox(),
-                  const SizedBox(height: 20),
-
-                  // ── Step Indicator (Details ── Sign-in ── Verify) ──
-                  _buildStepIndicator(),
-                  const SizedBox(height: 24),
-
-                  // ── Active Step View ──
-                  if (_currentStep == 1) _buildStep1Details(),
-                  if (_currentStep == 2) _buildStep2SignIn(),
-                  if (_currentStep == 3) _buildStep3Verify(),
-
-                  const SizedBox(height: 24),
-
-                  // ── Footer link: Already applied or registered? Log in ──
-                  Center(
-                    child: GestureDetector(
-                      onTap: widget.onBackToLogin,
-                      child: RichText(
-                        text: TextSpan(
-                          style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
-                          children: [
-                            const TextSpan(text: 'Already applied or registered? '),
-                            TextSpan(
-                              text: 'Log in',
-                              style: GoogleFonts.dmSans(
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF865561),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CartzyRegisterHeader(
+                title: 'Become a rider',
+                subtitle:
+                    "Apply to deliver for one of cartzy's logistics partners",
+                onBack: widget.onBackToLogin,
+                showGoogleSignUp: false,
               ),
-            ),
+              const SizedBox(height: 12),
+              StepIndicator(
+                currentStep: _currentStep,
+                labels: const ['Details', 'Sign-in', 'Verify'],
+              ),
+              const SizedBox(height: 16),
+              if (_currentStep == 1) _buildStep1Details(),
+              if (_currentStep == 2) _buildStep2SignIn(),
+              if (_currentStep == 3) _buildStep3Verify(),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, [String? subtitle]) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: GoogleFonts.dmSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF231F20),
+          ),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: GoogleFonts.dmSans(
+              fontSize: 12.5,
+              color: const Color(0xFF7A6E72),
+            ),
+          ),
+        ],
+        const SizedBox(height: 18),
+      ],
+    );
+  }
+
+  Widget _buildGovernmentIdSection() {
+    final image = _govIdImagePath;
+    final borderColor =
+        _govIdImageError ? const Color(0xFFD32F2F) : const Color(0xFFE5D7D7);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RegistrationDropdown(
+          label: 'ID type *',
+          icon: Icons.badge_outlined,
+          selectedValue: _govIdType,
+          options: GovernmentIdParser.idTypes,
+          isError: _govIdTypeError,
+          errorMessage: 'Please select your ID type',
+          onSelected: (value) => setState(() {
+            _govIdType = value;
+            _govIdTypeError = false;
+          }),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Photo of your ID *',
+          style: GoogleFonts.dmSans(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF231F20),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF9F9),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: borderColor, width: 1.2),
+          ),
+          child: _isReadingGovId
+              ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Color(0xFF865561)),
+                      ),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text('Reading your ID…',
+                            style: GoogleFonts.dmSans(
+                                fontSize: 13, color: const Color(0xFF7A6E72))),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (image != null) ...[
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: AspectRatio(
+                          aspectRatio: 85.6 / 54,
+                          child: Image.file(File(image), fit: BoxFit.cover),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    PrimaryButton(
+                      text: image == null ? 'Scan ID with camera' : 'Scan again',
+                      onClick: _scanGovernmentId,
+                    ),
+                    const SizedBox(height: 10),
+                    SecondaryButton(
+                      text: image == null ? 'Upload a photo instead' : 'Choose a different photo',
+                      onClick: _uploadGovernmentId,
+                    ),
+                  ],
+                ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          _govIdImageError
+              ? 'Please add a photo of your government ID'
+              : 'PhilSys, UMID, passport, driver\'s license, SSS, PhilHealth, PRC, postal, voter\'s or TIN ID.',
+          style: GoogleFonts.dmSans(
+            fontSize: _govIdImageError ? 13 : 11.5,
+            color: _govIdImageError
+                ? const Color(0xFFEF4444)
+                : const Color(0xFF7A6E72),
+          ),
+        ),
+        const SizedBox(height: 16),
+        RegistrationTextField(
+          controller: _govIdNumberController,
+          label: 'ID number *',
+          icon: Icons.numbers,
+          customHint: 'As printed on your ID',
+          maxLength: 25,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9 \-]')),
+            _upperCase,
+          ],
+          validator: _govIdNumberRule,
+          isError: _govIdNumberError,
+          errorMessage: _govIdNumberRule(_govIdNumberController.text) ??
+              'ID number is required',
+          onChanged: (_) {
+            if (_govIdNumberError) setState(() => _govIdNumberError = false);
+          },
+        ),
+        if (_govIdAutofilled) ...[
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.auto_awesome, size: 16, color: Color(0xFF865561)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'We filled in details from your ID. Check them below and fix anything that\'s wrong.',
+                  style: GoogleFonts.dmSans(
+                      fontSize: 12, color: const Color(0xFF865561), height: 1.35),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    return RegistrationFooter(
+      isBuyer: false,
+      onBackToLogin: widget.onBackToLogin,
+      onSwitchRole: widget.onSwitchToBuyerRegistration,
     );
   }
 
@@ -502,34 +758,21 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDF7F5),
-        borderRadius: BorderRadius.circular(8),
-        border: const Border(
-          left: BorderSide(color: Color(0xFFC48B71), width: 3),
-          top: BorderSide(color: Color(0xFFF0DFD7)),
-          right: BorderSide(color: Color(0xFFF0DFD7)),
-          bottom: BorderSide(color: Color(0xFFF0DFD7)),
-        ),
+        color: const Color(0xFFFFF9F9),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE5D7D7)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
-              color: Color(0xFFC48B71),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.info_outline, size: 12, color: Colors.white),
-          ),
+          const Icon(Icons.info_outline, size: 18, color: Color(0xFF865561)),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               'The logistics partner you choose reviews your application. You can sign in and accept deliveries once they approve you.',
               style: GoogleFonts.dmSans(
-                fontSize: 12,
-                color: const Color(0xFF5A4940),
+                fontSize: 12.5,
+                color: const Color(0xFF7A6E72),
                 height: 1.35,
               ),
             ),
@@ -540,487 +783,308 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   }
 
   // ============================================================
-  // STEP INDICATOR (Details ──── Sign-in ──── Verify)
-  // ============================================================
-
-  Widget _buildStepIndicator() {
-    return Row(
-      children: [
-        Text(
-          'Details',
-          style: GoogleFonts.dmSans(
-            fontSize: 12.5,
-            fontWeight: _currentStep >= 1 ? FontWeight.w700 : FontWeight.w500,
-            color: _currentStep >= 1 ? const Color(0xFF231F20) : const Color(0xFFA09699),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Container(
-            height: 2,
-            color: _currentStep >= 2 ? const Color(0xFF865561) : const Color(0xFFE5DFE2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Sign-in',
-          style: GoogleFonts.dmSans(
-            fontSize: 12.5,
-            fontWeight: _currentStep >= 2 ? FontWeight.w700 : FontWeight.w500,
-            color: _currentStep >= 2 ? const Color(0xFF231F20) : const Color(0xFFA09699),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Container(
-            height: 2,
-            color: _currentStep >= 3 ? const Color(0xFF865561) : const Color(0xFFE5DFE2),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'Verify',
-          style: GoogleFonts.dmSans(
-            fontSize: 12.5,
-            fontWeight: _currentStep >= 3 ? FontWeight.w700 : FontWeight.w500,
-            color: _currentStep >= 3 ? const Color(0xFF231F20) : const Color(0xFFA09699),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // STEP 1 — DETAILS (Screenshots 1, 2, 3)
+  // STEP 1 — DETAILS
   // ============================================================
 
   Widget _buildStep1Details() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        RoleSelectionSection(
+          isBuyerSelected: false,
+          onSelectBuyer: () => widget.onSwitchToBuyerRegistration?.call(),
+          onSelectRider: () {},
+        ),
+        const SizedBox(height: 16),
+        _buildNoticeBox(),
+        const SizedBox(height: 22),
+
+        // ── Valid government ID ──
+        _buildSectionHeader('Valid government ID',
+            'Scan the front of your ID and we\'ll fill in your details. Your logistics partner checks it before approving you.'),
+        _buildGovernmentIdSection(),
+        const SizedBox(height: 28),
+
         // ── 1. Your personal details ──
-        Text(
-          'Your personal details',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'Enter your name and personal details',
-          style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
-        ),
-        const SizedBox(height: 14),
-
-        // First name & Last name Row
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildInputField(
-                label: 'First name *',
-                controller: _firstNameController,
-                prefixIcon: Icons.person_outline,
-                isError: _firstNameError,
-                onChanged: (_) {
-                  if (_firstNameError) setState(() => _firstNameError = false);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildInputField(
-                label: 'Last name *',
-                controller: _lastNameController,
-                isError: _lastNameError,
-                onChanged: (_) {
-                  if (_lastNameError) setState(() => _lastNameError = false);
-                },
-              ),
-            ),
+        _buildSectionHeader(
+            'Your personal details', 'Enter your name and personal details'),
+        RegistrationTextField(
+          controller: _firstNameController,
+          label: 'First name *',
+          validator: (value) =>
+              BuyerRegistrationValidation.name(value, 'first name'),
+          maxLength: 50,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(
+                BuyerRegistrationValidation.nameCharacters)
           ],
+          icon: Icons.person_outline,
+          isError: _firstNameError,
+          errorMessage: _firstNameErrorMessage ?? 'First name is required',
+          onChanged: (_) {
+            if (_firstNameError) setState(() => _firstNameError = false);
+          },
         ),
-        const SizedBox(height: 14),
-
-        // Mobile number
-        _buildInputField(
-          label: 'Mobile number *',
+        const SizedBox(height: 16),
+        RegistrationTextField(
+          controller: _lastNameController,
+          label: 'Last name *',
+          validator: (value) =>
+              BuyerRegistrationValidation.name(value, 'last name'),
+          maxLength: 50,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(
+                BuyerRegistrationValidation.nameCharacters)
+          ],
+          icon: Icons.person_outline,
+          isError: _lastNameError,
+          errorMessage: _lastNameErrorMessage ?? 'Last name is required',
+          onChanged: (_) {
+            if (_lastNameError) setState(() => _lastNameError = false);
+          },
+        ),
+        const SizedBox(height: 16),
+        RegistrationTextField(
           controller: _contactNoController,
-          prefixIcon: Icons.phone_outlined,
-          keyboardType: TextInputType.phone,
+          label: 'Mobile number *',
+          validator: BuyerRegistrationValidation.phone,
+          validateOnChange: true,
+          isPhone: true,
           isError: _contactNoError,
-          helperText: '09XXXXXXXXX or +639XXXXXXXXX. Each mobile number can only be used for one account.',
+          errorMessage: _contactNoErrorMessage ?? 'Mobile number is required',
           onChanged: (_) {
             if (_contactNoError) setState(() => _contactNoError = false);
           },
         ),
-        const SizedBox(height: 14),
-
-        // Birthday
-        _buildInputField(
-          label: 'Birthday *',
-          controller: _birthdayController,
-          prefixIcon: Icons.calendar_today_outlined,
-          suffixIcon: Icons.calendar_today_outlined,
-          readOnly: true,
-          onTap: _pickBirthday,
-          isError: _birthdayError,
-          helperText: 'Riders must be at least 18 years old.',
-        ),
-        const SizedBox(height: 22),
-
-        // ── 2. Where you'll deliver ──
-        Text(
-          'Where you\'ll deliver',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        _buildLabel('Logistics partner *'),
-        const SizedBox(height: 6),
-        _buildDropdownContainer(
-          icon: Icons.local_shipping_outlined,
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _selectedLogisticsPartner,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF7A6E72), size: 20),
-              style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20)),
-              items: logisticsPartnerOptions.map((partner) {
-                return DropdownMenuItem<String>(
-                  value: partner,
-                  child: Text(partner, overflow: TextOverflow.ellipsis),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedLogisticsPartner = val);
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 22),
-
-        // ── 3. Your vehicle ──
-        Text(
-          'Your vehicle',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Vehicle type & Plate number Row
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLabel('Vehicle type *'),
-                  const SizedBox(height: 6),
-                  _buildDropdownContainer(
-                    icon: Icons.two_wheeler_outlined,
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedVehicle,
-                        isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF7A6E72), size: 20),
-                        style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20)),
-                        items: vehicleOptions.map((veh) {
-                          return DropdownMenuItem<String>(
-                            value: veh,
-                            child: Text(veh, overflow: TextOverflow.ellipsis),
-                          );
-                        }).toList(),
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedVehicle = val);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildInputField(
-                label: 'Plate number *',
-                controller: _plateNumberController,
-                prefixIcon: Icons.badge_outlined,
-                hintText: '123ABC OR NBC1234',
-                isError: _plateNumberError,
-                onChanged: (_) {
-                  if (_plateNumberError) setState(() => _plateNumberError = false);
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Bicycle and e-bike riders don\'t need a plate, driver\'s license or OR/CR.',
-          style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF7A6E72)),
-        ),
-        const SizedBox(height: 22),
-
-        // ── 4. Driver's license ──
-        Text(
-          'Driver\'s license',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildInputField(
-                label: 'License number *',
-                controller: _licenseNumberController,
-                prefixIcon: Icons.badge_outlined,
-                hintText: 'A00-00-000000',
-                isError: _licenseNumberError,
-                onChanged: (_) {
-                  if (_licenseNumberError) setState(() => _licenseNumberError = false);
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildInputField(
-                label: 'Expiry date *',
-                controller: _licenseExpiryController,
-                suffixIcon: Icons.calendar_today_outlined,
-                hintText: 'dd/mm/yyyy',
-                readOnly: true,
-                onTap: _pickLicenseExpiry,
-                isError: _licenseExpiryError,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Format: A00-00-000000 (e.g. H83-78-937937)',
-          style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF7A6E72)),
-        ),
-        const SizedBox(height: 22),
-
-        // ── 5. Documents ──
-        Text(
-          'Documents',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'JPG, PNG or PDF, up to 5 MB each. Your logistics partner checks these before approving you.',
-          style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
-        ),
-        const SizedBox(height: 14),
-
-        _buildLabel('Driver\'s license *'),
-        const SizedBox(height: 6),
-        _buildFileUploadBox(
-          icon: Icons.badge_outlined,
-          fileName: _idLicenseFileName,
-          isError: _idLicenseError,
-          onTap: _pickIdLicenseFile,
-          helperText: 'A clear photo of the front of your license.',
-        ),
         const SizedBox(height: 16),
-
-        _buildLabel('Vehicle OR/CR *'),
-        const SizedBox(height: 6),
-        _buildFileUploadBox(
-          icon: Icons.description_outlined,
-          fileName: _orCrFileName,
-          isError: _orCrError,
-          onTap: _pickOrCrFile,
-          helperText: 'The Official Receipt and Certificate of Registration of the vehicle you will use.',
+        RegistrationDateField(
+          birthday: _birthday,
+          onClick: _openBirthdayPicker,
+          isError: _birthdayError,
+          errorMessage: 'Please enter your birthday.',
+          helperText: 'Riders must be at least 18 years old.',
         ),
         const SizedBox(height: 28),
 
-        // ── CONTINUE TO SIGN-IN DETAILS Button ──
-        SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: ElevatedButton(
-            onPressed: _validateAndContinueToStep2,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5A4452),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text(
-              'CONTINUE TO SIGN-IN DETAILS',
-              style: GoogleFonts.dmSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
+        // ── 2. Where you'll deliver ──
+        _buildSectionHeader("Where you'll deliver"),
+        RegistrationDropdown(
+          label: 'Logistics partner *',
+          icon: Icons.local_shipping_outlined,
+          selectedValue: _selectedLogisticsPartner,
+          options: logisticsPartnerOptions,
+          isError: _logisticsPartnerError,
+          errorMessage: 'Please select a logistics partner',
+          onSelected: (value) => setState(() {
+            _selectedLogisticsPartner = value;
+            _logisticsPartnerError = false;
+          }),
         ),
+        const SizedBox(height: 28),
+
+        // ── 3. Your vehicle ──
+        _buildSectionHeader('Your vehicle',
+            "Bicycle and e-bike riders don't need a plate, driver's license or OR/CR."),
+        RegistrationDropdown(
+          label: 'Vehicle type *',
+          icon: Icons.two_wheeler_outlined,
+          selectedValue: _selectedVehicle,
+          options: vehicleOptions,
+          isError: _vehicleError,
+          errorMessage: 'Please select your vehicle type',
+          onSelected: (value) => setState(() {
+            _selectedVehicle = value;
+            _vehicleError = false;
+          }),
+        ),
+        if (!_isNonMotorized) ...[
+          const SizedBox(height: 16),
+          RegistrationTextField(
+            controller: _plateNumberController,
+            label: 'Plate number *',
+            icon: Icons.pin_outlined,
+            customHint: '123ABC or NBC1234',
+            maxLength: 8,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9]')),
+              _upperCase,
+            ],
+            validator: _plateNumberRule,
+            isError: _plateNumberError,
+            errorMessage: _plateNumberRule(_plateNumberController.text) ??
+                'Plate number is required',
+            onChanged: (_) {
+              if (_plateNumberError) setState(() => _plateNumberError = false);
+            },
+          ),
+          const SizedBox(height: 28),
+
+          // ── 4. Driver's license ──
+          _buildSectionHeader("Driver's license"),
+          RegistrationTextField(
+            controller: _licenseNumberController,
+            label: 'License number *',
+            icon: Icons.badge_outlined,
+            customHint: 'A00-00-000000',
+            helperText: 'Format: A00-00-000000 (e.g. H83-78-937937)',
+            maxLength: 13,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9-]')),
+              _upperCase,
+            ],
+            validator: _licenseNumberRule,
+            isError: _licenseNumberError,
+            errorMessage: _licenseNumberRule(_licenseNumberController.text) ??
+                'License number is required',
+            onChanged: (_) {
+              if (_licenseNumberError) {
+                setState(() => _licenseNumberError = false);
+              }
+            },
+          ),
+          const SizedBox(height: 16),
+          RegistrationDateField(
+            label: 'Expiry date',
+            hint: 'Select expiry date',
+            helperText: 'Your license must not be expired.',
+            birthday: _licenseExpiry,
+            onClick: _pickLicenseExpiry,
+            isError: _licenseExpiryError,
+            errorMessage: 'Please select the expiry date.',
+          ),
+          const SizedBox(height: 28),
+
+          // ── 5. Documents ──
+          _buildSectionHeader('Documents',
+              'JPG, PNG or PDF, up to 5 MB each. Your logistics partner checks these before approving you.'),
+          RegistrationUploadField(
+            label: "Driver's license *",
+            fileName: _idLicenseFileName,
+            isError: _idLicenseError,
+            errorMessage: 'Please upload your driver\'s license',
+            helperText: 'A clear photo of the front of your license.',
+            onTap: _pickIdLicenseFile,
+          ),
+          const SizedBox(height: 16),
+          RegistrationUploadField(
+            label: 'Vehicle OR/CR *',
+            fileName: _orCrFileName,
+            isError: _orCrError,
+            errorMessage: 'Please upload your vehicle OR/CR',
+            helperText:
+                'The Official Receipt and Certificate of Registration of the vehicle you will use.',
+            onTap: _pickOrCrFile,
+          ),
+        ],
+        const SizedBox(height: 28),
+
+        PrimaryButton(
+          text: 'Continue',
+          onClick: _validateAndContinueToStep2,
+        ),
+        _buildFooter(),
       ],
     );
   }
 
   // ============================================================
-  // STEP 2 — SIGN-IN (Screenshot 4)
+  // STEP 2 — SIGN-IN
   // ============================================================
 
   Widget _buildStep2SignIn() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Your sign-in details',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'Set up your login credentials',
-          style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
-        ),
-        const SizedBox(height: 18),
-
-        // Email address
-        _buildInputField(
-          label: 'Email address *',
+        _buildSectionHeader(
+            'Your sign-in details', 'Set up your login credentials'),
+        RegistrationTextField(
           controller: _emailController,
-          prefixIcon: Icons.mail_outline,
-          hintText: 'you@example.com',
+          label: 'E-mail *',
+          validator: BuyerRegistrationValidation.email,
+          maxLength: 255,
           keyboardType: TextInputType.emailAddress,
+          icon: Icons.email_outlined,
+          customHint: 'you@example.com',
           isError: _emailError,
-          errorMessage: _emailErrorMessage,
+          errorMessage: _emailErrorMessage ?? 'Email is required',
           onChanged: (_) {
             if (_emailError) setState(() => _emailError = false);
           },
         ),
-        const SizedBox(height: 14),
-
-        // Password
-        _buildInputField(
-          label: 'Password *',
+        const SizedBox(height: 16),
+        RegistrationTextField(
           controller: _passwordController,
-          prefixIcon: Icons.lock_outline,
-          hintText: 'Create a password',
-          obscureText: !_passwordVisible,
-          suffixIcon: _passwordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          onSuffixTap: () => setState(() => _passwordVisible = !_passwordVisible),
+          label: 'Password *',
+          validator: BuyerRegistrationValidation.password,
+          validateOnChange: true,
+          icon: Icons.lock_outline,
+          customHint: 'Create a password',
+          helperText: 'Use at least 8 characters.',
           isError: _passwordError,
-          errorMessage: _passwordErrorMessage,
-          helperText: 'Use at least 8 characters, one uppercase letter, one lowercase letter, one number, and one symbol.',
+          errorMessage: _passwordErrorMessage ?? 'Password is required',
+          obscureText: !_passwordVisible,
+          trailing: IconButton(
+            icon: Icon(
+              _passwordVisible ? Icons.visibility_off : Icons.visibility,
+              color: const Color(0xFF7A6E72),
+            ),
+            onPressed: () =>
+                setState(() => _passwordVisible = !_passwordVisible),
+          ),
           onChanged: (_) {
             if (_passwordError) setState(() => _passwordError = false);
           },
         ),
-        const SizedBox(height: 14),
-
-        // Confirm password
-        _buildInputField(
-          label: 'Confirm password *',
+        const SizedBox(height: 16),
+        RegistrationTextField(
           controller: _confirmPasswordController,
-          prefixIcon: Icons.lock_outline,
-          hintText: 'Repeat your password',
-          obscureText: !_confirmPasswordVisible,
-          suffixIcon: _confirmPasswordVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          onSuffixTap: () => setState(() => _confirmPasswordVisible = !_confirmPasswordVisible),
+          label: 'Confirm Password *',
+          validator: (value) => value == _passwordController.text
+              ? null
+              : 'The password confirmation does not match.',
+          validateOnChange: true,
+          icon: Icons.lock_outline,
+          customHint: 'Repeat your password',
+          helperText:
+              "We'll send a six-digit verification code to your email to finish creating your account.",
           isError: _confirmPasswordError,
-          errorMessage: _confirmPasswordErrorMessage,
-          helperText: 'Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.\nWe\'ll send a six-digit verification code to this email address to finish creating your Cartzy account.',
+          errorMessage: _confirmPasswordErrorMessage ?? '',
+          obscureText: !_confirmPasswordVisible,
+          trailing: IconButton(
+            icon: Icon(
+              _confirmPasswordVisible
+                  ? Icons.visibility_off
+                  : Icons.visibility,
+              color: const Color(0xFF7A6E72),
+            ),
+            onPressed: () => setState(
+                () => _confirmPasswordVisible = !_confirmPasswordVisible),
+          ),
           onChanged: (_) {
-            if (_confirmPasswordError) setState(() => _confirmPasswordError = false);
+            if (_confirmPasswordError) {
+              setState(() => _confirmPasswordError = false);
+            }
           },
         ),
         const SizedBox(height: 28),
-
-        // Row of buttons: Back + Send verification code
         Row(
           children: [
             Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: () => setState(() => _currentStep = 1),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFBF8F6),
-                    side: const BorderSide(color: Color(0xFFEBDCCE), width: 1.2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.arrow_back, size: 16, color: Color(0xFF4A3E47)),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Back',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF4A3E47),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              child: SecondaryButton(
+                text: 'Back',
+                onClick: () => setState(() => _currentStep = 1),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _validateAndSendVerification,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A4452),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Send verification code',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_rounded, size: 16),
-                    ],
-                  ),
-                ),
+              child: PrimaryButton(
+                text: 'Send code',
+                onClick: _validateAndSendVerification,
               ),
             ),
           ],
         ),
+        _buildFooter(),
       ],
     );
   }
@@ -1033,51 +1097,39 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Verify your email',
-          style: GoogleFonts.dmSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          'We\'ve sent a 6-digit verification code to ${_emailController.text}',
-          style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
-        ),
-        const SizedBox(height: 20),
-
-        _buildInputField(
-          label: 'Verification code *',
+        _buildSectionHeader('Verify your email',
+            "We've sent a 6-digit verification code to ${_emailController.text.trim()}"),
+        RegistrationTextField(
           controller: _otpController,
-          prefixIcon: Icons.lock_clock_outlined,
-          hintText: 'Enter 6-digit code (e.g. 123456)',
+          label: 'Verification code *',
+          icon: Icons.lock_clock_outlined,
+          customHint: '6-digit code',
           keyboardType: TextInputType.number,
-          isError: _otpError,
-          errorMessage: _otpError ? 'Please enter a valid 6-digit code' : null,
+          maxLength: 6,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           helperText: 'For testing, you can enter any 6 digits (e.g. 123456).',
+          isError: _otpError,
+          errorMessage: 'Please enter a valid 6-digit code',
           onChanged: (_) {
             if (_otpError) setState(() => _otpError = false);
           },
         ),
-        const SizedBox(height: 12),
-
+        const SizedBox(height: 8),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Didn\'t receive code?',
-              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+              "Didn't receive the code? ",
+              style: GoogleFonts.dmSans(
+                  fontSize: 13, color: const Color(0xFF7A6E72)),
             ),
-            TextButton(
-              onPressed: () {
-                showCartzyFlash(context, 'New verification code sent!');
-              },
+            GestureDetector(
+              onTap: () =>
+                  showCartzyFlash(context, 'New verification code sent!'),
               child: Text(
                 'Resend code',
                 style: GoogleFonts.dmSans(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF865561),
                 ),
@@ -1085,260 +1137,25 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             ),
           ],
         ),
-        const SizedBox(height: 20),
-
+        const SizedBox(height: 28),
         Row(
           children: [
             Expanded(
-              flex: 1,
-              child: SizedBox(
-                height: 48,
-                child: OutlinedButton(
-                  onPressed: () => setState(() => _currentStep = 2),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFBF8F6),
-                    side: const BorderSide(color: Color(0xFFEBDCCE), width: 1.2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.arrow_back, size: 16, color: Color(0xFF4A3E47)),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Back',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF4A3E47),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              child: SecondaryButton(
+                text: 'Back',
+                onClick: () => setState(() => _currentStep = 2),
               ),
             ),
             const SizedBox(width: 14),
             Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitApplication,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A4452),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Submit application',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.check_circle_outline, size: 16),
-                          ],
-                        ),
-                ),
+              child: PrimaryButton(
+                text: _isSubmitting ? 'Submitting...' : 'Submit application',
+                onClick: _submitApplication,
               ),
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  // ============================================================
-  // REUSABLE FIELD BUILDERS
-  // ============================================================
-
-  Widget _buildLabel(String label) {
-    final parts = label.split('*');
-    return RichText(
-      text: TextSpan(
-        style: GoogleFonts.dmSans(
-          fontSize: 12.5,
-          fontWeight: FontWeight.w600,
-          color: const Color(0xFF231F20),
-        ),
-        children: [
-          TextSpan(text: parts[0]),
-          if (parts.length > 1)
-            const TextSpan(
-              text: '*',
-              style: TextStyle(color: Color(0xFFC44D4D), fontWeight: FontWeight.w700),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInputField({
-    required String label,
-    required TextEditingController controller,
-    IconData? prefixIcon,
-    IconData? suffixIcon,
-    VoidCallback? onSuffixTap,
-    String? hintText,
-    String? helperText,
-    String? errorMessage,
-    bool isError = false,
-    bool obscureText = false,
-    bool readOnly = false,
-    TextInputType? keyboardType,
-    VoidCallback? onTap,
-    ValueChanged<String>? onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(label),
-        const SizedBox(height: 6),
-        Container(
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isError ? const Color(0xFFC44D4D) : const Color(0xFFE2DADB),
-              width: 1.1,
-            ),
-          ),
-          child: TextField(
-            controller: controller,
-            obscureText: obscureText,
-            readOnly: readOnly,
-            onTap: onTap,
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20)),
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-              border: InputBorder.none,
-              hintText: hintText,
-              hintStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFA89CA0)),
-              prefixIcon: prefixIcon != null
-                  ? Icon(prefixIcon, size: 18, color: const Color(0xFF7A6E72))
-                  : null,
-              suffixIcon: suffixIcon != null
-                  ? GestureDetector(
-                      onTap: onSuffixTap ?? onTap,
-                      child: Icon(suffixIcon, size: 18, color: const Color(0xFF7A6E72)),
-                    )
-                  : null,
-            ),
-          ),
-        ),
-        if (isError && errorMessage != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            errorMessage,
-            style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFFC44D4D)),
-          ),
-        ] else if (helperText != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            helperText,
-            style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF7A6E72), height: 1.3),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildDropdownContainer({required IconData icon, required Widget child}) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2DADB), width: 1.1),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: const Color(0xFF7A6E72)),
-          const SizedBox(width: 8),
-          Expanded(child: child),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFileUploadBox({
-    required IconData icon,
-    required String? fileName,
-    required VoidCallback onTap,
-    required String helperText,
-    bool isError = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isError ? const Color(0xFFC44D4D) : const Color(0xFFE2DADB),
-              width: 1.1,
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 18, color: const Color(0xFF7A6E72)),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: onTap,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEDE5E8),
-                  foregroundColor: const Color(0xFF4A3E47),
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-                ),
-                child: Text(
-                  'Choose file',
-                  style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  fileName ?? 'No file chosen',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    color: fileName != null ? const Color(0xFF231F20) : const Color(0xFF7A6E72),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          helperText,
-          style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF7A6E72)),
-        ),
+        _buildFooter(),
       ],
     );
   }

@@ -81,11 +81,13 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     children: [
                       const Icon(Icons.badge_outlined, color: CartzyColors.coral),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Submit ID for Verification',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                      const Expanded(
+                        child: Text(
+                          'Submit ID for Verification',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                        ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(

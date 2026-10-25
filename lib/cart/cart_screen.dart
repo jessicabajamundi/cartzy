@@ -254,33 +254,41 @@ class _CartScreenState extends State<CartScreen> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Shopping Cart',
-              style: GoogleFonts.playfairDisplay(
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF231F20),
-                letterSpacing: -0.3,
+            Expanded(
+              child: Wrap(
+                spacing: 12,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    'Shopping Cart',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF231F20),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9EFE9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFEEDCD4)),
+                    ),
+                    child: Text(
+                      '${_cartItems.length} items',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFA6715E),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9EFE9),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFEEDCD4)),
-              ),
-              child: Text(
-                '${_cartItems.length} items',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFA6715E),
-                ),
-              ),
-            ),
-            const Spacer(),
+            const SizedBox(width: 8),
             if (_cartItems.isNotEmpty)
               MouseRegion(
                 cursor: SystemMouseCursors.click,
@@ -831,14 +839,17 @@ class _CartScreenState extends State<CartScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Total Amount',
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF231F20),
+              Flexible(
+                child: Text(
+                  'Total Amount',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF231F20),
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
                 '₱${_formatCurrency(totalAmount)}',
                 style: GoogleFonts.dmSans(
@@ -870,11 +881,13 @@ class _CartScreenState extends State<CartScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Proceed to Checkout',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
+                  Flexible(
+                    child: Text(
+                      'Proceed to Checkout',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -906,11 +919,14 @@ class _CartScreenState extends State<CartScreen> {
                   color: Color(0xFF8E8286),
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  'Secure checkout with 100% Buyer Protection',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 11,
-                    color: const Color(0xFF8E8286),
+                Flexible(
+                  child: Text(
+                    'Secure checkout with 100% Buyer Protection',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11,
+                      color: const Color(0xFF8E8286),
+                    ),
                   ),
                 ),
               ],

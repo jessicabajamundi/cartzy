@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug builds only: allow plain http:// to a local `php artisan serve`.
+         Release builds stay HTTPS-only (set API_BASE_URL to an HTTPS URL using a Dart define). -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>

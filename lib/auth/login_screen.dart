@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
-import 'package:cartzy/services/user_account_service.dart';
+import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/services/google_sign_in_service.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
 
 enum AccountType { buyer, rider, admin }
-
-// ============================================================
-// DEMO ACCOUNTS (no database needed)
-// ============================================================
-const _demoAccounts = [
-  {'email': 'buyer@cartzy.com',  'password': '123456', 'role': 'buyer',  'name': 'Demo Buyer',  'id': 1},
-  {'email': 'rider@cartzy.com',  'password': '123456', 'role': 'rider',  'name': 'Demo Rider',  'id': 2},
-  {'email': 'admin@cartzy.com',  'password': '123456', 'role': 'admin',  'name': 'Demo Admin',  'id': 3},
-];
 
 class LoginScreen extends StatefulWidget {
   final AccountType initialAccountType;
@@ -25,7 +18,7 @@ class LoginScreen extends StatefulWidget {
   final ValueChanged<AccountType> onSignUp;
   final ValueChanged<String>? onVerifyEmail;
 
-  /// Back arrow — goes back to the role-selection screen or shop.
+  /// Back arrow â€” goes back to the role-selection screen or shop.
   final VoidCallback onBack;
 
   /// "Continue as Guest" / "Continue to the shop".
@@ -116,131 +109,88 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoggingIn = true);
 
-    // Simulate a short delay for UX
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    if (!mounted) return;
-
     final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
 
-    // Check with UserAccountService (TC-BUY-028 & TC-BUY-029)
-    final authResult = UserAccountService.instance.authenticate(
-      email: email,
-      password: password,
-      expectedRole: _selectedRole,
-    );
-
-    if (authResult.isUnverified) {
-      setState(() => _isLoggingIn = false);
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.mark_email_unread_outlined, color: CartzyColors.navy),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text('Email Verification Required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-          content: Text(
-            'The buyer account $email exists with status Unverified.\n\nPlease verify your email to access your account.',
-            style: const TextStyle(fontSize: 14, height: 1.4),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel', style: TextStyle(color: CartzyColors.gray)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                if (widget.onVerifyEmail != null) {
-                  widget.onVerifyEmail!(email);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: CartzyColors.navy,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Verify Email Now'),
-            ),
-          ],
-        ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account unverified. Please verify your email before logging in.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+    // Real accounts: the same users table as the website, via the Laravel API.
+    try {
+      final response = await AuthService.login(email: email, password: password, role: _selectedRole);
+      if (!mounted) return;
+      setState(() {
+        _isLoggingIn = false;
+        _loginAttempts = 0;
+      });
+      final user = Map<String, dynamic>.from(response['user'] as Map);
+      final token = response['token']?.toString();
+      widget.onLogin(user['role'] == 'rider' ? AccountType.rider : AccountType.buyer, user, token: token);
       return;
-    }
-
-    if (authResult.success && authResult.account != null) {
-      final account = authResult.account!;
-      final role = account.role;
-      final user = account.toMap();
-
-      if (role != _selectedRole) {
-        setState(() => _isLoggingIn = false);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoggingIn = false);
+      if (e.statusCode == 403 && e.body['account_role'] != null) {
         _showRoleMismatch();
         return;
       }
-
-      setState(() => _isLoggingIn = false);
-
-      if (role == 'buyer') {
-        widget.onLogin(AccountType.buyer, user, token: 'user-token');
-      } else if (role == 'rider') {
-        widget.onLogin(AccountType.rider, user, token: 'rider-token');
-      } else {
-        widget.onLogin(AccountType.admin, user, token: 'admin-token');
-      }
-      return;
-    }
-
-    // Match against demo accounts
-    final match = _demoAccounts.where(
-      (a) =>
-          a['email'] == email &&
-          a['password'] == password &&
-          a['role'] == _selectedRole,
-    ).firstOrNull;
-
-    setState(() => _isLoggingIn = false);
-
-    if (match == null) {
-      setState(() => _loginAttempts++);
-      final remaining = _maxAttempts - _loginAttempts;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            remaining > 0
-                ? 'Invalid credentials. $remaining attempt(s) left before lockout.'
-                : 'Account locked. Too many failed attempts.',
+      if (e.statusCode == 422 || e.statusCode == 403) {
+        setState(() => _loginAttempts++);
+        final remaining = _maxAttempts - _loginAttempts;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.statusCode == 403
+                ? e.message
+                : remaining > 0
+                    ? 'Invalid credentials. $remaining attempt(s) left before lockout.'
+                    : 'Account locked. Too many failed attempts.'),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 3),
           ),
-          backgroundColor: remaining > 0 ? Colors.redAccent : Colors.red.shade900,
-          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.redAccent),
+      );
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isLoggingIn = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Can't reach the Cartzy server. Check your internet connection and try again."),
+          backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
+  }
 
-    // Successful login — reset attempt counter
-    setState(() => _loginAttempts = 0);
-    final role = match['role'].toString();
-    final user = Map<String, dynamic>.from(match);
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoggingIn = true);
+    try {
+      final response = await GoogleSignInService.signIn();
+      if (!mounted) return;
+      setState(() => _isLoggingIn = false);
+      if (response == null) {
+        return;
+      }
 
-    if (role == 'buyer') {
-      widget.onLogin(AccountType.buyer, user, token: 'demo-token');
-    } else if (role == 'rider') {
-      widget.onLogin(AccountType.rider, user, token: 'demo-rider-token');
-    } else if (role == 'admin') {
-      widget.onLogin(AccountType.admin, user, token: 'demo-admin-token');
+      final user = Map<String, dynamic>.from(response['user'] as Map);
+      final token = response['token']?.toString();
+      final userRole = (user['role'] == 'rider' || user['role'] == 'courier')
+          ? AccountType.rider
+          : AccountType.buyer;
+
+      widget.onLogin(userRole, user, token: token);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoggingIn = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Google Sign-In: ${e.toString()}'),
+          backgroundColor: Colors.redAccent,
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -261,34 +211,12 @@ class _LoginScreenState extends State<LoginScreen> {
         title: Text('Forgot Password',
             style: GoogleFonts.dmSans(color: const Color(0xFF231F20), fontWeight: FontWeight.bold)),
         content: Text(
-          'Use the sample accounts to sign in:\n\nBuyer:  buyer@cartzy.com\nCourier:  rider@cartzy.com\nPassword: 123456',
+          'Your Cartzy account works on both the app and the website.\n\n'
+          'To reset your password, open the Cartzy website, choose "Log in", then "Forgot password?". '
+          'Use your new password here afterwards.',
           style: GoogleFonts.dmSans(fontSize: 13.5, height: 1.5, color: const Color(0xFF4A3E4D)),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _emailController.text = 'buyer@cartzy.com';
-                _passwordController.text = '123456';
-                _emailError = null;
-                _passwordError = null;
-              });
-            },
-            child: Text('Fill Buyer', style: GoogleFonts.dmSans(color: const Color(0xFF865561), fontWeight: FontWeight.bold)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _emailController.text = 'rider@cartzy.com';
-                _passwordController.text = '123456';
-                _emailError = null;
-                _passwordError = null;
-              });
-            },
-            child: Text('Fill Rider', style: GoogleFonts.dmSans(color: const Color(0xFF865561), fontWeight: FontWeight.bold)),
-          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Close', style: GoogleFonts.dmSans(color: const Color(0xFF7A6E72))),
@@ -304,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 460),
@@ -317,20 +245,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: widget.onBackToGuest,
                       borderRadius: BorderRadius.circular(6),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 2),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(
                               Icons.arrow_back_rounded,
-                              size: 14,
+                              size: 18,
                               color: Color(0xFF865561),
                             ),
                             const SizedBox(width: 5),
                             Text(
                               'Continue to the shop',
                               style: GoogleFonts.dmSans(
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF865561),
                               ),
@@ -340,12 +268,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 58),
+                  const SizedBox(height: 32),
                   Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const CartzyLogo(height: 30),
+                        const CartzyLogo(height: 40),
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -366,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             _accountType == AccountType.rider ? 'COURIER' : 'BUYER',
                             style: GoogleFonts.dmSans(
-                              fontSize: 8,
+                              fontSize: 10,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                               letterSpacing: 0.7,
@@ -376,12 +304,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 14),
                   Center(
                     child: Text(
                       'Welcome back',
                       style: GoogleFonts.playfairDisplay(
-                        fontSize: 20,
+                        fontSize: 28,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF231F20),
                         letterSpacing: -0.3,
@@ -394,12 +322,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Login to your account and continue shopping',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.dmSans(
-                        fontSize: 10,
+                        fontSize: 13,
                         color: const Color(0xFF7A6E72),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 14),
                   if (_loginAttempts > 0)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -430,7 +358,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ? 'Account temporarily locked due to too many failed attempts.'
                                     : '${_maxAttempts - _loginAttempts} attempt(s) remaining before your account is locked.',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   color: _loginAttempts >= 4
                                       ? CartzyColors.error
                                       : Colors.orange.shade800,
@@ -442,11 +370,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
 
-              // ── Email address ──
+              // â”€â”€ Email address â”€â”€
               Text(
                 'Email address',
                 style: GoogleFonts.dmSans(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF231F20),
                 ),
@@ -485,27 +413,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (_) {
                       if (_emailError != null) setState(() => _emailError = null);
                     },
-                    style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF231F20)),
+                    style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: 'Enter your email address',
                       hintStyle: GoogleFonts.dmSans(
-                        fontSize: 11.5,
+                        fontSize: 14,
                         color: const Color(0xFFAAA0A2),
                       ),
                       prefixIcon: const Icon(
                         Icons.mail_outline,
-                        size: 17,
+                        size: 21,
                         color: Color(0xFF865561),
                       ),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 52),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       filled: false,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                     ),
                   ),
                 ),
@@ -514,16 +442,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _emailError!,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
+                  style: const TextStyle(fontSize: 14, color: Color(0xFFD32F2F)),
                 ),
               ],
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
 
-              // ── Password ──
+              // â”€â”€ Password â”€â”€
               Text(
                 'Password',
                 style: GoogleFonts.dmSans(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF231F20),
                 ),
@@ -562,36 +490,36 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (_) {
                       if (_passwordError != null) setState(() => _passwordError = null);
                     },
-                    style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF231F20)),
+                    style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: 'Enter your password',
                       hintStyle: GoogleFonts.dmSans(
-                        fontSize: 11.5,
+                        fontSize: 14,
                         color: const Color(0xFFAAA0A2),
                       ),
                       prefixIcon: const Icon(
                         Icons.lock_outline,
-                        size: 17,
+                        size: 21,
                         color: Color(0xFF865561),
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                          size: 17,
+                          size: 21,
                           color: const Color(0xFF7A6E72),
                         ),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                      prefixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
-                      suffixIconConstraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+                      prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 52),
+                      suffixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 52),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       disabledBorder: InputBorder.none,
                       filled: false,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                     ),
                   ),
                 ),
@@ -600,16 +528,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _passwordError!,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
+                  style: const TextStyle(fontSize: 14, color: Color(0xFFD32F2F)),
                 ),
               ],
               const SizedBox(height: 6),
 
-              // ── Remember me / Forgot password ──
+              // â”€â”€ Remember me / Forgot password â”€â”€
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
+                  Flexible(
+                    child: Row(
                     children: [
                       SizedBox(
                         width: 20,
@@ -623,18 +552,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        'Remember me',
-                        style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF4A3E4D)),
+                      Flexible(
+                        child: Text(
+                          'Remember me',
+                          style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF4A3E4D)),
+                        ),
                       ),
                     ],
                   ),
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: _showForgotPasswordDialog,
                     child: Text(
                       'Forgot password?',
                       style: GoogleFonts.dmSans(
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF865561),
                       ),
@@ -642,14 +575,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
 
-              // ── Sign In to Account button ──
+              // â”€â”€ Sign In to Account button â”€â”€
               GestureDetector(
                 onTap: _isLoggingIn ? null : _handleLogin,
                 child: Container(
                   width: double.infinity,
-                  height: 32,
+                  constraints: const BoxConstraints(minHeight: 50),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF4A3E4D), Color(0xFF865561)],
@@ -675,16 +609,16 @@ class _LoginScreenState extends State<LoginScreen> {
                       : Text(
                           'Sign In to Account',
                           style: GoogleFonts.dmSans(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
-              // ── Divider: or continue with ──
+              // â”€â”€ Divider: or continue with â”€â”€
               Row(
                 children: [
                   const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
@@ -693,7 +627,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       'or continue with',
                       style: GoogleFonts.dmSans(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         color: const Color(0xFF9E8F93),
                       ),
                     ),
@@ -701,21 +635,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Expanded(child: Divider(color: Color(0xFFE5D7D7), height: 1)),
                 ],
               ),
-              // ── Continue with Google ──
+              // â”€â”€ Continue with Google â”€â”€
               GestureDetector(
-                onTap: () {
-                  // Simulate Google sign-in with a demo account for the selected role.
-                  setState(() {
-                    _emailController.text = _accountType == AccountType.rider
-                        ? 'rider@cartzy.com'
-                        : 'buyer@cartzy.com';
-                    _passwordController.text = '123456';
-                  });
-                  _handleLogin();
-                },
+                onTap: _isLoggingIn ? null : _handleGoogleSignIn,
                 child: Container(
                   width: double.infinity,
-                  height: 32,
+                  constraints: const BoxConstraints(minHeight: 50),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -734,7 +660,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Continue with Google',
                         style: GoogleFonts.dmSans(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF231F20),
                         ),
@@ -743,23 +669,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
-              // ── Don't have an account? Sign up ──
+              // â”€â”€ Don't have an account? Sign up â”€â”€
               Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       "Don't have an account? ",
-                      style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF7A6E72)),
+                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
                     ),
                     GestureDetector(
                       onTap: () => widget.onSignUp(_accountType),
                       child: Text(
                         'Sign up',
                         style: GoogleFonts.dmSans(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF865561),
                         ),
@@ -768,13 +694,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
               const Divider(height: 1, color: Color(0xFFEDE8EA)),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
               Center(
                 child: Text(
                   'Not shopping? Log in to your workspace',
-                  style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF7A6E72)),
+                  style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
                 ),
               ),
               const SizedBox(height: 5),
@@ -785,13 +711,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     _workspaceLink('Buyer', AccountType.buyer),
                     const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 9),
-                      child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 11)),
+                      child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 13)),
                     ),
                     _workspaceLink('Courier', AccountType.rider),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
             ],
           ),
         ),
@@ -808,7 +734,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Text(
         label,
         style: GoogleFonts.dmSans(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           color: isSelected ? const Color(0xFF865561) : const Color(0xFF7A6E72),
           decoration: isSelected ? TextDecoration.underline : TextDecoration.none,

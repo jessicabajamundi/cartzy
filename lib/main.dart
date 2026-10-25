@@ -16,6 +16,7 @@ import 'package:cartzy/rider/rider_registration.dart';
 import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/services/cart_service.dart';
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/auth/email_verification_screen.dart';
 import 'package:cartzy/widgets/access_denied_screen.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
@@ -48,12 +49,28 @@ class CartzyHome extends StatefulWidget {
 class _CartzyHomeState extends State<CartzyHome> {
   String currentRoute = 'splash';
 
-  Map<String, dynamic>? loggedInUser;
+  Map<String, dynamic>? _loggedInUser;
+
+  /// Mirrored into [AuthService] so screens opened from anywhere can show
+  /// the signed-in user's own name, email and phone.
+  Map<String, dynamic>? get loggedInUser => _loggedInUser;
+  set loggedInUser(Map<String, dynamic>? user) {
+    _loggedInUser = user;
+    if (user == null) {
+      AuthService.clearSession();
+    } else {
+      AuthService.setSession(user: user, token: AuthService.token);
+    }
+  }
 
   String? riderToken;
 
   AccountType pendingAccountType = AccountType.buyer;
   String pendingVerificationEmail = '';
+
+  /// Buyer details from the registration form, kept until the emailed code
+  /// is entered and the account is created on the server.
+  Map<String, dynamic>? pendingBuyerRegistration;
 
   // ============================================================
   // ROUTING
@@ -74,6 +91,7 @@ class _CartzyHomeState extends State<CartzyHome> {
       loggedInUser = null;
       riderToken = null;
       pendingVerificationEmail = '';
+      pendingBuyerRegistration = null;
       pendingAccountType = AccountType.buyer;
     });
 
@@ -137,7 +155,7 @@ class _CartzyHomeState extends State<CartzyHome> {
                     ? null
                     : () async {
                         setDialogState(() => signingOut = true);
-                        await Future<void>.delayed(const Duration(milliseconds: 450));
+                        await AuthService.logout(); // revokes the token on the server
                         if (dialogContext.mounted) Navigator.pop(dialogContext, true);
                       },
                 style: FilledButton.styleFrom(
@@ -206,10 +224,11 @@ class _CartzyHomeState extends State<CartzyHome> {
   // ============================================================
 
   void handleBuyerRegistrationSuccess(
-    Map<String, dynamic> user,
+    Map<String, dynamic> registration,
   ) {
     setState(() {
-      pendingVerificationEmail = user['email']?.toString() ?? '';
+      pendingBuyerRegistration = registration;
+      pendingVerificationEmail = registration['email']?.toString() ?? '';
     });
 
     goTo('emailVerification');
@@ -221,6 +240,7 @@ class _CartzyHomeState extends State<CartzyHome> {
     setState(() {
       loggedInUser = Map<String, dynamic>.from(user);
       pendingAccountType = AccountType.buyer;
+      pendingBuyerRegistration = null;
     });
 
     goTo('dashboard');
@@ -306,9 +326,8 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'emailVerification':
         return EmailVerificationScreen(
-          email: pendingVerificationEmail.isNotEmpty
-              ? pendingVerificationEmail
-              : 'juanmiguel.delacruz@example.com',
+          email: pendingVerificationEmail,
+          registration: pendingBuyerRegistration,
           onVerificationSuccess: handleEmailVerificationSuccess,
           onBackToLogin: () {
             goTo('login');
@@ -360,7 +379,7 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'dashboard':
         return DashboardScreen(
-          userName: loggedInUser?['name']?.toString() ?? 'Leonardo, Tiffany Joy O.',
+          userName: loggedInUser?['name']?.toString() ?? '',
           onCartClick: () {
             goTo('cart');
           },
@@ -463,14 +482,18 @@ class _CartzyHomeState extends State<CartzyHome> {
       case 'accountSettings':
       case 'profile':
         return AccountSettingsScreen(
+          key: ValueKey(loggedInUser?['id'] ?? 'guest'),
+          isLoggedIn: loggedInUser != null,
+          onLogin: () => goTo('login'),
+          onSignUp: () => goTo('buyerRegistration'),
           userName:
-              loggedInUser?['name']?.toString() ?? 'Leonardo, Tiffany Joy O.',
+              loggedInUser?['name']?.toString() ?? '',
           userEmail:
-              loggedInUser?['email']?.toString() ?? 'tiffany.leonardolspu@gmail.com',
+              loggedInUser?['email']?.toString() ?? '',
           userPhone:
-              loggedInUser?['phone']?.toString() ?? '09171234567',
+              loggedInUser?['phone']?.toString() ?? '',
           onBack: () {
-            goTo('dashboard');
+            goTo(loggedInUser != null ? 'dashboard' : 'guest');
           },
           onLogout: confirmLogout,
           onProfileUpdated: (updatedUser) {

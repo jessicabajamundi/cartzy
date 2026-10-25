@@ -20,12 +20,17 @@ dependencies:
 
   # Barcode/QR scanning
   mobile_scanner: ^5.2.3
-  image_picker: ^1.2.3
+  image_picker: ^1.2.2
+  google_sign_in: ^6.2.2
+  shared_preferences: ^2.5.5
+  camera: ^0.12.0+1
+  google_mlkit_text_recognition: ^0.16.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -47,3 +52,22 @@ flutter:
     - assets/banner_jewelry.jpg
     - assets/banner_coffee_home.jpg
     - assets/banner_bags_travel.jpg
+    - assets/cartzy-halloween.jpg
+    - assets/cartzy-halloween-web.png
+    - assets/cartzy-home.jpg
+    - assets/cartzy-tech.jpg
+    - assets/cartzy-style.jpg
+    - assets/cartzy-beauty.jpg
+    - assets/cartzy-jewelry.jpg
+    - assets/cartzy-coffee.jpg
+    - assets/cartzy-travel.jpg
+    - assets/cartzy-fitness.jpg
+
+# App icon: generate with `dart run flutter_launcher_icons`
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  image_path: "assets/app_icon.png"
+  remove_alpha_ios: true
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/app_icon_foreground.png"

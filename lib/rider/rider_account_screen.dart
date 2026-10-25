@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cartzy/services/auth_service.dart';
 import 'rider_common_app_bar.dart';
 
 class RiderAccountScreen extends StatefulWidget {
@@ -19,7 +20,18 @@ class RiderAccountScreen extends StatefulWidget {
 }
 
 class _RiderAccountScreenState extends State<RiderAccountScreen> {
-  final _phoneController = TextEditingController(text: '09566407327');
+  // The signed-in rider's own details.
+  static String _user(String key) =>
+      AuthService.currentUser?[key]?.toString().trim() ?? '';
+
+  String get _name => _user('name').isNotEmpty ? _user('name') : 'Rider';
+
+  String get _initials {
+    final parts = _name.split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
+    return parts.take(2).map((p) => p[0].toUpperCase()).join();
+  }
+
+  final _phoneController = TextEditingController(text: _user('phone'));
   final _plateController = TextEditingController(text: '123ABC');
   final _areaController = TextEditingController(text: 'Metro South (Laguna & NCR)');
   String _vehicleClassification = 'Motorcycle';
@@ -162,7 +174,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        'TI',
+                        _initials,
                         style: GoogleFonts.dmSans(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -196,7 +208,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                       runSpacing: 6,
                       children: [
                         Text(
-                          'Tiffany Leonardo',
+                          _name,
                           style: GoogleFonts.cormorantGaramond(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
@@ -253,38 +265,48 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                       runSpacing: 4,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
+                        if (_user('email').isNotEmpty) ...[
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.email_outlined, size: 13, color: Color(0xFF8A7780)),
                             const SizedBox(width: 4),
-                            Text(
-                              'tiffanyjoyleonardo03@gmail.com',
-                              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF554B62)),
+                            Flexible(
+                              child: Text(
+                                _user('email'),
+                                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF554B62)),
+                              ),
                             ),
                           ],
                         ),
                         const Text('•', style: TextStyle(color: Color(0xFFBAABB0))),
+                        ],
+                        if (_user('phone').isNotEmpty) ...[
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.phone_outlined, size: 13, color: Color(0xFF8A7780)),
                             const SizedBox(width: 4),
-                            Text(
-                              '09566407327',
-                              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF554B62)),
+                            Flexible(
+                              child: Text(
+                                _user('phone'),
+                                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF554B62)),
+                              ),
                             ),
                           ],
                         ),
                         const Text('•', style: TextStyle(color: Color(0xFFBAABB0))),
+                        ],
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.storefront_outlined, size: 13, color: Color(0xFF8A7780)),
                             const SizedBox(width: 4),
-                            Text(
-                              'Metro South Sorting & Fulfillment Hub',
-                              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF554B62)),
+                            Flexible(
+                              child: Text(
+                                'Metro South Sorting & Fulfillment Hub',
+                                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF554B62)),
+                              ),
                             ),
                           ],
                         ),
@@ -312,12 +334,14 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Text(
-                            'Status: ONLINE (Receiving Orders)',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                          Flexible(
+                            child: Text(
+                              'Status: ONLINE (Receiving Orders)',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -409,7 +433,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Column(
+              Expanded(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -428,6 +453,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                     ),
                   ),
                 ],
+              ),
               ),
             ],
           ),
@@ -523,14 +549,17 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.dmSans(
-              fontSize: 12.5,
-              color: const Color(0xFF8A7780),
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.dmSans(
+                fontSize: 12.5,
+                color: const Color(0xFF8A7780),
+              ),
             ),
           ),
-          valueWidget,
+          const SizedBox(width: 12),
+          Flexible(child: valueWidget),
         ],
       ),
     );
@@ -564,7 +593,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Column(
+              Expanded(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -583,6 +613,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                     ),
                   ),
                 ],
+              ),
               ),
             ],
           ),

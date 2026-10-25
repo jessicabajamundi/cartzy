@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/utils/input_rules.dart';
 
-import 'package:cartzy/services/mock_data.dart';
+import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/psgc_api.dart';
 
@@ -298,11 +299,7 @@ class _AddAddressScreenState
     });
 
     try {
-      await Future.delayed(const Duration(milliseconds: 300));
-
       final newAddress = {
-        'id': DateTime.now().millisecondsSinceEpoch,
-        'user_id': widget.userId,
         'label': selectedLabel,
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
@@ -316,12 +313,8 @@ class _AddAddressScreenState
         'is_default': isDefault,
       };
 
-      if (isDefault) {
-        for (final a in MockData.addresses) {
-          a['is_default'] = false;
-        }
-      }
-      MockData.addresses.add(newAddress);
+      // Saved to the same address book the website uses.
+      await ApiService.addAddress(newAddress);
 
       if (!mounted) return;
 
@@ -346,7 +339,7 @@ class _AddAddressScreenState
       });
 
       _showError(
-        'Failed to save address.\n$e',
+        e is ApiException ? e.message : 'Failed to save address.\n$e',
       );
     }
   }
@@ -625,17 +618,9 @@ class _AddAddressScreenState
                 ),
                 textInputAction:
                     TextInputAction.next,
-                validator:
-                    (value) {
-                  if (value == null ||
-                      value
-                          .trim()
-                          .isEmpty) {
-                    return 'Please enter your name';
-                  }
-
-                  return null;
-                },
+                inputFormatters:
+                    InputRules.fullNameFormatters,
+                validator: InputRules.fullName,
               ),
 
               const SizedBox(
@@ -653,17 +638,9 @@ class _AddAddressScreenState
                 ),
                 textInputAction:
                     TextInputAction.next,
-                validator:
-                    (value) {
-                  if (value == null ||
-                      value
-                          .trim()
-                          .isEmpty) {
-                    return 'Please enter your phone number';
-                  }
-
-                  return null;
-                },
+                inputFormatters:
+                    InputRules.phoneFormatters,
+                validator: InputRules.phone,
               ),
 
               const SizedBox(

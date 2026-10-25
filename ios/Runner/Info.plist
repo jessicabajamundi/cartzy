@@ -6,6 +6,10 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Cartzy uses the camera to scan your government ID and parcel barcodes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cartzy lets you upload photos of your ID and documents.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Cartzy</string>
 	<key>CFBundleExecutable</key>
