@@ -250,6 +250,43 @@
     z-index: 60;
     margin: 0;
 }
+.logistics-chat-bubble-form[hidden] {
+    display: none !important;
+}
+
+.logistics-chat-bubble-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.logistics-bubble-cancel-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    color: #ffffff;
+    background: #64748b;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    transition: background 0.15s ease, transform 0.15s ease;
+    z-index: 65;
+}
+
+.logistics-bubble-cancel-btn:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+}
 
 .logistics-chat-bubble-form .chat-bubble {
     display: inline-flex;

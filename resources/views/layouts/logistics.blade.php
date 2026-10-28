@@ -229,7 +229,11 @@
                 </a>
 
                 <!-- Chat -->
-                <a href="{{ route('logistics.chat') }}" title="Chat" class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.chat*') ? 'bg-[#6F6382] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                <a href="{{ route('logistics.chat') }}" 
+                   title="Chat / Messaging" 
+                   id="logistics-sidebar-chat-launch"
+                   data-chat-launch="logistics-chat"
+                   class="nav-item flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition group relative {{ request()->routeIs('logistics.chat*') ? 'bg-[#6F6382] text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
                     <div class="flex items-center gap-3 truncate">
                         <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors {{ request()->routeIs('logistics.chat*') ? 'bg-white/20 text-white' : 'text-slate-400 group-hover:text-slate-700' }}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
@@ -330,7 +334,7 @@
             sidebar.classList.toggle('is-collapsed');
         }
     </script>
-    {{-- Floating Message Bubble (like in Buyer Account) --}}
+    {{-- Floating Message Bubble (Hidden by default, appears if clicked in sidebar or minimized) --}}
     @php
         $currentHubProvider = Auth::user()?->logisticsProvider;
         $unreadMessagesCount = $currentHubProvider
@@ -340,24 +344,31 @@
                 ->count()
             : 0;
     @endphp
-    <div class="logistics-chat-bubble-form" id="logistics-chat-bubble">
-        <button type="button" 
-           class="chat-bubble" 
-           id="logistics-chat-bubble-btn"
-           title="Click to chat here, double-click to open Messages" 
-           aria-controls="logistics-chat-popup" 
-           aria-expanded="false" 
-           aria-label="Open Chat / Messaging">
-            <span class="chat-bubble-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                <span class="chat-bubble-badge" id="logistics-chat-bubble-badge" aria-label="{{ $unreadMessagesCount }} unread messages" {{ $unreadMessagesCount > 0 ? '' : 'hidden' }}>
-                    {{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}
+    <div class="logistics-chat-bubble-form" id="logistics-chat-bubble-wrap" hidden>
+        <div class="logistics-chat-bubble-container">
+            <button type="button" 
+               class="chat-bubble" 
+               id="logistics-chat-bubble-btn"
+               title="Click to chat here, double-click to open Messages" 
+               aria-controls="logistics-chat-popup" 
+               aria-expanded="false" 
+               aria-label="Open Chat / Messaging">
+                <span class="chat-bubble-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="chat-bubble-badge" id="logistics-chat-bubble-badge" aria-label="{{ $unreadMessagesCount }} unread messages" {{ $unreadMessagesCount > 0 ? '' : 'hidden' }}>
+                        {{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}
+                    </span>
                 </span>
-            </span>
-            <span>Chat</span>
-        </button>
+                <span>Chat</span>
+            </button>
+            <button type="button" 
+               class="logistics-bubble-cancel-btn" 
+               id="logistics-bubble-cancel-btn" 
+               aria-label="Cancel and close chat bubble" 
+               title="Cancel chat bubble">&times;</button>
+        </div>
     </div>
 
     {{-- Floating Chat Popup Widget (Matching Screenshot UI) --}}

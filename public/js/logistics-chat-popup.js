@@ -1,10 +1,10 @@
 (() => {
     function init() {
-        const bubble = document.getElementById('logistics-chat-bubble');
-        if (!bubble) return;
-
-        const bubbleBtn = document.getElementById('logistics-chat-bubble-btn') || bubble.querySelector('.chat-bubble') || bubble;
-        const badge = document.getElementById('logistics-chat-bubble-badge') || bubble.querySelector('.chat-bubble-badge');
+        const bubbleWrap = document.getElementById('logistics-chat-bubble-wrap') || document.querySelector('.logistics-chat-bubble-form');
+        const bubbleBtn = document.getElementById('logistics-chat-bubble-btn') || bubbleWrap?.querySelector('.chat-bubble');
+        const bubbleCancelBtn = document.getElementById('logistics-bubble-cancel-btn') || bubbleWrap?.querySelector('.logistics-bubble-cancel-btn');
+        const badge = document.getElementById('logistics-chat-bubble-badge') || bubbleWrap?.querySelector('.chat-bubble-badge');
+        const launchers = document.querySelectorAll('[data-chat-launch="logistics-chat"], #logistics-sidebar-chat-launch');
 
         let popup = document.getElementById('logistics-chat-popup');
         if (!popup) {
@@ -61,7 +61,7 @@
         let sendUrl = null;
         let currentThreadUrl = null;
         let pollInterval = null;
-        let clickTimer = null;
+        let bubbleClickTimer = null;
         let loadId = 0;
 
         const request = async (url, options = {}) => {
@@ -126,6 +126,16 @@
                 badge.hidden = false;
                 badge.textContent = total > 99 ? '99+' : String(total);
             }
+        };
+
+        const refreshBadge = async () => {
+            if (!bubbleWrap || bubbleWrap.hidden || document.hidden) return;
+            try {
+                const data = await request(conversationsUrl);
+                if (data.unread_total !== undefined) {
+                    setUnreadBadge(data.unread_total);
+                }
+            } catch (_) {}
         };
 
         const addMessage = msg => {
@@ -324,10 +334,12 @@
             }
         };
 
+        // Open chat popup (hides floating bubble)
         const openPopup = async () => {
             popup.hidden = false;
-            bubble.style.display = 'none';
-            bubbleBtn.setAttribute('aria-expanded', 'true');
+            if (bubbleWrap) bubbleWrap.hidden = true;
+            if (bubbleBtn) bubbleBtn.setAttribute('aria-expanded', 'true');
+            try { sessionStorage.setItem('logistics-chat-state', 'open'); } catch (_) {}
 
             let savedThread = null;
             try { savedThread = sessionStorage.getItem('logistics-chat-thread'); } catch (_) {}
@@ -348,83 +360,166 @@
             }
         };
 
-        const minimizePopup = () => {
+        // Minimize popup to floating side bubble
+        const showBubbleOnly = () => {
             stopPolling();
             popup.hidden = true;
-            bubble.style.display = '';
-            bubble.hidden = false;
-            bubbleBtn.setAttribute('aria-expanded', 'false');
-            bubbleBtn.focus();
+            if (bubbleWrap) {
+                bubbleWrap.hidden = false;
+                bubbleWrap.style.display = '';
+            }
+            if (bubbleBtn) {
+                bubbleBtn.setAttribute('aria-expanded', 'false');
+                bubbleBtn.focus();
+            }
+            try { sessionStorage.setItem('logistics-chat-state', 'bubble'); } catch (_) {}
+            refreshBadge();
         };
 
-        const closePopup = () => {
+        // Completely hide/cancel both popup and bubble
+        const hideAll = () => {
             stopPolling();
-            try { sessionStorage.removeItem('logistics-chat-thread'); } catch (_) {}
             popup.hidden = true;
-            bubble.style.display = '';
-            bubble.hidden = false;
-            bubbleBtn.setAttribute('aria-expanded', 'false');
-            bubbleBtn.focus();
+            if (bubbleWrap) {
+                bubbleWrap.hidden = true;
+            }
+            if (bubbleBtn) {
+                bubbleBtn.setAttribute('aria-expanded', 'false');
+            }
+            try {
+                sessionStorage.removeItem('logistics-chat-state');
+                sessionStorage.removeItem('logistics-chat-thread');
+            } catch (_) {}
+            launchers[0]?.focus();
         };
 
-        bubbleBtn.onclick = event => {
-            event.preventDefault();
-            event.stopPropagation();
-            clearTimeout(clickTimer);
-            if (event.detail >= 2) {
-                window.location.href = inboxUrl;
-                return;
-            }
-            if (event.detail === 0) {
-                if (popup.hidden) openPopup(); else minimizePopup();
-                return;
-            }
-            clickTimer = setTimeout(() => {
-                if (popup.hidden) openPopup(); else minimizePopup();
-            }, 180);
-        };
+        // Initialize state on page load
+        let savedState = null;
+        try { savedState = sessionStorage.getItem('logistics-chat-state'); } catch (_) {}
 
-        back.onclick = showList;
-        minimize.onclick = minimizePopup;
-        close.onclick = closePopup;
+        if (savedState === 'open') {
+            openPopup();
+        } else if (savedState === 'bubble') {
+            showBubbleOnly();
+        } else {
+            // Default: completely hidden until clicked in sidebar
+            hideAll();
+        }
+
+        // Bind Sidebar Launchers ([data-chat-launch="logistics-chat"])
+        launchers.forEach(link => {
+            link.setAttribute('aria-controls', 'logistics-chat-popup');
+            link.title = 'Click to chat here, double-click to open Messages';
+            let clickTimer = null;
+
+            link.addEventListener('click', event => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.button !== 0) return;
+
+                // Double click: open full inbox page
+                if (event.detail >= 2) {
+                    return window.location.assign(link.href || inboxUrl);
+                }
+
+                // If currently on /logistics/chat, let standard navigation happen
+                if (window.location.pathname === '/logistics/chat') {
+                    return;
+                }
+
+                event.preventDefault();
+                clearTimeout(clickTimer);
+
+                const toggle = () => {
+                    if (popup.hidden) {
+                        openPopup();
+                    } else {
+                        showBubbleOnly();
+                    }
+                };
+
+                if (event.detail === 0) return toggle();
+                clickTimer = setTimeout(toggle, 200);
+            });
+        });
+
+        // Floating side bubble click (reopens popup or double-click to inbox)
+        if (bubbleBtn) {
+            bubbleBtn.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+                clearTimeout(bubbleClickTimer);
+
+                if (event.detail >= 2) {
+                    window.location.href = inboxUrl;
+                    return;
+                }
+                if (event.detail === 0) {
+                    if (popup.hidden) openPopup(); else showBubbleOnly();
+                    return;
+                }
+                bubbleClickTimer = setTimeout(() => {
+                    if (popup.hidden) openPopup(); else showBubbleOnly();
+                }, 180);
+            });
+        }
+
+        // Floating side bubble cancel "X" button (completely cancels and hides the side bubble)
+        if (bubbleCancelBtn) {
+            bubbleCancelBtn.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+                hideAll();
+            });
+        }
+
+        // Header controls
+        if (back) back.addEventListener('click', showList);
+        if (minimize) minimize.addEventListener('click', showBubbleOnly);
+        if (close) close.addEventListener('click', hideAll);
 
         popup.addEventListener('keydown', event => {
-            if (event.key === 'Escape') minimizePopup();
+            if (event.key === 'Escape') showBubbleOnly();
         });
 
-        input.addEventListener('keydown', event => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                compose.requestSubmit();
-            }
-        });
-
-        compose.onsubmit = async event => {
-            event.preventDefault();
-            const text = input.value.trim();
-            if (!text || !sendUrl) return;
-
-            const sendBtn = compose.querySelector('button');
-            sendBtn.disabled = true;
-            showError('');
-
-            try {
-                const data = await request(sendUrl, {
-                    method: 'POST',
-                    body: JSON.stringify({ message: text }),
-                });
-                if (data.message) {
-                    addMessage(data.message);
+        if (input) {
+            input.addEventListener('keydown', event => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    compose.requestSubmit();
                 }
-                input.value = '';
-            } catch (e) {
-                showError(e.message);
-            } finally {
-                sendBtn.disabled = false;
-                input.focus();
-                messages.scrollTop = messages.scrollHeight;
-            }
-        };
+            });
+        }
+
+        if (compose) {
+            compose.onsubmit = async event => {
+                event.preventDefault();
+                const text = input.value.trim();
+                if (!text || !sendUrl) return;
+
+                const sendBtn = compose.querySelector('button');
+                if (sendBtn) sendBtn.disabled = true;
+                showError('');
+
+                try {
+                    const data = await request(sendUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({ message: text }),
+                    });
+                    if (data.message) {
+                        addMessage(data.message);
+                    }
+                    input.value = '';
+                } catch (e) {
+                    showError(e.message);
+                } finally {
+                    if (sendBtn) sendBtn.disabled = false;
+                    input.focus();
+                    messages.scrollTop = messages.scrollHeight;
+                }
+            };
+        }
+
+        // Periodic badge refresh every 30 seconds
+        setInterval(refreshBadge, 30000);
     }
 
     if (document.readyState === 'loading') {
