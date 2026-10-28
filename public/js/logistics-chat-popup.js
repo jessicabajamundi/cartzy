@@ -376,7 +376,8 @@
         };
 
         // Completely hide/cancel both popup and bubble
-        const hideAll = () => {
+        // restoreFocus is only for the close button; on page load focus must stay where the browser puts it.
+        const hideAll = (restoreFocus = false) => {
             stopPolling();
             popup.hidden = true;
             if (bubbleWrap) {
@@ -389,7 +390,7 @@
                 sessionStorage.removeItem('logistics-chat-state');
                 sessionStorage.removeItem('logistics-chat-thread');
             } catch (_) {}
-            launchers[0]?.focus();
+            if (restoreFocus) launchers[0]?.focus();
         };
 
         // Initialize state on page load
@@ -464,7 +465,7 @@
         // Header controls
         if (back) back.addEventListener('click', showList);
         if (minimize) minimize.addEventListener('click', showBubbleOnly);
-        if (close) close.addEventListener('click', hideAll);
+        if (close) close.addEventListener('click', () => hideAll(true));
 
         popup.addEventListener('keydown', event => {
             if (event.key === 'Escape') showBubbleOnly();

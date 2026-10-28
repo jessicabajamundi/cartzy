@@ -199,6 +199,8 @@ body.logistics-admin .hub-chat-bubble { background: var(--surface); border: 1px 
 body.logistics-admin .hub-chat-message.outgoing .hub-chat-bubble { background: var(--accent); border-color: var(--accent); color: var(--surface); }
 body.logistics-admin :is(.hub-chat-emoji-toggle, .hub-chat-suggestions button) { background: var(--accent-light); color: var(--accent); border-color: var(--line); }
 body.logistics-admin .hub-chat-composer { border-color: var(--line); border-radius: 12px; }
+body.logistics-admin .hub-chat-composer textarea { border: 0; outline: 0; background: transparent; resize: none; }
+body.logistics-admin .hub-chat-composer:focus-within { border-color: var(--focus); box-shadow: 0 0 0 2px var(--focus-ring); }
 body.logistics-admin .operations-activity-item { border-color: var(--line); }
 body.logistics-admin :is(.queue-dot, .chart-key) { background: var(--accent); }
 body.logistics-admin :is(.queue-attention .queue-dot, .chart-key-rose) { background: var(--rose-ink); }
@@ -206,6 +208,8 @@ body.logistics-admin :is(.queue-attention .queue-dot, .chart-key-rose) { backgro
 /* ---------- Floating chat bubble ---------- */
 body.logistics-admin .logistics-chat-bubble-form .chat-bubble { background: var(--accent); color: var(--surface); }
 body.logistics-admin .logistics-chat-bubble-form .chat-bubble:hover { background: var(--accent-hover); }
+/* While the floating chat bubble is showing, keep sticky save bars clear of it. */
+body.logistics-admin:has(#logistics-chat-bubble-wrap:not([hidden])) .account-savebar { margin-right: 84px; }
 /* On the full Chat page the floating bubble is redundant and would cover the Send button. */
 body.logistics-admin.is-chat-page :is(.logistics-chat-bubble-form, #logistics-chat-popup) { display: none; }
 
