@@ -379,7 +379,9 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
 
     // 9. Chat / Messaging
     Route::get('/chat', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'chat'])->name('chat');
-    Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sendMessage'])->name('chat.send');
+    Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sendMessage'])->whereNumber('contactId')->name('chat.send');
+    Route::get('/chat-popup/conversations', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'popupConversations'])->name('popup.conversations');
+    Route::get('/chat-popup/messages/{contactId}', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'popupMessages'])->whereNumber('contactId')->name('popup.messages');
 
     // 10. Account Management
     Route::get('/account', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'account'])->name('account');

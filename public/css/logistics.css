@@ -331,3 +331,43 @@
         white-space: nowrap;
     }
 }
+
+/* Logistics Floating Chat Popup (Matches Product / Store Chat UI) */
+#logistics-chat-popup {
+    z-index: 70;
+    right: 24px;
+    bottom: 24px;
+}
+#logistics-chat-popup[hidden] {
+    display: none !important;
+}
+#logistics-chat-popup .pd-chat-head {
+    background: #574362;
+    padding: 12px 14px 12px 16px;
+}
+#logistics-chat-popup .pd-chat-head strong {
+    font-size: 15px;
+    font-weight: 700;
+}
+#logistics-chat-popup .pd-chat-head small {
+    font-size: 12px;
+    opacity: 0.85;
+}
+#logistics-chat-popup .pd-chat-compose textarea {
+    min-height: 40px;
+    border-color: #cfc4d6;
+}
+#logistics-chat-popup .pd-chat-compose textarea:focus {
+    outline: 2px solid #574362;
+    border-color: transparent;
+}
+#logistics-chat-popup .pd-chat-compose button {
+    background: #574362;
+}
+@media (max-width: 640px) {
+    #logistics-chat-popup {
+        right: 16px;
+        bottom: 16px;
+        width: calc(100vw - 32px);
+    }
+}

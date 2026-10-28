@@ -23,7 +23,7 @@
     $next = collect(['receive', 'sort', 'assign'])->first(fn ($key) => $key !== $tab && $counts[$key] > 0); // for the empty state
     $bulk = [
         'receive' => [$counts['receive'], 'logistics.parcels.receive-all', '✓ Receive all', 'Mark all :n waiting parcel(s) as received?'],
-        'sort'    => [$counts['sort'], 'logistics.sorting.sort-suggested', 'Sort all to suggested areas', 'Sort the parcels whose address matches an area?'],
+        'sort'    => [$sortSuggestable, 'logistics.sorting.sort-suggested', 'Sort all to suggested areas', 'Sort :n parcel(s) into the areas found in their addresses?'],
         'assign'  => [$riders ? $counts['assign'] : 0, 'logistics.assignments.auto-assign', 'Assign best riders to all', 'Assign the best-matching rider to all :n waiting parcel(s)?'],
     ][$tab] ?? null;
 @endphp

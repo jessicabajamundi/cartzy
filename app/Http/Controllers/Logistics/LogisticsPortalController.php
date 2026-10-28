@@ -890,10 +890,10 @@ class LogisticsPortalController extends Controller
         }
 
         // What "Process all" would do right now.
-        $autoSortable = $all->whereIn('stage', ['receive', 'sort'])->whereNotNull('suggested_area')->count();
-        $processable = $counts['receive'] + $autoSortable + ($riderModels->isNotEmpty() ? $counts['assign'] : 0);
+        $sortSuggestable = $all->where('stage', 'sort')->whereNotNull('suggested_area')->count();
+        $processable = $counts['receive'] + $sortSuggestable + ($riderModels->isNotEmpty() ? $counts['assign'] : 0);
 
-        return view('logistics.hub', compact('hub', 'tab', 'counts', 'parcels', 'search', 'riders', 'processable'));
+        return view('logistics.hub', compact('hub', 'tab', 'counts', 'parcels', 'search', 'riders', 'processable', 'sortSuggestable'));
     }
 
     /** The old Incoming Parcels / Sorting / Delivery Assignment pages now open the matching Hub Desk tab. */
@@ -1190,13 +1190,8 @@ class LogisticsPortalController extends Controller
     /**
      * 9. Chat / Messaging
      */
-    public function chat(Request $request)
+    public function getContactsList($provider)
     {
-        $hub             = Auth::user();
-        $provider        = $this->provider();
-        $activeContactId = (int) $request->query('contact', 0);
-
-        // Fetch contacts from related sellers, riders, and admin
         $riders = Rider::where('logistics_provider_id', $provider->id)->with('user')->get();
         $contacts = [];
 
@@ -1216,12 +1211,14 @@ class LogisticsPortalController extends Controller
                 $contacts[] = [
                     'id'           => $rider->user->id,
                     'name'         => $rider->user->name . ' (Rider)',
+                    'store_name'   => $rider->user->name,
                     'role'         => 'Rider',
                     'avatar'       => '🛵',
                     'status'       => $rider->is_active ? 'online' : 'offline',
                     'last_message' => $lastMsg ? $lastMsg->message : 'Ready for assignment.',
                     'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : 'Today',
                     'unread'       => $unread,
+                    'last_msg_id'  => $lastMsg?->id ?? 0,
                 ];
             }
         }
@@ -1230,9 +1227,11 @@ class LogisticsPortalController extends Controller
         $sellerUserIds = LogisticsMessage::where('logistics_provider_id', $provider->id)->pluck('contact_user_id')
             ->merge(PickupRequest::where('logistics_provider_id', $provider->id)->with('seller:id,user_id')->get()->pluck('seller.user_id'))
             ->filter()->unique();
-        $sellers = User::where('role', 'seller')->whereIn('id', $sellerUserIds)->with('seller:id,user_id,name')->get()
-            ->sortByDesc(fn ($sUser) => LogisticsMessage::where('logistics_provider_id', $provider->id)->where('contact_user_id', $sUser->id)->max('id') ?? 0);
-        foreach ($sellers as $sUser) {
+
+        $allSellerUsers = User::where('role', 'seller')->with('seller:id,user_id,name')->get();
+        $mergedSellerUsers = $allSellerUsers->filter(fn ($sUser) => $sellerUserIds->contains($sUser->id) || $allSellerUsers->count() <= 20);
+
+        foreach ($mergedSellerUsers as $sUser) {
             $lastMsg = LogisticsMessage::where('logistics_provider_id', $provider->id)
                 ->where('contact_user_id', $sUser->id)
                 ->latest()
@@ -1244,15 +1243,19 @@ class LogisticsPortalController extends Controller
                 ->whereNull('read_at')
                 ->count();
 
+            $storeName = $sUser->seller?->name ?: $sUser->business_name ?: $sUser->name;
+
             $contacts[] = [
                 'id'           => $sUser->id,
-                'name'         => ($sUser->seller?->name ?: $sUser->business_name ?: $sUser->name) . ' (Seller)',
+                'name'         => $storeName . ' (Seller)',
+                'store_name'   => $storeName,
                 'role'         => 'Seller',
                 'avatar'       => '🏬',
                 'status'       => 'online',
                 'last_message' => $lastMsg ? $lastMsg->message : 'Inquiring regarding parcel pickup.',
                 'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : 'Today',
                 'unread'       => $unread,
+                'last_msg_id'  => $lastMsg?->id ?? 0,
             ];
         }
 
@@ -1267,12 +1270,14 @@ class LogisticsPortalController extends Controller
             $contacts[] = [
                 'id'           => $admin->id,
                 'name'         => 'Admin – cartzy Platform',
+                'store_name'   => 'cartzy Admin Support',
                 'role'         => 'Admin',
                 'avatar'       => '⚙️',
                 'status'       => 'online',
                 'last_message' => $lastMsg ? $lastMsg->message : 'Please ensure sorting compliance.',
                 'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : 'Today',
                 'unread'       => 0,
+                'last_msg_id'  => $lastMsg?->id ?? 0,
             ];
         }
 
@@ -1281,15 +1286,34 @@ class LogisticsPortalController extends Controller
                 [
                     'id'           => 1,
                     'name'         => 'Maria Santos (TechZone Store)',
+                    'store_name'   => 'TechZone Store',
                     'role'         => 'Seller',
                     'avatar'       => '🏬',
                     'status'       => 'online',
                     'last_message' => 'When will the rider pick up our parcels?',
                     'time'         => '10:42 AM',
                     'unread'       => 1,
+                    'last_msg_id'  => 0,
                 ],
             ];
         }
+
+        usort($contacts, function ($a, $b) {
+            if ($a['unread'] !== $b['unread']) {
+                return $b['unread'] <=> $a['unread'];
+            }
+            return ($b['last_msg_id'] ?? 0) <=> ($a['last_msg_id'] ?? 0);
+        });
+
+        return $contacts;
+    }
+
+    public function chat(Request $request)
+    {
+        $hub             = Auth::user();
+        $provider        = $this->provider();
+        $activeContactId = (int) $request->query('contact', 0);
+        $contacts        = $this->getContactsList($provider);
 
         $currentContact = collect($contacts)->firstWhere('id', $activeContactId) ?? $contacts[0];
 
@@ -1332,17 +1356,126 @@ class LogisticsPortalController extends Controller
         return view('logistics.chat', compact('hub', 'contacts', 'currentContact', 'messages'));
     }
 
+    public function popupConversations(Request $request)
+    {
+        $provider = $this->provider();
+        $contacts = $this->getContactsList($provider);
+
+        $conversations = array_map(function ($c) {
+            $storeName = $c['store_name'] ?? $c['name'];
+            $subtitle = $c['role'] === 'Seller' 
+                ? 'About: Store Pickups & Orders' 
+                : ($c['role'] === 'Rider' ? 'About: Delivery Assignments' : 'About: Platform Support');
+
+            return [
+                'id'         => $c['id'],
+                'name'       => $storeName,
+                'subtitle'   => $subtitle,
+                'preview'    => $c['last_message'],
+                'time'       => $c['time'],
+                'unread'     => $c['unread'],
+                'avatar'     => $c['avatar'] ?? '💬',
+                'thread_url' => route('logistics.popup.messages', $c['id']),
+            ];
+        }, $contacts);
+
+        $unreadTotal = LogisticsMessage::where('logistics_provider_id', $provider->id)
+            ->where('sender_type', 'contact')
+            ->whereNull('read_at')
+            ->count();
+
+        return response()->json([
+            'conversations' => $conversations,
+            'unread_total'  => $unreadTotal,
+        ]);
+    }
+
+    public function popupMessages(Request $request, $contactId)
+    {
+        $provider = $this->provider();
+        $contactUser = User::find($contactId);
+
+        if (!$contactUser) {
+            return response()->json(['error' => 'Contact not found'], 404);
+        }
+
+        // Mark incoming messages as read
+        LogisticsMessage::where('logistics_provider_id', $provider->id)
+            ->where('contact_user_id', $contactId)
+            ->where('sender_type', 'contact')
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        $dbMessages = LogisticsMessage::where('logistics_provider_id', $provider->id)
+            ->where('contact_user_id', $contactId)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $messages = $dbMessages->map(function ($m) {
+            return [
+                'id'     => $m->id,
+                'mine'   => $m->sender_type === 'hub',
+                'body'   => $m->message,
+                'time'   => $m->created_at->format('h:i A'),
+                'status' => $m->sender_type === 'hub' ? ($m->read_at ? 'seen' : 'sent') : 'delivered',
+            ];
+        })->toArray();
+
+        $storeName = $contactUser->seller?->name ?: $contactUser->business_name ?: $contactUser->name;
+        $subtitle = $contactUser->role === 'seller' 
+            ? 'About: Store Pickups & Orders' 
+            : ($contactUser->role === 'rider' ? 'About: Delivery Assignments' : 'About: Platform Support');
+
+        $emptyText = $contactUser->role === 'seller'
+            ? 'Say hello! Ask the seller about sizes, stock, or shipping.'
+            : 'Say hello! Keep pickups, deliveries, and updates in one place.';
+
+        $inputPlaceholder = $contactUser->role === 'seller'
+            ? 'Ask about this product...'
+            : 'Write a message…';
+
+        $unreadTotal = LogisticsMessage::where('logistics_provider_id', $provider->id)
+            ->where('sender_type', 'contact')
+            ->whereNull('read_at')
+            ->count();
+
+        return response()->json([
+            'title'             => $storeName,
+            'subtitle'          => $subtitle,
+            'empty_text'        => $emptyText,
+            'input_placeholder' => $inputPlaceholder,
+            'send_url'          => route('logistics.chat.send', $contactId),
+            'inbox_url'         => route('logistics.chat', ['contact' => $contactId]),
+            'messages'          => $messages,
+            'unread_total'      => $unreadTotal,
+        ]);
+    }
+
     public function sendMessage(Request $request, $contactId)
     {
         $provider = $this->provider();
         $text     = trim((string) $request->input('message'));
 
+        $msg = null;
         if ($text) {
-            LogisticsMessage::create([
+            $msg = LogisticsMessage::create([
                 'logistics_provider_id' => $provider->id,
                 'contact_user_id'       => $contactId,
                 'sender_type'           => 'hub',
                 'message'               => $text,
+            ]);
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => [
+                    'id'     => $msg?->id,
+                    'mine'   => true,
+                    'body'   => $text,
+                    'time'   => $msg ? $msg->created_at->format('h:i A') : now()->format('h:i A'),
+                    'status' => 'sent',
+                ]
             ]);
         }
 

@@ -39,6 +39,7 @@
         #logistics-sidebar.is-collapsed .sidebar-section-divider { height:1px; background:#F6F4F8; margin:0.6rem auto !important; width:1.75rem !important; padding:0 !important; }
     </style>
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/logistics.css') }}?v={{ filemtime(public_path('css/logistics.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/logistics-workspace.css') }}?v={{ filemtime(public_path('css/logistics-workspace.css')) }}">
     @if(request()->routeIs('logistics.dashboard'))
@@ -338,28 +339,55 @@
                 ->whereNull('read_at')
                 ->count()
             : 0;
-        $isChatPage = request()->routeIs('logistics.chat*');
     @endphp
     <div class="logistics-chat-bubble-form" id="logistics-chat-bubble">
-        <a class="chat-bubble" 
-           href="{{ $isChatPage ? '#chatMessages' : route('logistics.chat') }}" 
-           onclick="{{ $isChatPage ? 'event.preventDefault(); document.getElementById(\'hub-chat-message\')?.focus(); document.getElementById(\'chatMessages\')?.scrollTo({top: 999999, behavior: \'smooth\'});' : '' }}"
-           title="Chat / Messaging" 
+        <button type="button" 
+           class="chat-bubble" 
+           id="logistics-chat-bubble-btn"
+           title="Click to chat here, double-click to open Messages" 
+           aria-controls="logistics-chat-popup" 
+           aria-expanded="false" 
            aria-label="Open Chat / Messaging">
             <span class="chat-bubble-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                 </svg>
-                @if($unreadMessagesCount > 0)
-                    <span class="chat-bubble-badge" aria-label="{{ $unreadMessagesCount }} unread messages">
-                        {{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}
-                    </span>
-                @endif
+                <span class="chat-bubble-badge" id="logistics-chat-bubble-badge" aria-label="{{ $unreadMessagesCount }} unread messages" {{ $unreadMessagesCount > 0 ? '' : 'hidden' }}>
+                    {{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}
+                </span>
             </span>
             <span>Chat</span>
-        </a>
+        </button>
     </div>
 
+    {{-- Floating Chat Popup Widget (Matching Screenshot UI) --}}
+    <section class="pd-chat cw" id="logistics-chat-popup" role="dialog" aria-labelledby="logistics-chat-title" 
+             data-conversations-url="{{ route('logistics.popup.conversations') }}" 
+             data-inbox-url="{{ route('logistics.chat') }}" 
+             data-title="Cartzy Logistics Chat" 
+             data-subtitle="Pickups, deliveries, and rider updates" 
+             data-empty-text="Say hello! Ask the seller about sizes, stock, or shipping." hidden>
+        <header class="pd-chat-head">
+            <button class="pd-chat-icon" type="button" id="logistics-chat-back" aria-label="Back to conversations" title="Back" hidden>&larr;</button>
+            <div>
+                <strong id="logistics-chat-title">Cartzy Logistics Chat</strong>
+                <small id="logistics-chat-subtitle">Pickups, deliveries, and rider updates</small>
+            </div>
+            <a class="pd-chat-icon" id="logistics-chat-expand" href="{{ route('logistics.chat') }}" aria-label="Open full chat page" title="Open full chat">&#x2197;</a>
+            <button class="pd-chat-icon pd-chat-minimize" type="button" id="logistics-chat-minimize" aria-label="Minimize to bubble" title="Minimize">&minus;</button>
+            <button class="pd-chat-icon" type="button" id="logistics-chat-close" aria-label="Close chat" title="Close">&times;</button>
+        </header>
+        <div class="cw-list" id="logistics-chat-list" aria-live="polite"></div>
+        <div class="pd-chat-messages" id="logistics-chat-messages" aria-live="polite" hidden></div>
+        <form class="pd-chat-compose" id="logistics-chat-compose" hidden>
+            <label class="pd-chat-sr" for="logistics-chat-input">Message</label>
+            <textarea id="logistics-chat-input" name="message" rows="1" maxlength="5000" placeholder="Ask about this product…" required></textarea>
+            <button type="submit" aria-label="Send message">@include('seller.partials.icon', ['name' => 'send', 'size' => 18])</button>
+        </form>
+        <p class="pd-chat-error" id="logistics-chat-error" role="alert" hidden></p>
+    </section>
+
+    <script src="{{ asset('js/logistics-chat-popup.js') }}?v={{ filemtime(public_path('js/logistics-chat-popup.js')) }}" defer></script>
     @stack('scripts')
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
