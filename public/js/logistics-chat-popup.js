@@ -2,7 +2,6 @@
     function init() {
         const bubbleWrap = document.getElementById('logistics-chat-bubble-wrap') || document.querySelector('.logistics-chat-bubble-form');
         const bubbleBtn = document.getElementById('logistics-chat-bubble-btn') || bubbleWrap?.querySelector('.chat-bubble');
-        const bubbleCancelBtn = document.getElementById('logistics-bubble-cancel-btn') || bubbleWrap?.querySelector('.logistics-bubble-cancel-btn');
         const badge = document.getElementById('logistics-chat-bubble-badge') || bubbleWrap?.querySelector('.chat-bubble-badge');
         const launchers = document.querySelectorAll('[data-chat-launch="logistics-chat"], #logistics-sidebar-chat-launch');
 
@@ -459,15 +458,6 @@
                 bubbleClickTimer = setTimeout(() => {
                     if (popup.hidden) openPopup(); else showBubbleOnly();
                 }, 180);
-            });
-        }
-
-        // Floating side bubble cancel "X" button (completely cancels and hides the side bubble)
-        if (bubbleCancelBtn) {
-            bubbleCancelBtn.addEventListener('click', event => {
-                event.preventDefault();
-                event.stopPropagation();
-                hideAll();
             });
         }
 
