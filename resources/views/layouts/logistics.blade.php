@@ -330,32 +330,35 @@
         }
     </script>
     {{-- Floating Message Bubble (like in Buyer Account) --}}
-    @unless(request()->routeIs('logistics.chat*'))
-        @php
-            $currentHubProvider = Auth::user()?->logisticsProvider;
-            $unreadMessagesCount = $currentHubProvider
-                ? \App\Models\LogisticsMessage::where('logistics_provider_id', $currentHubProvider->id)
-                    ->where('sender_type', '!=', 'hub')
-                    ->whereNull('read_at')
-                    ->count()
-                : 0;
-        @endphp
-        <div class="logistics-chat-bubble-form" id="logistics-chat-bubble">
-            <a class="chat-bubble" href="{{ route('logistics.chat') }}" title="Open Chat / Messaging" aria-label="Open Chat / Messaging">
-                <span class="chat-bubble-icon">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                    </svg>
-                    @if($unreadMessagesCount > 0)
-                        <span class="chat-bubble-badge" aria-label="{{ $unreadMessagesCount }} unread messages">
-                            {{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}
-                        </span>
-                    @endif
-                </span>
-                <span>Chat</span>
-            </a>
-        </div>
-    @endunless
+    @php
+        $currentHubProvider = Auth::user()?->logisticsProvider;
+        $unreadMessagesCount = $currentHubProvider
+            ? \App\Models\LogisticsMessage::where('logistics_provider_id', $currentHubProvider->id)
+                ->where('sender_type', '!=', 'hub')
+                ->whereNull('read_at')
+                ->count()
+            : 0;
+        $isChatPage = request()->routeIs('logistics.chat*');
+    @endphp
+    <div class="logistics-chat-bubble-form" id="logistics-chat-bubble">
+        <a class="chat-bubble" 
+           href="{{ $isChatPage ? '#chatMessages' : route('logistics.chat') }}" 
+           onclick="{{ $isChatPage ? 'event.preventDefault(); document.getElementById(\'hub-chat-message\')?.focus(); document.getElementById(\'chatMessages\')?.scrollTo({top: 999999, behavior: \'smooth\'});' : '' }}"
+           title="Chat / Messaging" 
+           aria-label="Open Chat / Messaging">
+            <span class="chat-bubble-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                @if($unreadMessagesCount > 0)
+                    <span class="chat-bubble-badge" aria-label="{{ $unreadMessagesCount }} unread messages">
+                        {{ $unreadMessagesCount > 99 ? '99+' : $unreadMessagesCount }}
+                    </span>
+                @endif
+            </span>
+            <span>Chat</span>
+        </a>
+    </div>
 
     @stack('scripts')
     @include('partials.prevent-back-cache')
