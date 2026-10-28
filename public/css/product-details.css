@@ -290,3 +290,14 @@ html.pd-viewer-open { overflow: hidden; }
 .pd-shipping-fee strong { color: #302738; }
 .pd-shipping-fee a { color: #964c65; font-weight: 700; }
 .pd-shipping-free { color: #28735d !important; font-size: 12.5px !important; font-weight: 700; }
+
+/* Wishlist heart between the quantity control and Add to cart; filled once the selected variant is saved. */
+.pd-wishlist { display: inline-grid; place-items: center; flex: none; width: 48px; height: 48px; padding: 0; border: 1px solid #ddd5e3; border-radius: 12px; color: #574362; background: #fff; box-shadow: 0 2px 6px #564b6806; cursor: pointer; transition: color .18s, background .18s, border-color .18s, transform .18s; }
+.pd-wishlist:hover:not(:disabled) { border-color: #b9a8c6; background: #f8f5fa; }
+.pd-wishlist:focus-visible { outline: 3px solid #9b667e; outline-offset: 2px; }
+.pd-wishlist[aria-pressed="true"] { color: #b0485f; border-color: #efc9d1; background: #fff5f7; }
+.pd-wishlist[aria-pressed="true"] svg { fill: currentColor; }
+.pd-wishlist:disabled { cursor: wait; opacity: .7; }
+.pd-wishlist.is-popping svg { animation: pd-heart-pop .3s ease-out; }
+@keyframes pd-heart-pop { 50% { transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .pd-wishlist.is-popping svg { animation: none; } }

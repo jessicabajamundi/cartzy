@@ -83,7 +83,12 @@ class ProductController extends Controller
         $shippingFromMinor = \App\Services\ShippingCalculator::lowestFeeMinor();
         $storeFreeShippingMin = \App\Services\VoucherService::sellerFreeShippingMinSpends()[$product->seller_id] ?? null;
 
-        return view('product', compact('shopVouchers', 'shippingEstimate', 'shippingFromMinor', 'storeFreeShippingMin', 'product', 'variants', 'photos', 'selected', 'comments', 'reviews', 'rating', 'starCounts', 'soldCount', 'reactions', 'canComment'));
+        // Wishlist heart beside Add to cart: guests are sent to log in, buyers toggle the selected variant.
+        $viewer = auth()->user();
+        $canWishlist = !$viewer || $viewer->isBuyer();
+        $wishlistRefs = $viewer?->isBuyer() ? \App\Models\Wishlist::where('user_id', $viewer->id)->pluck('ref')->all() : [];
+
+        return view('product', compact('canWishlist', 'wishlistRefs', 'shopVouchers', 'shippingEstimate', 'shippingFromMinor', 'storeFreeShippingMin', 'product', 'variants', 'photos', 'selected', 'comments', 'reviews', 'rating', 'starCounts', 'soldCount', 'reactions', 'canComment'));
     }
 
     /**

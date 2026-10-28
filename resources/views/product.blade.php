@@ -160,6 +160,11 @@
                             <button type="button" data-quantity-step="1" aria-label="Increase quantity" aria-controls="pd-quantity" @disabled($selected['stock'] <= 1)>+</button>
                         </div>
                     </div>
+                    @if($canWishlist)
+                        <button type="button" class="pd-wishlist" id="pd-wishlist" data-url="{{ route('wishlist.toggle', [], false) }}" data-login-url="{{ route('login', [], false) }}" data-authenticated="{{ auth()->check() ? 'true' : 'false' }}" data-refs="{{ json_encode($wishlistRefs) }}" data-name="{{ $product->name }}" aria-pressed="{{ in_array('variant_'.$selected['id'], $wishlistRefs, true) ? 'true' : 'false' }}" aria-label="Add to wishlist" title="Save to wishlist">
+                            <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+                        </button>
+                    @endif
                     <button class="pd-button" id="pd-add" type="submit" @disabled($selected['stock'] < 1)>{{ $selected['stock'] > 0 ? 'Add to cart' : 'Sold out' }}</button>
                 </div>
                 @if(auth()->check() && !auth()->user()->isBuyer())

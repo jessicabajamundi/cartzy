@@ -396,3 +396,61 @@
         textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     });
 })();
+
+// Wishlist heart beside Add to cart: saves or removes the currently selected variant
+// (same "variant_<id>" refs as the store and sale pages) without leaving the page.
+(() => {
+    const heart = document.getElementById('pd-wishlist');
+    const form = document.getElementById('pd-cart-form');
+    if (!heart || !form) return;
+    const variantInput = document.getElementById('pd-variant-input');
+    const refs = new Set(JSON.parse(heart.dataset.refs || '[]'));
+    const currentRef = () => 'variant_' + variantInput.value;
+
+    const sync = () => {
+        const saved = refs.has(currentRef());
+        heart.setAttribute('aria-pressed', String(saved));
+        heart.setAttribute('aria-label', saved ? 'Remove from wishlist' : 'Add to wishlist');
+        heart.title = saved ? 'Remove from wishlist' : 'Save to wishlist';
+    };
+    sync();
+    // Color/size chips switch the variant; refresh once product-details has applied the pick.
+    form.addEventListener('click', event => {
+        if (event.target.closest('[data-pick]')) setTimeout(sync);
+    });
+
+    heart.addEventListener('click', async () => {
+        if (heart.dataset.authenticated !== 'true') return window.location.assign(heart.dataset.loginUrl);
+        const ref = currentRef();
+        heart.disabled = true;
+        try {
+            const response = await fetch(heart.dataset.url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value },
+                body: JSON.stringify({
+                    ref,
+                    name: heart.dataset.name,
+                    price: document.getElementById('pd-price-input').value,
+                    image: document.getElementById('pd-main-image')?.getAttribute('src') || '',
+                    variation: document.getElementById('pd-selected-name')?.textContent.trim() || '',
+                }),
+            });
+            if (response.status === 401) return window.location.assign(heart.dataset.loginUrl);
+            if (response.status === 419) throw new Error('Your session has expired. Refresh the page and try again.');
+            const result = response.ok ? await response.json() : null;
+            if (!result?.success) throw new Error('Could not update your wishlist. Please try again.');
+            if (result.wished) refs.add(ref); else refs.delete(ref);
+            sync();
+            heart.classList.remove('is-popping');
+            void heart.offsetWidth; // restart the pop animation
+            if (result.wished) heart.classList.add('is-popping');
+            window.updateBuyerNavCount?.('wishlist', result.count);
+            window.showToast?.(result.wished ? 'Saved to your wishlist.' : 'Removed from your wishlist.', 'success');
+        } catch (error) {
+            window.showToast?.(error.message, 'error');
+        } finally {
+            heart.disabled = false;
+        }
+    });
+})();
