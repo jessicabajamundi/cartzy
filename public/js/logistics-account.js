@@ -94,18 +94,85 @@
     const birthday = document.getElementById('logistics-birthday');
     const age = document.getElementById('logistics-age');
     if (!birthday || !age) return;
+
+    let inlineError = document.getElementById('account-error-birthday');
+    if (!inlineError) {
+        inlineError = document.createElement('span');
+        inlineError.className = 'account-field-error';
+        inlineError.id = 'account-error-birthday';
+        inlineError.style.display = 'none';
+        inlineError.style.color = '#dc2626';
+        inlineError.style.fontWeight = '600';
+        inlineError.style.fontSize = '12px';
+        inlineError.style.marginTop = '4px';
+        birthday.closest('label').append(inlineError);
+    }
+
     const updateAge = () => {
-        const birth = new Date(`${birthday.value}T00:00:00`);
-        const today = new Date();
-        if (!birthday.value || Number.isNaN(birth.getTime()) || birth > today) {
+        const val = birthday.value;
+        if (!val) {
             age.value = '';
+            birthday.setCustomValidity('');
+            birthday.removeAttribute('aria-invalid');
+            inlineError.style.display = 'none';
+            inlineError.textContent = '';
             return;
         }
+
+        const birth = new Date(`${val}T00:00:00`);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (Number.isNaN(birth.getTime()) || birth > today) {
+            age.value = '';
+            birthday.setCustomValidity('Please enter a valid birthday.');
+            birthday.setAttribute('aria-invalid', 'true');
+            inlineError.textContent = 'Please enter a valid birthday.';
+            inlineError.style.display = 'block';
+            return;
+        }
+
         let years = today.getFullYear() - birth.getFullYear();
         if (today.getMonth() < birth.getMonth() ||
-            (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) years--;
-        age.value = years;
+            (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) {
+            years--;
+        }
+
+        if (years < 18) {
+            age.value = years >= 0 ? `${years} years old (under 18)` : '';
+            birthday.setCustomValidity('You must be at least 18 years old.');
+            birthday.setAttribute('aria-invalid', 'true');
+            inlineError.textContent = 'You must be at least 18 years old to manage this account.';
+            inlineError.style.display = 'block';
+        } else {
+            age.value = `${years} years old`;
+            birthday.setCustomValidity('');
+            birthday.removeAttribute('aria-invalid');
+            inlineError.style.display = 'none';
+            inlineError.textContent = '';
+        }
     };
+
     birthday.addEventListener('input', updateAge);
+    birthday.addEventListener('change', updateAge);
+    birthday.addEventListener('blur', updateAge);
     updateAge();
+
+    form.addEventListener('submit', (e) => {
+        updateAge();
+        if (birthday.checkValidity && !birthday.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            birthday.reportValidity();
+            dirty = false;
+            const button = form.querySelector('[type="submit"]');
+            if (button) {
+                button.disabled = false;
+                button.textContent = 'Save changes';
+            }
+            status.textContent = 'Please fix the errors before saving.';
+            birthday.focus();
+            return false;
+        }
+    }, true);
 })();

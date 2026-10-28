@@ -61,7 +61,8 @@
                             <small id="telephone-help">10 digits with area code, e.g. 0281234567. Must be unique.</small>
                         </label>
                         <label>Birthday *
-                            <input type="date" id="logistics-birthday" name="birthday" value="{{ old('birthday', $hub->birthday) }}" max="{{ now()->toDateString() }}" required>
+                            <input type="date" id="logistics-birthday" name="birthday" value="{{ old('birthday', $hub->birthday) }}" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" required aria-describedby="birthday-help">
+                            <small id="birthday-help">You must be at least 18 years old.</small>
                         </label>
                         <label>Age (automatically calculated)
                             <input type="text" id="logistics-age" value="{{ $hub->birthday ? (int) \Illuminate\Support\Carbon::parse($hub->birthday)->age : '' }}" readonly>

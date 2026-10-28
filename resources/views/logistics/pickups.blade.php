@@ -11,7 +11,11 @@
             <h2>Pickup requests &amp; rider dispatch</h2>
             <p>Smart area matching automatically suggests the closest available rider for each seller pickup.</p>
         </div>
-        <span class="pickup-heading-icon">@include('seller.partials.icon', ['name' => 'truck', 'size' => 28])</span>
+        @if($counts['dispatchable'] > 0)
+            <form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" onsubmit="if (!confirm('Dispatch the nearest active rider to {{ $counts['dispatchable'] }} waiting pickup(s)?')) return false; this.querySelector('button').disabled = true;">@csrf<button type="submit" class="btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
+        @else
+            <span class="pickup-heading-icon">@include('seller.partials.icon', ['name' => 'truck', 'size' => 28])</span>
+        @endif
     </header>
 
     {{-- Overview Metrics Cards --}}

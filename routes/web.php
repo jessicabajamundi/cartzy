@@ -347,22 +347,29 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
 
     // 3. Parcel Pickup Requests (confirm/approve/verify from seller & dispatch rider)
     Route::get('/pickups', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'pickups'])->name('pickups');
-    Route::post('/pickups/{id}/confirm', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'confirmPickup'])->name('pickups.confirm');
+    Route::post('/pickups/dispatch-all', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dispatchAllPickups'])->name('pickups.dispatch-all');
+    Route::post('/pickups/{id}/confirm',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'confirmPickup'])->name('pickups.confirm');
     Route::post('/pickups/{id}/assign-rider', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignPickupRider'])->name('pickups.assign');
     Route::post('/pickups/{id}/auto-assign', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'autoAssignPickupRider'])->name('pickups.auto-assign');
     Route::post('/pickups/{id}/unassign-rider', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'unassignPickupRider'])->name('pickups.unassign');
 
     // 4. Incoming Parcels Management
     Route::get('/parcels', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'parcels'])->name('parcels');
-    Route::post('/parcels/{id}/receive', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');
+    // Hub Desk: receive, sort and assign on one page (the old pages below redirect to its tabs)
+    Route::get('/hub-desk', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'hub'])->name('hub');
+    Route::post('/hub-desk/process-all', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'processAll'])->name('hub.process-all');
+    Route::post('/parcels/receive-all',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveAllParcels'])->name('parcels.receive-all');
+    Route::post('/parcels/{id}/receive',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');
 
     // 5. Sorting of Parcels
     Route::get('/sorting', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sorting'])->name('sorting');
-    Route::post('/sorting/{id}/sort', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sortParcel'])->name('sorting.sort');
+    Route::post('/sorting/sort-suggested', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sortAllSuggested'])->name('sorting.sort-suggested');
+    Route::post('/sorting/{id}/sort',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sortParcel'])->name('sorting.sort');
 
     // 6. Delivery Assignment (per area and per rider)
     Route::get('/assignments', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignments'])->name('assignments');
-    Route::post('/assignments/{id}/assign', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignDelivery'])->name('assignments.assign');
+    Route::post('/assignments/auto-assign', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'autoAssignDeliveries'])->name('assignments.auto-assign');
+    Route::post('/assignments/{id}/assign',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignDelivery'])->name('assignments.assign');
 
     // 7. Delivery Monitoring
     Route::get('/monitoring', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'monitoring'])->name('monitoring');

@@ -319,3 +319,9 @@
     text-decoration: underline;
     color: #7A3931;
 }
+
+/* Bulk actions in the parcel-operation page headings ("Receive all", "Assign best riders to all", ...). */
+.logistics-content .ops-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:10px; }
+.logistics-content .ops-bulk { display:inline-flex; margin:0; }
+.logistics-content .ops-bulk button:disabled { opacity:.65; cursor:wait; }
+@media (max-width:640px) { .logistics-content .ops-actions { justify-content:flex-start; width:100%; } }

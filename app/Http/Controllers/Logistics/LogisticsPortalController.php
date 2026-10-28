@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class LogisticsPortalController extends Controller
 {
@@ -451,6 +452,8 @@ class LogisticsPortalController extends Controller
             'confirmed'  => (clone $base)->where('status', 'confirmed')->count(),
             'assigned'   => (clone $base)->whereNotNull('rider_id')->count(),
             'unassigned' => (clone $base)->whereNull('rider_id')->count(),
+            // What "Dispatch all" will act on: open pickups without a rider.
+            'dispatchable' => (clone $base)->whereNull('rider_id')->whereIn('status', ['pending', 'confirmed'])->count(),
         ];
 
         // Retrieve active approved riders for area matching & assignment
@@ -667,7 +670,42 @@ class LogisticsPortalController extends Controller
 
         $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''));
         $best   = $ranked->first()['rider'];
+        $this->dispatchPickup($pickup, $best);
 
+        return back()->with('success', "⚡ Nearest rider {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
+    }
+
+    /** Dispatch the nearest active rider to every pickup that doesn't have one yet. */
+    public function dispatchAllPickups(Request $request)
+    {
+        $provider = $this->provider();
+        $riders = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        if ($riders->isEmpty()) {
+            return back()->with('error', 'No active riders available in hub. Please activate an approved rider first.');
+        }
+        $waiting = PickupRequest::where('logistics_provider_id', $provider->id)->whereNull('rider_id')
+            ->whereIn('status', ['pending', 'confirmed'])->with('seller.user')->get();
+        if ($waiting->isEmpty()) {
+            return back()->with('success', 'Every pickup request already has a rider.');
+        }
+
+        $load = [];
+        DB::transaction(function () use ($waiting, $riders, &$load) {
+            foreach ($waiting as $pickup) {
+                $best = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''))
+                    ->map(fn ($r) => $r + ['adjusted' => $r['score'] - 8 * ($load[$r['rider']->id] ?? 0)])
+                    ->sortByDesc('adjusted')->first()['rider'];
+                $load[$best->id] = ($load[$best->id] ?? 0) + 1;
+                $this->dispatchPickup($pickup, $best);
+            }
+        });
+
+        return back()->with('success', "⚡ {$waiting->count()} ".Str::plural('pickup', $waiting->count())." dispatched to the nearest riders.");
+    }
+
+    /** Assign a rider to a pickup, log it on the shipment and notify the rider. */
+    private function dispatchPickup(PickupRequest $pickup, Rider $best): void
+    {
         $pickup->rider_id     = $best->id;
         $pickup->status       = 'confirmed';
         $pickup->confirmed_at = $pickup->confirmed_at ?? now();
@@ -698,8 +736,6 @@ class LogisticsPortalController extends Controller
                 'is_read' => false,
             ]);
         }
-
-        return back()->with('success', "⚡ Nearest rider {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
     }
 
     public function unassignPickupRider(Request $request, $id)
@@ -808,36 +844,72 @@ class LogisticsPortalController extends Controller
     }
 
     /**
-     * 4. Incoming Parcels Management
+     * 4-6. Hub Desk: receiving, sorting and delivery assignment on one page, as tabs.
+     * A parcel moves receive -> sort -> assign; parcels whose address names a delivery area
+     * skip the sort step (auto-sorted on receipt).
      */
-    public function parcels(Request $request)
+    public const HUB_TABS = ['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
+
+    public function hub(Request $request)
     {
         $hub      = Auth::user();
         $provider = $this->provider();
-        $filter   = $request->query('status', 'all');
+        $search   = trim((string) $request->query('q', ''));
 
-        $filter = in_array($filter, ['all', 'pending_receipt', 'received', 'at_hub'], true) ? $filter : 'all';
-        $search = trim((string) $request->query('search', ''));
-        $allParcels = collect($this->fetchFormattedParcels($provider));
-        $counts = [
-            'all' => $allParcels->count(),
-            'pending_receipt' => $allParcels->where('status', 'pending_receipt')->count(),
-            'received' => $allParcels->where('status', 'received')->count(),
-            'at_hub' => $allParcels->where('status', 'received')->where('delivery_status', 'at_hub')->count(),
-        ];
-        $filtered = $allParcels->filter(function ($parcel) use ($filter, $search) {
-            $matchesStatus = $filter === 'all' || ($filter === 'at_hub'
-                ? $parcel['status'] === 'received' && $parcel['delivery_status'] === 'at_hub'
-                : $parcel['status'] === $filter);
-            $haystack = implode(' ', [$parcel['tracking_code'], $parcel['seller_name'], $parcel['recipient_name'], $parcel['recipient_address']]);
-            return $matchesStatus && ($search === '' || mb_stripos($haystack, $search) !== false);
-        })->sortBy(fn ($parcel) => $parcel['status'] === 'pending_receipt' ? 0 : 1)->values();
+        $stageOf = function (array $p): ?string {
+            if ($p['status'] === 'pending_receipt') return 'receive';
+            if ($p['sort_status'] === 'unsorted') return 'sort';
+            if ($p['sort_status'] === 'sorted' && !$p['assigned_rider_id']) return 'assign';
+            if ($p['delivery_status'] === 'at_hub') return 'assigned'; // assigned, not yet picked up by the rider
+            return null;                                               // out for delivery or finished: see Monitoring
+        };
+        $all = collect($this->fetchFormattedParcels($provider))->map(fn ($p) => $p + ['stage' => $stageOf($p)]);
+        $counts = collect(self::HUB_TABS)->map(fn ($label, $key) => $all->where('stage', $key)->count())->all();
+
+        $tab = $request->query('tab');
+        if (!array_key_exists((string) $tab, self::HUB_TABS)) {
+            // Open on the first step that has work waiting.
+            $tab = collect(['receive', 'sort', 'assign'])->first(fn ($key) => $counts[$key] > 0) ?? 'assigned';
+        }
+
+        $filtered = $all->where('stage', $tab)->filter(fn ($p) => $search === '' || mb_stripos(
+            implode(' ', [$p['tracking_code'], $p['seller_name'], $p['recipient_name'], $p['recipient_address'], $p['delivery_area'], $p['assigned_rider_name']]), $search
+        ) !== false)->values();
         $page = max(1, (int) $request->query('page', 1));
-        $parcels = new \Illuminate\Pagination\LengthAwarePaginator($filtered->forPage($page, 15)->values(), $filtered->count(), 15, $page, [
+        $parcels = new \Illuminate\Pagination\LengthAwarePaginator($filtered->forPage($page, 20)->values(), $filtered->count(), 20, $page, [
             'path' => $request->url(), 'query' => $request->query(),
         ]);
 
-        return view('logistics.parcels', compact('hub', 'parcels', 'filter', 'search', 'counts'));
+        $riderModels = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        $riders = $riderModels->map(fn ($r) => ['id' => $r->id, 'name' => $r->user->name ?? 'Rider', 'area' => $r->area ?: 'General Area'])->all();
+        if ($tab === 'assign' && $riderModels->isNotEmpty()) {
+            // Pre-select the best rider so assigning one parcel is a single click.
+            $parcels->setCollection($parcels->getCollection()->map(fn ($p) => $p + [
+                'suggested_rider_id' => $this->bestDeliveryRider($riderModels, (string) $p['delivery_area'], $p['recipient_address'])?->id,
+            ]));
+        }
+
+        // What "Process all" would do right now.
+        $autoSortable = $all->whereIn('stage', ['receive', 'sort'])->whereNotNull('suggested_area')->count();
+        $processable = $counts['receive'] + $autoSortable + ($riderModels->isNotEmpty() ? $counts['assign'] : 0);
+
+        return view('logistics.hub', compact('hub', 'tab', 'counts', 'parcels', 'search', 'riders', 'processable'));
+    }
+
+    /** The old Incoming Parcels / Sorting / Delivery Assignment pages now open the matching Hub Desk tab. */
+    public function parcels(Request $request)
+    {
+        return redirect()->route('logistics.hub', array_filter(['tab' => 'receive', 'q' => $request->query('search')]));
+    }
+
+    public function sorting(Request $request)
+    {
+        return redirect()->route('logistics.hub', array_filter(['tab' => 'sort', 'q' => $request->query('search')]));
+    }
+
+    public function assignments(Request $request)
+    {
+        return redirect()->route('logistics.hub', ['tab' => 'assign']);
     }
 
     public function receiveParcel(Request $request, $id)
@@ -848,59 +920,23 @@ class LogisticsPortalController extends Controller
         if ($shipment->received_at) {
             return back()->with('success', 'This parcel has already been received.');
         }
-        $shipment->received_at = now();
-        if ($shipment->status === 'unassigned') {
-            $shipment->status = 'unassigned';
-        }
-        $shipment->save();
+        $area = $this->receiveShipment($shipment);
 
-        DeliveryEvent::create([
-            'shipment_id' => $shipment->id,
-            'status'      => 'received_at_hub',
-            'attempt'     => 1,
-            'user_id'     => Auth::id(),
-            'note'        => 'Parcel scanned and received at sorting hub.',
-            'occurred_at' => now(),
-        ]);
-
-        return back()->with('success', $shipment->tracking_code . ' received at the hub. Ready for sorting.');
+        return back()->with('success', $area
+            ? "{$shipment->tracking_code} received and auto-sorted to {$area}. It's ready for a rider."
+            : "{$shipment->tracking_code} received. Its address didn't match an area, so choose one in the Sort tab.");
     }
 
-    /**
-     * 5. Sorting of Parcels
-     */
-    public function sorting(Request $request)
+    public function receiveAllParcels(Request $request)
     {
-        $hub      = Auth::user();
-        $provider = $this->provider();
-        $filter   = $request->query('status', 'all');
-
-        $filter = in_array($filter, ['all', 'unsorted', 'sorted', 'assigned'], true) ? $filter : 'all';
-        $search = trim((string) $request->query('search', ''));
-        $all = collect($this->fetchFormattedParcels($provider));
-        $counts = ['all' => $all->count()];
-        foreach (['unsorted', 'sorted', 'assigned'] as $status) {
-            $counts[$status] = $all->where('sort_status', $status)->count();
+        [$received, $sorted] = DB::transaction(fn () => $this->runReceiveAll($this->provider()));
+        if (!$received) {
+            return back()->with('success', 'No parcels are awaiting receipt.');
         }
-        $parcels = $all->filter(function ($parcel) use ($filter, $search) {
-            $text = implode(' ', [$parcel['tracking_code'], $parcel['recipient_name'], $parcel['recipient_address'], $parcel['seller_name']]);
-            return ($filter === 'all' || $parcel['sort_status'] === $filter)
-                && ($search === '' || mb_stripos($text, $search) !== false);
-        })->sortBy(fn ($parcel) => ['unsorted' => 0, 'sorted' => 1, 'assigned' => 2][$parcel['sort_status']] ?? 3)->values()->all();
+        $manual = $received - $sorted;
 
-        $riders = Rider::where('logistics_provider_id', $provider->id)
-            ->where('status', 'approved')
-            ->where('is_active', true)
-            ->with('user')
-            ->get()
-            ->map(fn($r) => [
-                'id'   => $r->id,
-                'name' => $r->user->name ?? 'Rider',
-                'area' => $r->area ?: 'General Area',
-            ])
-            ->toArray();
-
-        return view('logistics.sorting', compact('hub', 'parcels', 'riders', 'filter', 'counts', 'search'));
+        return back()->with('success', "{$received} ".Str::plural('parcel', $received)." received; {$sorted} auto-sorted"
+            .($manual ? ", {$manual} need an area in the Sort tab." : '. All are ready for riders.'));
     }
 
     public function sortParcel(Request $request, $id)
@@ -909,82 +945,122 @@ class LogisticsPortalController extends Controller
         $area = $request->validate(['area' => ['required', 'string', 'max:255']])['area'];
 
         $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
-        $shipment->sort_status   = 'sorted';
-        $shipment->delivery_area = $area;
-        $shipment->sorted_at     = now();
-        $shipment->save();
+        $this->sortShipment($shipment, $area, "Parcel sorted to area: {$area}");
 
-        DeliveryEvent::create([
-            'shipment_id' => $shipment->id,
-            'status'      => 'sorted',
-            'attempt'     => 1,
-            'user_id'     => Auth::id(),
-            'note'        => "Parcel sorted to area: {$area}",
-            'occurred_at' => now(),
-        ]);
-
-        return back()->with('success', "Parcel sorted to {$area}. Ready for rider assignment.");
+        return back()->with('success', "{$shipment->tracking_code} sorted to {$area}. It's ready for a rider.");
     }
 
-    /**
-     * 6. Delivery Assignment
-     */
-    public function assignments(Request $request)
+    public function sortAllSuggested(Request $request)
     {
-        $hub      = Auth::user();
-        $provider = $this->provider();
-        $filter   = $request->query('area', 'all');
+        [$sorted, $left] = DB::transaction(fn () => $this->runSortSuggested($this->provider()));
 
-        $parcels = $this->fetchFormattedParcels($provider, null);
-        $parcels = array_values(array_filter($parcels, fn($p) => in_array($p['sort_status'], ['sorted', 'assigned'])));
-
-        if ($filter !== 'all') {
-            $parcels = array_values(array_filter($parcels, fn($p) => $p['delivery_area'] === $filter));
-        }
-
-        $riders = Rider::where('logistics_provider_id', $provider->id)
-            ->where('status', 'approved')
-            ->where('is_active', true)
-            ->with('user')
-            ->get()
-            ->map(fn($r) => [
-                'id'   => $r->id,
-                'name' => $r->user->name ?? 'Rider',
-                'area' => $r->area ?: 'General Area',
-            ])
-            ->toArray();
-
-        $allParcels = $this->fetchFormattedParcels($provider, null);
-        $areas = array_values(array_filter(array_unique(array_column($allParcels, 'delivery_area'))));
-
-        return view('logistics.assignments', compact('hub', 'parcels', 'riders', 'filter', 'areas'));
+        return back()->with('success', $sorted
+            ? "{$sorted} ".Str::plural('parcel', $sorted)." sorted to ".($sorted === 1 ? 'its suggested area' : 'their suggested areas').($left ? "; {$left} still need an area chosen." : '. Ready for riders.')
+            : 'No parcels had an address that matched a delivery area. Choose their areas below.');
     }
 
     public function assignDelivery(Request $request, $id)
     {
-        $provider  = $this->provider();
-        $riderId   = $request->input('rider_id');
+        $provider = $this->provider();
+        $riderId  = $request->validate(['rider_id' => ['required', 'integer']])['rider_id'];
 
         $shipment  = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
-        $rider     = Rider::where('logistics_provider_id', $provider->id)->findOrFail($riderId);
-        $riderName = $rider->user->name ?? 'Assigned Rider';
+        $rider     = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($riderId);
+        $this->assignShipment($shipment, $rider, 'Parcel assigned to rider '.($rider->user->name ?? 'Rider').'.');
 
-        $shipment->rider_id    = $rider->id;
-        $shipment->sort_status = 'assigned';
-        $shipment->status      = 'assigned';
-        $shipment->assigned_at = now();
-        $shipment->save();
+        return back()->with('success', "{$shipment->tracking_code} assigned to ".($rider->user->name ?? 'the rider').'.');
+    }
 
+    public function autoAssignDeliveries(Request $request)
+    {
+        $result = DB::transaction(fn () => $this->runAutoAssign($this->provider()));
+        if ($result === null) {
+            return back()->with('error', 'No active riders available. Activate a rider first.');
+        }
+        [$assigned, $ridersUsed] = $result;
+
+        return back()->with('success', $assigned
+            ? "{$assigned} ".Str::plural('parcel', $assigned)." assigned across {$ridersUsed} ".Str::plural('rider', $ridersUsed).'.'
+            : 'Every sorted parcel already has a rider.');
+    }
+
+    /** One click for the whole desk: receive everything, sort what the addresses allow, assign riders. */
+    public function processAll(Request $request)
+    {
+        $provider = $this->provider();
+        [$received, $autoSorted, $sorted, $left, $assign] = DB::transaction(function () use ($provider) {
+            [$received, $autoSorted] = $this->runReceiveAll($provider);
+            [$sorted, $left] = $this->runSortSuggested($provider);
+            return [$received, $autoSorted, $sorted, $left, $this->runAutoAssign($provider)];
+        });
+
+        $parts = [];
+        if ($received) $parts[] = "{$received} received";
+        if ($autoSorted + $sorted) $parts[] = ($autoSorted + $sorted).' sorted';
+        if ($assign && $assign[0]) $parts[] = "{$assign[0]} assigned to riders";
+        $message = $parts ? ucfirst(implode(', ', $parts)).'.' : 'Nothing was waiting to be processed.';
+        if ($left) $message .= " {$left} ".Str::plural('parcel', $left).' need an area chosen in the Sort tab.';
+        if ($assign === null) $message .= ' No active riders, so nothing was assigned. Activate a rider first.';
+
+        return redirect()->route('logistics.hub', ['tab' => $left ? 'sort' : 'assigned'])->with('success', $message);
+    }
+
+    /** @return array{0:int,1:int} [received, auto-sorted] */
+    private function runReceiveAll(LogisticsProvider $provider): array
+    {
+        $pending = Shipment::where('logistics_provider_id', $provider->id)->whereNull('received_at')->with('sellerOrder.order.buyer')->get();
+        $sorted = $pending->filter(fn ($shipment) => $this->receiveShipment($shipment) !== null)->count();
+
+        return [$pending->count(), $sorted];
+    }
+
+    /** @return array{0:int,1:int} [sorted, still unsorted] — only received parcels are sorted. */
+    private function runSortSuggested(LogisticsProvider $provider): array
+    {
+        $unsorted = Shipment::where('logistics_provider_id', $provider->id)->whereNotNull('received_at')
+            ->where(fn ($q) => $q->whereNull('sort_status')->orWhere('sort_status', 'unsorted'))
+            ->with('sellerOrder.order.buyer')->get();
+        $sorted = 0;
+        foreach ($unsorted as $shipment) {
+            if ($area = $this->suggestDeliveryArea($this->shipmentAddress($shipment))) {
+                $this->sortShipment($shipment, $area, "Sorted to {$area} using the recipient address.");
+                $sorted++;
+            }
+        }
+
+        return [$sorted, $unsorted->count() - $sorted];
+    }
+
+    /** @return array{0:int,1:int}|null [assigned, riders used], or null when there are no active riders. */
+    private function runAutoAssign(LogisticsProvider $provider): ?array
+    {
+        $riders = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        if ($riders->isEmpty()) {
+            return null;
+        }
+        $waiting = Shipment::where('logistics_provider_id', $provider->id)->where('sort_status', 'sorted')->whereNull('rider_id')
+            ->with('sellerOrder.order.buyer')->get();
+        $load = [];
+        foreach ($waiting as $shipment) {
+            $rider = $this->bestDeliveryRider($riders, (string) $shipment->delivery_area, $this->shipmentAddress($shipment), $load);
+            $load[$rider->id] = ($load[$rider->id] ?? 0) + 1;
+            $this->assignShipment($shipment, $rider, 'Parcel auto-assigned to rider '.($rider->user->name ?? 'Rider').'.');
+        }
+
+        return [$waiting->count(), count($load)];
+    }
+
+    private function assignShipment(Shipment $shipment, Rider $rider, string $note): void
+    {
+        $shipment->update(['rider_id' => $rider->id, 'sort_status' => 'assigned', 'status' => 'assigned', 'assigned_at' => now()]);
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
             'status'      => 'assigned_to_rider',
             'attempt'     => 1,
             'user_id'     => Auth::id(),
-            'note'        => "Parcel assigned to rider {$riderName}.",
+            'note'        => $note,
             'occurred_at' => now(),
         ]);
-
-        return back()->with('success', "Parcel assigned to {$riderName} in database!");
     }
 
     /**
@@ -1303,7 +1379,7 @@ class LogisticsPortalController extends Controller
             'last_name' => ['required', 'string', 'max:100'],
             'middle_initial' => ['nullable', 'string', 'max:5'],
             'sex' => ['required', 'in:Male,Female,Prefer not to say'],
-            'birthday' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'birthday' => ['required', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYearsNoOverflow(18)->toDateString()],
             'phone' => ['bail', 'required', 'string', 'regex:/\A09[0-9]{9}\z/', $unusedNumber],
             'telephone' => ['bail', 'required', 'string', 'regex:/\A0[2-8][0-9]{8}\z/', $unusedNumber],
             'region' => ['nullable', 'string', 'max:100'],
@@ -1318,6 +1394,9 @@ class LogisticsPortalController extends Controller
             'dti_permit' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
         ], [
+            'birthday.required' => 'Please enter your birthday.',
+            'birthday.date_format' => 'Please enter a valid birthday.',
+            'birthday.before_or_equal' => 'You must be at least 18 years old.',
             'phone.regex' => 'Enter a valid mobile number: 09 followed by 9 digits, or +639 followed by 9 digits.',
             'telephone.required' => 'Telephone number is required.',
             'telephone.regex' => 'Telephone number must contain exactly 10 digits, including the area code (e.g. 0281234567 or 0491234567).',
@@ -1328,7 +1407,7 @@ class LogisticsPortalController extends Controller
         ]);
 
         $data['name'] = trim($data['first_name']) . ' ' . trim($data['last_name']);
-        $data['age'] = (int) Carbon::parse($data['birthday'])->age;
+        $data['age'] = max(0, (int) Carbon::parse($data['birthday'])->age);
         $data['address'] = implode(', ', array_filter([
             $data['street_address'], $data['barangay'], $data['city'], $data['province'],
         ]));
@@ -1368,6 +1447,87 @@ class LogisticsPortalController extends Controller
     /* ──────────────────────────────────────────────────────────────────────── */
     /*  DATABASE QUERY HELPERS                                                  */
     /* ──────────────────────────────────────────────────────────────────────── */
+
+    /** Delivery areas parcels are sorted into ("Province - City"; "/" separates towns sharing an area). */
+    public const DELIVERY_AREAS = ['Laguna - Santa Cruz', 'Laguna - San Pablo', 'Laguna - Calamba', 'Laguna - Los Baños', 'Laguna - Biñan / Santa Rosa', 'Batangas - Lipa', 'Batangas - Mataasnakahoy', 'Quezon - Lucena', 'Quezon - Tayabas', 'Metro Manila - South'];
+
+    /** The delivery area whose town appears in the address, or null when none matches confidently. */
+    private function suggestDeliveryArea(?string $address): ?string
+    {
+        $normalize = fn (string $text) => ' '.preg_replace('/[^a-z0-9]+/', ' ', mb_strtolower(strtr($text, ['ñ' => 'n', 'Ñ' => 'n']))).' ';
+        // Addresses often abbreviate Santa/Santo ("Sta. Rosa", "Sto. Tomas").
+        $haystack = strtr($normalize((string) $address), [' sta ' => ' santa ', ' sto ' => ' santo ']);
+        foreach (self::DELIVERY_AREAS as $area) {
+            [, $towns] = array_pad(explode(' - ', $area, 2), 2, '');
+            foreach (explode('/', $towns) as $town) {
+                if (trim($town) !== '' && str_contains($haystack, $normalize(trim($town)))) {
+                    return $area;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** Mark a shipment sorted into an area and log it. */
+    private function sortShipment(Shipment $shipment, string $area, string $note): void
+    {
+        $shipment->update(['sort_status' => 'sorted', 'delivery_area' => $area, 'sorted_at' => now()]);
+        DeliveryEvent::create([
+            'shipment_id' => $shipment->id,
+            'status'      => 'sorted',
+            'attempt'     => 1,
+            'user_id'     => Auth::id(),
+            'note'        => $note,
+            'occurred_at' => now(),
+        ]);
+    }
+
+    /** Recipient address for a shipment, as shown on the parcel pages. */
+    private function shipmentAddress(Shipment $shipment): string
+    {
+        $order = $shipment->sellerOrder?->order;
+        $shipping = is_array($order?->shipping_address) ? $order->shipping_address : json_decode($order?->shipping_address ?? '[]', true);
+
+        return (string) ($shipping['address'] ?? ($order?->buyer?->address ?? ''));
+    }
+
+    /** Receive one shipment at the hub; auto-sorts it when the address names a delivery area. Returns the area or null. */
+    private function receiveShipment(Shipment $shipment): ?string
+    {
+        $shipment->update(['received_at' => now()]);
+        DeliveryEvent::create([
+            'shipment_id' => $shipment->id,
+            'status'      => 'received_at_hub',
+            'attempt'     => 1,
+            'user_id'     => Auth::id(),
+            'note'        => 'Parcel scanned and received at sorting hub.',
+            'occurred_at' => now(),
+        ]);
+
+        if (($shipment->sort_status ?: 'unsorted') !== 'unsorted') {
+            return null;
+        }
+        $area = $this->suggestDeliveryArea($this->shipmentAddress($shipment));
+        if ($area) {
+            $this->sortShipment($shipment, $area, "Auto-sorted to {$area} from the recipient address on receipt.");
+        }
+
+        return $area;
+    }
+
+    /**
+     * Best active rider for each parcel, using the same scoring as pickup dispatch (area match, online,
+     * workload, rating). $extraLoad counts parcels handed out earlier in the same batch so work spreads out.
+     */
+    private function bestDeliveryRider($riders, string $area, string $address, array $extraLoad = []): ?Rider
+    {
+        $ranked = $this->rankRidersForPickup($riders, trim($area.' '.$address))
+            ->map(fn ($r) => $r + ['adjusted' => $r['score'] - 8 * ($extraLoad[$r['rider']->id] ?? 0)])
+            ->sortByDesc('adjusted');
+
+        return $ranked->first()['rider'] ?? null;
+    }
 
     private function fetchFormattedParcels(LogisticsProvider $provider, ?int $limit = null, string $filter = 'all'): array
     {
@@ -1420,6 +1580,7 @@ class LogisticsPortalController extends Controller
                 'status'              => $s->received_at ? 'received' : 'pending_receipt',
                 'sort_status'         => $s->sort_status ?: 'unsorted',
                 'delivery_area'       => $s->delivery_area,
+                'suggested_area'      => $this->suggestDeliveryArea($recipientAddress),
                 'delivery_status'     => $deliveryStatus,
                 'assigned_rider_id'   => $s->rider_id,
                 'assigned_rider_user_id' => $s->rider?->user_id,
