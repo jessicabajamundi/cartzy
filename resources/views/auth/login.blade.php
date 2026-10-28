@@ -115,12 +115,10 @@
         <span>Continue with Google</span>
     </a>
 
-    @if($portal['register'])
-        <div class="auth-foot">
-            Don't have an account?
-            <a href="{{ $portal['register'] }}">{{ $isBuyerPortal ? 'Sign up' : 'Apply as a '.strtolower($portal['label']) }}</a>
-        </div>
-    @endif
+    <div class="auth-foot">
+        Don't have an account?
+        <a href="{{ $portal['register'] ?? route('register') }}">Sign up</a>
+    </div>
 
     <nav class="auth-portals" aria-label="Log in to another portal">
         <p>{{ $isBuyerPortal ? 'Not shopping? Log in to your workspace' : 'Log in as a different account type' }}</p>
