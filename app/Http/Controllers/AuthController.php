@@ -828,13 +828,23 @@ class AuthController extends Controller
     /**
      * Redirect the user to the Google authentication page.
      */
-    public function redirectToGoogle()
+    public function redirectToGoogle(Request $request)
     {
+        $portals = self::loginPortals();
+        $portal = $request->query('portal', User::ROLE_BUYER);
+        if (!array_key_exists((string) $portal, $portals)) {
+            $portal = User::ROLE_BUYER;
+        }
+
+        session(['auth_google_portal' => $portal]);
+
+        $portalRoute = $portals[$portal]['route'] ?? 'login';
+
         $clientId = config('services.google.client_id');
         $clientSecret = config('services.google.client_secret');
 
         if (empty($clientId) || empty($clientSecret)) {
-            return redirect()->route('login')->withErrors([
+            return redirect()->route($portalRoute)->withErrors([
                 'email' => 'Google Sign-In is not configured yet. Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.',
             ]);
         }
@@ -847,8 +857,15 @@ class AuthController extends Controller
      */
     public function handleGoogleCallback(Request $request)
     {
+        $portals = self::loginPortals();
+        $portal = session()->pull('auth_google_portal', User::ROLE_BUYER);
+        if (!array_key_exists((string) $portal, $portals)) {
+            $portal = User::ROLE_BUYER;
+        }
+        $portalRoute = $portals[$portal]['route'] ?? 'login';
+
         if ($request->has('error')) {
-            return redirect()->route('login')->withErrors([
+            return redirect()->route($portalRoute)->withErrors([
                 'email' => 'Google authentication was cancelled or encountered an error.',
             ]);
         }
@@ -863,14 +880,14 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             $errorMsg = $e->getMessage() ?: 'Session state expired or authentication was interrupted. Please try again.';
             Log::error('Google OAuth error: ' . $errorMsg);
-            return redirect()->route('login')->withErrors([
+            return redirect()->route($portalRoute)->withErrors([
                 'email' => 'Unable to authenticate with Google: ' . $errorMsg,
             ]);
         }
 
         if (!$googleUser || !$googleUser->getEmail()) {
-            return redirect()->route('login')->withErrors([
-                'email' => 'Could not retrieve email address from Google. Please sign up manually.',
+            return redirect()->route($portalRoute)->withErrors([
+                'email' => 'Could not retrieve email address from Google. Please sign in or register manually.',
             ]);
         }
 
@@ -902,9 +919,46 @@ class AuthController extends Controller
                     }
                     $user->save();
                 } else {
-                    // Google does not provide a birthday: require age-checked registration.
+                    // No existing account found for this Google email
+                    if ($portal === User::ROLE_ADMIN) {
+                        return redirect()->route('login.admin')->withErrors([
+                            'email' => 'No administrator account found with email ' . $email . '. Admin accounts cannot be self-registered.',
+                        ]);
+                    }
+
+                    if ($portal === User::ROLE_SELLER) {
+                        return redirect()->route('register', ['role' => User::ROLE_SELLER])->withInput([
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => User::ROLE_SELLER,
+                        ])->withErrors([
+                            'email' => 'No seller account found with email ' . $email . '. Please complete your seller store registration below.',
+                        ]);
+                    }
+
+                    if ($portal === User::ROLE_LOGISTICS) {
+                        return redirect()->route('register', ['role' => User::ROLE_LOGISTICS])->withInput([
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => User::ROLE_LOGISTICS,
+                        ])->withErrors([
+                            'email' => 'No logistics account found with email ' . $email . '. Please complete your registration below.',
+                        ]);
+                    }
+
+                    if ($portal === User::ROLE_COURIER) {
+                        return redirect()->route('register.rider')->withInput([
+                            'email' => $email,
+                            'name' => $name,
+                        ])->withErrors([
+                            'email' => 'No courier rider account found with email ' . $email . '. Please submit your rider application first.',
+                        ]);
+                    }
+
+                    // Buyer registration (Google does not provide birthday: require age check)
                     return redirect()->route('register')->withInput([
                         'email' => $email,
+                        'name' => $name,
                         'role' => User::ROLE_BUYER,
                     ])->withErrors([
                         'birthday' => 'Please complete registration with your birthday. You must be at least 18 years old to register.',
@@ -912,29 +966,42 @@ class AuthController extends Controller
                 }
             }
 
-            // Google authentication is restricted to buyer accounts
-            if ($user && in_array($user->role, [User::ROLE_SELLER, User::ROLE_LOGISTICS, User::ROLE_COURIER], true)) {
-                $roleLabel = $user->role === User::ROLE_COURIER ? 'rider' : $user->role;
-                return redirect()->route('login', ['portal' => $user->role])->withErrors([
-                    'email' => 'Google sign-in is only available for buyer accounts. ' . ucfirst($roleLabel) . ' accounts must sign in manually.',
-                ]);
+            // Portal matching: verify the user's role matches the portal they are logging into
+            if ($user->role !== $portal) {
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Wrong login portal ('.$portal.')']);
+                $correct = $portals[$user->role] ?? null;
+                return redirect()->route($portalRoute)->withErrors([
+                    'email' => 'This login page is for '.strtolower($portals[$portal]['label']).' accounts.'
+                        .($correct ? ' Please use the '.$correct['label'].' login instead.' : ''),
+                ])->with('portal_hint', $correct ? ['label' => $correct['label'], 'url' => route($correct['route'])] : null);
             }
 
             // Ensure account is not suspended/rejected/pending
             if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
-                return redirect()->route('login')->withErrors([
-                    'email' => 'Your account is suspended. Please contact platform support.',
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account suspended']);
+                return redirect()->route($portalRoute)->withErrors([
+                    'email' => 'Your account is suspended. Please contact platform support for assistance.',
                 ]);
             }
 
             if ($user->status === 'rejected') {
-                return redirect()->route('login')->withErrors([
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account rejected']);
+                return redirect()->route($portalRoute)->withErrors([
                     'email' => 'Your account application was disapproved by the administrator.',
                 ]);
             }
 
-            if ($user->status === 'pending' && !$user->isSeller()) {
-                return redirect()->route('login')->withErrors([
+            if ($user->status === 'pending') {
+                if ($user->isSeller()) {
+                    Auth::login($user, true);
+                    $request->session()->regenerate();
+                    ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google', 'description' => 'Pending seller account']);
+                    return redirect()->intended(route($user->getDashboardRoute()))
+                        ->with('info', 'Welcome, ' . ($user->name ?? 'Seller') . '! Your account is currently pending administrator verification. You can view your dashboard and store settings, but adding products and selling are locked until approved.');
+                }
+
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account pending approval']);
+                return redirect()->route($portalRoute)->withErrors([
                     'email' => 'Your account registration is currently pending admin verification.',
                 ]);
             }
@@ -945,11 +1012,11 @@ class AuthController extends Controller
             ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google']);
 
             return redirect()->intended(route($user->getDashboardRoute()))
-                ->with('success', 'Welcome, ' . $user->name . '! Signed in successfully with Google.');
+                ->with('success', 'Welcome, ' . ($user->name ?? $portals[$user->role]['label']) . '! Signed in successfully with Google.');
 
         } catch (\Exception $e) {
             Log::error('Google Auth Processing Error: ' . $e->getMessage());
-            return redirect()->route('login')->withErrors([
+            return redirect()->route($portalRoute)->withErrors([
                 'email' => 'Authentication failed: ' . $e->getMessage(),
             ]);
         }
