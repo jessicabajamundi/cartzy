@@ -334,40 +334,132 @@
 
 /* Logistics Floating Chat Popup (Matches Product / Store Chat UI) */
 #logistics-chat-popup {
-    z-index: 70;
-    right: 24px;
-    bottom: 24px;
+    position: fixed !important;
+    right: 24px !important;
+    bottom: 24px !important;
+    z-index: 99999 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: min(360px, calc(100vw - 32px)) !important;
+    height: min(480px, calc(100vh - 40px)) !important;
+    border: 1px solid #e1dde7 !important;
+    border-radius: 16px !important;
+    background: #ffffff !important;
+    box-shadow: 0 18px 48px rgba(40, 33, 51, 0.28) !important;
+    overflow: hidden !important;
 }
 #logistics-chat-popup[hidden] {
     display: none !important;
 }
 #logistics-chat-popup .pd-chat-head {
-    background: #574362;
-    padding: 12px 14px 12px 16px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 12px 14px 12px 16px !important;
+    color: white !important;
+    background: #574362 !important;
+}
+#logistics-chat-popup .pd-chat-head div {
+    flex: 1 !important;
+    min-width: 0 !important;
 }
 #logistics-chat-popup .pd-chat-head strong {
-    font-size: 15px;
-    font-weight: 700;
+    display: block !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
 }
 #logistics-chat-popup .pd-chat-head small {
-    font-size: 12px;
-    opacity: 0.85;
+    display: block !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    font-size: 12px !important;
+    opacity: 0.85 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+#logistics-chat-popup .pd-chat-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    background: transparent !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+#logistics-chat-popup .pd-chat-icon:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
+}
+#logistics-chat-popup .pd-chat-messages {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 14px !important;
+    overflow-y: auto !important;
+    background: #f8f6fa !important;
+}
+#logistics-chat-popup .pd-chat-empty {
+    margin: auto !important;
+    max-width: 240px !important;
+    color: #75687d !important;
+    font-size: 13px !important;
+    text-align: center !important;
+    line-height: 1.5 !important;
+}
+#logistics-chat-popup .pd-chat-compose {
+    display: flex !important;
+    align-items: flex-end !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    border-top: 1px solid #e1dde7 !important;
+    background: #ffffff !important;
 }
 #logistics-chat-popup .pd-chat-compose textarea {
-    min-height: 40px;
-    border-color: #cfc4d6;
+    flex: 1 !important;
+    min-height: 40px !important;
+    max-height: 120px !important;
+    padding: 9px 12px !important;
+    border: 1px solid #cfc4d6 !important;
+    border-radius: 10px !important;
+    font: inherit !important;
+    font-size: 14px !important;
+    resize: none !important;
+    background: #ffffff !important;
+    color: #1e293b !important;
 }
 #logistics-chat-popup .pd-chat-compose textarea:focus {
-    outline: 2px solid #574362;
-    border-color: transparent;
+    outline: 2px solid #574362 !important;
+    border-color: transparent !important;
 }
 #logistics-chat-popup .pd-chat-compose button {
-    background: #574362;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #ffffff !important;
+    background: #574362 !important;
+    cursor: pointer !important;
+}
+#logistics-chat-popup .pd-chat-compose button:hover {
+    background: #46344f !important;
 }
 @media (max-width: 640px) {
     #logistics-chat-popup {
-        right: 16px;
-        bottom: 16px;
-        width: calc(100vw - 32px);
+        right: 16px !important;
+        bottom: 16px !important;
+        width: calc(100vw - 32px) !important;
     }
 }
