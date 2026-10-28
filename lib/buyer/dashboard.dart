@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
 import 'package:cartzy/buyer/wishlist_screen.dart';
+import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -99,12 +100,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: CartzyColors.background,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
             // ─────────────────────────────────────────────────
             // HEADER
             // ─────────────────────────────────────────────────
-            Expanded(
+            Positioned.fill(
               child: RefreshIndicator(
                 color: CartzyColors.burgundy,
                 onRefresh: () async {
@@ -116,7 +117,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.only(bottom: 110),
                   children: [
                     // FULL-WIDTH HERO BANNER CAROUSEL (EDGE-TO-EDGE, NO GAPS)
                     Stack(
@@ -198,15 +199,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         Icons.favorite_border_rounded),
                                   ),
                                   IconButton(
-                                    tooltip: 'Shopping cart',
-                                    onPressed: () => _openCart(context),
+                                    tooltip: 'Notifications',
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => NotificationsScreen(
+                                            onBack: () =>
+                                                Navigator.of(context).pop(),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: CartzyColors.burgundy,
                                       minimumSize: const Size(48, 48),
                                     ),
                                     icon: const BannerActionIcon(
-                                        Icons.shopping_cart_outlined),
+                                        Icons.notifications_none_rounded),
                                   ),
                                 ],
                               ),
@@ -373,95 +383,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
 
             // ─────────────────────────────────────────────────
-            // BOTTOM NAV BAR (Home, New, Sale, Shop All, Collection)
+            // BOTTOM NAV BAR (Home, Cart, Sale, Profile)
             // ─────────────────────────────────────────────────
-            Container(
-              decoration: const BoxDecoration(
-                color: CartzyColors.surface,
-                border: Border(top: BorderSide(color: CartzyColors.border)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Row(
-                children: [
-                  _BottomNavigationItem(
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    selected: true,
-                    onClick: () {},
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                decoration: const ShapeDecoration(
+                  color: CartzyColors.surface,
+                  shape: StadiumBorder(
+                    side: BorderSide(color: CartzyColors.border),
                   ),
-                  _BottomNavigationItem(
-                    icon: Icons.auto_awesome_outlined,
-                    label: 'New',
-                    selected: false,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            title: 'New Arrivals',
-                            initialCategory: 'All',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _BottomNavigationItem(
-                    icon: Icons.local_offer_outlined,
-                    label: 'Sale',
-                    selected: false,
-                    isSale: true,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            initialCategory: 'Flash Deals',
-                            title: 'Sale & Flash Deals',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _BottomNavigationItem(
-                    icon: Icons.grid_view_outlined,
-                    label: 'Shop All',
-                    selected: false,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            initialCategory: 'All',
-                            title: 'Shop All Products',
-                            randomize: true,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _BottomNavigationItem(
-                    icon: Icons.person_outline_rounded,
-                    label: 'Profile',
-                    selected: false,
-                    onClick: () {
-                      if (widget.onProfileClick != null) {
-                        widget.onProfileClick!();
-                      } else {
+                  shadows: [
+                    BoxShadow(
+                      color: Color(0x148B3A3A),
+                      blurRadius: 16,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Row(
+                  children: [
+                    _BottomNavigationItem(
+                      icon: Icons.home_rounded,
+                      label: 'Home',
+                      selected: true,
+                      onClick: () {},
+                    ),
+                    _BottomNavigationItem(
+                      icon: Icons.shopping_cart_outlined,
+                      label: 'Cart',
+                      selected: false,
+                      onClick: () => _openCart(context),
+                    ),
+                    _BottomNavigationItem(
+                      icon: Icons.local_offer_outlined,
+                      label: 'Sale',
+                      selected: false,
+                      isSale: true,
+                      onClick: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => AccountSettingsScreen(
-                              isLoggedIn: true,
-                              userName: widget.userName ?? 'Buyer',
-                              userEmail: '',
-                              onBack: () => Navigator.of(context).pop(),
-                              onLogout: () {
-                                Navigator.of(context).pop();
-                                widget.onLogout?.call();
-                              },
+                            builder: (_) => const ProductListScreen(
+                              initialCategory: 'Flash Deals',
+                              title: 'Sale & Flash Deals',
                             ),
                           ),
                         );
-                      }
-                    },
-                  ),
-                ],
+                      },
+                    ),
+                    _BottomNavigationItem(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Profile',
+                      selected: false,
+                      onClick: () {
+                        if (widget.onProfileClick != null) {
+                          widget.onProfileClick!();
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => AccountSettingsScreen(
+                                isLoggedIn: true,
+                                userName: widget.userName ?? 'Buyer',
+                                userEmail: '',
+                                onBack: () => Navigator.of(context).pop(),
+                                onLogout: () {
+                                  Navigator.of(context).pop();
+                                  widget.onLogout?.call();
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

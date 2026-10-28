@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'buyer_account_screen.dart';
@@ -428,53 +429,50 @@ class AccountMenuScreen extends StatelessWidget {
             // LOGOUT
             // ==================================================
 
-            SizedBox(
-              width: double.infinity,
-
-              height: 50,
-
-              child:
-                  OutlinedButton.icon(
-                onPressed:
-                    onLogout,
-
-                style:
-                    OutlinedButton.styleFrom(
-                  foregroundColor:
-                      CartzyColors.error,
-
-                  side:
-                      const BorderSide(
-                    color:
-                        CartzyColors.error,
-                  ),
-
-                  shape:
-                      RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(
-                      12,
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onLogout,
+                    icon: const Icon(Icons.logout_rounded, size: 19),
+                    label: const Text('Log out'),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: CartzyColors.rose50Warm,
+                      foregroundColor: CartzyColors.rose700,
+                      minimumSize: const Size(0, 52),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      side: const BorderSide(color: CartzyColors.rose200),
+                      shape: const StadiumBorder(),
+                      textStyle: GoogleFonts.dmSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
-
-                icon:
-                    const Icon(
-                  Icons.logout,
-                ),
-
-                label:
-                    const Text(
-                  'Logout',
-
-                  style:
-                      TextStyle(
-                    fontWeight:
-                        FontWeight.bold,
+              const SizedBox(height: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'A little joy in every find.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CartzyColors.brandDark,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Made for your everyday favorites.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      color: CartzyColors.brandDeep,
+                    ),
+                  ),
+                ],
               ),
-            ),
           ],
         ),
       ),

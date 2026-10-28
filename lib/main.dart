@@ -35,19 +35,25 @@ class CartzyApp extends StatelessWidget {
       title: 'Cartzy',
       theme: CartzyTheme.lightTheme,
       home: const CartzyHome(),
+      routes: {
+        '/guest': (_) => const CartzyHome(initialRoute: 'guest'),
+        '/login': (_) => const CartzyHome(initialRoute: 'login'),
+        '/signup': (_) => const CartzyHome(initialRoute: 'buyerRegistration'),
+      },
     );
   }
 }
 
 class CartzyHome extends StatefulWidget {
-  const CartzyHome({super.key});
+  final String initialRoute;
+  const CartzyHome({super.key, this.initialRoute = 'splash'});
 
   @override
   State<CartzyHome> createState() => _CartzyHomeState();
 }
 
 class _CartzyHomeState extends State<CartzyHome> {
-  String currentRoute = 'splash';
+  late String currentRoute = widget.initialRoute;
 
   Map<String, dynamic>? _loggedInUser;
 

@@ -84,7 +84,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   String _licenseExpiry = '';
 
   // ── Step 1: Documents ──
-  String? _idLicenseFileName;
   String? _orCrFileName;
 
   // Errors for Step 1
@@ -95,22 +94,18 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   bool _contactNoError = false;
   String? _contactNoErrorMessage;
   bool _birthdayError = false;
+  String? _birthdayErrorMessage;
   bool _logisticsPartnerError = false;
   bool _vehicleError = false;
   bool _plateNumberError = false;
   bool _licenseNumberError = false;
   bool _licenseExpiryError = false;
-  bool _idLicenseError = false;
   bool _orCrError = false;
 
   // ── Step 1: Valid government ID (required for every rider) ──
-  String _govIdType = '';
-  final _govIdNumberController = TextEditingController();
   String? _govIdImagePath;
   bool _isReadingGovId = false;
   bool _govIdAutofilled = false;
-  bool _govIdTypeError = false;
-  bool _govIdNumberError = false;
   bool _govIdImageError = false;
 
   // ── Step 2: Sign-in details ──
@@ -170,7 +165,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _otpController.dispose();
-    _govIdNumberController.dispose();
     super.dispose();
   }
 
@@ -188,7 +182,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           Navigator.of(context).pop();
           setState(() {
             _birthday = date;
-            _birthdayError = false;
+            _birthdayErrorMessage = BuyerRegistrationValidation.birthday(date);
+            _birthdayError = _birthdayErrorMessage != null;
           });
         },
       ),
@@ -233,25 +228,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   }
 
   // ── File Pickers ──
-  Future<void> _pickIdLicenseFile() async {
-    try {
-      final picker = ImagePicker();
-      final XFile? file =
-          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-      if (file != null) {
-        setState(() {
-          _idLicenseFileName = file.name;
-          _idLicenseError = false;
-        });
-      }
-    } catch (_) {
-      setState(() {
-        _idLicenseFileName = 'drivers_license.jpg';
-        _idLicenseError = false;
-      });
-    }
-  }
-
   Future<void> _pickOrCrFile() async {
     try {
       final picker = ImagePicker();
@@ -275,8 +251,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   Future<void> _scanGovernmentId() async {
     final result = await Navigator.of(context).push<IdScanResult>(
       MaterialPageRoute(
-        builder: (_) => IdScannerScreen(
-          preferredType: _govIdType.isEmpty ? null : _govIdType,
+        builder: (_) => const IdScannerScreen(
+          preferredType: GovernmentIdParser.driversLicense,
         ),
       ),
     );
@@ -297,7 +273,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     var fields = const GovernmentIdFields();
     try {
       fields = await IdScannerScreen.readIdImage(file.path,
-          preferredType: _govIdType.isEmpty ? null : _govIdType);
+          preferredType: GovernmentIdParser.driversLicense);
     } catch (_) {
       // Unreadable photo: keep it, the rider types the details.
     }
@@ -313,13 +289,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     setState(() {
       _govIdImagePath = result.imagePath;
       _govIdImageError = false;
-      if (f.idType != null) {
-        _govIdType = f.idType!;
-        _govIdTypeError = false;
-      }
       if (f.idNumber != null) {
-        _govIdNumberController.text = f.idNumber!;
-        _govIdNumberError = false;
+        _licenseNumberController.text = f.idNumber!;
+        _licenseNumberError = false;
       }
       if (f.firstName != null && _firstNameController.text.trim().isEmpty) {
         _firstNameController.text = f.firstName!;
@@ -331,7 +303,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       }
       if (f.birthday != null && _birthday.isEmpty) {
         _birthday = _formatDate(f.birthday!);
-        _birthdayError = false;
+        _birthdayErrorMessage = BuyerRegistrationValidation.birthday(_birthday);
+        _birthdayError = _birthdayErrorMessage != null;
       }
       _govIdAutofilled = !f.isEmpty;
     });
@@ -341,15 +314,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           ? "ID photo added. We couldn't read the details, so please type them in."
           : 'Details filled in from your ID. Please check them.',
     );
-  }
-
-  static String? _govIdNumberRule(String value) {
-    final id = value.trim();
-    if (id.isEmpty) return 'ID number is required';
-    if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9 \-]{3,24}$').hasMatch(id)) {
-      return 'Enter the ID number exactly as printed on your ID.';
-    }
-    return null;
   }
 
   // ── Step 1 Validation ──
@@ -364,10 +328,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       _contactNoErrorMessage =
           BuyerRegistrationValidation.phone(_contactNoController.text.trim());
       _contactNoError = _contactNoErrorMessage != null;
-      _birthdayError = _birthday.isEmpty;
-      _govIdTypeError = _govIdType.isEmpty;
-      _govIdNumberError = _govIdNumberRule(_govIdNumberController.text) != null;
-      _govIdImageError = _govIdImagePath == null;
+      _birthdayErrorMessage = BuyerRegistrationValidation.birthday(_birthday);
+      _birthdayError = _birthdayErrorMessage != null;
+      _govIdImageError = !_isNonMotorized && _govIdImagePath == null;
       _logisticsPartnerError = _selectedLogisticsPartner.isEmpty;
       _vehicleError = _selectedVehicle.isEmpty;
 
@@ -376,20 +339,16 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         _licenseNumberError =
             _licenseNumberRule(_licenseNumberController.text) != null;
         _licenseExpiryError = _licenseExpiry.isEmpty;
-        _idLicenseError = _idLicenseFileName == null;
         _orCrError = _orCrFileName == null;
       } else {
         _plateNumberError = false;
         _licenseNumberError = false;
         _licenseExpiryError = false;
-        _idLicenseError = false;
         _orCrError = false;
       }
     });
 
-    if (_govIdTypeError ||
-        _govIdNumberError ||
-        _govIdImageError ||
+    if (_govIdImageError ||
         _firstNameError ||
         _lastNameError ||
         _contactNoError ||
@@ -399,7 +358,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         _plateNumberError ||
         _licenseNumberError ||
         _licenseExpiryError ||
-        _idLicenseError ||
         _orCrError) {
       showCartzyFlash(context, 'Please complete all required fields.');
       return;
@@ -455,6 +413,18 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     if (otp.length < 6) {
       setState(() => _otpError = true);
       showCartzyFlash(context, 'Please enter the 6-digit verification code.');
+      return;
+    }
+
+    // Guard the submit too, in case step 1 was bypassed.
+    final birthdayError = BuyerRegistrationValidation.birthday(_birthday);
+    if (birthdayError != null) {
+      setState(() {
+        _birthdayError = true;
+        _birthdayErrorMessage = birthdayError;
+        _currentStep = 1;
+      });
+      showCartzyFlash(context, birthdayError);
       return;
     }
 
@@ -553,7 +523,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CartzyRegisterHeader(
                 title: 'Become a rider',
@@ -563,6 +533,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 showGoogleSignUp: false,
               ),
               const SizedBox(height: 12),
+              _buildNoticeBox(),
+              const SizedBox(height: 16),
               StepIndicator(
                 currentStep: _currentStep,
                 labels: const ['Details', 'Sign-in', 'Verify'],
@@ -613,31 +585,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RegistrationDropdown(
-          label: 'ID type *',
-          icon: Icons.badge_outlined,
-          selectedValue: _govIdType,
-          options: GovernmentIdParser.idTypes,
-          isError: _govIdTypeError,
-          errorMessage: 'Please select your ID type',
-          onSelected: (value) => setState(() {
-            _govIdType = value;
-            _govIdTypeError = false;
-          }),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Photo of your ID *',
-          style: GoogleFonts.dmSans(
-            fontSize: 13.5,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF231F20),
-          ),
-        ),
-        const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: const Color(0xFFFFF9F9),
             borderRadius: BorderRadius.circular(10),
@@ -645,7 +595,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           ),
           child: _isReadingGovId
               ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -670,21 +620,37 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                     if (image != null) ...[
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: AspectRatio(
-                          aspectRatio: 85.6 / 54,
-                          child: Image.file(File(image), fit: BoxFit.cover),
+                        child: Image.file(
+                          File(image),
+                          height: 80,
+                          fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                     ],
-                    PrimaryButton(
-                      text: image == null ? 'Scan ID with camera' : 'Scan again',
-                      onClick: _scanGovernmentId,
-                    ),
-                    const SizedBox(height: 10),
-                    SecondaryButton(
-                      text: image == null ? 'Upload a photo instead' : 'Choose a different photo',
-                      onClick: _uploadGovernmentId,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: _scanGovernmentId,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF865561),
+                            minimumSize: const Size(0, 48),
+                          ),
+                          icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                          label: Text(image == null ? 'Scan ID' : 'Scan again'),
+                        ),
+                        TextButton.icon(
+                          onPressed: _uploadGovernmentId,
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF865561),
+                            minimumSize: const Size(0, 48),
+                          ),
+                          icon: const Icon(Icons.upload_outlined, size: 18),
+                          label: const Text('Upload photo'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -692,8 +658,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         const SizedBox(height: 5),
         Text(
           _govIdImageError
-              ? 'Please add a photo of your government ID'
-              : 'PhilSys, UMID, passport, driver\'s license, SSS, PhilHealth, PRC, postal, voter\'s or TIN ID.',
+              ? "Please add a photo of your driver's license"
+              : 'Use a clear photo of the front of your license.',
           style: GoogleFonts.dmSans(
             fontSize: _govIdImageError ? 13 : 11.5,
             color: _govIdImageError
@@ -701,27 +667,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 : const Color(0xFF7A6E72),
           ),
         ),
-        const SizedBox(height: 16),
-        RegistrationTextField(
-          controller: _govIdNumberController,
-          label: 'ID number *',
-          icon: Icons.numbers,
-          customHint: 'As printed on your ID',
-          maxLength: 25,
-          inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9 \-]')),
-            _upperCase,
-          ],
-          validator: _govIdNumberRule,
-          isError: _govIdNumberError,
-          errorMessage: _govIdNumberRule(_govIdNumberController.text) ??
-              'ID number is required',
-          onChanged: (_) {
-            if (_govIdNumberError) setState(() => _govIdNumberError = false);
-          },
-        ),
         if (_govIdAutofilled) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -729,7 +676,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'We filled in details from your ID. Check them below and fix anything that\'s wrong.',
+                  'Details filled in. Please check them.',
                   style: GoogleFonts.dmSans(
                       fontSize: 12, color: const Color(0xFF865561), height: 1.35),
                 ),
@@ -745,7 +692,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return RegistrationFooter(
       isBuyer: false,
       onBackToLogin: widget.onBackToLogin,
-      onSwitchRole: widget.onSwitchToBuyerRegistration,
     );
   }
 
@@ -795,15 +741,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           onSelectBuyer: () => widget.onSwitchToBuyerRegistration?.call(),
           onSelectRider: () {},
         ),
-        const SizedBox(height: 16),
-        _buildNoticeBox(),
         const SizedBox(height: 22),
-
-        // ── Valid government ID ──
-        _buildSectionHeader('Valid government ID',
-            'Scan the front of your ID and we\'ll fill in your details. Your logistics partner checks it before approving you.'),
-        _buildGovernmentIdSection(),
-        const SizedBox(height: 28),
 
         // ── 1. Your personal details ──
         _buildSectionHeader(
@@ -861,7 +799,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           birthday: _birthday,
           onClick: _openBirthdayPicker,
           isError: _birthdayError,
-          errorMessage: 'Please enter your birthday.',
+          errorMessage: _birthdayErrorMessage ?? 'Please enter your birthday.',
           helperText: 'Riders must be at least 18 years old.',
         ),
         const SizedBox(height: 28),
@@ -890,6 +828,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           icon: Icons.two_wheeler_outlined,
           selectedValue: _selectedVehicle,
           options: vehicleOptions,
+          showSearch: false,
           isError: _vehicleError,
           errorMessage: 'Please select your vehicle type',
           onSelected: (value) => setState(() {
@@ -921,12 +860,13 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
           // ── 4. Driver's license ──
           _buildSectionHeader("Driver's license"),
+          _buildGovernmentIdSection(),
+          const SizedBox(height: 10),
           RegistrationTextField(
             controller: _licenseNumberController,
             label: 'License number *',
             icon: Icons.badge_outlined,
             customHint: 'A00-00-000000',
-            helperText: 'Format: A00-00-000000 (e.g. H83-78-937937)',
             maxLength: 13,
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9-]')),
@@ -942,7 +882,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
               }
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           RegistrationDateField(
             label: 'Expiry date',
             hint: 'Select expiry date',
@@ -957,15 +897,6 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           // ── 5. Documents ──
           _buildSectionHeader('Documents',
               'JPG, PNG or PDF, up to 5 MB each. Your logistics partner checks these before approving you.'),
-          RegistrationUploadField(
-            label: "Driver's license *",
-            fileName: _idLicenseFileName,
-            isError: _idLicenseError,
-            errorMessage: 'Please upload your driver\'s license',
-            helperText: 'A clear photo of the front of your license.',
-            onTap: _pickIdLicenseFile,
-          ),
-          const SizedBox(height: 16),
           RegistrationUploadField(
             label: 'Vehicle OR/CR *',
             fileName: _orCrFileName,

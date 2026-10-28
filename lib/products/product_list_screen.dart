@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/guest/guest_cart_screen.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/product_card.dart';
 import 'package:cartzy/services/cart_service.dart';
@@ -168,6 +170,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _navigateToCart(BuildContext context) {
+    if (!AuthService.isAuthenticated) {
+      GuestCartScreen.open(context);
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => CartScreen(
@@ -402,14 +408,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             ),
                           )
                         : LayoutBuilder(builder: (context, constraints) {
-                          // ProductCard is as tall as its content: an image that
-                          // scales with the card width (5px inset, 1.05 ratio) plus
-                          // a details section of fixed-ish height. A plain aspect
-                          // ratio cuts off cards whose names wrap to two lines.
+                          // ProductCard is a square photo as wide as the card plus
+                          // a details section that grows with the text size.
                           final cardWidth = (constraints.maxWidth - 32 - 10) / 2;
-                          final cardHeight = 5 +
-                              (cardWidth - 10) / 1.05 +
-                              MediaQuery.textScalerOf(context).scale(178);
+                          final cardHeight =
+                              cardWidth + ProductCard.bodyHeight(context);
                           return GridView.builder(
                             padding: const EdgeInsets.all(16),
                             gridDelegate:
@@ -437,6 +440,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 hasFreeShipping: product.hasFreeShipping,
                                 onTap: () => _openDetails(product),
                                 onAddToCart: () {
+                                  if (!AuthService.isAuthenticated) {
+                                    GuestCartScreen.open(context);
+                                    return;
+                                  }
                                   CartService.instance.addItem(
                                     name: product.name,
                                     price: product.price,

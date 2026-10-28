@@ -1588,7 +1588,8 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                                 rowStart += _productsPerRow) ...[
                               if (rowStart > 0) const SizedBox(height: 16),
                               SizedBox(
-                                height: 312,
+                                // Square photo (card width 155) + details.
+                                height: 155 + ProductCard.bodyHeight(context),
                                 child: ListView.separated(
                                   key: PageStorageKey(
                                       'daily-discover-row-$rowStart'),

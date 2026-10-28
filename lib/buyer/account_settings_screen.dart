@@ -126,6 +126,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       MaterialPageRoute(
         builder: (_) => MyOrdersScreen(
           onBack: () => Navigator.of(context).pop(),
+          // "Start shopping" / "Buy again" go back to the shop.
+          onStartShopping: () => Navigator.of(context).popUntil((route) => route.isFirst),
         ),
       ),
     );
@@ -1413,66 +1415,50 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               // 6. SIGN OUT BUTTON
               // ==========================================
               if (widget.isLoggedIn)
-                Container(
+                SizedBox(
                   width: double.infinity,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: CartzyColors.creamLight,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: CartzyColors.navy, width: 1.4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: _confirmLogout,
-                      child: Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.logout_rounded,
-                                color: CartzyColors.navy, size: 19),
-                            const SizedBox(width: 8),
-                            Text(
-                              'SIGN OUT',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.1,
-                                color: CartzyColors.navy,
-                              ),
-                            ),
-                          ],
-                        ),
+                  child: OutlinedButton.icon(
+                    onPressed: _confirmLogout,
+                    icon: const Icon(Icons.logout_rounded, size: 19),
+                    label: const Text('Log out'),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: CartzyColors.rose50Warm,
+                      foregroundColor: CartzyColors.rose700,
+                      minimumSize: const Size(0, 52),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      side: const BorderSide(color: CartzyColors.rose200),
+                      shape: const StadiumBorder(),
+                      textStyle: GoogleFonts.dmSans(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ),
-
               const SizedBox(height: 24),
-
-              // ==========================================
-              // 7. FOOTER TAGLINE
-              // ==========================================
-              Center(
-                child: Text(
-                  'Driven by passion. Defined by your origin',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF8E8286),
-                    fontStyle: FontStyle.italic,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'A little joy in every find.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: CartzyColors.brandDark,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Made for your everyday favorites.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      color: CartzyColors.brandDeep,
+                    ),
+                  ),
+                ],
               ),
-
               const SizedBox(height: 30),
             ],
           ),

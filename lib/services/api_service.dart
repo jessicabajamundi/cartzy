@@ -220,6 +220,42 @@ class ApiService {
   }
 
   // ==========================================================
+  // POST MULTIPART (form fields plus file uploads)
+  // `files` maps a field name such as 'photos[0]' to a local path.
+  // ==========================================================
+
+  static Future<Map<String, dynamic>> postMultipart(
+    String endpoint,
+    Map<String, String> fields, {
+    Map<String, String> files = const {},
+    String? token,
+  }) async {
+    final response = await _sendWithFallback((base) async {
+      final request = http.MultipartRequest('POST', Uri.parse('$base$endpoint'))
+        ..headers['Accept'] = 'application/json'
+        ..fields.addAll(fields);
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      for (final file in files.entries) {
+        request.files.add(await http.MultipartFile.fromPath(file.key, file.value));
+      }
+      return http.Response.fromStream(await request.send());
+    });
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      _fail(response);
+    }
+
+    if (response.body.isEmpty) {
+      return {};
+    }
+
+    return Map<String, dynamic>.from(jsonDecode(response.body));
+  }
+
+  // ==========================================================
   // PUT
   // ==========================================================
 

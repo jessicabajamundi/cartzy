@@ -32,6 +32,49 @@ class BuyerRegistrationValidation {
     return null;
   }
 
+  static const minimumAge = 18;
+
+  static const _months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  /// Parses the "January 05, 2000" format the birthday picker produces.
+  static DateTime? parseBirthday(String value) {
+    final parts = value.replaceAll(',', '').trim().split(RegExp(r'\s+'));
+    if (parts.length != 3) return null;
+    final month = _months.indexOf(parts[0]) + 1;
+    final day = int.tryParse(parts[1]);
+    final year = int.tryParse(parts[2]);
+    if (month == 0 || day == null || year == null) return null;
+    final date = DateTime(year, month, day);
+    // Reject rollovers like February 31.
+    if (date.month != month || date.day != day) return null;
+    return date;
+  }
+
+  static int? ageFromBirthday(String value, {DateTime? today}) {
+    final birthDate = parseBirthday(value);
+    if (birthDate == null) return null;
+    final now = today ?? DateTime.now();
+    var age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  static String? birthday(String value, {DateTime? today}) {
+    if (value.trim().isEmpty) return 'Please enter your birthday.';
+    final age = ageFromBirthday(value, today: today);
+    if (age == null || age < 0) return 'Please enter a valid birthday.';
+    if (age < minimumAge) {
+      return 'You must be at least $minimumAge years old to register.';
+    }
+    return null;
+  }
+
   // The mobile API requires eight characters; web buyer registration uses six.
   static String? password(String value) => value.length < 8
       ? 'Password must be at least 8 characters long.'

@@ -118,6 +118,35 @@ class AuthService {
     return response;
   }
 
+  /// Emails a 6-digit password reset code. [role] is 'buyer' or 'rider', so
+  /// the server can turn away accounts that belong to the other login.
+  static Future<void> requestPasswordReset({
+    required String email,
+    required String role,
+  }) async {
+    await ApiService.post('/auth/password/forgot', {'email': email, 'role': role});
+  }
+
+  static Future<void> verifyPasswordResetCode({
+    required String email,
+    required String otp,
+  }) async {
+    await ApiService.post('/auth/password/verify', {'email': email, 'otp': otp});
+  }
+
+  static Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    await ApiService.post('/auth/password/reset', {
+      'email': email,
+      'otp': otp,
+      'password': password,
+      'password_confirmation': password,
+    });
+  }
+
   static Future<Map<String, dynamic>> registerRider(Map<String, dynamic> data) async {
     final response = await ApiService.post('/auth/register/rider', data);
     return response;

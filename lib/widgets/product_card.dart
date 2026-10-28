@@ -3,13 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
 import 'package:cartzy/utils/product_images.dart';
 
-/// Compact, mobile-tailored product card matching the website design:
-/// - Rose-gold border (#B76E79) & rounded 12px mobile frame
-/// - Square 1:1 photo with dark "Official" / gold check and rose discount pill
-/// - Store name, 2-line title, and Free Shipping tag
-/// - Pinned pricing section with ₱ symbol and strikethrough was-price
-/// - Rating star + sold count, and live stock dot indicator
-/// - Discovery wishlist circle button & multi-stop gradient "Add to Cart" button
+/// Mobile product card used by Daily Discover and the Sale / product grids:
+/// - Edge-to-edge square photo with a corner discount tag, a floating
+///   wishlist button and a stock tag (low stock / sold out)
+/// - Name, store (with a verified mark for official stores), rating, sold
+///   count and a free-shipping truck
+/// - Price pinned to the bottom next to a round "+" add-to-cart button
+///
+/// The card fills the height it is given; see [ProductCard.bodyHeight].
 class ProductCard extends StatefulWidget {
   final String name;
   final String price;
@@ -46,11 +47,20 @@ class ProductCard extends StatefulWidget {
     this.stock,
   });
 
+  /// Height of everything below the square photo. A card of width `w` needs
+  /// a height of `w + bodyHeight(context)`.
+  static double bodyHeight(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(132);
+
   @override
   State<ProductCard> createState() => _ProductCardState();
 }
 
 class _ProductCardState extends State<ProductCard> {
+  static const _ink = Color(0xFF282133);
+  static const _muted = Color(0xFF7D7388);
+  static const _rose = Color(0xFF8C5A50);
+
   bool _isFavorite = false;
 
   @override
@@ -58,487 +68,313 @@ class _ProductCardState extends State<ProductCard> {
     final cleanPrice = widget.price.startsWith('₱')
         ? widget.price.substring(1).trim()
         : widget.price.trim();
+    final badge = widget.badge?.trim() ?? '';
+    final isOfficial = badge.toLowerCase().contains('official');
+    final seller = (widget.sellerName?.trim().isNotEmpty ?? false)
+        ? widget.sellerName!.trim()
+        : 'Cartzy Store';
+    final lowStock = widget.inStock && widget.stock != null && widget.stock! <= 5;
+    final hasDiscount =
+        widget.discountPercent != null && widget.discountPercent! > 0 && widget.inStock;
 
-    final sellerDisplay = (widget.sellerName != null && widget.sellerName!.isNotEmpty)
-        ? widget.sellerName!.toUpperCase()
-        : 'OFFICIAL STORE';
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: widget.onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFEDE6EA)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── PHOTO ──
+              AspectRatio(
+                aspectRatio: 1,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ColoredBox(
+                      color: const Color(0xFFF6F3F5),
+                      child: CartzyProductImage(
+                        imageUrl: (widget.imageUrl?.isNotEmpty ?? false)
+                            ? widget.imageUrl
+                            : CartzyProductImages.getImage(widget.name),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
 
-    final String? badgeText = (widget.badge != null && widget.badge!.trim().isNotEmpty)
-        ? widget.badge!.trim()
-        : null;
+                    // Sold out: soften the photo.
+                    if (!widget.inStock)
+                      ColoredBox(color: Colors.white.withValues(alpha: 0.45)),
 
-    final isOfficial = badgeText != null && badgeText.toLowerCase().contains('official');
-    final effectiveBadge = badgeText;
-
-    // Stock indicator colors matching web: green (in stock), amber (low stock <= 5), gray (out of stock)
-    final Color stockColor;
-    final String stockText;
-    if (!widget.inStock) {
-      stockColor = const Color(0xFF9A90A3);
-      stockText = 'Out of stock';
-    } else if (widget.stock != null && widget.stock! <= 5) {
-      stockColor = const Color(0xFFB4651E);
-      stockText = 'Only ${widget.stock} left';
-    } else {
-      stockColor = const Color(0xFF3F7A55);
-      stockText = widget.stock != null ? '${widget.stock} in stock' : 'In stock';
-    }
-
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── SQUARE MEDIA AREA (discovery-media) ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 5, 5, 0),
-              child: AspectRatio(
-                aspectRatio: 1.05,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAF9FB),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    children: [
-                      // Product Image
-                      Positioned.fill(
-                        child: Opacity(
-                          opacity: widget.inStock ? 1.0 : 0.75,
-                          child: CartzyProductImage(
-                            imageUrl: (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
-                                ? widget.imageUrl
-                                : CartzyProductImages.getImage(widget.name),
-                            fit: BoxFit.cover,
+                    // Discount tag tucked into the top-left corner.
+                    if (hasDiscount)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(9, 5, 10, 5),
+                          decoration: const BoxDecoration(
+                            color: _rose,
+                            borderRadius: BorderRadius.only(bottomRight: Radius.circular(12)),
+                          ),
+                          child: Text(
+                            '-${widget.discountPercent}%',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.1,
+                            ),
                           ),
                         ),
                       ),
 
-                      // Top-Left: Seller Badge ("Official" dark capsule with gold check)
-                      if (effectiveBadge != null && effectiveBadge.isNotEmpty)
-                        Positioned(
-                          top: 5,
-                          left: 5,
+                    // Floating wishlist button.
+                    Positioned(
+                      top: 7,
+                      right: 7,
+                      child: Semantics(
+                        button: true,
+                        label: _isFavorite ? 'Remove from wishlist' : 'Add to wishlist',
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() => _isFavorite = !_isFavorite);
+                            widget.onFavoriteToggle?.call();
+                          },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            width: 30,
+                            height: 30,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF282133), // brand-darkest
-                              borderRadius: BorderRadius.circular(999),
+                              color: Colors.white.withValues(alpha: 0.92),
+                              shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 1),
+                                  color: Colors.black.withValues(alpha: 0.10),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                            child: Row(
+                            child: Icon(
+                              _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                              size: 16,
+                              color: _isFavorite ? const Color(0xFFD1495B) : _ink,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Stock tag along the bottom of the photo.
+                    if (!widget.inStock || lowStock)
+                      Positioned(
+                        left: 7,
+                        bottom: 7,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: widget.inStock ? const Color(0xFFFFF4E5) : _ink,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            widget.inStock ? 'Only ${widget.stock} left' : 'Sold out',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: widget.inStock ? const Color(0xFFB4651E) : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // ── DETAILS ──
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 8, 9),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.dmSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: _ink,
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Store
+                      Row(
+                        children: [
+                          Icon(
+                            isOfficial ? Icons.verified_rounded : Icons.storefront_outlined,
+                            size: 12,
+                            color: isOfficial ? const Color(0xFF3B82F6) : _muted,
+                          ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              seller,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.dmSans(fontSize: 10.5, color: _muted),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Rating · sold · free shipping
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded, size: 13, color: Color(0xFFF2A93B)),
+                          const SizedBox(width: 2),
+                          Text(
+                            (widget.rating ?? 4.8).toStringAsFixed(1),
+                            style: GoogleFonts.dmSans(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: _ink,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              '  ·  ${widget.soldCount ?? '0 sold'}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.dmSans(fontSize: 10.5, color: _muted),
+                            ),
+                          ),
+                          if (widget.hasFreeShipping)
+                            const Tooltip(
+                              message: 'Free shipping',
+                              child: Icon(
+                                Icons.local_shipping_outlined,
+                                size: 14,
+                                color: Color(0xFF2F8F6B),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const Spacer(),
+
+                      // Price + add to cart
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (isOfficial) ...[
-                                  Container(
-                                    width: 9,
-                                    height: 9,
-                                    decoration: const BoxDecoration(
-                                      color: Color(0xFFC9A86A), // gold check
-                                      shape: BoxShape.circle,
+                                if (widget.originalPrice != null)
+                                  Text(
+                                    widget.originalPrice!,
+                                    maxLines: 1,
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 10,
+                                      color: const Color(0xFFA59BAD),
+                                      decoration: TextDecoration.lineThrough,
                                     ),
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.check,
-                                        size: 6.5,
-                                        color: Color(0xFF282133),
+                                  ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text.rich(
+                                    TextSpan(children: [
+                                      TextSpan(
+                                        text: '₱',
+                                        style: GoogleFonts.dmSans(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
+                                      TextSpan(text: cleanPrice),
+                                    ]),
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 16.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: hasDiscount ? _rose : _ink,
+                                      letterSpacing: -0.3,
                                     ),
                                   ),
-                                  const SizedBox(width: 3),
-                                ],
-                                Text(
-                                  effectiveBadge,
-                                  style: GoogleFonts.dmSans(
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    height: 1.1,
-                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-
-                      // Top-Right: Discount Pill ("-20%" rose capsule)
-                      if (widget.discountPercent != null &&
-                          widget.discountPercent! > 0 &&
-                          widget.inStock)
-                        Positioned(
-                          top: 5,
-                          right: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF8C5A50), // accent-dark / discovery-rose
-                              borderRadius: BorderRadius.circular(999),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF8C5A50).withValues(alpha: 0.22),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              '-${widget.discountPercent}%',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                height: 1.1,
-                              ),
-                            ),
+                          const SizedBox(width: 6),
+                          _AddButton(
+                            enabled: widget.inStock,
+                            onTap: widget.onAddToCart ?? widget.onTap,
                           ),
-                        ),
-
-                      // Bottom-Left: Out of Stock Pill
-                      if (!widget.inStock)
-                        Positioned(
-                          bottom: 5,
-                          left: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF282133).withValues(alpha: 0.9),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            child: Text(
-                              'Out of Stock',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 8,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-            // ── BODY DETAILS (discovery-body) ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(7, 5, 7, 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Store Link (Uppercase brand, e.g. "OFFICIAL STORE")
-                  Text(
-                    sellerDisplay,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF6F6382), // discovery-muted
-                      letterSpacing: 0.3,
+class _AddButton extends StatelessWidget {
+  final bool enabled;
+  final VoidCallback onTap;
+
+  const _AddButton({required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: enabled ? 'Add to cart' : 'Sold out',
+      child: GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: enabled ? null : const Color(0xFFEDEAF0),
+            gradient: enabled
+                ? const LinearGradient(
+                    colors: [Color(0xFF564B68), Color(0xFF8C5A50)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            boxShadow: enabled
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF564B68).withValues(alpha: 0.28),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  const SizedBox(height: 1),
-
-                  // Product Title (2 lines max, line-clamp-2)
-                  Text(
-                    widget.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF282133), // discovery-ink
-                      height: 1.2,
-                      letterSpacing: -0.15,
-                    ),
-                  ),
-                  const SizedBox(height: 2.5),
-
-                  // Free Shipping Tag (discovery-tag)
-                  if (widget.hasFreeShipping)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF5F3), // accent-soft
-                        borderRadius: BorderRadius.circular(3),
-                        border: Border.all(color: const Color(0xFFF5CFC7), width: 0.8),
-                      ),
-                      child: Text(
-                        'Free Shipping',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF8C5A50), // discovery-rose
-                        ),
-                      ),
-                    )
-                  else
-                    const SizedBox(height: 2.5),
-
-                  const SizedBox(height: 3),
-
-                  // Top Divider before pricing
-                  const Divider(color: Color(0xFFE1DDE7), height: 1, thickness: 0.8),
-                  const SizedBox(height: 3),
-
-                  // Price Row (discovery-price)
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          '₱',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF8C5A50), // discovery-currency
-                          ),
-                        ),
-                        const SizedBox(width: 1),
-                        Text(
-                          cleanPrice,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF282133), // discovery-price-now
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        if (widget.originalPrice != null) ...[
-                          const SizedBox(width: 4),
-                          Text(
-                            widget.originalPrice!,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 9.5,
-                              color: const Color(0xFF9A90A3), // discovery-price-was
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-
-                  // Rating & Sold Row (discovery-rating)
-                  Row(
-                    children: [
-                      const Icon(Icons.star_rounded, size: 11.5, color: Color(0xFFD9A13B)), // amber star
-                      const SizedBox(width: 2),
-                      Text(
-                        (widget.rating ?? 4.8).toStringAsFixed(1),
-                        style: GoogleFonts.dmSans(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF564B68), // discovery-score
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 2.5,
-                        height: 2.5,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFC9C1CF), // discovery-dot
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          widget.soldCount ?? '0 sold',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF6F6382), // discovery-muted
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2.5),
-
-                  // Stock Status Row (discovery-stock)
-                  Row(
-                    children: [
-                      Container(
-                        width: 5.5,
-                        height: 5.5,
-                        decoration: BoxDecoration(
-                          color: stockColor,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: stockColor.withValues(alpha: 0.22),
-                              spreadRadius: 1.5,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        stockText,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          color: stockColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-
-                  // ── ACTIONS ROW: Wishlist Circle + Add to Cart Button (discovery-actions) ──
-                  Row(
-                    children: [
-                      // Wishlist Circle Button (discovery-wishlist)
-                      GestureDetector(
-                        onTap: () {
-                          setState(() => _isFavorite = !_isFavorite);
-                          widget.onFavoriteToggle?.call();
-                        },
-                        child: Container(
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            color: _isFavorite ? const Color(0xFFFFF5F3) : Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: _isFavorite
-                                  ? const Color(0xFFC08B7F)
-                                  : const Color(0xFFD4A69A),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF302938).withValues(alpha: 0.06),
-                                blurRadius: 3,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              _isFavorite ? Icons.favorite : Icons.favorite_border_rounded,
-                              size: 13,
-                              color: const Color(0xFF8C5A50), // discovery-rose
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-
-                      // Add to Cart Button with web 4-stop gradient
-                      Expanded(
-                        child: SizedBox(
-                          height: 26,
-                          child: widget.inStock
-                              ? InkWell(
-                                  onTap: widget.onAddToCart ?? widget.onTap,
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: const Color(0xFFD4A69A), // accent-primary
-                                        width: 0.8,
-                                      ),
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFF564B68), // brand-dark
-                                          Color(0xFF6F6382), // brand-deep
-                                          Color(0xFF8C5A50), // accent-dark
-                                          Color(0xFF4A2520), // accent-darkest
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF6F6382).withValues(alpha: 0.2),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 1.5),
-                                        ),
-                                      ],
-                                    ),
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.shopping_bag_outlined,
-                                            size: 11.5,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                            'Add to Cart',
-                                            style: GoogleFonts.dmSans(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: const Color(0xFFF3F4F6),
-                                    border: Border.all(
-                                      color: const Color(0xFFE5E7EB),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    'Out of Stock',
-                                    style: GoogleFonts.dmSans(
-                                      fontSize: 9.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF9CA3AF),
-                                    ),
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+                  ]
+                : null,
+          ),
+          child: Icon(
+            enabled ? Icons.add_rounded : Icons.remove_shopping_cart_outlined,
+            size: enabled ? 20 : 15,
+            color: enabled ? Colors.white : const Color(0xFFA59BAD),
+          ),
         ),
       ),
     );

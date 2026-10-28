@@ -131,7 +131,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
   String _selectedSex = '';
   String _birthday = '';
-  int? _age;
 
   bool _lastNameError = false;
   String? _lastNameErrorMessage;
@@ -292,37 +291,12 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           Navigator.of(context).pop();
           setState(() {
             _birthday = date;
-            _age = _calculateAge(date);
-            _birthdayError = false;
+            _birthdayErrorMessage = BuyerRegistrationValidation.birthday(date);
+            _birthdayError = _birthdayErrorMessage != null;
           });
         },
       ),
     );
-  }
-
-  int? _calculateAge(String formattedDate) {
-    try {
-      final parts = formattedDate.split(' ');
-      const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ];
-      final monthIndex = months.indexOf(parts[0]);
-      final day = int.parse(parts[1].replaceAll(',', ''));
-      final year = int.parse(parts[2]);
-
-      final birthDate = DateTime(year, monthIndex + 1, day);
-      final today = DateTime.now();
-
-      int age = today.year - birthDate.year;
-      if (today.month < birthDate.month ||
-          (today.month == birthDate.month && today.day < birthDate.day)) {
-        age--;
-      }
-      return age;
-    } catch (_) {
-      return null;
-    }
   }
 
   Future<void> _pickIdFile() async {
@@ -406,16 +380,8 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       _sexError = _selectedSex.isEmpty;
 
       // Birthday & Age validation (18+ requirement)
-      if (_birthday.isEmpty) {
-        _birthdayError = true;
-        _birthdayErrorMessage = 'Please enter your birthday.';
-      } else if (_age != null && _age! < 18) {
-        _birthdayError = true;
-        _birthdayErrorMessage = 'You must be at least 18 years old to register.';
-      } else {
-        _birthdayError = false;
-        _birthdayErrorMessage = null;
-      }
+      _birthdayErrorMessage = BuyerRegistrationValidation.birthday(_birthday);
+      _birthdayError = _birthdayErrorMessage != null;
 
       // Email validation (TC-BUY-010, TC-BUY-011, TC-BUY-012)
       final emailFormatError = BuyerRegistrationValidation.email(trimmedEmail);
@@ -698,6 +664,17 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       return;
     }
 
+    // Guard the submit too, in case step 1 was bypassed.
+    final birthdayError = BuyerRegistrationValidation.birthday(_birthday);
+    if (birthdayError != null) {
+      setState(() {
+        _birthdayError = true;
+        _birthdayErrorMessage = birthdayError;
+        _currentStep = 1;
+      });
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     final firstName = _firstNameController.text.trim();
@@ -766,7 +743,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               CartzyRegisterHeader(
                 title: 'Create your account',
@@ -1592,12 +1569,17 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
   late int _selectedDay;
   late int _selectedYear;
   late List<int> _years;
+  // Latest birthday that is already 18 today; nothing after it can be picked.
+  late DateTime _latestBirthday;
 
   @override
   void initState() {
     super.initState();
-    final currentYear = DateTime.now().year;
-    _years = List.generate(currentYear - 1900 + 1, (i) => currentYear - i);
+    final now = DateTime.now();
+    _latestBirthday = DateTime(
+        now.year - BuyerRegistrationValidation.minimumAge, now.month, now.day);
+    final latestYear = _latestBirthday.year;
+    _years = List.generate(latestYear - 1900 + 1, (i) => latestYear - i);
 
     _selectedMonth = 0;
     _selectedDay = 1;
@@ -1616,12 +1598,26 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
         // use defaults
       }
     }
+    _selectedYear = _selectedYear.clamp(_years.last, _years.first);
   }
 
-  int get _daysInMonth => DateTime(_selectedYear, _selectedMonth + 2, 0).day;
+  int get _monthCount =>
+      _selectedYear == _latestBirthday.year ? _latestBirthday.month : 12;
+
+  int get _daysInMonth {
+    final days = DateTime(_selectedYear, _selectedMonth + 2, 0).day;
+    if (_selectedYear == _latestBirthday.year &&
+        _selectedMonth + 1 == _latestBirthday.month) {
+      return days < _latestBirthday.day ? days : _latestBirthday.day;
+    }
+    return days;
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedMonth >= _monthCount) {
+      _selectedMonth = _monthCount - 1;
+    }
     if (_selectedDay > _daysInMonth) {
       _selectedDay = _daysInMonth;
     }
@@ -1690,7 +1686,7 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
                     Expanded(
                       flex: 15,
                       child: _wheel(
-                        itemCount: monthNames.length,
+                        itemCount: _monthCount,
                         initialIndex: _selectedMonth,
                         labelBuilder: (i) => monthNames[i],
                         onChanged: (i) => setState(() => _selectedMonth = i),
@@ -1819,6 +1815,7 @@ class RegistrationDropdown extends StatelessWidget {
   final ValueChanged<String> onSelected;
   final bool isError;
   final String errorMessage;
+  final bool showSearch;
 
   const RegistrationDropdown({
     super.key,
@@ -1829,6 +1826,7 @@ class RegistrationDropdown extends StatelessWidget {
     required this.onSelected,
     this.isError = false,
     this.errorMessage = '',
+    this.showSearch = true,
   });
 
   @override
@@ -1872,6 +1870,7 @@ class RegistrationDropdown extends StatelessWidget {
                         label: label,
                         icon: icon,
                         options: options,
+                        showSearch: showSearch,
                       ),
                     );
                     if (selected != null) onSelected(selected);
@@ -1934,11 +1933,13 @@ class _DropdownSheet extends StatefulWidget {
   final String label;
   final IconData? icon;
   final List<String> options;
+  final bool showSearch;
 
   const _DropdownSheet({
     required this.label,
     required this.icon,
     required this.options,
+    this.showSearch = true,
   });
 
   @override
@@ -1972,8 +1973,8 @@ class _DropdownSheetState extends State<_DropdownSheet> {
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
+      initialChildSize: widget.showSearch ? 0.7 : (widget.options.length <= 8 ? 0.45 : 0.7),
+      minChildSize: widget.showSearch ? 0.4 : (widget.options.length <= 8 ? 0.35 : 0.4),
       maxChildSize: 0.9,
       expand: false,
       builder: (context, scrollController) {
@@ -2015,27 +2016,29 @@ class _DropdownSheetState extends State<_DropdownSheet> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _filter,
-                  style: const TextStyle(fontSize: 14, color: CartzyColors.text),
-                  decoration: InputDecoration(
-                    hintText: 'Search...',
-                    hintStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
-                    prefixIcon: const Icon(Icons.search, color: CartzyColors.gray, size: 20),
-                    filled: true,
-                    fillColor: CartzyColors.background,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
+              if (widget.showSearch) ...[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: _filter,
+                    style: const TextStyle(fontSize: 14, color: CartzyColors.text),
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      hintStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
+                      prefixIcon: const Icon(Icons.search, color: CartzyColors.gray, size: 20),
+                      filled: true,
+                      fillColor: CartzyColors.background,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
+              ],
               const Divider(height: 1, color: CartzyColors.border),
               Expanded(
                 child: _filteredOptions.isEmpty
@@ -2651,6 +2654,7 @@ class RegistrationFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 18),
         Wrap(
@@ -3065,38 +3069,53 @@ class StepIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveLabels = labels.isNotEmpty ? labels : const ['Details', 'Sign-in', 'Verify'];
 
-    return Container(
-      color: Colors.transparent,
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Row(
-        children: [
-          for (int i = 0; i < effectiveLabels.length; i++) ...[
-            Flexible(
-              flex: 2,
-              child: Text(
-              effectiveLabels[i],
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: currentStep >= i + 1
-                    ? (accent ?? const Color(0xFF705A7B))
-                    : (gray ?? const Color(0xFFAA9CB4)),
-              ),
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.05,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 340;
+          final fontSize = isNarrow ? 12.0 : 13.5;
+          final lineMargin = isNarrow ? 4.0 : 8.0;
+
+          return SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                children: [
+                  for (int i = 0; i < effectiveLabels.length; i++) ...[
+                    Text(
+                      effectiveLabels[i],
+                      maxLines: 1,
+                      style: GoogleFonts.dmSans(
+                        fontSize: fontSize,
+                        fontWeight: currentStep == i + 1
+                            ? FontWeight.w700
+                            : (currentStep > i + 1 ? FontWeight.w600 : FontWeight.w500),
+                        color: currentStep >= i + 1
+                            ? (accent ?? const Color(0xFF705A7B))
+                            : (gray ?? const Color(0xFFAA9CB4)),
+                      ),
+                    ),
+                    if (i < effectiveLabels.length - 1)
+                      Expanded(
+                        child: Container(
+                          height: 2,
+                          margin: EdgeInsets.symmetric(horizontal: lineMargin),
+                          decoration: BoxDecoration(
+                            color: currentStep > i + 1
+                                ? (accent ?? const Color(0xFF705A7B))
+                                : const Color(0xFFE2DCE8),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                  ],
+                ],
               ),
             ),
-            if (i < effectiveLabels.length - 1) ...[
-              Expanded(
-                child: Container(
-                  height: 2,
-                  margin: const EdgeInsets.symmetric(horizontal: 6),
-                  color: currentStep > i + 1
-                      ? (accent ?? const Color(0xFF705A7B))
-                      : const Color(0xFFE2DCE8),
-                ),
-              ),
-            ],
-          ],
-        ],
+          );
+        },
       ),
     );
   }

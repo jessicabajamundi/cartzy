@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
+import 'package:cartzy/guest/guest_wishlist_screen.dart';
+import 'package:cartzy/guest/guest_cart_screen.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
@@ -66,6 +68,48 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     );
   }
 
+  void _openWishlist() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (routeContext) => GuestWishlistScreen(
+          onLogin: () {
+            Navigator.of(routeContext).pop();
+            widget.onLogin();
+          },
+          onSignUp: () {
+            Navigator.of(routeContext).pop();
+            widget.onSignUp();
+          },
+        ),
+      ),
+    );
+  }
+
+  void _openCart() {
+    final navigator = Navigator.of(context);
+    final homeRoute = ModalRoute.of(context);
+    navigator.push(
+      MaterialPageRoute(
+        builder: (routeContext) => GuestCartScreen(
+          onLogin: () {
+            navigator.popUntil((route) => route == homeRoute || route.isFirst);
+            widget.onLogin();
+          },
+          onSignUp: () {
+            navigator.popUntil((route) => route == homeRoute || route.isFirst);
+            widget.onSignUp();
+          },
+          onHome: () => navigator
+              .popUntil((route) => route == homeRoute || route.isFirst),
+          onWishlist: () {
+            Navigator.of(routeContext).pop();
+            _openWishlist();
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -87,12 +131,12 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     return Scaffold(
       backgroundColor: CartzyColors.background,
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
             // ─────────────────────────────────────────────────
-            // Hero banner with an overlaid search, wishlist, and cart
+            // Hero banner with an overlaid search, wishlist, and notifications
             // ─────────────────────────────────────────────────
-            Expanded(
+            Positioned.fill(
               child: RefreshIndicator(
                 color: CartzyColors.burgundy,
                 onRefresh: () async {
@@ -104,7 +148,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 },
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(bottom: 30),
+                  padding: const EdgeInsets.only(bottom: 110),
                   children: [
                     // FULL-WIDTH HERO BANNER CAROUSEL (EDGE-TO-EDGE, NO GAPS)
                     Stack(
@@ -176,7 +220,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                   const SizedBox(width: 4),
                                   IconButton(
                                     tooltip: 'Wishlist',
-                                    onPressed: _showLoginRequiredDialog,
+                                    onPressed: _openWishlist,
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: CartzyColors.burgundy,
@@ -186,7 +230,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                         Icons.favorite_border_rounded),
                                   ),
                                   IconButton(
-                                    tooltip: 'Shopping cart',
+                                    tooltip: 'Notifications',
                                     onPressed: _showLoginRequiredDialog,
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
@@ -194,7 +238,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                       minimumSize: const Size(48, 48),
                                     ),
                                     icon: const BannerActionIcon(
-                                        Icons.shopping_cart_outlined),
+                                        Icons.notifications_none_rounded),
                                   ),
                                 ],
                               ),
@@ -272,7 +316,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                               rating: p.rating,
                               soldCount: p.soldCount,
                               onBack: () => Navigator.of(context).pop(),
-                              onAddToCart: _showLoginRequiredDialog,
+                              onAddToCart: _openCart,
                             ),
                           ),
                         );
@@ -306,12 +350,12 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                               rating: p.rating,
                               soldCount: p.soldCount,
                               onBack: () => Navigator.of(context).pop(),
-                              onAddToCart: _showLoginRequiredDialog,
+                              onAddToCart: _openCart,
                             ),
                           ),
                         );
                       },
-                      onAddToCart: (_) => _showLoginRequiredDialog(),
+                      onAddToCart: (_) => _openCart(),
                     ),
                   ],
                 ),
@@ -319,76 +363,67 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
             ),
 
             // ─────────────────────────────────────────────────
-            // BOTTOM NAV BAR (Home, New, Sale, Shop All, Collection)
+            // BOTTOM NAV BAR (Home, Cart, Sale, Profile)
             // ─────────────────────────────────────────────────
-            Container(
-              decoration: const BoxDecoration(
-                color: CartzyColors.surface,
-                border: Border(top: BorderSide(color: CartzyColors.border)),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: Row(
-                children: [
-                  _BottomNavItem(
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    selected: true,
-                    onClick: () {},
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                decoration: const ShapeDecoration(
+                  color: CartzyColors.surface,
+                  shape: StadiumBorder(
+                    side: BorderSide(color: CartzyColors.border),
                   ),
-                  _BottomNavItem(
-                    icon: Icons.auto_awesome_outlined,
-                    label: 'New',
-                    selected: false,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            title: 'New Arrivals',
-                            initialCategory: 'All',
+                  shadows: [
+                    BoxShadow(
+                      color: Color(0x148B3A3A),
+                      blurRadius: 16,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Row(
+                  children: [
+                    _BottomNavItem(
+                      icon: Icons.home_rounded,
+                      label: 'Home',
+                      selected: true,
+                      onClick: () {},
+                    ),
+                    _BottomNavItem(
+                      icon: Icons.shopping_cart_outlined,
+                      label: 'Cart',
+                      selected: false,
+                      onClick: _openCart,
+                    ),
+                    _BottomNavItem(
+                      icon: Icons.local_offer_outlined,
+                      label: 'Sale',
+                      selected: false,
+                      isSale: true,
+                      onClick: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ProductListScreen(
+                              initialCategory: 'Flash Deals',
+                              title: 'Sale & Flash Deals',
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  _BottomNavItem(
-                    icon: Icons.local_offer_outlined,
-                    label: 'Sale',
-                    selected: false,
-                    isSale: true,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            initialCategory: 'Flash Deals',
-                            title: 'Sale & Flash Deals',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _BottomNavItem(
-                    icon: Icons.grid_view_outlined,
-                    label: 'Shop All',
-                    selected: false,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            initialCategory: 'All',
-                            title: 'Shop All Products',
-                            randomize: true,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _BottomNavItem(
-                    icon: Icons.person_outline_rounded,
-                    label: 'Profile',
-                    selected: false,
-                    onClick: widget.onLogin,
-                  ),
-                ],
+                        );
+                      },
+                    ),
+                    _BottomNavItem(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Profile',
+                      selected: false,
+                      onClick: widget.onLogin,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

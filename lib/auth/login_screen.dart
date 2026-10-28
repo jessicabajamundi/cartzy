@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cartzy/auth/forgot_password_screen.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/auth_service.dart';
@@ -203,27 +204,24 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showForgotPasswordDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Forgot Password',
-            style: GoogleFonts.dmSans(color: const Color(0xFF231F20), fontWeight: FontWeight.bold)),
-        content: Text(
-          'Your Cartzy account works on both the app and the website.\n\n'
-          'To reset your password, open the Cartzy website, choose "Log in", then "Forgot password?". '
-          'Use your new password here afterwards.',
-          style: GoogleFonts.dmSans(fontSize: 13.5, height: 1.5, color: const Color(0xFF4A3E4D)),
+  Future<void> _openForgotPassword() async {
+    final resetEmail = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => ForgotPasswordScreen(
+          role: _selectedRole,
+          initialEmail: _emailController.text,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Close', style: GoogleFonts.dmSans(color: const Color(0xFF7A6E72))),
-          ),
-        ],
       ),
     );
+    if (resetEmail == null || !mounted) return;
+    // Back from a successful reset: fill the email and start fresh.
+    setState(() {
+      _emailController.text = resetEmail;
+      _passwordController.clear();
+      _emailError = null;
+      _passwordError = null;
+      _loginAttempts = 0;
+    });
   }
 
   @override
@@ -563,7 +561,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: _showForgotPasswordDialog,
+                    onTap: _openForgotPassword,
                     child: Text(
                       'Forgot password?',
                       style: GoogleFonts.dmSans(

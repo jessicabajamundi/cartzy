@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/guest/guest_cart_screen.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/cart_service.dart';
@@ -323,8 +325,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   }
 
   void _handleAddToCart() {
-    if (widget.isGuest) {
-      _showGuestNotice();
+    if (widget.isGuest || !AuthService.isAuthenticated) {
+      if (widget.onAddToCart != null) {
+        widget.onAddToCart!();
+      } else {
+        GuestCartScreen.open(context);
+      }
       return;
     }
     if (!_inStock) {
@@ -367,38 +373,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  void _showGuestNotice() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Login Required'),
-        content: const Text(
-          'Please log in or register a buyer account to add items to your cart and complete checkout.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: CartzyColors.gray)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CartzyColors.navy,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              Navigator.of(context).pop();
-            },
-            child: const Text('Go to Login'),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _navigateToCart() {
+    if (widget.isGuest || !AuthService.isAuthenticated) {
+      GuestCartScreen.open(context);
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => CartScreen(
