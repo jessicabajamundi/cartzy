@@ -12,6 +12,10 @@ class Product extends Model
 
     public const MIN_LOW_STOCK_THRESHOLD = 10;
 
+    public const APPROVAL_PENDING = 'pending';
+    public const APPROVAL_APPROVED = 'approved';
+    public const APPROVAL_REJECTED = 'rejected';
+
     public function getStockAlertThresholdAttribute(): int
     {
         return max(self::MIN_LOW_STOCK_THRESHOLD, (int) $this->low_stock_threshold);
@@ -30,6 +34,10 @@ class Product extends Model
         'discount_starts_at',
         'discount_ends_at',
         'is_active',
+        'approval_status',
+        'rejection_reason',
+        'reviewed_at',
+        'reviewed_by',
         'low_stock_threshold',
     ];
 
@@ -39,7 +47,43 @@ class Product extends Model
         'discount_value' => 'decimal:2',
         'discount_starts_at' => 'immutable_datetime',
         'discount_ends_at' => 'immutable_datetime',
+        'reviewed_at' => 'datetime',
     ];
+
+    public function isApproved(): bool
+    {
+        return $this->approval_status === self::APPROVAL_APPROVED;
+    }
+
+    public function isPending(): bool
+    {
+        return $this->approval_status === self::APPROVAL_PENDING;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->approval_status === self::APPROVAL_REJECTED;
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_APPROVED);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_PENDING);
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_REJECTED);
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 
     public function getSaleStatusAttribute(): string
     {

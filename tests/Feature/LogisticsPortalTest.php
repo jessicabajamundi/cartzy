@@ -170,6 +170,78 @@ class LogisticsPortalTest extends TestCase
         $this->get(route('logistics.pickups', ['status' => 'invalid']))->assertOk()->assertViewHas('filter', 'all');
     }
 
+    public function test_logistics_pickups_nearest_rider_matching_and_auto_assign(): void
+    {
+        $user = $this->getLogisticsUser();
+        $provider = $user->logisticsProvider;
+
+        // Ensure a rider exists in Santa Cruz Laguna
+        $riderUser = User::factory()->create(['role' => 'courier', 'status' => 'active']);
+        $nearRider = Rider::create([
+            'user_id'               => $riderUser->id,
+            'logistics_provider_id' => $provider->id,
+            'vehicle_type'          => 'Motorcycle',
+            'plate_no'              => 'SC-9988',
+            'status'                => 'approved',
+            'is_active'             => true,
+            'area'                  => 'Laguna - Santa Cruz',
+            'rating'                => 5.0,
+            'deliveries_today'      => 1,
+        ]);
+
+        $pickup = PickupRequest::where('logistics_provider_id', $provider->id)->firstOrFail();
+        $pickup->update([
+            'address'     => '123 Rizal Street, Santa Cruz, Laguna',
+            'rider_id'    => null,
+            'assigned_at' => null,
+            'status'      => 'pending',
+        ]);
+
+        // Visit pickups page and assert nearest rider was detected as Santa Cruz
+        $resp = $this->actingAs($user)->get(route('logistics.pickups'));
+        $resp->assertOk();
+        $resp->assertViewHas('pickups', function ($items) use ($pickup, $nearRider) {
+            $matched = collect($items->items())->firstWhere('id', $pickup->id);
+            return $matched && $matched['nearest_rider']['id'] === $nearRider->id;
+        });
+
+        // 1-Click Auto Dispatch Nearest Rider
+        $autoResp = $this->actingAs($user)->post(route('logistics.pickups.auto-assign', $pickup->id));
+        $autoResp->assertRedirect();
+        $pickup->refresh();
+
+        $this->assertEquals($nearRider->id, $pickup->rider_id);
+        $this->assertEquals('confirmed', $pickup->status);
+        $this->assertNotNull($pickup->assigned_at);
+    }
+
+    public function test_logistics_pickups_manual_rider_assignment_and_unassign(): void
+    {
+        $user = $this->getLogisticsUser();
+        $provider = $user->logisticsProvider;
+
+        $rider = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->firstOrFail();
+        $pickup = PickupRequest::where('logistics_provider_id', $provider->id)->firstOrFail();
+
+        // Assign specific rider
+        $assignResp = $this->actingAs($user)->post(route('logistics.pickups.assign', $pickup->id), [
+            'rider_id' => $rider->id,
+        ]);
+        $assignResp->assertRedirect();
+        $pickup->refresh();
+
+        $this->assertEquals($rider->id, $pickup->rider_id);
+        $this->assertNotNull($pickup->assigned_at);
+
+        // Unassign rider
+        $unassignResp = $this->actingAs($user)->post(route('logistics.pickups.unassign', $pickup->id));
+        $unassignResp->assertRedirect();
+        $pickup->refresh();
+
+        $this->assertNull($pickup->rider_id);
+        $this->assertNull($pickup->assigned_at);
+    }
+
     public function test_incoming_parcels_search_filter_and_receipt(): void
     {
         $user = $this->getLogisticsUser();

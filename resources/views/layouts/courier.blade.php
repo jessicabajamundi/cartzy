@@ -106,11 +106,15 @@
     @stack('styles')
 </head>
 <body class="h-screen flex flex-col overflow-hidden selection:bg-[#564B68] selection:text-white">
+    @php
+        $courierNotifs = \App\Models\AppNotification::where('user_id', Auth::id())->latest()->take(6)->get();
+        $courierUnreadCount = \App\Models\AppNotification::where('user_id', Auth::id())->where('is_read', false)->count();
+    @endphp
 
     <!-- Mobile Top Navigation Header -->
-    <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-2xs z-30 shrink-0">
+    <header class="lg:hidden bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between shadow-2xs z-30 shrink-0">
         <div class="flex items-center gap-2.5">
-            <button type="button" onclick="toggleMobileSidebar()" class="p-2 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition">
+            <button type="button" onclick="toggleMobileSidebar()" class="p-2 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition" aria-label="Toggle menu">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
             <a href="{{ route('courier.dashboard') }}" class="flex items-center gap-2">
@@ -121,17 +125,54 @@
 
         <div class="flex items-center gap-2">
             <!-- Scan Barcode Modal Button -->
-            <button type="button" onclick="openScanModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition shadow-sm" style="background: var(--gradient-master);">
+            <button type="button" onclick="openScanModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-white transition shadow-sm" style="background: var(--gradient-master);" title="Scan Barcode">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                <span>Scan</span>
+                <span class="hidden sm:inline">Scan</span>
             </button>
 
-            <!-- Online/Offline quick status -->
-            <form action="{{ route('courier.account.toggle-status') }}" method="POST" class="inline">
+            <!-- Notifications Icon -->
+            <div class="relative notif-dropdown-wrapper">
+                <button type="button" onclick="toggleCourierNotifMenu(event, 'mobile')" class="relative p-2 text-gray-500 hover:text-[#564B68] rounded-xl hover:bg-gray-100 transition cursor-pointer" aria-label="Notifications" title="Notifications ({{ $courierUnreadCount }} unread)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>
+                    </svg>
+                    @if($courierUnreadCount > 0)
+                        <span class="absolute top-1 right-1 flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                        </span>
+                    @endif
+                </button>
+
+                <!-- Mobile Notifications Menu -->
+                <div id="courierNotifMenuMobile" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-2xl border border-[#ECE7EF] shadow-2xl py-3 z-50 overflow-hidden text-left">
+                    <div class="px-4 pb-2 border-b border-[#ECE7EF] flex items-center justify-between">
+                        <span class="font-bold text-xs text-gray-900">Notifications</span>
+                        @if($courierUnreadCount > 0)
+                            <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">{{ $courierUnreadCount }} new</span>
+                        @endif
+                    </div>
+                    <div class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                        @forelse($courierNotifs as $notif)
+                            <a href="{{ $notif->link ?: route('courier.pickups') }}" class="block px-4 py-2.5 hover:bg-[#FAF8FC] transition {{ !$notif->is_read ? 'bg-purple-50/50' : '' }}">
+                                <p class="text-xs font-bold text-gray-900 truncate">{{ $notif->title }}</p>
+                                <p class="text-[11px] text-gray-600 line-clamp-2 mt-0.5">{{ $notif->message }}</p>
+                                <span class="text-[10px] text-gray-400 mt-1 block">{{ $notif->created_at?->diffForHumans() ?? 'Just now' }}</span>
+                            </a>
+                        @empty
+                            <div class="p-4 text-center text-xs text-gray-400">No notifications</div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Icon Button -->
+            <form action="{{ route('logout') }}" method="POST" class="inline m-0">
                 @csrf
-                <button type="submit" class="px-2.5 py-1 rounded-xl text-[11px] font-bold inline-flex items-center gap-1.5 transition {{ ($rider->is_active ?? true) ? 'badge-online' : 'badge-offline' }}" title="Click to toggle Online/Offline">
-                    <span class="w-2 h-2 rounded-full {{ ($rider->is_active ?? true) ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400' }}"></span>
-                    <span>{{ ($rider->is_active ?? true) ? 'ONLINE' : 'OFFLINE' }}</span>
+                <button type="submit" class="p-2 text-gray-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition flex items-center justify-center cursor-pointer" title="Log Out" aria-label="Log Out">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
                 </button>
             </form>
         </div>
@@ -280,11 +321,11 @@
                     <span class="text-xs font-semibold text-gray-500">Sector: <strong class="text-gray-800">{{ $rider->area ?? 'Metro South Sector' }}</strong></span>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2.5">
                     <!-- Quick Barcode Scan Trigger -->
-                    <button type="button" onclick="openScanModal()" class="btn-gradient-master px-4 py-2 text-xs flex items-center gap-2 cursor-pointer">
+                    <button type="button" onclick="openScanModal()" class="btn-gradient-master px-3.5 py-2 text-xs flex items-center gap-2 cursor-pointer shadow-xs">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
-                        <span>Scan Waybill Barcode</span>
+                        <span>Scan Barcode</span>
                     </button>
 
                     <!-- Rider Online Toggle -->
@@ -292,15 +333,64 @@
                         @csrf
                         <button type="submit" class="px-3 py-1.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition {{ ($rider->is_active ?? true) ? 'badge-online' : 'badge-offline' }}" title="Click to toggle status">
                             <span class="w-2 h-2 rounded-full {{ ($rider->is_active ?? true) ? 'bg-emerald-500 animate-pulse' : 'bg-gray-400' }}"></span>
-                            <span>{{ ($rider->is_active ?? true) ? 'Online (Accepting Jobs)' : 'Offline (Paused)' }}</span>
+                            <span>{{ ($rider->is_active ?? true) ? 'Online' : 'Offline' }}</span>
                         </button>
                     </form>
 
-                    <!-- Quick Logout -->
-                    <form action="{{ route('logout') }}" method="POST">
+                    <!-- Notification Bell Icon (Upper Right) -->
+                    <div class="relative notif-dropdown-wrapper">
+                        <button type="button" id="courierNotifToggleDesktop" onclick="toggleCourierNotifMenu(event, 'desktop')" class="relative p-2 text-gray-500 hover:text-[#564B68] rounded-xl hover:bg-gray-100 border border-transparent hover:border-gray-200 transition flex items-center justify-center cursor-pointer" title="Notifications ({{ $courierUnreadCount }} unread)" aria-label="Notifications">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>
+                            </svg>
+                            @if($courierUnreadCount > 0)
+                                <span class="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                                </span>
+                            @endif
+                        </button>
+
+                        <!-- Notification Dropdown Menu -->
+                        <div id="courierNotifMenuDesktop" class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-[#ECE7EF] shadow-2xl py-3 z-50 overflow-hidden text-left">
+                            <div class="px-4 pb-2.5 border-b border-[#ECE7EF] flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-xs text-gray-900">Notifications</span>
+                                    @if($courierUnreadCount > 0)
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">{{ $courierUnreadCount }} new</span>
+                                    @endif
+                                </div>
+                                <a href="{{ route('courier.pickups') }}" class="text-[11px] font-bold text-[#564B68] hover:underline">View Pickups &rarr;</a>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                                @forelse($courierNotifs as $notif)
+                                    <a href="{{ $notif->link ?: route('courier.pickups') }}" class="block px-4 py-3 hover:bg-[#FAF8FC] transition {{ !$notif->is_read ? 'bg-purple-50/50' : '' }}">
+                                        <div class="flex items-start gap-2.5">
+                                            <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ !$notif->is_read ? 'bg-[#564B68]' : 'bg-transparent' }}"></span>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs font-bold text-gray-900 truncate">{{ $notif->title }}</p>
+                                                <p class="text-[11px] text-gray-600 line-clamp-2 mt-0.5 leading-relaxed">{{ $notif->message }}</p>
+                                                <span class="text-[10px] text-gray-400 mt-1 block">{{ $notif->created_at?->diffForHumans() ?? 'Just now' }}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                @empty
+                                    <div class="p-6 text-center text-xs text-gray-400">
+                                        <svg class="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                        <span>No notifications right now</span>
+                                    </div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Out Icon Button (Upper Right) -->
+                    <form action="{{ route('logout') }}" method="POST" class="inline m-0">
                         @csrf
-                        <button type="submit" class="p-2 text-gray-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition" title="Log Out">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <button type="submit" class="p-2 text-gray-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100 transition flex items-center justify-center cursor-pointer" title="Log Out" aria-label="Log Out">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
                         </button>
                     </form>
                 </div>
@@ -536,6 +626,26 @@
                 document.getElementById('barcodeSearchForm').dispatchEvent(new Event('submit'));
             }
         }
+
+        function toggleCourierNotifMenu(event, type) {
+            event.stopPropagation();
+            const menuId = type === 'mobile' ? 'courierNotifMenuMobile' : 'courierNotifMenuDesktop';
+            const menu = document.getElementById(menuId);
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const mobileMenu = document.getElementById('courierNotifMenuMobile');
+            const desktopMenu = document.getElementById('courierNotifMenuDesktop');
+            if (mobileMenu && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+            if (desktopMenu && !desktopMenu.contains(e.target)) {
+                desktopMenu.classList.add('hidden');
+            }
+        });
     </script>
     @stack('scripts')
 @include('partials.logout-confirm')

@@ -348,8 +348,11 @@
         if (key === 'track') key = 'orders'; // Tracking is shown at the top of the Orders tab.
         if (!valid.includes(key)) key = 'orders';
         document.querySelectorAll('[data-buyer-nav]').forEach(link => {
-            if (link.dataset.buyerNav === key) link.setAttribute('aria-current', 'page');
+            if (link.dataset.buyerNav === key || (link.dataset.buyerNav === 'orders' && key === 'reviews')) link.setAttribute('aria-current', 'page');
             else link.removeAttribute('aria-current');
+        });
+        document.querySelectorAll('[data-buyer-nav-item]').forEach(item => {
+            item.classList.toggle('is-active', item.dataset.buyerNavItem === key);
         });
         panels.forEach(p => p.classList.toggle('hidden', p.dataset.panel !== key));
         navs.forEach(n => n.classList.toggle('is-active', n.dataset.nav === key));
@@ -418,6 +421,12 @@
     });
 
     navs.forEach(n => n.addEventListener('click', () => show(n.dataset.nav, true)));
+    document.querySelectorAll('[data-buyer-nav-item]').forEach(b => b.addEventListener('click', (e) => {
+        e.preventDefault();
+        show(b.dataset.buyerNavItem, true);
+        const dropdown = document.getElementById('header-orders-dropdown');
+        if (dropdown) dropdown.open = false;
+    }));
     document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
         if (b.dataset.filter) filterOrders(b.dataset.filter);
         show(b.dataset.go, true);

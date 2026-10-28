@@ -17,6 +17,7 @@ class CatalogController extends Controller
     private function available(): Builder
     {
         return Product::where('is_active', true)
+            ->where('approval_status', Product::APPROVAL_APPROVED)
             ->whereHas('seller', fn ($q) => $q->where('status', 'approved')
                 ->whereHas('user', fn ($user) => $user->where('status', 'active')));
     }
@@ -25,12 +26,15 @@ class CatalogController extends Controller
     {
         if (!$path) return null;
 
-        return preg_match('~^(https?://|/)~', $path) ? $path : asset('storage/'.$path);
+        return preg_match('~^(https?://|/)~', $path) ? $path : \Illuminate\Support\Facades\Storage::disk('public')->url($path);
     }
 
     private function productJson(Product $product, bool $full = false): array
     {
         $variants = $product->variants;
+        // sale_price_minor reads $variant->product; hand it the loaded parent
+        // instead of re-querying it for every variant (N+1 against a remote DB).
+        $variants->each->setRelation('product', $product);
         $cheapest = $variants->sortBy(fn ($variant) => $variant->sale_price_minor)->first();
         $json = [
             'id' => $product->id,

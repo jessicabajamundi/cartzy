@@ -78,7 +78,7 @@ class ProductVariant extends Model
             return $this->image_path;
         }
 
-        return asset('storage/' . $this->image_path);
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->image_path);
     }
 
     /** Every photo of this option as a URL, first photo first (falls back to the single image_path). */
@@ -86,7 +86,7 @@ class ProductVariant extends Model
     {
         $paths = $this->gallery ?: array_filter([$this->image_path]);
 
-        return array_values(array_map(fn ($path) => preg_match('~^(https?://|/)~', $path) ? $path : asset('storage/'.$path), $paths));
+        return array_values(array_map(fn ($path) => preg_match('~^(https?://|/)~', $path) ? $path : \Illuminate\Support\Facades\Storage::disk('public')->url($path), $paths));
     }
 
     public function getResolvedImageUrlAttribute(): string
@@ -100,7 +100,7 @@ class ProductVariant extends Model
             if (str_starts_with($cover, 'http://') || str_starts_with($cover, 'https://') || str_starts_with($cover, '/')) {
                 return $cover;
             }
-            return asset('storage/' . $cover);
+            return \Illuminate\Support\Facades\Storage::disk('public')->url($cover);
         }
 
         return 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop&q=80';

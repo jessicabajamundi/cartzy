@@ -15,7 +15,6 @@
         $profileUser->isLogistics()
             ? ['logistics.account', 'Account Management', 'user']
             : ['buyer.dashboard', 'Account Settings', 'user', 'settings'],
-        ['buyer.dashboard', 'Reviews & Ratings', 'bag', 'reviews'],
     ]);
     if ($profileUser->isBuyer()) {
         $profileLinks[] = ['buyer.dashboard', 'My Vouchers', 'ticket', 'vouchers'];

@@ -1,0 +1,85 @@
+# Render blueprint: runs the Laravel app from the Dockerfile, 24/7.
+# The database stays on Aiven and uploads go to Cloudflare R2, so nothing depends on a PC.
+# Values marked `sync: false` are secrets: Render asks for them when the blueprint is first applied.
+# Also add the Aiven CA certificate as a Secret File named `ca.pem` (Environment > Secret Files);
+# Render mounts it at /etc/secrets/ca.pem.
+services:
+  - type: web
+    name: cartzy
+    runtime: docker
+    region: singapore
+    # The free plan sleeps after 15 minutes without traffic; an UptimeRobot monitor
+    # hitting /up every 5 minutes keeps it awake.
+    plan: free
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: Cartzy
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        value: https://cartzyy.shop
+      - key: APP_KEY
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: mysql-8833a7e-cartzyy.g.aivencloud.com
+      - key: DB_PORT
+        value: "23510"
+      - key: DB_DATABASE
+        value: ecommerce_db
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/secrets/ca.pem
+
+      # Kept in the database so a redeploy doesn't log everyone out.
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_PUBLIC_BUCKET
+        sync: false
+      - key: R2_PUBLIC_URL
+        sync: false
+      - key: R2_PRIVATE_BUCKET
+        sync: false
+
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM_ADDRESS
+        sync: false
+
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI
+        value: https://cartzyy.shop/auth/google/callback

@@ -73,13 +73,13 @@ class Seller extends Model
     public function logoUrl(): ?string
     {
         if (!$this->logo_path) return null;
-        return preg_match('~^(https?://|/)~', $this->logo_path) ? $this->logo_path : asset('storage/'.$this->logo_path);
+        return preg_match('~^(https?://|/)~', $this->logo_path) ? $this->logo_path : \Illuminate\Support\Facades\Storage::disk('public')->url($this->logo_path);
     }
 
     public function bannerUrl(): ?string
     {
         if (!$this->banner_path) return null;
-        return preg_match('~^(https?://|/)~', $this->banner_path) ? $this->banner_path : asset('storage/'.$this->banner_path);
+        return preg_match('~^(https?://|/)~', $this->banner_path) ? $this->banner_path : \Illuminate\Support\Facades\Storage::disk('public')->url($this->banner_path);
     }
 
     /** Only approved sellers with an active account have a public store. */

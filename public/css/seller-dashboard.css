@@ -1,0 +1,65 @@
+/* Admin-inspired presentation, loaded only on the seller overview. */
+.seller-overview { --bg:#f6f5f9; --line:#eae6ef; --muted:#756d81; font-family:"Seller Numerals","Segoe UI",Arial,sans-serif; }
+.seller-overview main { max-width:1540px; margin:auto; }
+.seller-overview h1,.seller-overview h2 { font-family:inherit; }
+.seller-overview .nav-link.active { background:linear-gradient(115deg,#f0eaf6,#fff0ea); color:#62427f; box-shadow:inset 3px 0 #c08b7f; }
+.dashboard-eyebrow { color:#70558e; font-size:9px; font-weight:700; letter-spacing:1.7px; }
+.seller-overview .subtitle { font-size:12px; }
+.seller-overview .overview-actions { gap:12px; }
+.seller-overview .button { border-radius:8px; font-size:12px; }
+.seller-welcome { position:relative; isolation:isolate; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:24px; padding:28px 30px; margin-bottom:24px; border-radius:17px; background:linear-gradient(115deg,#42334f 0%,#6f6382 48%,#a16d67 100%); color:#fff; box-shadow:0 8px 25px #3d285514; }
+.seller-welcome::before,.seller-welcome::after { content:""; position:absolute; z-index:-1; border:1px solid #ffffff12; border-radius:50%; width:440px; height:440px; right:120px; top:-225px; pointer-events:none; }
+.seller-welcome::after { width:340px; height:340px; right:170px; top:-175px; box-shadow:0 0 0 50px #ffffff03,0 0 0 100px #ffffff02; }
+.seller-welcome-copy { flex:1; min-width:0; }
+.seller-welcome .dashboard-eyebrow { display:flex; align-items:center; gap:9px; color:#f6d9d0; }
+.welcome-dot { width:6px; height:6px; flex-shrink:0; border-radius:50%; background:#efc2b5; box-shadow:0 0 0 4px #ffffff0b; }
+.seller-welcome h2 { font-size:clamp(25px,2.5vw,37px); font-weight:600; letter-spacing:-1px; line-height:1.2; margin:13px 0 10px; color:#fff; overflow-wrap:anywhere; }
+.seller-welcome p { color:#eee5f4; font-size:12px; line-height:1.8; }
+.seller-welcome .button { background:#f5dcd4; border-color:#f5dcd4; color:#493746; margin-top:20px; min-height:37px; font-size:11px; padding:8px 14px; box-shadow:none; }
+.seller-welcome .button:hover { background:#fff0ea; }
+.seller-spotlight { display:flex; flex-direction:column; width:245px; flex-shrink:0; padding:20px; border:1px solid #f5dcd45c; border-radius:12px; background:#38293840; color:#fff5f3; font-size:11px; }
+.seller-spotlight:hover { background:#ffffff16; color:#fff; border-color:#ffffff70; text-decoration:none; }
+.spotlight-heading,.spotlight-action { display:flex; align-items:center; gap:9px; }
+.spotlight-heading { font-size:12px; }
+.seller-spotlight>strong { font-size:40px; line-height:1.2; margin:9px 0 3px; letter-spacing:-1px; color:#fff; }
+.seller-spotlight small { font-size:10px; margin-top:6px; color:#fff0ea; }
+.spotlight-action { justify-content:space-between; border-top:1px solid #ffffff25; margin-top:14px; padding-top:12px; }
+.dashboard-section-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:24px 0 14px; }
+.dashboard-section-heading h2 { font-size:18px; letter-spacing:-.4px; margin-top:3px; }
+.dashboard-section-heading>.muted { font-size:11px; }
+.seller-overview .overview-context { margin-bottom:14px; }
+.seller-overview .metrics { gap:15px; margin-bottom:24px; }
+.seller-overview .metric { padding:20px; border-radius:13px; box-shadow:0 3px 8px #34243f03; min-width:0; }
+.seller-overview .metric:nth-child(even) { background:linear-gradient(145deg,#fff 65%,#fff5f3); border-color:#e8c6be; }
+.seller-overview .metric-top { flex-direction:row-reverse; font-size:11px; gap:8px; }
+.seller-overview .metric-top .icon { width:34px; height:34px; padding:8px; border-radius:10px; background:#efe8f6; color:#806097; }
+.seller-overview .metric:nth-child(even) .metric-top .icon { background:#fceae6; color:#89574e; }
+.seller-overview .metric-value { font-size:clamp(24px,2.2vw,32px); letter-spacing:-1.2px; margin:16px 0 9px; }
+.seller-overview .metric small { font-size:10px; padding-top:11px; border-top:1px solid var(--line); margin-top:auto; }
+.seller-quick-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:15px; margin-bottom:24px; }
+.seller-quick-actions>a { display:flex; align-items:center; gap:12px; padding:17px; background:#fff; border:1px solid var(--line); border-radius:12px; color:var(--ink); }
+.seller-quick-actions>a:hover { background:linear-gradient(115deg,#f0eaf6,#fff0ea); border-color:#e8c6be; text-decoration:none; }
+.seller-quick-actions>a>.icon:first-child { width:38px; height:38px; padding:10px; border-radius:10px; background:#f3eef8; color:#826694; }
+.seller-quick-actions>a:nth-child(2)>.icon:first-child { background:#fceae6; color:#89574e; }
+.seller-quick-actions>a>span { flex:1; min-width:0; }
+.seller-quick-actions strong,.seller-quick-actions small { display:block; }
+.seller-quick-actions strong { font-size:12px; }
+.seller-quick-actions small { font-size:10px; color:var(--muted); margin-top:3px; }
+.seller-quick-actions>a>.icon:last-child { width:16px; color:var(--muted); }
+.seller-overview .panel { min-width:0; border-radius:13px; box-shadow:0 3px 8px #34243f03; }
+.seller-overview .panel-header { padding:19px 21px; background:#fff; border-radius:13px 13px 0 0; }
+.seller-overview .panel-header h2 { font-size:15px; }
+.seller-overview #needs-attention .panel-header h2,
+.seller-overview .seller-welcome h2 { font-family:"Bodoni MT", Didot, "Times New Roman", serif; }
+.seller-overview .panel-body { padding:21px; }
+.seller-overview .task-row strong { font-size:12px; }
+.seller-overview .task-row small { font-size:11px; }
+.seller-overview th { background:#fbfafc; font-size:10px; }
+@media(max-width:1150px) { .seller-quick-actions { grid-template-columns:1fr; } .seller-welcome { padding:24px; } .seller-spotlight { width:220px; } }
+@media(max-width:700px) { .seller-welcome { flex-direction:column; align-items:stretch; padding:22px; } .seller-spotlight { width:100%; } .dashboard-section-heading { flex-wrap:wrap; } .seller-overview .overview-actions { width:100%; } .seller-overview .metric { padding:16px; } .seller-overview .panel-header { flex-wrap:wrap; } }
+@media(max-width:380px) { .seller-overview .metrics { grid-template-columns:1fr; } }
+/* Overview boxes: five across, using the sales report's breakpoints (layout only; .metric keeps its own styling). */
+.seller-overview .metrics.overview-metrics { grid-template-columns:repeat(5,minmax(0,1fr)); }
+@media(max-width:1350px) { .seller-overview .metrics.overview-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media(max-width:900px) { .seller-overview .metrics.overview-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:380px) { .seller-overview .metrics.overview-metrics { grid-template-columns:1fr; } }

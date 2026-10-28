@@ -1,0 +1,18 @@
+/* Seller floating chats (Messages + Logistics). Builds on chat-popup.css; the rules below also undo
+   seller.css's global strong/small/a:hover colors inside the popup. */
+.seller-chat-bubbles { position: fixed; right: 20px; bottom: 20px; z-index: 59; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 12px; pointer-events: none; }
+.seller-chat-bubble { position: relative; pointer-events: auto; animation: seller-chat-in .18s ease-out; }
+.seller-chat-bubble[hidden] { display: none; }
+.seller-chat-bubble .chat-bubble:hover { color: white; }
+.seller-chat-badge { position: absolute; top: -4px; left: -4px; min-width: 20px; height: 20px; padding: 0 6px; border: 2px solid white; border-radius: 99px; background: #8C5A50; color: white; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
+.seller-chat-badge[hidden] { display: none; }
+.seller-chat-popup { pointer-events: auto; }
+.seller-chat-popup .pd-chat-head strong, .seller-chat-popup .pd-chat-head small { color: inherit; }
+.seller-chat-popup .pd-chat-icon:hover { color: white; }
+.seller-chat-popup .pd-chat-compose textarea { min-height: 40px; }
+@keyframes seller-chat-in { from { opacity: 0; transform: translateY(8px) scale(.95); } }
+@media (max-width: 480px) {
+    .seller-chat-bubbles { right: 16px; bottom: 16px; }
+    .seller-chat-bubble .chat-bubble { width: 56px; padding: 0; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .seller-chat-bubble { animation: none; } }

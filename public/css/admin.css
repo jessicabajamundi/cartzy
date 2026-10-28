@@ -109,7 +109,7 @@ h1,h2,h3,p{margin:0}h1{font-size:34px;font-weight:650;letter-spacing:-1px;line-h
 .brand span{font-size:10px;letter-spacing:1.6px;font-weight:700;color:#62536F}
 .admin-sidebar nav{padding:0 15px 16px}
 .nav-label{color:#6B5C77;font-size:11px;font-weight:700;letter-spacing:1px;margin:20px 13px 9px}
-.nav-link{min-height:41px;padding:10px 13px;margin-bottom:4px;border-radius:9px;font-size:14px;font-weight:600;line-height:1.45;color:#493D56;gap:11px}
+.nav-link{min-height:41px;padding:10px 13px;margin-bottom:9px;border-radius:9px;font-size:14px;font-weight:600;line-height:1.45;color:#493D56;gap:11px}
 .nav-link .icon{width:18px;height:18px}
 .nav-link.active{background:var(--brand-blend);color:#62427f;box-shadow:inset 3px 0 var(--rose-gold);position:relative}
 .nav-link.active::after{content:'';position:absolute;right:13px;width:5px;height:5px;border-radius:50%;background:var(--rose-gold)}
@@ -173,3 +173,61 @@ main{max-width:1540px;padding:28px 32px}
 .archive-product-img .icon{width:22px;height:22px}
 
 @media(max-width:600px){main{padding:21px 16px}.topbar{padding:0 16px;height:60px}.page-heading h1{font-size:26px}.overview-banner{padding:23px;border-radius:14px;align-items:stretch}.overview-copy .eyebrow{font-size:8px;letter-spacing:1.2px}.review-spotlight{width:100%;padding:16px}.review-spotlight>strong{font-size:33px}.stats-grid{gap:11px}.stat-card{padding:14px;gap:8px}.stat-card strong{font-size:23px}.metric-heading>span:last-child{font-size:8px;padding:2px 4px}.metric-icon{width:29px;height:29px;border-radius:8px}.metric-icon .icon{width:16px;height:16px}.stat-card>span{min-height:34px;font-size:10px}.stat-card small{font-size:9px}.population-strip{row-gap:18px}.population-strip>div{flex-direction:column;gap:2px}.section-heading h2{font-size:17px}.section-heading>.muted{font-size:10px}.panel-header{padding:17px}.two-columns{gap:0}}
+
+/* Registration review pop-up */
+.review-open{padding:0;border:0;background:none;color:var(--accent);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+.review-open::before{content:"";display:inline-block;width:0;height:0;margin-right:7px;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid currentColor;vertical-align:1px}
+.review-open:hover{color:var(--accent-hover);text-decoration:underline}
+.review-open:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:4px}
+.review-modal{width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px);margin:auto;padding:0;border:0;border-radius:18px;background:var(--surface,#fff);color:var(--ink);box-shadow:0 24px 64px rgba(41,35,52,.28);overflow:hidden}
+.review-modal[open]{display:flex;flex-direction:column;animation:review-modal-in .16s ease-out}
+.review-modal::backdrop{background:rgba(41,35,52,.45);backdrop-filter:blur(2px)}
+@keyframes review-modal-in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.review-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px 16px;border-bottom:1px solid var(--line);background:var(--brand-blend)}
+.review-modal-head h2{margin:2px 0 4px;font-size:20px}
+.review-modal-head .muted{margin:0;font-size:13px;overflow-wrap:anywhere}
+.review-modal-eyebrow{margin:0;color:var(--rose-ink);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.review-modal-close{flex:none;display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:24px;line-height:1;cursor:pointer}
+.review-modal-close:hover{background:var(--surface,#fff);color:var(--ink)}
+.review-modal-close:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.review-modal-body{padding:18px 24px 22px;overflow-y:auto}
+.review-modal-body h3{margin:18px 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.review-modal-status{display:flex;flex-wrap:wrap;gap:6px}
+.review-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:0}
+.review-facts div{min-width:0}.review-facts .is-wide{grid-column:1/-1}
+.review-facts dt{color:var(--muted);font-size:11.5px}
+.review-facts dd{margin:2px 0 0;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.review-docs{display:grid;gap:6px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.review-previous{margin:14px 0 0;padding:10px 12px;border-radius:10px;background:var(--rose-soft);color:var(--rose-ink);font-size:13px}
+.review-decision{margin-top:8px;padding-top:4px;border-top:1px solid var(--line)}
+.review-decision [hidden]{display:none}
+.review-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+@media(max-width:520px){.review-facts{grid-template-columns:minmax(0,1fr)}.review-modal-actions .button{flex:1}}
+@media(prefers-reduced-motion:reduce){.review-modal[open]{animation:none}}
+
+/* Product compliance enforcement pop-up (reuses .review-modal) */
+.enforce-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.enforce-row .muted{margin:0;font-size:13px}
+.enforce-danger{display:grid;gap:10px;padding:12px 14px;border:1px solid var(--rose-border);border-radius:12px;background:var(--rose-soft)}
+.enforce-danger p{margin:0;color:var(--rose-ink);font-size:13px}
+.enforce-danger .button{justify-self:end}
+
+/* Dialogs live inside table cells; undo the table's block-level <strong>/<small> styling inside them. */
+.review-modal td strong,.review-modal strong{display:inline}
+.review-modal small{display:block}
+
+.sidebar-logout-divider { border: 0; border-top: 1px solid var(--line); margin: 12px 13px; }
+.sidebar-logout-form { margin: 0; }
+.admin-sidebar .sidebar-logout-button { width: 100%; border: 0; background: transparent; font-family: inherit; text-align: left; cursor: pointer; }
+.admin-sidebar .sidebar-logout-button:hover { background: var(--canvas); color: var(--accent); }
+
+/* Match the seller workspace's serif page titles. */
+.page-heading h1 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(40px, 4vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}

@@ -425,7 +425,8 @@ class SellerPortalTest extends TestCase
         $this->actingAs($shop->user)->get('/seller/dashboard')->assertOk()
             ->assertViewHas('stats', fn ($s) => $s['sales'] === 10000 && $s['net'] === 9200 && $s['orders'] === 3)
             ->assertViewHas('chart', fn ($c) => $c->count() === 7 && $c->sum('sales') === 10000)
-            ->assertSee('3 orders awaiting preparation')->assertDontSee('Welcome back');
+            ->assertSee('orders awaiting preparation')->assertSee('Welcome back')
+            ->assertSee('Order desk')->assertSee('seller-dashboard.css');
         $this->get('/seller/dashboard?period=30_days')->assertOk()
             ->assertViewHas('stats', fn ($s) => $s['sales'] === 30000 && $s['orders'] === 3)
             ->assertViewHas('chart', fn ($c) => $c->count() === 30 && $c->sum('sales') === 30000);

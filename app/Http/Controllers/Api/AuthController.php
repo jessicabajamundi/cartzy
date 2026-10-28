@@ -83,6 +83,71 @@ class AuthController extends Controller
         return app(\App\Http\Controllers\AuthController::class)->verifyOtp($request);
     }
 
+    /** Forgot password: same emailed reset code as the website, then a JSON reset. */
+    public function forgotPassword(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'role' => ['nullable', Rule::in(array_keys(self::MOBILE_ROLES))],
+        ]);
+
+        $user = User::where('email', strtolower(trim($data['email'])))->first();
+        if ($user && isset($data['role']) && self::MOBILE_ROLES[$data['role']] !== $user->role) {
+            return response()->json([
+                'message' => 'This email belongs to a different account type. Use the '
+                    .($user->role === User::ROLE_COURIER ? 'Courier' : ucfirst($user->role)).' login instead.',
+                'account_role' => $user->role === User::ROLE_COURIER ? 'rider' : $user->role,
+            ], 403);
+        }
+
+        return app(\App\Http\Controllers\AuthController::class)->sendResetOtp($request);
+    }
+
+    public function verifyResetCode(Request $request)
+    {
+        return app(\App\Http\Controllers\AuthController::class)->verifyResetOtp($request);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required', 'email'],
+            'otp' => ['required', 'digits:6'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+        $cached = Cache::get('pwd_reset_otp_'.$email);
+        if (!$cached || $cached['otp'] !== $data['otp']) {
+            return response()->json([
+                'message' => 'Your verification code has expired. Please request a new code.',
+                'errors' => ['otp' => ['Your verification code has expired. Please request a new code.']],
+            ], 422);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'User account could not be found.'], 404);
+        }
+
+        $user->password = Hash::make($data['password']);
+        $user->save();
+        // Sign out every device that used the old password.
+        $user->tokens()->delete();
+
+        Cache::forget('pwd_reset_otp_'.$email);
+        Cache::forget('pwd_reset_verified_'.$email);
+
+        if (class_exists(\App\Console\Commands\ExportDatabaseSql::class)) {
+            \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+        }
+
+        return response()->json(['message' => 'Your password has been reset. You can now log in.']);
+    }
+
     public function registerBuyer(Request $request)
     {
         $data = $request->validate([

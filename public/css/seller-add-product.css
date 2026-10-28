@@ -25,7 +25,7 @@
 .pe-card { background: #fff; border: 1px solid var(--brand-border, #e1dde7); border-radius: 16px; }
 .pe-card-head { padding: 18px 24px; border-bottom: 1px solid var(--brand-border, #e1dde7); }
 .pe-card-head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.pe-card-head h2 { margin: 0; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--brand-ink, #282133); }
+.pe-card-head h2 { margin: 0; font-family: 'Seller Numerals', 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--brand-ink, #282133); }
 .pe-card-head p { margin: 3px 0 0; font-size: 13px; color: var(--brand-muted, #776e83); }
 .pe-card-body { padding: 22px 24px; }
 

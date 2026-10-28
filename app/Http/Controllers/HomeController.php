@@ -252,6 +252,7 @@ class HomeController extends Controller
 
         $discoveryProducts = \App\Models\Product::query()
             ->where('is_active', true)
+            ->where('approval_status', \App\Models\Product::APPROVAL_APPROVED)
             ->whereHas('seller', fn ($query) => $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
             ->whereHas('variants', fn ($query) => $query->where('is_active', true))
             ->with([
@@ -288,6 +289,7 @@ class HomeController extends Controller
                 ->orWhereRaw('ROUND(product_variants.price_minor * products.discount_value / 100) >= 1'));
         $products = \App\Models\Product::query()
             ->where('is_active', true)
+            ->where('approval_status', \App\Models\Product::APPROVAL_APPROVED)
             ->whereIn('discount_type', ['percentage', 'fixed'])->where('discount_value', '>', 0)
             ->where(fn ($query) => $query->whereNull('discount_starts_at')->orWhere('discount_starts_at', '<=', $now))
             ->where(fn ($query) => $query->whereNull('discount_ends_at')->orWhere('discount_ends_at', '>', $now))

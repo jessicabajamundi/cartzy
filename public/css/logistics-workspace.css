@@ -21,7 +21,7 @@
 .logistics-portal .brand-header button { background:white; border:1px solid var(--hub-line); border-radius:7px; padding:8px; }
 .logistics-portal .sidebar-scroll { padding:10px; }
 .logistics-portal .sidebar-section-divider span { color:#655B70; font-size:10px; font-weight:700; letter-spacing:.08em; padding-top:18px; padding-bottom:7px; }
-.logistics-portal .nav-item { min-height:44px; border-radius:6px; margin-bottom:2px; font-size:13px; font-weight:700; color:#453C50; line-height:1.4; }
+.logistics-portal .nav-item { min-height:44px; border-radius:6px; margin-bottom:9px; font-size:13px; font-weight:700; color:#453C50; line-height:1.4; }
 .logistics-portal .nav-item svg { width:20px; height:20px; stroke-width:2; color:#655674; flex-shrink:0; }
 .logistics-portal .nav-item .sidebar-full-only.truncate { white-space:normal; }
 .logistics-portal .nav-item.text-white svg { color:#564B68; }
@@ -39,6 +39,13 @@
 .logistics-topbar > div:last-child > a { background:transparent; border:0; border-left:1px solid var(--hub-line); border-radius:0; padding:4px 0 4px 16px; }
 .logistics-topbar > div:last-child > a > span:first-child { border-radius:6px; }
 .logistics-topbar > div:last-child > a > span:last-child { font-size:12px; font-weight:700; max-width:150px; }
+.logistics-header-logout { margin:0; flex-shrink:0; }
+.logistics-header-logout button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:40px; padding:9px 13px; border:1px solid #EACFC4; border-radius:9px; background:#F7ECE7; color:#805449; font:inherit; font-size:12px; font-weight:700; cursor:pointer; transition:background .15s; }
+.logistics-header-logout button:hover { background:#EFD9D0; }
+.logistics-header-notifications { flex-shrink:0; }
+.logistics-header-notifications a { position:relative; display:grid; place-items:center; width:40px; height:40px; border:1px solid #E1D6EA; border-radius:10px; background:#F4EFF8; color:#655274; transition:background .15s; }
+.logistics-header-notifications a:hover, .logistics-header-notifications a[aria-current="page"] { background:#E8DEEF; }
+.logistics-header-notification-count { position:absolute; top:-6px; right:-7px; min-width:19px; height:19px; padding:0 4px; display:grid; place-items:center; border:2px solid white; border-radius:999px; background:#986B60; color:white; font-size:9px; font-weight:700; line-height:1; }
 .logistics-content { padding:28px 32px; background:var(--hub-paper); }
 .operations-dashboard { max-width:1600px; margin:0 auto; }
 .operations-dashboard a { text-decoration:none; }

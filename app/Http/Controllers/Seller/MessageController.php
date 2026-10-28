@@ -228,6 +228,8 @@ class MessageController extends Controller
             ->update(['delivered_at' => now()]);
 
         $preview = fn ($message) => $message ? \Illuminate\Support\Str::limit(($message->sender_id === $userId ? 'You: ' : '').$message->body, 70) : null;
+        $isSeller = $request->user()->isSeller();
+        $route = $isSeller ? 'seller.popup.' : 'buyer.popup.';
 
         $inquiries = $this->inquiries($request)->whereHas('messages')
             ->orderByDesc(ProductInquiryMessage::select('created_at')->whereColumn('product_inquiry_id', 'product_inquiries.id')->latest('id')->limit(1))->limit(20)->get()
@@ -235,14 +237,14 @@ class MessageController extends Controller
                 'key' => 'inquiry-'.$inquiry->id,
                 'type' => 'inquiry',
                 'thread_id' => $inquiry->id,
-                'name' => $inquiry->seller?->name ?? 'Seller',
-                'avatar' => $inquiry->seller?->logoUrl(),
+                'name' => $isSeller ? ($inquiry->buyer?->name ?? 'Buyer') : ($inquiry->seller?->name ?? 'Seller'),
+                'avatar' => $isSeller ? null : $inquiry->seller?->logoUrl(),
                 'subtitle' => $inquiry->product_id === null ? 'Store chat' : 'About: '.($inquiry->product?->name ?? 'Product no longer available'),
                 'preview' => $preview($inquiry->latestMessage),
                 'unread' => (int) $inquiry->unread_count,
                 'sort' => $inquiry->latestMessage?->created_at?->getTimestamp() ?? 0,
                 'time' => $inquiry->latestMessage?->created_at?->diffForHumans(null, true, true),
-                'thread_url' => route('buyer.popup.inquiry', $inquiry->id),
+                'thread_url' => route($route.'inquiry', $inquiry->id),
             ]);
         $orders = $this->threads($request)->whereHas('messages')
             ->orderByDesc(SellerMessage::select('created_at')->whereColumn('seller_order_id', 'seller_orders.id')->latest('id')->limit(1))->limit(20)->get()
@@ -250,19 +252,20 @@ class MessageController extends Controller
                 'key' => 'order-'.$thread->id,
                 'type' => 'order',
                 'thread_id' => $thread->id,
-                'name' => $thread->seller?->name ?? 'Seller',
-                'avatar' => $thread->seller?->logoUrl(),
+                'name' => $isSeller ? ($thread->order->buyer?->name ?? 'Buyer') : ($thread->seller?->name ?? 'Seller'),
+                'avatar' => $isSeller ? null : $thread->seller?->logoUrl(),
                 'subtitle' => 'Order '.$thread->order->reference,
                 'preview' => $preview($thread->latestMessage),
                 'unread' => (int) $thread->unread_count,
                 'sort' => $thread->latestMessage?->created_at?->getTimestamp() ?? 0,
                 'time' => $thread->latestMessage?->created_at?->diffForHumans(null, true, true),
-                'thread_url' => route('buyer.popup.order', $thread->id),
+                'thread_url' => route($route.'order', $thread->id),
             ]);
 
         return response()->json([
             'conversations' => $inquiries->concat($orders)->sortByDesc('sort')->take(20)
                 ->map(fn ($item) => \Illuminate\Support\Arr::except($item, 'sort'))->values(),
+            'unread_total' => $this->unreadTotal($request),
         ]);
     }
 
@@ -270,16 +273,17 @@ class MessageController extends Controller
     public function popupInquiry(Request $request, int $inquiryId)
     {
         $inquiry = $this->inquiries($request)->findOrFail($inquiryId);
+        $isSeller = $request->user()->isSeller();
         $otherUserId = $inquiry->buyer_id === $request->user()->id ? $inquiry->seller?->user_id : $inquiry->buyer_id;
 
         return $this->popupThread($request, $inquiry->messages(), [
             'type' => 'inquiry',
             'thread_id' => $inquiry->id,
-            'title' => $inquiry->seller?->name ?? 'Seller',
-            'avatar' => $inquiry->seller?->logoUrl(),
+            'title' => $isSeller ? ($inquiry->buyer?->name ?? 'Buyer') : ($inquiry->seller?->name ?? 'Seller'),
+            'avatar' => $isSeller ? null : $inquiry->seller?->logoUrl(),
             'subtitle' => $inquiry->product_id === null ? 'Store chat' : 'About: '.($inquiry->product?->name ?? 'Product no longer available'),
-            'send_url' => route('buyer.inquiries.send', $inquiry->id),
-            'inbox_url' => route('buyer.messages', ['inquiry' => $inquiry->id]),
+            'send_url' => route($isSeller ? 'seller.chat.inquiry.send' : 'buyer.inquiries.send', $inquiry->id),
+            'inbox_url' => route($isSeller ? 'seller.chat' : 'buyer.messages', ['inquiry' => $inquiry->id]),
         ], 'inquiry', $inquiry->id, $otherUserId);
     }
 
@@ -287,16 +291,17 @@ class MessageController extends Controller
     public function popupOrder(Request $request, int $contactId)
     {
         $thread = $this->threads($request)->findOrFail($contactId);
+        $isSeller = $request->user()->isSeller();
         $otherUserId = $thread->order?->buyer_id === $request->user()->id ? $thread->seller?->user_id : $thread->order?->buyer_id;
 
         return $this->popupThread($request, $thread->messages(), [
             'type' => 'order',
             'thread_id' => $thread->id,
-            'title' => $thread->seller?->name ?? 'Seller',
-            'avatar' => $thread->seller?->logoUrl(),
+            'title' => $isSeller ? ($thread->order->buyer?->name ?? 'Buyer') : ($thread->seller?->name ?? 'Seller'),
+            'avatar' => $isSeller ? null : $thread->seller?->logoUrl(),
             'subtitle' => 'Order '.$thread->order->reference,
-            'send_url' => route('buyer.messages.send', $thread->id),
-            'inbox_url' => route('buyer.messages', ['contact' => $thread->id]),
+            'send_url' => route($isSeller ? 'seller.chat.send' : 'buyer.messages.send', $thread->id),
+            'inbox_url' => route($isSeller ? 'seller.chat' : 'buyer.messages', ['contact' => $thread->id]),
         ], 'order', $thread->id, $otherUserId);
     }
 
@@ -319,9 +324,19 @@ class MessageController extends Controller
 
         return response()->json($details + [
             'messages' => $messages->map(fn ($message) => $this->inquiryMessageJson($message, $userId)),
-            'unread_total' => app(\App\Services\BuyerNavigationCounts::class)->forUser($request->user())['messages'] ?? null,
+            'unread_total' => $this->unreadTotal($request),
             'typing' => $this->checkOtherUserTyping($type, $threadId, $otherUserId),
         ]);
+    }
+
+    /** Unread count for the popup badge: buyers use their nav count, sellers count across their threads. */
+    private function unreadTotal(Request $request): ?int
+    {
+        if (!$request->user()->isSeller()) {
+            return app(\App\Services\BuyerNavigationCounts::class)->forUser($request->user())['messages'] ?? null;
+        }
+
+        return (int) $this->inquiries($request)->get()->sum('unread_count') + (int) $this->threads($request)->get()->sum('unread_count');
     }
 
     /** Check if the other user in the thread is currently typing */

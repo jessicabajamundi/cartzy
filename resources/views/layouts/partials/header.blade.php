@@ -22,7 +22,7 @@
 
             <!-- Search Area -->
             <div class="header-search flex-1 mx-3 sm:mx-6 flex justify-center max-w-[650px]">
-                <form id="header-search-form" action="{{ route('home') }}" method="GET" class="group relative flex items-center w-full bg-[#FAF9FB] hover:bg-[#F5F2F7] focus-within:!bg-white border border-[#E1DDE7] focus-within:border-[#C08B7F] rounded-full p-1 pl-4.5 shadow-[0_1px_3px_rgba(40,33,51,0.03)] focus-within:shadow-[0_4px_20px_rgba(111,99,130,0.12)] focus-within:ring-3 focus-within:ring-[#C08B7F]/20 transition-all duration-200">
+                <form id="header-search-form" action="{{ route('home') }}" method="GET" class="group relative flex items-center w-full bg-[#FAF9FB] hover:bg-[#F5F2F7] focus-within:!bg-white border border-[#E1DDE7] focus-within:border-[#C08B7F] rounded-full py-1.5 pl-4.5 pr-4 shadow-[0_1px_3px_rgba(40,33,51,0.03)] focus-within:shadow-[0_4px_20px_rgba(111,99,130,0.12)] focus-within:ring-3 focus-within:ring-[#C08B7F]/20 transition-all duration-200">
                     <span class="text-gray-400 group-focus-within:text-[#6F6382] mr-2 shrink-0 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -43,49 +43,15 @@
                         class="hidden text-gray-400 hover:text-[#282133] mr-1.5 text-base leading-none font-bold px-1.5 py-0.5 rounded-full hover:bg-gray-200/60 transition"
                         title="Clear search"
                     >&times;</button>
-                    <button 
-                        type="submit" 
-                        id="header-search-btn"
-                        class="bg-gradient-to-r from-[#564B68] via-[#6F6382] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] text-white w-9 h-8 sm:w-10 sm:h-8.5 flex items-center justify-center rounded-full shadow-sm hover:shadow-md transition-all duration-200 shrink-0 transform hover:scale-105 active:scale-95 cursor-pointer"
-                        aria-label="Search"
-                    >
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                        </svg>
-                    </button>
                 </form>
             </div>
 
 
-            <!-- Action Links: Login, Sign up, Notifications, Cart -->
-            <div class="header-actions flex items-center gap-1 shrink-0">
+            <!-- Action Links: 5 Icons, then Login & Sign up / Profile -->
+            <div class="header-actions flex items-center gap-1 sm:gap-2 shrink-0">
                 
-                @guest
-                    <div class="header-auth-links flex items-center gap-2 mr-1">
-                        <!-- Login Link -->
-                        <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-[#3E354C] hover:text-[#564B68] hover:bg-[#F4F1F7] transition px-3 py-1.5 rounded-full text-xs font-bold">
-                            <svg class="w-4 h-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9A3.75 3.75 0 1 1 8.25 9a3.75 3.75 0 0 1 7.5 0ZM3 20.25a9 9 0 0 1 18 0"/>
-                            </svg>
-                            <span class="text-xs font-bold">Login</span>
-                        </a>
-
-                        <!-- Sign up Link -->
-                        <a href="{{ route('register') }}" class="flex items-center gap-1.5 text-white bg-gradient-to-r from-[#564B68] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] shadow-sm hover:shadow-md transition-all duration-200 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transform hover:-translate-y-0.5 active:translate-y-0">
-                            <svg class="shrink-0 w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-                            </svg>
-                            <span>Sign up</span>
-                        </a>
-                    </div>
-                @endguest
-
-                {{-- Icons Group --}}
+                {{-- Icons Group (5 navigation icons: Orders, Messages, Cart, Wishlist, Notifications) --}}
                 <div class="header-icons flex items-center gap-0.5">
-
-                @auth
-                    @include('layouts.partials.profile-menu')
-                @endauth
 
                 @if($buyerHeader)
                     @include('layouts.partials.buyer-navigation')
@@ -289,6 +255,32 @@
                 </div>
                 @endif
                 </div>
+
+                <!-- Vertical Divider Separator -->
+                <div class="h-6 w-px bg-[#E1DDE7] shrink-0 mx-1 sm:mx-1.5" aria-hidden="true"></div>
+
+                {{-- Auth / Profile: Profile menu when logged in, or Login & Sign up when guest --}}
+                @auth
+                    @include('layouts.partials.profile-menu')
+                @else
+                    <div class="header-auth-links flex items-center gap-2 ml-1 sm:ml-1.5">
+                        <!-- Login Link -->
+                        <a href="{{ route('login') }}" class="flex items-center gap-1.5 text-[#3E354C] hover:text-[#564B68] hover:bg-[#F4F1F7] transition px-3 py-1.5 rounded-full text-xs font-bold">
+                            <svg class="w-4 h-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9A3.75 3.75 0 1 1 8.25 9a3.75 3.75 0 0 1 7.5 0ZM3 20.25a9 9 0 0 1 18 0"/>
+                            </svg>
+                            <span class="text-xs font-bold">Login</span>
+                        </a>
+
+                        <!-- Sign up Link -->
+                        <a href="{{ route('register') }}" class="flex items-center gap-1.5 text-white bg-gradient-to-r from-[#564B68] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] shadow-sm hover:shadow-md transition-all duration-200 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transform hover:-translate-y-0.5 active:translate-y-0">
+                            <svg class="shrink-0 w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                            </svg>
+                            <span>Sign up</span>
+                        </a>
+                    </div>
+                @endauth
             </div>
         </div>
     </div>

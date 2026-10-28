@@ -49,4 +49,4 @@ RUN php artisan package:discover --ansi \
 
 # Hosts such as Render/Railway pass the port in $PORT; default 80.
 EXPOSE 80
-CMD ["sh", "-c", "PORT=${PORT:-80}; sed -i \"s/Listen 80/Listen $PORT/\" /etc/apache2/ports.conf; sed -i \"s/:80>/:$PORT>/\" /etc/apache2/sites-available/000-default.conf; php artisan storage:link --force; php artisan optimize; exec apache2-foreground"]
+CMD ["sh", "-c", "PORT=${PORT:-80}; sed -i \"s/Listen 80/Listen $PORT/\" /etc/apache2/ports.conf; sed -i \"s/:80>/:$PORT>/\" /etc/apache2/sites-available/000-default.conf; php artisan storage:link --force; php artisan migrate --force; php artisan optimize; exec apache2-foreground"]

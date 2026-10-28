@@ -75,46 +75,65 @@
                         </span>
                     </td>
                     <td>
-                        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 170px;">
-                            {{-- Product listing visibility toggle --}}
-                            <form action="{{ route('admin.compliance.action', $product->id) }}" method="POST" data-confirm="Change this product’s visibility?">
-                                @csrf
-                                <input type="hidden" name="action" value="{{ $product->is_active ? 'suspend_product' : 'activate' }}">
-                                <button type="submit" class="button subtle" style="width: 100%; justify-content: center;">
-                                    {{ $product->is_active ? 'Deactivate Listing' : 'Activate Listing' }}
-                                </button>
-                            </form>
+                        <button type="button" class="review-open" data-dialog-open="enforce-{{ $product->id }}" aria-haspopup="dialog">Enforcement actions</button>
+                        <dialog class="review-modal" id="enforce-{{ $product->id }}" aria-labelledby="enforce-{{ $product->id }}-title">
+                            <header class="review-modal-head">
+                                <div>
+                                    <p class="review-modal-eyebrow">Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</p>
+                                    <h2 id="enforce-{{ $product->id }}-title">{{ $product->name }}</h2>
+                                    <p class="muted">{{ $product->seller?->name ?? 'No store assigned' }}@if($product->seller?->user?->email) · {{ $product->seller->user->email }}@endif</p>
+                                </div>
+                                <button type="button" class="review-modal-close" data-dialog-close aria-label="Close">&times;</button>
+                            </header>
+                            <div class="review-modal-body">
+                                <div class="review-modal-status">
+                                    <span class="badge {{ $product->is_active ? 'good' : '' }}">Listing {{ $product->is_active ? 'active' : 'inactive' }}</span>
+                                    @if($mismatch)<span class="badge warning">Category mismatch</span>@elseif($isMatch && !empty($lob))<span class="badge good">Category verified</span>@endif
+                                    @if($isSellerSuspended)<span class="badge danger">Seller suspended</span>@endif
+                                </div>
+                                <dl class="review-facts" style="margin-top: 12px;">
+                                    <div><dt>Product category</dt><dd>{{ $product->category?->name ?? 'Uncategorized' }}</dd></div>
+                                    <div><dt>Seller's registered line</dt><dd>{{ $product->seller?->user?->line_of_business ?? 'Unspecified' }}</dd></div>
+                                </dl>
+                                @if($mismatch)<p class="review-previous">This product's category doesn't match what the seller registered to sell.</p>@endif
 
-                            @if($product->seller_id)
-                            <details class="review-details" style="width: 100%;">
-                                <summary style="font-size: 11px;">Seller Enforcement ▾</summary>
-                                <div style="padding-top: 8px; gap: 12px;">
-                                    {{-- Issue Warning form --}}
+                                {{-- 1. Product listing visibility --}}
+                                <h3>Product listing</h3>
+                                <form action="{{ route('admin.compliance.action', $product->id) }}" method="POST" class="enforce-row" data-confirm="{{ $product->is_active ? 'Hide this product from the store?' : 'Show this product in the store again?' }}">
+                                    @csrf
+                                    <input type="hidden" name="action" value="{{ $product->is_active ? 'suspend_product' : 'activate' }}">
+                                    <p class="muted">{{ $product->is_active ? 'Buyers can see and order this product.' : 'This product is hidden from buyers.' }}</p>
+                                    <button type="submit" class="button subtle">{{ $product->is_active ? 'Deactivate listing' : 'Activate listing' }}</button>
+                                </form>
+
+                                @if($product->seller_id)
+                                    {{-- 2. Warning --}}
+                                    <h3>Warn the seller</h3>
                                     <form method="POST" action="{{ route('admin.compliance.seller.warning', $product->seller_id) }}" class="form-stack">
                                         @csrf
-                                        <label style="font-size: 11px;">
-                                            Issue Warning to Seller:
-                                            <textarea name="reason" rows="2" required placeholder="Explain violation (e.g. prohibited product or category mismatch)" style="font-size: 12px;"></textarea>
+                                        <label>Reason for the warning
+                                            <textarea name="reason" rows="3" required maxlength="2000" placeholder="Explain the violation, e.g. prohibited product or category mismatch"></textarea>
                                         </label>
-                                        <button type="submit" class="button subtle" style="width: 100%; justify-content: center; font-size: 11px;">Send Warning</button>
+                                        <div class="review-modal-actions"><button type="submit" class="button subtle">Send warning</button></div>
                                     </form>
 
-                                    {{-- Suspend Seller Account --}}
+                                    {{-- 3. Suspension --}}
+                                    <h3>Suspend the seller</h3>
                                     @if(!$isSellerSuspended)
-                                    <form method="POST" action="{{ route('admin.compliance.seller.suspend', $product->seller_id) }}" data-confirm="Are you sure you want to suspend this seller account and deactivate all their listings?">
-                                        @csrf
-                                        <input type="hidden" name="reason" value="Policy violation on product #{{ $product->id }} ({{ $product->name }})">
-                                        <button type="submit" class="button danger" style="width: 100%; font-size: 11px; justify-content: center;">
-                                            Suspend Seller Account
-                                        </button>
-                                    </form>
+                                        <form method="POST" action="{{ route('admin.compliance.seller.suspend', $product->seller_id) }}" class="enforce-danger" data-confirm="Suspend this seller account and deactivate all of their listings?">
+                                            @csrf
+                                            <input type="hidden" name="reason" value="Policy violation on product #{{ $product->id }} ({{ $product->name }})">
+                                            <p>Suspends <strong>{{ $product->seller?->name }}</strong> and hides <strong>all</strong> of their listings, not just this product.</p>
+                                            <button type="submit" class="button danger">Suspend seller account</button>
+                                        </form>
                                     @else
-                                    <small class="muted" style="text-align: center; display: block;">Seller account is already suspended.</small>
+                                        <p class="muted">This seller account is already suspended.</p>
                                     @endif
-                                </div>
-                            </details>
-                            @endif
-                        </div>
+                                @endif
+
+                                <div class="review-modal-actions" style="margin-top: 18px;"><button type="button" class="button subtle" data-dialog-close>Close</button></div>
+                            </div>
+                        </dialog>
                     </td>
                 </tr>
             @empty

@@ -1,64 +1,228 @@
 .pickup-workspace { max-width:1400px; margin:4px auto 28px; font-family:'Lato',sans-serif; color:var(--hub-ink); }
-.logistics-portal .pickup-workspace :is(h2,h3) { font-family:'Lato',sans-serif; }
+.logistics-portal .pickup-workspace :is(h2,h3,h4) { font-family:'Lato',sans-serif; }
 .pickup-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:25px; }
 .pickup-heading .pickup-kicker { margin:0 0 9px; font-size:10px; font-weight:800; letter-spacing:.14em; color:#95695f; }
 .pickup-heading h2 { margin:0; font-size:30px; font-weight:900; letter-spacing:-.035em; color:var(--hub-plum-dark); }
 .pickup-heading p { margin:9px 0 0; font-size:13px; line-height:1.6; color:var(--hub-muted); }
 .pickup-heading-icon { width:58px; height:58px; border-radius:17px; display:grid; place-items:center; background:#eee8f3; color:var(--hub-plum); flex-shrink:0; }
-.pickup-overview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-bottom:26px; }
-.pickup-metric { display:flex; justify-content:space-between; align-items:center; padding:21px 23px; background:white; border:1px solid var(--hub-line); border-radius:12px; text-decoration:none; }
+
+/* Overview metric cards */
+.pickup-overview { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:26px; }
+.pickup-metric { display:flex; justify-content:space-between; align-items:center; padding:19px 21px; background:white; border:1px solid var(--hub-line); border-radius:12px; text-decoration:none; transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.pickup-metric:hover { transform:translateY(-2px); border-color:var(--hub-plum); box-shadow:0 6px 16px rgba(86,75,104,0.07); }
+.pickup-metric.is-active-filter { border-color:var(--hub-plum); box-shadow:0 0 0 2px rgba(111,99,130,0.2); }
 .pickup-metric.is-rose { background:#faf0eb; border-color:#e8d6cf; }
-.pickup-metric > div { display:flex; flex-direction:column; gap:8px; }
+.pickup-metric.is-amber { background:#fff9ee; border-color:#f0dfbf; }
+.pickup-metric.is-emerald { background:#f0faf5; border-color:#cfe8db; }
+.pickup-metric > div { display:flex; flex-direction:column; gap:6px; min-width:0; }
 .pickup-metric > div > span { font-size:12px; color:var(--hub-plum-dark); font-weight:700; }
-.pickup-metric strong { font-size:30px; font-weight:900; line-height:1.1; color:var(--hub-plum-dark); font-variant-numeric:tabular-nums; }
+.pickup-metric strong { font-size:28px; font-weight:900; line-height:1.1; color:var(--hub-plum-dark); font-variant-numeric:tabular-nums; }
 .pickup-metric.is-rose strong { color:#96695e; }
-.pickup-metric small { font-size:11px; color:var(--hub-muted); }
-.pickup-metric-icon { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:#f1ecf5; color:var(--hub-plum); }
+.pickup-metric.is-amber strong { color:#9a6b18; }
+.pickup-metric.is-emerald strong { color:#187352; }
+.pickup-metric small { font-size:11px; color:var(--hub-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pickup-metric-icon { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:#f1ecf5; color:var(--hub-plum); flex-shrink:0; }
 .is-rose .pickup-metric-icon { color:#95695f; background:#f0dfd7; }
-.pickup-metric:hover { border-color:var(--hub-plum); }
+.is-amber .pickup-metric-icon { color:#9a6b18; background:#faebd0; }
+.is-emerald .pickup-metric-icon { color:#187352; background:#d7f2e4; }
+
+/* Toolbar */
 .pickup-toolbar { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:15px 18px; background:white; border:1px solid var(--hub-line); border-radius:12px; }
-.pickup-tabs { display:flex; gap:6px; }
-.pickup-tabs a { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:7px; font-size:12px; font-weight:700; color:var(--hub-muted); }
+.pickup-tabs { display:flex; gap:6px; flex-wrap:wrap; }
+.pickup-tabs a { display:flex; align-items:center; gap:8px; padding:9px 12px; border-radius:7px; font-size:12px; font-weight:700; color:var(--hub-muted); text-decoration:none; }
+.pickup-tabs a:hover { background:#f5f0f8; color:var(--hub-plum); }
 .pickup-tabs a[aria-current=page] { background:var(--hub-plum); color:white; }
 .pickup-tabs span { font-size:10px; padding:2px 6px; border-radius:4px; background:#f2ecf5; color:var(--hub-plum-dark); }
 .pickup-tabs a[aria-current=page] span { background:#ffffff26; color:white; }
 .pickup-search { display:flex; align-items:center; gap:9px; min-width:0; width:365px; padding-left:12px; border:1px solid #ded5e6; border-radius:8px; background:#faf8fc; }
 .pickup-search > span { color:var(--hub-plum); }
-.logistics-portal .pickup-search input[type=search] { width:100%; min-width:0; height:40px; border:0; background:transparent; font:400 12px 'Lato',sans-serif; color:var(--hub-ink); padding:6px 0; }
-.pickup-search button { align-self:stretch; padding:0 12px; border-left:1px solid #ded5e6; color:var(--hub-plum-dark); font-size:11px; font-weight:700; }
+.logistics-portal .pickup-search input[type=search] { width:100%; min-width:0; height:40px; border:0; background:transparent; font:400 12px 'Lato',sans-serif; color:var(--hub-ink); padding:6px 0; outline:none; }
+.pickup-search button { align-self:stretch; padding:0 14px; border-left:1px solid #ded5e6; color:var(--hub-plum-dark); font-size:11px; font-weight:700; background:transparent; cursor:pointer; }
+.pickup-search button:hover { background:#f0eaf5; }
 .pickup-results { display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:space-between; margin:17px 2px 12px; font-size:11px; color:var(--hub-muted); }
-.pickup-results a { color:var(--hub-plum-dark); text-decoration:underline; }
-.pickup-list { display:grid; gap:14px; }
-.pickup-card { padding:21px 23px 0; border:1px solid var(--hub-line); border-radius:12px; background:white; overflow:hidden; }
-.pickup-card.is-pending { border-left:3px solid var(--hub-rose); }
+.pickup-results a { color:var(--hub-plum-dark); text-decoration:underline; font-weight:700; }
+
+/* Pickup Cards */
+.pickup-list { display:grid; gap:16px; }
+.pickup-card { padding:22px 24px 0; border:1px solid var(--hub-line); border-radius:14px; background:white; overflow:hidden; transition:box-shadow .2s ease; }
+.pickup-card:hover { box-shadow:0 8px 24px rgba(86,75,104,0.06); }
+.pickup-card.is-pending { border-left:4px solid var(--hub-rose); }
+.pickup-card.is-dispatched { border-left:4px solid #10b981; }
+
 .pickup-card-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
 .pickup-seller { display:flex; align-items:center; gap:12px; min-width:0; }
 .pickup-seller > div { min-width:0; }
-.pickup-avatar { width:40px; height:40px; border-radius:11px; display:grid; place-items:center; background:#f1ecf5; color:var(--hub-plum); font-size:18px; font-weight:800; flex-shrink:0; }
-.pickup-reference { font-size:9px; font-weight:700; letter-spacing:.1em; color:var(--hub-muted); }
-.pickup-seller h3 { font-size:16px; font-weight:800; margin:3px 0 0; color:var(--hub-plum-dark); overflow-wrap:anywhere; }
-.pickup-badge { font-size:10px; font-weight:700; padding:5px 9px; border-radius:20px; background:#f0eaf5; color:var(--hub-plum-dark); }
-.is-pending .pickup-badge { background:#f5e6df; color:#8c6054; }
-.pickup-card-body { display:flex; align-items:center; gap:24px; margin:22px 0 18px; }
-.pickup-details { flex:1; min-width:0; display:grid; grid-template-columns:170px 130px minmax(180px,1fr); gap:20px; margin:0; }
-.pickup-details dt { margin-bottom:7px; font-size:10px; color:var(--hub-muted); }
-.pickup-details dd { font-size:12px; font-weight:700; line-height:1.6; margin:0; overflow-wrap:anywhere; }
+.pickup-avatar { width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:#f1ecf5; color:var(--hub-plum); font-size:18px; font-weight:800; flex-shrink:0; }
+.pickup-reference { font-size:10px; font-weight:800; letter-spacing:.08em; color:var(--hub-muted); }
+.pickup-seller h3 { font-size:17px; font-weight:800; margin:3px 0 0; color:var(--hub-plum-dark); overflow-wrap:anywhere; }
+
+.pickup-badges-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.pickup-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; padding:5px 11px; border-radius:20px; }
+.is-pending-badge { background:#faede8; color:#95584b; border:1px solid #ebd4cb; }
+.is-dispatched-badge { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+.is-confirmed-badge { background:#f1ecf6; color:var(--hub-plum); border:1px solid #e0d5e7; }
+
+/* Details */
+.pickup-card-body { margin:18px 0 16px; }
+.pickup-details { display:grid; grid-template-columns:180px 150px minmax(200px,1fr); gap:20px; margin:0; }
+.pickup-details dt { margin-bottom:6px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--hub-muted); }
+.pickup-details dd { font-size:13px; line-height:1.5; margin:0; overflow-wrap:anywhere; color:var(--hub-plum-dark); }
 .pickup-details dd span { display:block; font-size:12px; font-weight:400; color:var(--hub-muted); margin-top:2px; }
-.pickup-action { flex-shrink:0; }
-.pickup-action button { display:flex; justify-content:center; align-items:center; gap:9px; background:var(--hub-plum); color:white; padding:12px 17px; border-radius:8px; font-size:12px; font-weight:700; min-height:44px; }
-.pickup-action button:hover { background:var(--hub-plum-dark); }
-.pickup-action button:disabled { opacity:.65; cursor:wait; }
-.pickup-completed { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--hub-plum); font-weight:700; }
-.pickup-note { display:flex; align-items:flex-start; gap:9px; padding:10px 12px; margin-bottom:16px; border:1px solid #ecdcd5; border-radius:7px; background:#fcf5f1; color:#8b6257; font-size:11px; line-height:1.6; }
-.pickup-note svg { flex-shrink:0; margin-top:1px; }
+.pickup-address .address-text { display:flex; align-items:flex-start; gap:6px; font-weight:600; line-height:1.5; color:#362d44; }
+.pin-icon { font-size:14px; flex-shrink:0; margin-top:1px; }
+
+/* Note */
+.pickup-note { display:flex; align-items:flex-start; gap:9px; padding:11px 14px; margin-bottom:16px; border:1px solid #ecdcd5; border-radius:8px; background:#fcf7f4; color:#88584c; font-size:11.5px; line-height:1.5; }
+.pickup-note svg { flex-shrink:0; margin-top:2px; }
 .pickup-note p { margin:0; overflow-wrap:anywhere; }
-.pickup-card-footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:9px; border-top:1px solid #eee8ef; padding:12px 0; color:var(--hub-muted); font-size:10px; overflow-wrap:anywhere; }
+
+/* DISPATCH & AREA MATCHING INTERFACE */
+.pickup-dispatch-section { margin-top:16px; margin-bottom:18px; }
+
+/* Assigned Rider Card */
+.assigned-rider-card { padding:14px 16px; background:#f8faf9; border:1px solid #cce8db; border-radius:11px; }
+.assigned-rider-header { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.assigned-rider-profile { display:flex; align-items:center; gap:12px; min-width:0; }
+.assigned-rider-avatar { width:40px; height:40px; border-radius:10px; background:#dcfce7; color:#166534; display:grid; place-items:center; font-size:18px; flex-shrink:0; }
+.assigned-rider-title-row { display:flex; align-items:center; gap:8px; margin-bottom:3px; }
+.assigned-label { font-size:9px; font-weight:900; letter-spacing:.12em; color:#15803d; }
+.assigned-status-dot { font-size:10px; font-weight:700; color:#16a34a; }
+.assigned-rider-profile h4 { margin:0 0 4px; font-size:15px; font-weight:800; color:#1c2d27; }
+.assigned-meta { display:flex; flex-wrap:wrap; align-items:center; gap:7px 12px; margin:0; font-size:11.5px; color:#526d63; }
+.rider-area-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:12px; background:#dcfce7; color:#166534; font-weight:800; font-size:10.5px; }
+.rider-phone-link { color:#0f766e; text-decoration:none; font-weight:700; }
+.rider-phone-link:hover { text-decoration:underline; }
+.assigned-rider-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.btn-change-rider { padding:8px 14px; border:1px solid #99d5be; border-radius:8px; background:white; color:#166534; font-size:11.5px; font-weight:700; cursor:pointer; transition:all .15s ease; }
+.btn-change-rider:hover { background:#e8f7f0; border-color:#166534; }
+.btn-unassign-rider { padding:8px 11px; border:1px solid #e5e7eb; border-radius:8px; background:white; color:#9ca3af; font-size:11px; font-weight:700; cursor:pointer; transition:all .15s ease; }
+.btn-unassign-rider:hover { background:#fee2e2; border-color:#f87171; color:#b91c1c; }
+.assigned-timestamp { margin-top:8px; font-size:10.5px; color:#6b7280; }
+
+/* Unassigned Nearest Recommendation Box */
+.unassigned-dispatch-card { border-radius:12px; overflow:hidden; }
+.nearest-suggestion-box { padding:16px 18px; background:linear-gradient(135deg, #f9f6fc 0%, #fdf8f5 100%); border:1px solid #e2d9ec; border-radius:12px; }
+.suggestion-header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+.suggestion-title-group { display:flex; align-items:center; gap:11px; min-width:0; }
+.suggestion-icon { font-size:22px; width:38px; height:38px; border-radius:10px; background:#efe7f5; display:grid; place-items:center; flex-shrink:0; }
+.suggestion-kicker-row { display:flex; align-items:center; gap:8px; margin-bottom:2px; flex-wrap:wrap; }
+.suggestion-kicker { font-size:9.5px; font-weight:900; letter-spacing:.12em; color:var(--hub-plum); }
+.suggestion-badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:800; background:#efe9f5; color:var(--hub-plum-dark); }
+.suggestion-badge.is-nearby { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+.suggestion-rider-name { margin:0; font-size:15px; font-weight:900; color:var(--hub-plum-dark); }
+.suggestion-area { font-weight:600; color:var(--hub-muted); font-size:13px; }
+.suggestion-stats { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.suggestion-stat-item { font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px; background:white; border:1px solid #e5dfee; color:var(--hub-plum-dark); }
+
+.dispatch-cta-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.btn-dispatch-nearest { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, var(--hub-plum) 0%, #463b57 100%); color:white; padding:10px 18px; border:none; border-radius:9px; font-size:12.5px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(86,75,104,0.18); transition:all .15s ease; min-height:40px; }
+.btn-dispatch-nearest:hover { transform:translateY(-1px); box-shadow:0 5px 14px rgba(86,75,104,0.28); background:#443954; }
+.btn-dispatch-nearest:disabled { opacity:.65; cursor:wait; transform:none; }
+.btn-choose-other { display:inline-flex; align-items:center; justify-content:center; gap:6px; background:white; color:var(--hub-plum-dark); padding:9px 15px; border:1px solid #cfc2dc; border-radius:9px; font-size:12px; font-weight:700; cursor:pointer; transition:all .15s ease; min-height:40px; }
+.btn-choose-other:hover { background:#f5effa; border-color:var(--hub-plum); }
+.btn-confirm-plain { background:transparent; border:none; color:var(--hub-muted); font-size:11.5px; font-weight:700; cursor:pointer; padding:8px 12px; border-radius:7px; text-decoration:underline; }
+.btn-confirm-plain:hover { color:var(--hub-plum); background:#f4f0f7; }
+
+.no-riders-warning { padding:14px 18px; background:#fef8f6; border:1px dashed #ecdcd5; border-radius:10px; font-size:12px; color:#88584c; display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.no-riders-warning a { font-weight:800; color:var(--hub-plum); text-decoration:underline; }
+
+/* Card Footer */
+.pickup-card-footer { display:flex; flex-wrap:wrap; justify-content:space-between; gap:9px; border-top:1px solid #eee8ef; padding:12px 0; color:var(--hub-muted); font-size:11px; overflow-wrap:anywhere; }
 .pickup-card-footer span { min-width:0; }
+
+/* Empty State */
 .pickup-empty { text-align:center; background:white; padding:48px 20px; border:1px solid var(--hub-line); border-radius:12px; }
 .pickup-empty > span { display:grid; place-items:center; width:68px; height:68px; margin:0 auto 18px; border-radius:22px; background:linear-gradient(135deg,#eee7f4,#f3e3db); color:var(--hub-plum); }
 .pickup-empty h3 { font-size:19px; font-weight:800; color:var(--hub-plum-dark); }
 .pickup-empty p { font-size:13px; margin:9px 0 18px; color:var(--hub-muted); }
 .pickup-empty a { font-size:12px; font-weight:700; color:var(--hub-plum-dark); }
 .pickup-pagination { margin-top:20px; }
-@media(max-width:1200px) { .pickup-card-body { flex-wrap:wrap; } .pickup-details { flex-basis:100%; grid-template-columns:1fr 1fr 2fr; } .pickup-action { margin-left:auto; } .pickup-toolbar { flex-wrap:wrap; } .pickup-search { flex:1; min-width:250px; } }
-@media(max-width:640px) { .pickup-heading h2 { font-size:26px; } .pickup-heading-icon { display:none; } .pickup-overview { gap:8px; } .pickup-metric { padding:13px 10px; } .pickup-metric-icon,.pickup-metric small { display:none; } .pickup-metric > div > span { font-size:10px; line-height:1.5; } .pickup-metric strong { font-size:24px; } .pickup-toolbar { padding:12px; gap:13px; } .pickup-tabs { width:100%; } .pickup-tabs a { flex:1; justify-content:center; padding:9px 7px; font-size:11px; } .pickup-search { width:100%; min-width:0; flex-basis:100%; } .pickup-card { padding:17px 15px 0; } .pickup-details { grid-template-columns:1fr 1fr; gap:17px; } .pickup-address { grid-column:1 / -1; } .pickup-action,.pickup-action form,.pickup-action button { width:100%; } .pickup-card-heading { gap:8px; } .pickup-seller h3 { font-size:14px; } .pickup-avatar { width:34px; height:34px; } }
+
+/* RIDER DISPATCH MODAL */
+.pickup-rider-modal { position:fixed; inset:0; margin:auto; width:calc(100% - 32px); max-width:760px; max-height:calc(100dvh - 32px); border:1px solid #e4d9e9; border-radius:22px; padding:0; background:#faf8fc; box-shadow:0 28px 90px #30203845; overflow:hidden; }
+.pickup-rider-modal::backdrop { background:rgba(39,32,49,0.55); backdrop-filter:blur(4px); }
+.modal-dialog-content { padding:26px; display:flex; flex-direction:column; max-height:calc(100dvh - 34px); }
+.modal-header { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin:-26px -26px 20px; padding:26px; border-bottom:1px solid #e4d8e8; background:linear-gradient(115deg,#eee6f4,#f8eae3); flex-shrink:0; }
+.modal-eyebrow { font-size:9.5px; font-weight:900; letter-spacing:.14em; color:var(--hub-plum); }
+.modal-header h3 { margin:8px 0 12px; font-size:25px; line-height:1.25; font-weight:900; color:#493654; }
+.modal-pickup-location { margin:3px 0 0; font-size:12px; color:#71617a; line-height:1.6; overflow-wrap:anywhere; }
+.modal-pickup-location strong { color:#564365; }
+.modal-close-btn { width:36px; height:36px; border-radius:50%; border:1px solid #dfd2e5; background:#ffffffb3; color:var(--hub-plum); font-size:24px; display:grid; place-items:center; cursor:pointer; flex-shrink:0; line-height:1; }
+.modal-close-btn:hover { background:#ebdff3; color:var(--hub-plum-dark); }
+
+.modal-filter-bar { margin-bottom:18px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
+.modal-search-label { font-size:11px; font-weight:700; color:#5e4b6b; }
+.modal-rider-search { width:100%; height:44px; border:1px solid #ded5e6; border-radius:10px; padding:0 14px; font:400 12px 'Lato',sans-serif; background:white; outline:none; }
+.modal-rider-search:focus { border-color:var(--hub-plum); background:white; }
+.modal-filter-hint { font-size:10.5px; color:var(--hub-muted); }
+
+.modal-rider-list { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; display:flex; flex-direction:column; gap:10px; padding-right:6px; max-height:380px; }
+.modal-rider-list > * { flex-shrink:0; }
+.rider-group-heading { font-size:10px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; color:var(--hub-plum); padding:8px 4px 4px; border-bottom:1px solid #f2edf5; }
+.modal-rider-item { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:16px; border:1px solid #e8e0ec; border-radius:13px; background:white; transition:background .15s ease,border-color .15s ease; }
+.modal-rider-item:hover { border-color:#cfc2dc; background:#faf7fc; }
+.modal-rider-item.is-nearby-item { border-left:3px solid #c08b7f; background:#fffbf8; }
+.rider-item-left { display:flex; align-items:center; gap:12px; min-width:0; }
+.rider-badge-icon { width:34px; height:34px; border-radius:8px; background:#f2ecf5; display:grid; place-items:center; font-size:16px; flex-shrink:0; }
+.pickup-rider-modal .rider-badge-icon { width:40px; height:40px; border-radius:12px; color:#766085; font-weight:900; }
+.is-nearby-item .rider-badge-icon { background:#f3e1d9; color:#946559; }
+.pickup-rider-modal .rider-item-left > div { min-width:0; }
+.pickup-rider-modal .rider-item-name-row strong { font-size:14px; overflow-wrap:anywhere; }
+.pickup-rider-modal .area-match-tag { background:#f3e3db; color:#875e52; }
+.pickup-rider-modal .area-match-tag.is-other { background:#eee8f3; color:#766085; }
+.pickup-rider-modal .rider-item-meta { margin-top:6px; line-height:1.6; }
+.pickup-rider-modal .modal-rider-item > form { flex-shrink:0; }
+.pickup-rider-modal .btn-select-rider { min-height:40px; white-space:nowrap; border-radius:9px; padding:10px 15px; }
+.rider-item-name-row { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:3px; }
+.rider-item-name-row strong { font-size:13.5px; font-weight:800; color:var(--hub-plum-dark); }
+.area-match-tag { font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:10px; background:#dcfce7; color:#166534; }
+.area-match-tag.is-other { background:#f1ecf6; color:var(--hub-plum); }
+.online-indicator { font-size:9px; font-weight:700; color:#16a34a; }
+.rider-item-meta { display:flex; flex-wrap:wrap; gap:6px 10px; font-size:11px; color:var(--hub-muted); }
+
+.btn-select-rider { padding:8px 14px; border:none; border-radius:7px; background:var(--hub-plum); color:white; font-size:11.5px; font-weight:700; cursor:pointer; flex-shrink:0; transition:all .15s ease; }
+.btn-select-rider:hover { background:var(--hub-plum-dark); transform:translateY(-1px); }
+.btn-select-rider.secondary { background:#f1ecf5; color:var(--hub-plum-dark); }
+.btn-select-rider.secondary:hover { background:var(--hub-plum); color:white; }
+
+.modal-empty-riders { text-align:center; padding:24px; color:var(--hub-muted); font-size:12px; }
+.modal-footer { margin-top:18px; padding-top:16px; border-top:1px solid #e8e0ec; display:flex; align-items:center; gap:16px; justify-content:space-between; flex-shrink:0; }
+.modal-footer-note { font-size:11px; color:#81728b; }
+.pickup-rider-modal .btn-modal-cancel { min-height:40px; padding-inline:22px; color:#655274; }
+.modal-filter-empty { padding:24px; text-align:center; font-size:13px; color:#756580; }
+.btn-modal-cancel { padding:8px 16px; border:1px solid #ddd5e4; border-radius:8px; background:white; color:var(--hub-muted); font-size:11.5px; font-weight:700; cursor:pointer; }
+.btn-modal-cancel:hover { background:#f5f0f8; color:var(--hub-plum-dark); }
+
+/* Responsive */
+@media(max-width:1200px) {
+    .pickup-overview { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .pickup-details { grid-template-columns:1fr 1fr 2fr; }
+    .pickup-toolbar { flex-wrap:wrap; }
+    .pickup-search { flex:1; min-width:250px; }
+}
+
+@media(max-width:640px) {
+    .pickup-heading h2 { font-size:24px; }
+    .pickup-heading-icon { display:none; }
+    .pickup-overview { grid-template-columns:1fr 1fr; gap:8px; }
+    .pickup-metric { padding:12px 10px; }
+    .pickup-metric-icon, .pickup-metric small { display:none; }
+    .pickup-metric strong { font-size:22px; }
+    .pickup-toolbar { padding:12px; gap:10px; }
+    .pickup-tabs { width:100%; }
+    .pickup-tabs a { flex:1; justify-content:center; padding:8px 6px; font-size:11px; }
+    .pickup-search { width:100%; min-width:0; flex-basis:100%; }
+    .pickup-card { padding:16px 14px 0; }
+    .pickup-details { grid-template-columns:1fr; gap:12px; }
+    .dispatch-cta-row { flex-direction:column; align-items:stretch; }
+    .btn-dispatch-nearest, .btn-choose-other { width:100%; }
+    .assigned-rider-header { flex-direction:column; align-items:flex-start; }
+    .assigned-rider-actions { width:100%; justify-content:space-between; }
+    .modal-dialog-content { padding:18px 16px; }
+    .modal-header { margin:-18px -16px 16px; padding:20px 16px; }
+    .modal-header h3 { font-size:22px; }
+    .pickup-rider-modal .modal-rider-item > form { width:100%; }
+    .modal-footer-note { max-width:65%; line-height:1.5; }
+    .modal-rider-item { flex-direction:column; align-items:flex-start; }
+    .btn-select-rider { width:100%; }
+}

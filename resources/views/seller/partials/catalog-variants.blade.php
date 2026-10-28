@@ -28,7 +28,7 @@
                         <a class="catalog-variant-option {{ $variant->stock <= 0 ? 'is-empty' : ($variant->stock <= $product->stock_alert_threshold ? 'is-low' : '') }}"
                            href="{{ route('seller.inventory', ['search' => $variant->sku ?: $product->name]) }}"
                            aria-label="{{ $variant->name }}: {{ $variant->stock }} in stock. Manage stock."
-                           title="{{ $variant->name }} · PHP {{ number_format($variant->price, 2) }}">
+                           title="{{ $variant->name }} · ₱{{ number_format($variant->price, 2) }}">
                             @if($variant->image_url)
                                 <img src="{{ $variant->image_url }}" alt="" loading="lazy">
                             @endif

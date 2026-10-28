@@ -181,11 +181,11 @@
     @endif
 
     @guest
-        <div class="chat-bubble-form"><a class="chat-bubble" href="{{ route('login') }}" aria-label="Log in to chat with {{ $seller->name }}">@include('seller.partials.icon', ['name' => 'chat', 'size' => 22])<span>Chat</span></a></div>
+        <div class="chat-bubble-form"><a class="chat-bubble" href="{{ route('login') }}" aria-label="Log in to chat with {{ $seller->name }}">@include('seller.partials.icon', ['name' => 'chat-round', 'size' => 22])<span>Chat</span></a></div>
     @else
         @if($canChat)
         <form method="POST" action="{{ route('store.message', $seller->slug) }}" id="pd-message-form" class="chat-bubble-form">@csrf
-            <button type="submit" class="chat-bubble" title="Click to chat here, double-click to open Messages" aria-controls="pd-chat" aria-expanded="false" aria-label="Chat with {{ $seller->name }}">@include('seller.partials.icon', ['name' => 'chat', 'size' => 22])<span>Chat</span></button>
+            <button type="submit" class="chat-bubble" title="Click to chat here, double-click to open Messages" aria-controls="pd-chat" aria-expanded="false" aria-label="Chat with {{ $seller->name }}">@include('seller.partials.icon', ['name' => 'chat-round', 'size' => 22])<span>Chat</span></button>
         </form>
         <section class="pd-chat" id="pd-chat" role="dialog" aria-labelledby="pd-chat-title" data-avatar="{{ $seller->logoUrl() }}" data-empty-text="Say hello! Ask {{ $seller->name }} about products, stock, or shipping." hidden>
             <header class="pd-chat-head">

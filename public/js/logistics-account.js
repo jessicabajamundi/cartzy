@@ -41,21 +41,24 @@
     const validatePasswords = () => confirmation.setCustomValidity(
         confirmation.value !== password.value ? 'Your passwords do not match.' : ''
     );
+    const eyeIcon = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const eyeOffIcon = '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 18M10.6 5.1A12 12 0 0 1 12 5c6.5 0 10 7 10 7a19 19 0 0 1-3.2 4.1M6.2 6.2A20 20 0 0 0 2 12s3.5 7 10 7a12 12 0 0 0 5.8-1.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
     [password, confirmation].forEach(input => {
         input.addEventListener('input', validatePasswords);
         const wrapper = document.createElement('span');
-        wrapper.className = 'account-password-control';
+        wrapper.className = 'account-password-field';
         input.before(wrapper);
         wrapper.append(input);
         const toggle = document.createElement('button');
         toggle.type = 'button';
-        toggle.textContent = 'Show';
+        toggle.className = 'account-password-toggle';
+        toggle.innerHTML = eyeIcon;
         toggle.setAttribute('aria-label', `Show ${input === password ? 'new password' : 'password confirmation'}`);
         toggle.setAttribute('aria-pressed', 'false');
         toggle.addEventListener('click', () => {
             const reveal = input.type === 'password';
             input.type = reveal ? 'text' : 'password';
-            toggle.textContent = reveal ? 'Hide' : 'Show';
+            toggle.innerHTML = reveal ? eyeOffIcon : eyeIcon;
             toggle.setAttribute('aria-label', `${reveal ? 'Hide' : 'Show'} ${input === password ? 'new password' : 'password confirmation'}`);
             toggle.setAttribute('aria-pressed', String(reveal));
         });

@@ -87,7 +87,7 @@
                             <td data-label="Product">
                                 <div class="inv-product">
                                     @if($image)
-                                        <img class="inv-thumb" src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/') ? $image : asset('storage/'.$image) }}" alt="">
+                                        <img class="inv-thumb" src="{{ str_starts_with($image, 'http') || str_starts_with($image, '/') ? $image : Storage::disk('public')->url($image) }}" alt="">
                                     @else
                                         <span class="inv-thumb is-empty">@include('seller.partials.icon', ['name' => 'box', 'size' => 20])</span>
                                     @endif

@@ -61,7 +61,7 @@
                                                 <span>Unsuspend & Activate</span>
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ route('logistics.riders.toggle', $rider['id']) }}" role="none">
+                                        <form method="POST" action="{{ route('logistics.riders.toggle', $rider['id']) }}" role="none" data-rider-name="{{ $rider['name'] }}" data-rider-status="{{ $rider['status'] }}" data-rider-toggle>
                                             @csrf
                                             <input type="hidden" name="active" value="0">
                                             <button type="submit" class="rider-dropdown-item text-gray-700" role="menuitem">
@@ -71,7 +71,7 @@
                                         </form>
                                     @else
                                         @if($rider['is_active'])
-                                            <form method="POST" action="{{ route('logistics.riders.toggle', $rider['id']) }}" role="none">
+                                            <form method="POST" action="{{ route('logistics.riders.toggle', $rider['id']) }}" role="none" data-rider-name="{{ $rider['name'] }}" data-rider-status="{{ $rider['status'] }}" data-rider-toggle>
                                                 @csrf
                                                 <input type="hidden" name="active" value="0">
                                                 <button type="submit" class="rider-dropdown-item text-gray-700" role="menuitem">
@@ -80,7 +80,7 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <form method="POST" action="{{ route('logistics.riders.toggle', $rider['id']) }}" role="none">
+                                            <form method="POST" action="{{ route('logistics.riders.toggle', $rider['id']) }}" role="none" data-rider-name="{{ $rider['name'] }}" data-rider-status="{{ $rider['status'] }}" data-rider-toggle>
                                                 @csrf
                                                 <input type="hidden" name="active" value="1">
                                                 <button type="submit" class="rider-dropdown-item text-emerald-700 font-semibold" role="menuitem">
@@ -89,7 +89,7 @@
                                                 </button>
                                             </form>
                                         @endif
-                                        <form method="POST" action="{{ route('logistics.riders.status', $rider['id']) }}" role="none" onsubmit="return confirm('Are you sure you want to suspend this rider?');">
+                                        <form method="POST" action="{{ route('logistics.riders.status', $rider['id']) }}" role="none" data-rider-confirm="suspend" data-rider-name="{{ $rider['name'] }}">
                                             @csrf
                                             <input type="hidden" name="status" value="suspended">
                                             <button type="submit" class="rider-dropdown-item rider-dropdown-item-danger" role="menuitem">
@@ -121,6 +121,19 @@
         <p class="rider-dialog-help">You can return this application to review from the Rejected tab.</p>
         <div class="rider-dialog-actions"><button type="button" class="rider-button" id="rider-reject-cancel">Cancel</button><button type="submit" class="rider-button rider-reject-confirm">Reject application</button></div>
     </form>
+</dialog>
+<dialog id="rider-action-dialog" class="rider-dialog rider-action-dialog" aria-labelledby="rider-action-title" aria-describedby="rider-action-description rider-action-help">
+    <span class="rider-action-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v6m0 4h.01"/></svg>
+    </span>
+    <span class="rider-eyebrow">ACCOUNT STATUS</span>
+    <h2 id="rider-action-title">Deactivate this rider?</h2>
+    <p id="rider-action-description"></p>
+    <p id="rider-action-help" class="rider-action-help"></p>
+    <div class="rider-dialog-actions">
+        <button type="button" class="rider-button" id="rider-action-cancel" autofocus>Cancel</button>
+        <button type="button" class="rider-button rider-reject-confirm" id="rider-action-confirm">Yes, deactivate</button>
+    </div>
 </dialog>
 @endsection
 @push('scripts')

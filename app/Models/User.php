@@ -85,6 +85,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'id_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_suspended' => 'boolean',
         ];
@@ -103,7 +104,7 @@ class User extends Authenticatable
             return $this->avatar;
         }
 
-        return asset('storage/' . $this->avatar);
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar);
     }
 
     /**

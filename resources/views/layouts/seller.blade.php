@@ -8,20 +8,30 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{{ asset('css/seller.css') }}?v={{ filemtime(public_path('css/seller.css')) }}">
+    @if(request()->routeIs('seller.dashboard'))
+        <link rel="stylesheet" href="{{ asset('css/seller-dashboard.css') }}?v={{ filemtime(public_path('css/seller-dashboard.css')) }}">
+    @endif
+    @if(auth()->user()->isSeller())
+        <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/seller-chat-popups.css') }}?v={{ filemtime(public_path('css/seller-chat-popups.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/seller-numerals.css') }}?v={{ filemtime(public_path('css/seller-numerals.css')) }}">
+    @endif
 </head>
-<body>
+<body class="{{ request()->routeIs('seller.dashboard') ? 'seller-overview' : '' }}">
 @php($sellerMode = auth()->user()->isSeller())
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="portal">
-    <aside class="sidebar" id="seller-sidebar">
-        <a class="brand" href="{{ route($sellerMode ? 'seller.dashboard' : 'buyer.dashboard') }}"><img src="{{ asset('images/logo-transparent.png') }}" alt="cartzy"><span>{{ $sellerMode ? 'SELLER CENTRE' : 'MESSAGES' }}</span></a>
-        <div class="shop-card"><div class="avatar">{{ mb_substr($shop?->name ?? auth()->user()->name, 0, 1) }}</div><div><strong>{{ $shop?->name ?? auth()->user()->name }}</strong><small>{{ $sellerMode ? ($shop ? ucfirst($shop->status).' store' : 'Set up your store') : 'Buyer account' }}</small></div></div>
+    <aside class="sidebar {{ $sellerMode ? 'seller-admin-sidebar' : '' }}" id="seller-sidebar">
+        <a class="brand" href="{{ route($sellerMode ? 'seller.dashboard' : 'buyer.dashboard') }}"><img src="{{ asset('images/logo-transparent.png') }}" alt="cartzy"><span>{{ $sellerMode ? 'SELLER WORKSPACE' : 'MESSAGES' }}</span></a>
+        @unless($sellerMode)
+        <div class="shop-card"><div class="avatar">{{ mb_substr($shop?->name ?? auth()->user()->name, 0, 1) }}</div><div><strong>{{ $shop?->name ?? auth()->user()->name }}</strong><small>Buyer account</small></div></div>
+        @endunless
         <nav aria-label="{{ $sellerMode ? 'Seller' : 'Buyer' }} navigation">
-            <span class="nav-label">WORKSPACE</span>
+            @unless($sellerMode)<span class="nav-label">WORKSPACE</span>@endunless
             @if($sellerMode)
-                @foreach(['dashboard' => ['Overview','grid'], 'orders' => ['Orders','bag'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'], 'vouchers' => ['Vouchers','ticket'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'chat' => ['Messages','chat'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'account' => ['Account','user']] as $key => [$label,$icon])
+                @foreach(['dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'], 'orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user']] as $key => [$label,$icon])
                     @php($navActive = request()->routeIs('seller.'.$key.'*'))
-                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
+                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
                     @if($key === 'dashboard')
                         @include('seller.partials.workspace-notifications')
                     @endif
@@ -30,11 +40,44 @@
                 <a class="nav-link" href="{{ route('buyer.dashboard') }}">@include('seller.partials.icon', ['name' => 'grid'])My account</a>
                 <a class="nav-link active" href="{{ route('buyer.messages') }}">@include('seller.partials.icon', ['name' => 'chat'])Messages</a>
             @endif
-        </nav>
-        <div class="sidebar-footer"><small>Signed in as</small><strong>{{ auth()->user()->name }}</strong><form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit" aria-label="Sign out" title="Sign out">@include('seller.partials.icon', ['name' => 'logout', 'size' => 22])</button></form></div>
+        @unless($sellerMode)</nav>@endunless
+        <div class="sidebar-footer">
+            <form method="POST" action="{{ route('logout') }}" style="width: 100%; margin: 0;">
+                @csrf
+                <button type="submit" class="nav-link sidebar-logout-btn" aria-label="Log out" title="Log out">
+                    @include('seller.partials.icon', ['name' => 'logout', 'size' => 20])
+                    <span>Log out</span>
+                </button>
+            </form>
+        </div>
+        @if($sellerMode)</nav>@endif
     </aside>
     <div class="workspace">
-        <header class="topbar"><div class="inline"><button class="icon-button mobile-menu" id="menu-toggle" aria-controls="seller-sidebar" aria-expanded="false" aria-label="Toggle navigation">☰</button><span class="muted">{{ $sellerMode ? 'Seller workspace' : 'Buyer workspace' }}</span><span class="breadcrumb">/</span><strong>@yield('page_title', 'Overview')</strong></div>@unless($sellerMode) @include('layouts.partials.account-navigation') @endunless<a class="button small secondary" href="{{ route('home') }}">Marketplace ↗</a></header>
+        <header class="topbar">
+            <div class="inline">
+                <button class="icon-button mobile-menu" id="menu-toggle" aria-controls="seller-sidebar" aria-expanded="false" aria-label="Toggle navigation">☰</button>
+                <span class="muted">{{ $sellerMode ? 'Seller workspace' : 'Buyer workspace' }}</span>
+                <span class="breadcrumb">/</span>
+                <strong>@yield('page_title', 'Overview')</strong>
+            </div>
+            @unless($sellerMode) @include('layouts.partials.account-navigation') @endunless
+            <div class="topbar-actions" style="display: flex; align-items: center; gap: 10px;">
+                <a class="button small secondary" href="{{ route('home') }}">Marketplace ↗</a>
+                @if($sellerMode)
+                    @php($sellerNotifData = \App\Services\SellerNotifications::feed(auth()->user()))
+                    <a class="icon-button seller-header-notif-btn" href="{{ route('seller.notifications') }}" aria-label="Notifications" title="Notifications" style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); text-decoration: none; transition: var(--transition);">
+                        @include('seller.partials.icon', ['name' => 'bell'])
+                        <span class="badge" data-notification-count style="position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--rose-primary); color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; text-align: center; border: 2px solid #fff;" @if(($sellerNotifData['notificationCount'] ?? 0) <= 0) hidden @endif>{{ ($sellerNotifData['notificationCount'] ?? 0) > 0 ? $sellerNotifData['notificationCount'] : '' }}</span>
+                    </a>
+                @endif
+                <form method="POST" action="{{ route('logout') }}" style="margin: 0; display: inline-flex;">
+                    @csrf
+                    <button class="icon-button" type="submit" aria-label="Log out" title="Log out" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--rose-soft); color: var(--rose-ink); cursor: pointer; transition: var(--transition);">
+                        @include('seller.partials.icon', ['name' => 'logout', 'size' => 18])
+                    </button>
+                </form>
+            </div>
+        </header>
         <main id="main">
             @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="notice error" role="alert"><strong>Please check your entries.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
@@ -106,6 +149,15 @@ document.addEventListener('keydown', event => {
 @stack('scripts')
 @if($sellerMode)<script src="{{ asset('js/seller-restock.js') }}?v={{ filemtime(public_path('js/seller-restock.js')) }}" defer></script>@endif
 @if($sellerMode)<script src="{{ asset('js/seller-notifications.js') }}?v={{ filemtime(public_path('js/seller-notifications.js')) }}" defer></script>@endif
+@if($sellerMode)
+    {{-- Bubbles stay hidden until opened from the Messages / Logistics chat sidebar links. --}}
+    <div class="seller-chat-bubbles" role="region" aria-label="Chat bubbles">
+        @include('seller.partials.chat-popup', ['id' => 'sm', 'label' => 'Messages', 'title' => 'Messages', 'subtitle' => 'Buyer questions and order chats', 'conversationsUrl' => route('seller.popup.conversations'), 'inboxUrl' => route('seller.chat'), 'emptyText' => 'No conversations yet. Buyer questions and order chats will appear here.'])
+        @include('seller.partials.chat-popup', ['id' => 'lc', 'label' => 'Logistics', 'title' => 'Logistics chat', 'subtitle' => 'Message a logistics hub', 'conversationsUrl' => route('seller.logistics.conversations'), 'inboxUrl' => route('seller.logistics'), 'emptyText' => 'No logistics hubs are available yet. Approved hubs will appear here.'])
+    </div>
+    <script src="{{ asset('js/seller-chat-popups.js') }}?v={{ filemtime(public_path('js/seller-chat-popups.js')) }}" defer></script>
+    <script src="{{ asset('js/seller-numerals.js') }}?v={{ filemtime(public_path('js/seller-numerals.js')) }}" defer></script>
+@endif
 @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
 </body>

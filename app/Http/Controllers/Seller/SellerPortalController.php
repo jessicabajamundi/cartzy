@@ -85,6 +85,12 @@ class SellerPortalController extends Controller
             'rating' => $this->reviewsQuery()->avg('rating'), 'reviews' => $this->reviewsQuery()->count(),
             'cancellation_requests' => $this->ordersQuery()->where('cancellation_status', 'pending')->count(),
             'ready_for_pickup' => $this->ordersQuery()->where('status', 'ready_to_ship')->count(),
+            // Overview boxes: open orders, all-time delivered sales, stock health, followers
+            'in_delivery' => $this->ordersQuery()->whereIn('status', ['ready_to_ship', 'shipped'])->count(),
+            'delivered_sales' => (int) $this->paidSales()->sum('subtotal_minor'),
+            'delivered_sales_month' => (int) $this->paidSales()->where('delivered_at', '>=', now()->startOfMonth())->sum('subtotal_minor'),
+            'out_of_stock' => $this->productsQuery()->where('is_active', true)->whereDoesntHave('variants', fn ($q) => $q->where('is_active', true)->where('stock', '>', 0))->count(),
+            'followers' => $request->user()->seller?->followers()->count() ?? 0,
             'unread_messages' => \App\Models\SellerMessage::whereIn('seller_order_id', $this->ordersQuery()->select('id'))
                 ->where('sender_id', '!=', $request->user()->id)->whereNull('read_at')->count()
                 + \App\Models\ProductInquiryMessage::whereHas('inquiry', fn ($q) => $q->where('seller_id', $request->user()->seller?->id ?? 0))
@@ -497,6 +503,7 @@ class SellerPortalController extends Controller
                 'badge' => !empty($data['badge']) ? $data['badge'] : null,
                 'slug' => Str::slug($data['name']).'-'.Str::lower(Str::random(10)),
                 'is_active' => true,
+                'approval_status' => Product::APPROVAL_PENDING,
                 'low_stock_threshold' => (int) ($data['low_stock_threshold'] ?? Product::MIN_LOW_STOCK_THRESHOLD),
             ]);
 
@@ -609,11 +616,11 @@ class SellerPortalController extends Controller
             if ($position === 0 && $firstVariantImage) {
                 $product->images()->create(['path' => $firstVariantImage, 'position' => 0]);
             }
-            \App\Services\NotificationService::notify(Auth::id(), 'product_update', 'Product added', $product->name.' was added to your catalog.', route('seller.products', ['search' => $product->name]));
+            \App\Services\NotificationService::notify(Auth::id(), 'product_update', 'Product submitted for review', $product->name.' was submitted and is awaiting administrator approval.', route('seller.products', ['search' => $product->name]));
         });
 
         return ($request->routeIs('seller.products.add') ? redirect()->route('seller.products') : back())
-            ->with('success', 'Product added to your inventory.');
+            ->with('success', 'Product submitted successfully. It is now awaiting administrator approval before going live on the marketplace.');
     }
 
     public function productSale(int $id)
@@ -752,6 +759,7 @@ class SellerPortalController extends Controller
         $primaryCategoryId = (int) $categoryIds->first();
 
         DB::transaction(function () use ($product, $data, $single, $request, $categoryIds, $primaryCategoryId) {
+            $resubmitted = $product->approval_status === Product::APPROVAL_REJECTED;
             $product->update([
                 'name' => $data['name'],
                 'category_id' => $primaryCategoryId,
@@ -760,6 +768,8 @@ class SellerPortalController extends Controller
                 'description' => $data['description'] ?? null,
                 'low_stock_threshold' => (int) $data['low_stock_threshold'],
                 'is_active' => (bool) $data['is_active'],
+                'approval_status' => $resubmitted ? Product::APPROVAL_PENDING : $product->approval_status,
+                'rejection_reason' => $resubmitted ? null : $product->rejection_reason,
             ]);
             $product->categories()->sync($categoryIds->all());
             if ($single) {
@@ -1310,7 +1320,10 @@ class SellerPortalController extends Controller
             'id_number'        => 'nullable|string|max:100',
             'id_photo'         => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'dti_permit'       => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'logo'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048|dimensions:min_width=100,min_height=100',
+            'remove_logo'      => 'nullable|boolean',
         ], [
+            'logo.dimensions'  => 'The store profile picture must be at least 100×100 pixels.',
             'phone.unique'     => 'This mobile number is already in use.',
             'name.regex'       => 'Special characters and numbers are not allowed.',
             'first_name.regex' => 'Special characters and numbers are not allowed.',
@@ -1371,18 +1384,32 @@ class SellerPortalController extends Controller
 
             $user->update($userUpdate);
 
+            // Only the store profile form sends a description; the other account forms must not wipe it.
+            $shopUpdate = ['name' => $data['store_name']];
+            if ($request->has('description')) {
+                $shopUpdate['description'] = $data['description'] ?? null;
+            }
+
+            $disk = \Illuminate\Support\Facades\Storage::disk('public');
+            $oldLogo = $shop?->logo_path;
+            if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
+                $shopUpdate['logo_path'] = $request->file('logo')->store('store_logos', 'public');
+            } elseif ($request->boolean('remove_logo')) {
+                $shopUpdate['logo_path'] = null;
+            }
+
             if ($shop) {
-                $shop->update([
-                    'name'        => $data['store_name'],
-                    'description' => $data['description'] ?? null,
-                ]);
+                $shop->update($shopUpdate);
             } else {
-                $user->seller()->create([
-                    'name'        => $data['store_name'],
-                    'description' => $data['description'] ?? null,
-                    'slug'        => Str::slug($data['store_name']) . '-' . Str::lower(Str::random(10)),
-                    'status'      => $user->status === 'active' && $user->isIdVerified() ? 'approved' : 'pending',
+                $user->seller()->create($shopUpdate + [
+                    'slug'   => Str::slug($data['store_name']) . '-' . Str::lower(Str::random(10)),
+                    'status' => $user->status === 'active' && $user->isIdVerified() ? 'approved' : 'pending',
                 ]);
+            }
+
+            // Clean up the replaced file, but never touch seeded URLs or absolute paths.
+            if ($oldLogo && array_key_exists('logo_path', $shopUpdate) && !preg_match('~^(https?://|/)~', $oldLogo)) {
+                DB::afterCommit(fn () => $disk->delete($oldLogo));
             }
         });
 

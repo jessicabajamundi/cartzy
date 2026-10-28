@@ -504,13 +504,15 @@ function selectRole(role) {
         roleInput.value = role;
     }
 
+    const isBuyer = role === 'buyer';
+    if (googleSignupWrapper) googleSignupWrapper.style.display = isBuyer ? 'block' : 'none';
+    if (googleSignupDivider) googleSignupDivider.style.display = isBuyer ? 'flex' : 'none';
+
     if (role === 'logistics') {
         if (standardRoleWrapper) standardRoleWrapper.style.display = 'none';
         if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = 'none';
         if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'block';
         if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'block';
-        if (googleSignupWrapper) googleSignupWrapper.style.display = 'none';
-        if (googleSignupDivider) googleSignupDivider.style.display = 'none';
         if (authTitle) authTitle.innerText = 'Become a Logistics Partner';
         if (authSubtitle) authSubtitle.innerText = 'Register your delivery company and manage your own riders on CARTZY.';
 
@@ -523,8 +525,6 @@ function selectRole(role) {
         if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = role === 'seller' ? 'none' : 'block';
         if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'none';
         if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'none';
-        if (googleSignupWrapper) googleSignupWrapper.style.display = 'block';
-        if (googleSignupDivider) googleSignupDivider.style.display = 'flex';
         if (authTitle) authTitle.innerText = 'Create your account';
         if (authSubtitle) authSubtitle.innerText = 'Join cartzy and discover your everyday favorites';
 

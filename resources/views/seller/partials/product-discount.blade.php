@@ -8,7 +8,7 @@
         <legend>Choose your discount</legend>
         <p class="sale-section-description">The same offer applies to every variation.</p>
         <div class="sale-types">
-            @foreach(['percentage' => ['%', 'Percentage', 'Take a percent off'], 'fixed' => ['PHP', 'Fixed amount', 'Take pesos off'], '' => ['&mdash;', 'No discount', 'Use regular prices']] as $type => [$symbol, $title, $hint])
+            @foreach(['percentage' => ['%', 'Percentage', 'Take a percent off'], 'fixed' => ['₱', 'Fixed amount', 'Take pesos off'], '' => ['&mdash;', 'No discount', 'Use regular prices']] as $type => [$symbol, $title, $hint])
                 <label class="sale-type">
                     <input type="radio" name="discount_type" value="{{ $type }}" @checked(($promoType ?? '') === $type)>
                     <span class="sale-type-body"><span class="sale-type-symbol" aria-hidden="true">{!! $symbol !!}</span><strong>{{ $title }}</strong><small>{{ $hint }}</small></span>
@@ -16,7 +16,7 @@
             @endforeach
         </div>
         <div class="sale-value-row">
-            <label for="sale-discount-value" data-discount-label>{{ $promoType === 'percentage' ? 'Percentage off (%)' : 'Amount off (PHP)' }}</label>
+            <label for="sale-discount-value" data-discount-label>{{ $promoType === 'percentage' ? 'Percentage off (%)' : 'Amount off (₱)' }}</label>
             <input id="sale-discount-value" name="discount_value" type="number" min="0.01" step="0.01" max="{{ $promoType === 'percentage' ? '99.99' : '99999999.99' }}" value="{{ $promoValue ?: '' }}" placeholder="Enter discount" aria-describedby="sale-value-hint sale-value-error" @disabled(!$promoType) @required($promoType)>
             <div class="sale-presets" aria-label="Quick percentage discounts" @if($promoType !== 'percentage') hidden @endif>
                 @foreach([5, 10, 15, 20] as $percent)<button type="button" data-sale-preset="{{ $percent }}" aria-pressed="false">{{ $percent }}%</button>@endforeach

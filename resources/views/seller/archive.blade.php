@@ -32,7 +32,7 @@
         <div class="panel-header">
             <div class="product-row">
                 @if($product->coverImage)
-                    <img class="product-image" src="{{ str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : asset('storage/'.$product->coverImage->path) }}" alt="">
+                    <img class="product-image" src="{{ str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : Storage::disk('public')->url($product->coverImage->path) }}" alt="">
                 @else
                     <span class="product-image">@include('seller.partials.icon',['name'=>'box'])</span>
                 @endif

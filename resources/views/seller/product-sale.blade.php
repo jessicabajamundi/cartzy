@@ -16,11 +16,11 @@
         <section class="editor-card">
             <div class="sale-product-heading">
                 @if($product->coverImage)
-                    <img class="sale-product-image" src="{{ str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : asset('storage/'.$product->coverImage->path) }}" alt="">
+                    <img class="sale-product-image" src="{{ str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : Storage::disk('public')->url($product->coverImage->path) }}" alt="">
                 @else
                     <span class="sale-product-icon">@include('seller.partials.icon', ['name' => 'tag', 'size' => 24])</span>
                 @endif
-                <div><span class="eyebrow">YOUR PRODUCT</span><h2>{{ $product->name }}</h2><p>{{ $product->variants->count() }} variation(s) &middot; Prices in PHP</p></div>
+                <div><span class="eyebrow">YOUR PRODUCT</span><h2>{{ $product->name }}</h2><p>{{ $product->variants->count() }} variation(s) &middot; Prices in pesos (₱)</p></div>
             </div>
             @if(!$product->is_active)<p class="notice">This product is archived. Its sale will apply when you restore the listing.</p>@endif
             @if(auth()->user()->status === 'active' && $shop?->isApproved())
@@ -47,7 +47,7 @@
                 @foreach($product->variants as $variant)
                     <div class="sale-preview-variant" data-price-minor="{{ $variant->price_minor }}">
                         <div><strong>{{ $variant->name }}</strong><small>{{ $variant->sku }}</small></div>
-                        <div class="sale-preview-amounts"><span class="sale-regular-price">PHP {{ number_format($variant->price, 2) }}</span><strong data-preview-price>PHP {{ number_format($variant->price, 2) }}</strong><small data-preview-saving>Regular price</small></div>
+                        <div class="sale-preview-amounts"><span class="sale-regular-price">₱{{ number_format($variant->price, 2) }}</span><strong data-preview-price>₱{{ number_format($variant->price, 2) }}</strong><small data-preview-saving>Regular price</small></div>
                     </div>
                 @endforeach
             </div>
@@ -59,7 +59,7 @@
         <div class="panel-header"><div><h2>Current saved prices</h2><small>Prices per item, before shipping</small></div></div>
         <div class="table-wrap"><table><thead><tr><th>Variation / SKU</th><th>Regular price</th><th>Current selling price</th></tr></thead><tbody>
         @foreach($product->variants as $variant)
-            <tr><td>{{ $variant->name }}<small>{{ $variant->sku }}</small></td><td>PHP {{ number_format($variant->price, 2) }}</td><td><strong>PHP {{ number_format($variant->sale_price_minor / 100, 2) }}</strong></td></tr>
+            <tr><td>{{ $variant->name }}<small>{{ $variant->sku }}</small></td><td>₱{{ number_format($variant->price, 2) }}</td><td><strong>₱{{ number_format($variant->sale_price_minor / 100, 2) }}</strong></td></tr>
         @endforeach
         </tbody></table></div>
     </section>

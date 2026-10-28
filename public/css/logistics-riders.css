@@ -415,6 +415,14 @@
     box-shadow:0 24px 80px #302b3833;
     font-family:'Lato',sans-serif
 }
+.rider-action-dialog { background:#fff; }
+.rider-action-icon { display:grid; place-items:center; width:48px; height:48px; margin-bottom:18px; border-radius:14px; background:#f7e9e3; color:#9b5148; }
+.rider-action-dialog h2 { margin:8px 0 12px; font-size:23px; font-weight:700; line-height:1.25; }
+#rider-action-description { font-size:14px; line-height:1.7; overflow-wrap:anywhere; }
+.rider-action-help { padding:13px 15px; margin-top:16px; background:#f5f0f7; border:1px solid #e8dfed; border-radius:10px; color:#6b5d77; font-size:12px; line-height:1.6; }
+.rider-action-dialog .rider-dialog-actions { flex-wrap:wrap; }
+.rider-action-dialog .rider-dialog-actions button { min-height:42px; flex:1; justify-content:center; }
+.rider-action-dialog button:disabled { opacity:.65; cursor:wait; }
 .rider-dialog::backdrop {
     background:#302b3877;
     backdrop-filter:blur(3px)

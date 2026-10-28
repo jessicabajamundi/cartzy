@@ -64,6 +64,9 @@ class OrderPlacement
                     $variant = ProductVariant::whereKey($savedVariant->id)->lockForUpdate()->firstOrFail();
                     $product = Product::whereKey($variant->product_id)->lockForUpdate()->firstOrFail();
                     $variant->setRelation('product', $product);
+                    if (!$product->is_active || !$product->isApproved()) {
+                        throw new RuntimeException($product->name.' is not currently available for purchase.');
+                    }
                     $seller = $product->seller;
                     $qty = max(1, (int) ($item['quantity'] ?? 1));
                     if ($variant->stock < $qty) throw new RuntimeException('There is not enough stock for '.$product->name.'.');

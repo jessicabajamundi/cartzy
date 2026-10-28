@@ -44,8 +44,7 @@ header .header-main.storefront-header-main {
 header .storefront-header-main .header-search { min-width: 140px; margin: 0; max-width: 420px; }
 header .storefront-header-main #header-search-form { min-height: 48px; }
 header .storefront-header-main #header-search-input { min-width: 0; font-size: 15px; }
-header .storefront-header-main #header-search-btn { width: 40px; height: 40px; }
-header .storefront-header-main #header-search-btn svg { width: 19px; height: 19px; }
+
 header .storefront-header-main .header-auth-links > a {
     min-height: 38px;
     padding-inline: 15px;
@@ -57,8 +56,9 @@ header .storefront-header-main .header-auth-links > a svg { width: 18px; height:
 header .storefront-header-main .buyer-top-link { width: 40px; min-width: 40px; min-height: 44px; }
 header .storefront-header-main .buyer-top-icon > svg { width: 24px; height: 24px; }
 #pick-trending-title { scroll-margin-top: 140px; }
-@media (min-width: 1251px) {
-    header .storefront-header-main .header-actions { margin-right: 20px; }
+header .storefront-header-main .header-actions { margin-right: 48px; }
+@media (max-width: 1250px) {
+    header .storefront-header-main .header-actions { margin-right: 0; }
 }
 @media (max-width: 1250px) {
     header .header-main.storefront-header-main { flex-wrap: wrap; gap: 8px 20px; }

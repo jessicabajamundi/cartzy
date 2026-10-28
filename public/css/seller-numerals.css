@@ -1,0 +1,24 @@
+/* Seller workspace numerals in Bodoni MT. "Seller Numerals" only covers the digits 0-9 (unicode-range),
+   so putting it first in a font stack changes numbers and leaves letters alone. Bodoni MT ships with
+   Windows/Office; Bodoni Moda (OFL, public/fonts) is the fallback where it isn't installed. */
+@font-face { font-family: "Seller Numerals"; font-weight: 100 599; font-display: swap; unicode-range: U+0030-0039;
+    src: local("Bodoni MT"), local("BodoniMT"), url("../fonts/bodoni-moda-400.ttf") format("truetype"); }
+@font-face { font-family: "Seller Numerals"; font-weight: 600 900; font-display: swap; unicode-range: U+0030-0039;
+    src: local("Bodoni MT Bold"), local("BodoniMT-Bold"), url("../fonts/bodoni-moda-700.ttf") format("truetype"); }
+
+/* No Bodoni font has a ₱ glyph, so seller-numerals.js wraps each ₱ in .seller-peso: the real ₱ stays in
+   the page (shrunk to nothing, so copy and screen readers still get it) and a Bodoni "P" plus the two
+   peso bars is drawn in its place. */
+@font-face { font-family: "Seller Peso"; font-weight: 100 599; font-display: swap; unicode-range: U+0050;
+    src: local("Bodoni MT"), local("BodoniMT"), url("../fonts/bodoni-moda-400.ttf") format("truetype"); }
+@font-face { font-family: "Seller Peso"; font-weight: 600 900; font-display: swap; unicode-range: U+0050;
+    src: local("Bodoni MT Bold"), local("BodoniMT-Bold"), url("../fonts/bodoni-moda-700.ttf") format("truetype"); }
+
+/* line-height: 1 makes the box exactly one em tall whatever the surrounding line height, so the
+   bars (measured in em from the top) always cross the same part of the P. */
+.seller-peso { --peso-bar: .032em; position: relative; display: inline-block; padding: 0 .02em 0 .05em; line-height: 1; white-space: nowrap; }
+.seller-peso.is-bold { --peso-bar: .05em; } /* set by seller-numerals.js for weights 600+ */
+.seller-peso::before { content: "P"; font-family: "Seller Peso", Georgia, serif; }
+/* Two hairline bars across the stem and bowl, like Bodoni's own thin strokes. */
+.seller-peso::after { content: ""; position: absolute; left: 0; right: .06em; top: .37em; height: var(--peso-bar); background: currentColor; box-shadow: 0 .12em 0 currentColor; pointer-events: none; }
+.seller-peso > span { font-size: 0; }

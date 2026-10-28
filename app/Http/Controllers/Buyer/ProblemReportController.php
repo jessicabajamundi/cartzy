@@ -39,6 +39,15 @@ class ProblemReportController extends Controller
 
     public function store(Request $request, int $id)
     {
+        $dispute = $this->createReport($request, $id);
+
+        return redirect()->route('buyer.dashboard', ['tab' => 'orders'])
+            ->with('success', "Report sent (case #{$dispute->id}). Our team will review it and update you in Notifications.");
+    }
+
+    /** Validates and opens the case; shared with the mobile API. */
+    public function createReport(Request $request, int $id): AdminDispute
+    {
         $sellerOrder = $this->sellerOrder($id);
         abort_unless($sellerOrder->canBeReported(), 403, 'This order can no longer be reported.');
         $needsPhotos = AdminDispute::CATEGORIES[$request->input('category')][1] ?? false;
@@ -60,7 +69,7 @@ class ProblemReportController extends Controller
             'description.min' => 'Please describe the problem in at least 20 characters.',
         ]);
 
-        $dispute = DB::transaction(function () use ($sellerOrder, $data, $request) {
+        return DB::transaction(function () use ($sellerOrder, $data, $request) {
             // Re-check under lock so double submits cannot open two cases.
             SellerOrder::whereKey($sellerOrder->id)->lockForUpdate()->first();
             if ($sellerOrder->openReport()) {
@@ -95,9 +104,6 @@ class ProblemReportController extends Controller
 
             return $dispute;
         });
-
-        return redirect()->route('buyer.dashboard', ['tab' => 'orders'])
-            ->with('success', "Report sent (case #{$dispute->id}). Our team will review it and update you in Notifications.");
     }
 
     /** Photo proof is private: only admins and the buyer who reported it can see it. */

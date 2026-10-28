@@ -36,13 +36,14 @@
         #logistics-sidebar.is-collapsed .sidebar-mini-only { display: flex !important; }
         #logistics-sidebar.is-collapsed .nav-item { justify-content: center !important; padding: 0.85rem 0.5rem !important; }
         #logistics-sidebar.is-collapsed .brand-header { justify-content: center !important; padding: 1.25rem 0.5rem !important; }
-        #logistics-sidebar.is-collapsed .user-card-full { display: none !important; }
-        #logistics-sidebar.is-collapsed .user-card-mini { display: flex !important; }
         #logistics-sidebar.is-collapsed .sidebar-section-divider { height:1px; background:#F6F4F8; margin:0.6rem auto !important; width:1.75rem !important; padding:0 !important; }
     </style>
     @stack('styles')
     <link rel="stylesheet" href="{{ asset('css/logistics.css') }}?v={{ filemtime(public_path('css/logistics.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/logistics-workspace.css') }}?v={{ filemtime(public_path('css/logistics-workspace.css')) }}">
+    @if(request()->routeIs('logistics.dashboard'))
+        <link rel="stylesheet" href="{{ asset('css/logistics-dashboard.css') }}?v={{ filemtime(public_path('css/logistics-dashboard.css')) }}">
+    @endif
 </head>
 <body class="logistics-portal h-screen bg-slate-100 text-slate-900 antialiased flex flex-col overflow-hidden selection:bg-[#564B68] selection:text-white">
 
@@ -59,7 +60,23 @@
                 <span class="font-bold text-sm tracking-wide">LOGISTICS HUB</span>
             </div>
         </div>
-        <a href="{{ route('logistics.dashboard') }}" class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg text-slate-600 border border-slate-200">Dashboard</a>
+        <div class="flex items-center gap-1.5">
+            @php
+                $mobileLogisticsUnread = \App\Models\AppNotification::where('user_id', Auth::id())->where('is_read', false)->count();
+            @endphp
+            <a href="{{ route('logistics.notifications') }}" class="relative p-2 text-slate-500 hover:text-[#564B68] rounded-lg hover:bg-slate-100" title="Notifications" aria-label="Notifications">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+                @if($mobileLogisticsUnread)
+                    <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500"></span>
+                @endif
+            </a>
+            <form method="POST" action="{{ route('logout') }}" class="m-0 inline">
+                @csrf
+                <button type="submit" class="p-2 text-slate-500 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Log out" aria-label="Log out">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </form>
+        </div>
     </div>
 
     <div class="flex flex-1 h-full min-h-0 overflow-hidden">
@@ -96,7 +113,7 @@
             </div>
 
             <!-- Navigation -->
-            <div class="flex-1 overflow-y-auto sidebar-scroll min-h-0 px-3 py-3 space-y-1 text-[13.5px]">
+            <div class="flex-1 overflow-y-auto sidebar-scroll min-h-0 px-3 py-3 text-[13.5px]">
 
                 <div class="sidebar-section-divider">
                     <span class="sidebar-full-only px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Overview</span>
@@ -265,53 +282,15 @@
                     <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">Account Management</span>
                 </a>
 
-            </div>
-
-            <!-- User Card -->
-            <div class="user-card-full border-t border-slate-200 p-3 shrink-0 bg-slate-50">
-                <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-9 h-9 rounded-xl bg-[#6F6382] flex items-center justify-center text-white shrink-0 shadow-xs">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <div class="text-xs font-bold text-slate-800 truncate" title="{{ Auth::user()->business_name ?? Auth::user()->name }}">{{ Auth::user()->business_name ?? Auth::user()->name }}</div>
-                            <div class="text-[11px] text-slate-500 flex items-center gap-1 font-medium mt-0.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                                <span class="truncate">{{ Auth::user()->email }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <span class="bg-emerald-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">LIVE</span>
-                        <form method="POST" action="{{ route('logout') }}" class="m-0">
-                            @csrf
-                            <button type="submit" title="Logout" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 active:scale-95 rounded-lg transition flex items-center justify-center group" aria-label="Logout">
-                                <svg class="w-4 h-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="user-card-mini hidden border-t border-slate-200 p-2.5 flex-col items-center gap-2 justify-center shrink-0">
-                <div class="w-8 h-8 rounded-xl bg-[#6F6382] flex items-center justify-center text-white shadow-xs" title="{{ Auth::user()->business_name ?? Auth::user()->name }}">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                </div>
                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                     @csrf
-                    <button type="submit" title="Logout" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 active:scale-95 rounded-lg transition flex items-center justify-center group relative" aria-label="Logout">
-                        <svg class="w-4 h-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                        <span class="sidebar-mini-only hidden absolute left-full ml-3 top-1/2 -translate-y-1/2 group-hover:block bg-slate-900 text-white text-xs font-semibold px-2 py-1 rounded-lg whitespace-nowrap shadow-xl z-50 pointer-events-none border border-slate-700">
-                            Logout
+                    <button type="submit" title="Log out" aria-label="Log out" class="nav-item w-full flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition text-slate-600 hover:bg-slate-100 hover:text-slate-900 cursor-pointer">
+                        <span class="w-7 h-7 flex items-center justify-center shrink-0">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
                         </span>
+                        <span class="sidebar-full-only">Log out</span>
                     </button>
                 </form>
             </div>
@@ -332,6 +311,15 @@
                         </span>
                         <span class="text-sm font-bold text-slate-700 group-hover:text-[#564B68] truncate max-w-[140px]">{{ Auth::user()->name ?? 'Hub Manager' }}</span>
                     </a>
+                    <div class="logistics-header-notifications">
+                        <a href="{{ route('logistics.notifications') }}" title="Notifications" aria-label="Notifications, {{ $logisticsUnreadCount }} unread" @if(request()->routeIs('logistics.notifications*')) aria-current="page" @endif>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+                            @if($logisticsUnreadCount)
+                                <span class="logistics-header-notification-count" aria-hidden="true">{{ $logisticsUnreadCount > 99 ? '99+' : $logisticsUnreadCount }}</span>
+                            @endif
+                        </a>
+                    </div>
+                    @include('logistics.partials.header-logout')
                 </div>
             </header>
 

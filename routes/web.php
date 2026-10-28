@@ -82,9 +82,22 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
     Route::get('/', [AdminPortalController::class, 'dashboard']);
     Route::get('/dashboard', [AdminPortalController::class, 'dashboard'])->name('dashboard');
 
-    // 2. Manage Account Registrations (KYC)
+    // 2. Seller Products Workspace & Approvals
+    Route::get('/products', [AdminPortalController::class, 'products'])->name('products');
+    Route::post('/products/{id}/approve', [AdminPortalController::class, 'approveProduct'])->name('products.approve');
+    Route::post('/products/{id}/reject', [AdminPortalController::class, 'rejectProduct'])->name('products.reject');
+
+    // 2b. Manage Merchant & Partner Account Registrations
     Route::get('/registrations', [AdminPortalController::class, 'registrations'])->name('registrations');
     Route::post('/registrations/{id}/status', [AdminPortalController::class, 'updateRegistrationStatus'])->name('registrations.status');
+
+    // 2c. Manage User Government ID Checks & KYC
+    Route::get('/id-checks', [AdminPortalController::class, 'idChecks'])->name('id-checks');
+    Route::post('/id-checks/{id}/status', [AdminPortalController::class, 'updateIdStatus'])->name('id-checks.status');
+
+    // 2d. Manage Logistics Partners
+    Route::get('/logistics', [AdminPortalController::class, 'logistics'])->name('logistics');
+    Route::post('/logistics/{id}/status', [AdminPortalController::class, 'updateLogisticsStatus'])->name('logistics.status');
 
         // 3. Manage User Accounts
         Route::get('/users', [AdminPortalController::class, 'users'])->name('users');
@@ -254,6 +267,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/chat/{contactId}/send', [\App\Http\Controllers\Seller\MessageController::class, 'send'])->middleware('throttle:30,1')->name('chat.send');
         Route::post('/chat/inquiries/{inquiryId}/send', [\App\Http\Controllers\Seller\MessageController::class, 'sendInquiry'])->whereNumber('inquiryId')->middleware('throttle:30,1')->name('chat.inquiry.send');
 
+        Route::get('/chat-popup', [\App\Http\Controllers\Seller\MessageController::class, 'popupConversations'])->name('popup.conversations');
+        Route::get('/chat-popup/inquiries/{inquiryId}', [\App\Http\Controllers\Seller\MessageController::class, 'popupInquiry'])->whereNumber('inquiryId')->name('popup.inquiry');
+        Route::get('/chat-popup/orders/{contactId}', [\App\Http\Controllers\Seller\MessageController::class, 'popupOrder'])->whereNumber('contactId')->name('popup.order');
+
+        // 8b. Logistics hub chat (page + floating popup)
+        Route::get('/logistics-chat', [\App\Http\Controllers\Seller\LogisticsChatController::class, 'index'])->name('logistics');
+        Route::get('/logistics-chat/hubs', [\App\Http\Controllers\Seller\LogisticsChatController::class, 'conversations'])->name('logistics.conversations');
+        Route::get('/logistics-chat/hubs/{provider}', [\App\Http\Controllers\Seller\LogisticsChatController::class, 'show'])->whereNumber('provider')->name('logistics.thread');
+        Route::post('/logistics-chat/hubs/{provider}', [\App\Http\Controllers\Seller\LogisticsChatController::class, 'send'])->whereNumber('provider')->middleware('throttle:30,1')->name('logistics.send');
+
         // 9. Store profile and pickup address
         Route::get('/account', [\App\Http\Controllers\Seller\SellerPortalController::class, 'account'])->name('account');
         Route::post('/account/profile', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProfile'])->name('account.profile');
@@ -322,9 +345,12 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::post('/riders/{id}/status', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'updateRiderStatus'])->name('riders.status');
     Route::post('/riders/{id}/toggle', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'toggleRiderActive'])->name('riders.toggle');
 
-    // 3. Parcel Pickup Requests (confirm/approve/verify from seller)
+    // 3. Parcel Pickup Requests (confirm/approve/verify from seller & dispatch rider)
     Route::get('/pickups', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'pickups'])->name('pickups');
     Route::post('/pickups/{id}/confirm', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'confirmPickup'])->name('pickups.confirm');
+    Route::post('/pickups/{id}/assign-rider', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'assignPickupRider'])->name('pickups.assign');
+    Route::post('/pickups/{id}/auto-assign', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'autoAssignPickupRider'])->name('pickups.auto-assign');
+    Route::post('/pickups/{id}/unassign-rider', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'unassignPickupRider'])->name('pickups.unassign');
 
     // 4. Incoming Parcels Management
     Route::get('/parcels', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'parcels'])->name('parcels');

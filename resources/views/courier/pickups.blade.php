@@ -44,9 +44,16 @@
                             </div>
                         </div>
 
-                        <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full border {{ $pickup->status === 'confirmed' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
-                            {{ strtoupper($pickup->status) }}
-                        </span>
+                        <div class="flex flex-col items-end gap-1">
+                            @if($pickup->rider_id === $rider->id)
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                                    🛵 Assigned to You
+                                </span>
+                            @endif
+                            <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full border {{ $pickup->status === 'confirmed' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200' }}">
+                                {{ strtoupper($pickup->status) }}
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Pickup Details -->

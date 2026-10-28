@@ -8,7 +8,7 @@
 <div class="operations-dashboard">
     <section class="operations-heading" aria-labelledby="operations-title">
         <div>
-            <p class="operations-kicker">Daily operations</p>
+            <p class="operations-kicker"><span aria-hidden="true"></span> Daily operations</p>
             <h2 id="operations-title">Your hub, at a glance.</h2>
             <p class="operations-location">{{ $hub->business_name ?? $hub->name }}</p>
         </div>
@@ -44,7 +44,7 @@
                     'month'     => 'This Month',
                 ] as $presetKey => $presetLabel)
                     <a href="{{ route('logistics.dashboard', ['preset' => $presetKey]) }}"
-                       class="operations-preset-btn {{ $activePreset === $presetKey ? 'is-active' : '' }}">
+                       class="operations-preset-btn {{ $activePreset === $presetKey ? 'is-active' : '' }}" @if($activePreset === $presetKey) aria-current="true" @endif>
                         {{ $presetLabel }}
                     </a>
                 @endforeach
@@ -112,7 +112,7 @@
                 <div><span class="chart-key chart-key-rose"></span><span>Delivered</span><strong>{{ array_sum($chartData['delivered']) }}</strong></div>
                 <span class="operations-period">{{ $filterLabel }}</span>
             </div>
-            <div class="operations-chart"><canvas id="volumeChart" aria-label="Received and delivered parcels over the last seven days" role="img"></canvas></div>
+            <div class="operations-chart"><canvas id="volumeChart" aria-label="Received and delivered parcels: {{ $filterLabel }}" role="img"></canvas></div>
             <details class="operations-chart-data"><summary>View daily figures</summary><div class="operations-table-scroll"><table><thead><tr><th scope="col">Day</th><th scope="col">Received</th><th scope="col">Delivered</th></tr></thead><tbody>
                 @foreach($chartData['labels'] as $index => $day)
                     <tr><th scope="row">{{ $day }}</th><td>{{ $chartData['received'][$index] ?? 0 }}</td><td>{{ $chartData['delivered'][$index] ?? 0 }}</td></tr>
@@ -174,8 +174,8 @@ if (window.Chart) {
         data: {
             labels: @json($chartData['labels']),
             datasets: [
-                { label: 'Received', data: @json($chartData['received']), backgroundColor: '#6F6382', borderRadius: 3, maxBarThickness: 24 },
-                { label: 'Delivered', data: @json($chartData['delivered']), backgroundColor: '#C08B7F', borderRadius: 3, maxBarThickness: 24 }
+                { label: 'Received', data: @json($chartData['received']), backgroundColor: '#6F6382', borderRadius: 6, maxBarThickness: 26 },
+                { label: 'Delivered', data: @json($chartData['delivered']), backgroundColor: '#C08B7F', borderRadius: 6, maxBarThickness: 26 }
             ]
         },
         options: {

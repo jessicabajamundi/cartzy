@@ -103,7 +103,7 @@
                 label.className = 'pe-field';
                 const caption = document.createElement('span');
                 caption.className = 'pe-size-field-label';
-                caption.textContent = kind === 'price' ? 'Price (PHP)' : 'Stock';
+                caption.textContent = kind === 'price' ? 'Price (₱)' : 'Stock';
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.name = `primary_size_stocks[${index}][${kind}]`;

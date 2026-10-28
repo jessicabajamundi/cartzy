@@ -59,7 +59,7 @@
         <div class="panel-header catalog-product-header">
             <div class="product-row">
                 @if($product->coverImage)
-                    <img class="product-image" src="{{ str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : asset('storage/'.$product->coverImage->path) }}" alt="">
+                    <img class="product-image" src="{{ str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : Storage::disk('public')->url($product->coverImage->path) }}" alt="">
                 @else
                     <span class="product-image">@include('seller.partials.icon',['name'=>'box'])</span>
                 @endif
@@ -118,13 +118,43 @@
                 @endif
 
                 @if($product->discount_type)
-                    <span class="badge">{{ $product->sale_status }}: {{ $product->discount_type === 'percentage' ? number_format($product->discount_value, 2).'%' : 'PHP '.number_format($product->discount_value, 2) }} off per item</span>
+                    <span class="badge">{{ $product->sale_status }}: {{ $product->discount_type === 'percentage' ? number_format($product->discount_value, 2).'%' : '₱'.number_format($product->discount_value, 2) }} off per item</span>
+                @endif
+                @if($product->isPending())
+                    <span class="badge" style="background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; font-weight: 700;">
+                        ⏳ Pending Approval
+                    </span>
+                @elseif($product->isRejected())
+                    <span class="badge" style="background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); font-weight: 700;" title="Rejected by admin: {{ $product->rejection_reason }}">
+                        ✕ Rejected by Admin
+                    </span>
+                @else
+                    <span class="badge" style="background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border);">
+                        ✓ Approved
+                    </span>
                 @endif
                 <span class="badge {{ $product->is_active ? 'active':'archived' }}">
                     {{ $product->is_active ? 'Active':'Archived' }}
                 </span>
             </div>
         </div>
+
+        @if($product->isRejected() && $product->rejection_reason)
+            <div style="margin: 8px 18px 0; padding: 10px 14px; background: #FFF5F5; border-left: 3px solid #E53E3E; border-radius: 8px; font-size: 12px; color: #9B2C2C;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <strong>Admin Rejection Feedback:</strong>
+                    @if($product->reviewed_at)<span style="font-size: 11px; opacity: 0.85;">{{ $product->reviewed_at->timezone('Asia/Manila')->format('M j, Y') }}</span>@endif
+                </div>
+                <p style="margin: 3px 0 5px; line-height: 1.45;">{{ $product->rejection_reason }}</p>
+                <div style="font-size: 11px; color: #742A2A;">
+                    💡 Click <strong>Edit product details</strong> below to revise this listing and resubmit for approval.
+                </div>
+            </div>
+        @elseif($product->isPending())
+            <div style="margin: 8px 18px 0; padding: 7px 12px; background: #FFFDF5; border-left: 3px solid #F59E0B; border-radius: 6px; font-size: 11px; color: #92400E;">
+                ⏳ This product is currently awaiting administrator review. It will become visible on the marketplace once approved.
+            </div>
+        @endif
 
         <div class="editor product-list-editor">
             <div class="product-list-actions">
@@ -205,11 +235,11 @@
                                 <label>Shade / Variant name
                                     <input type="text" name="variants[{{ $index }}][name]" value="{{ old('editing_product') == $product->id ? old('variants.'.$index.'.name', $variant->name) : $variant->name }}" maxlength="255">
                                 </label>
-                                <label>Regular price (PHP)
+                                <label>Regular price (₱)
                                     <input type="number" name="variants[{{ $index }}][price]" min="0.01" max="99999999.99" step="0.01" value="{{ old('editing_product') == $product->id ? old('variants.'.$index.'.price', $variant->price) : $variant->price }}" required>
                                 </label>
                                 @if($product->discount_type)
-                                    <small>Current price: <strong>PHP {{ number_format($variant->sale_price_minor / 100, 2) }}</strong> per item</small>
+                                    <small>Current price: <strong>₱{{ number_format($variant->sale_price_minor / 100, 2) }}</strong> per item</small>
                                 @endif
                                 <a class="button secondary small" href="{{ route('seller.inventory', ['search' => $variant->sku]) }}">Manage stock</a>
                                 <label>Update photo <small class="muted">· Optional</small>

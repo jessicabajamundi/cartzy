@@ -172,6 +172,7 @@ class DashboardController extends Controller
 
         DB::transaction(function () use ($pickup, $rider, $courier) {
             $pickup->update([
+                'rider_id'     => $rider->id,
                 'status'       => 'confirmed',
                 'confirmed_at' => now(),
             ]);

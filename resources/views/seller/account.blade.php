@@ -83,7 +83,34 @@
         </div>
         <form class="panel-body form-grid" method="POST" action="{{ route('seller.account.profile') }}" enctype="multipart/form-data">
             @csrf
-            
+
+            @php $logoUrl = $shop?->logoUrl(); $storeInitial = mb_strtoupper(mb_substr($shop?->name ?? $user->business_name ?? 'S', 0, 1)); @endphp
+            <div class="full store-logo-field">
+                <div class="store-logo-preview" id="store-logo-preview" data-initial="{{ $storeInitial }}">
+                    @if($logoUrl)
+                        <img src="{{ $logoUrl }}" alt="Store profile picture">
+                    @else
+                        <span>{{ $storeInitial }}</span>
+                    @endif
+                </div>
+                <div class="store-logo-controls">
+                    <strong>Store profile picture</strong>
+                    <small>Shown on your store page, product pages and chats. JPG, PNG or WebP, up to 2 MB. A square image works best.</small>
+                    <div class="store-logo-actions">
+                        <label class="button secondary store-logo-upload">
+                            {{ $logoUrl ? 'Change picture' : 'Upload picture' }}
+                            <input type="file" name="logo" id="store-logo-input" accept="image/jpeg,image/png,image/webp" hidden>
+                        </label>
+                        @if($logoUrl)
+                            <label class="store-logo-remove">
+                                <input type="checkbox" name="remove_logo" value="1" id="store-logo-remove"> Remove picture
+                            </label>
+                        @endif
+                    </div>
+                    @error('logo')<small class="store-logo-error">{{ $message }}</small>@enderror
+                </div>
+            </div>
+
             <label class="full">
                 Business name / Store name <span style="color:#ef4444">*</span>
                 <input type="text" name="store_name" value="{{ old('store_name', $shop?->name ?? $user->business_name) }}" maxlength="255" required placeholder="e.g. Acme Lifestyle Store">
@@ -253,7 +280,7 @@
 
                 @if($user->id_photo)
                     <div style="margin-top:10px; font-size:0.8rem;">
-                        <a href="{{ asset('storage/' . $user->id_photo) }}" target="_blank" style="color:#6F6382; text-decoration:underline; font-weight:600;">
+                        <a href="{{ Storage::disk('public')->url($user->id_photo) }}" target="_blank" style="color:#6F6382; text-decoration:underline; font-weight:600;">
                             View current ID file &nearr;
                         </a>
                     </div>
@@ -280,7 +307,7 @@
 
                 @if($user->dti_permit)
                     <div style="margin-top:16px; font-size:0.8rem;">
-                        <a href="{{ asset('storage/' . $user->dti_permit) }}" target="_blank" style="color:#6F6382; text-decoration:underline; font-weight:600;">
+                        <a href="{{ Storage::disk('public')->url($user->dti_permit) }}" target="_blank" style="color:#6F6382; text-decoration:underline; font-weight:600;">
                             View current permit file &nearr;
                         </a>
                     </div>
@@ -395,6 +422,41 @@ function calculateSellerAge(dateStr) {
     if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
     document.getElementById('owner_age').value = (age >= 0 ? age + ' years old' : '—');
 }
+
+(function () {
+    const input = document.getElementById('store-logo-input');
+    const preview = document.getElementById('store-logo-preview');
+    const remove = document.getElementById('store-logo-remove');
+    if (!input || !preview) return;
+    const original = preview.innerHTML;
+
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) { preview.innerHTML = original; return; }
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Please choose an image up to 2 MB.');
+            input.value = '';
+            preview.innerHTML = original;
+            return;
+        }
+        if (remove) remove.checked = false;
+        const img = document.createElement('img');
+        img.alt = 'Store profile picture preview';
+        img.src = URL.createObjectURL(file);
+        preview.replaceChildren(img);
+    });
+
+    remove?.addEventListener('change', () => {
+        if (remove.checked) {
+            input.value = '';
+            const span = document.createElement('span');
+            span.textContent = preview.dataset.initial;
+            preview.replaceChildren(span);
+        } else {
+            preview.innerHTML = original;
+        }
+    });
+})();
 </script>
 
 @push('scripts')

@@ -441,69 +441,370 @@ class LogisticsPortalController extends Controller
         $hub      = Auth::user();
         $provider = $this->provider();
         $filter   = $request->query('status', 'all');
-        $filter = in_array($filter, ['all', 'pending', 'confirmed'], true) ? $filter : 'all';
-        $search = trim($request->validate(['q' => ['nullable', 'string', 'max:100']])['q'] ?? '');
-        $base = PickupRequest::where('logistics_provider_id', $provider->id);
+        $filter   = in_array($filter, ['all', 'pending', 'confirmed', 'assigned', 'unassigned'], true) ? $filter : 'all';
+        $search   = trim($request->validate(['q' => ['nullable', 'string', 'max:100']])['q'] ?? '');
+        $base     = PickupRequest::where('logistics_provider_id', $provider->id);
+
         $counts = [
-            'all' => (clone $base)->count(),
-            'pending' => (clone $base)->where('status', 'pending')->count(),
-            'confirmed' => (clone $base)->where('status', 'confirmed')->count(),
+            'all'        => (clone $base)->count(),
+            'pending'    => (clone $base)->where('status', 'pending')->count(),
+            'confirmed'  => (clone $base)->where('status', 'confirmed')->count(),
+            'assigned'   => (clone $base)->whereNotNull('rider_id')->count(),
+            'unassigned' => (clone $base)->whereNull('rider_id')->count(),
         ];
 
-        $query = PickupRequest::where('logistics_provider_id', $provider->id)->with(['seller.user']);
+        // Retrieve active approved riders for area matching & assignment
+        $allRiders = Rider::where('logistics_provider_id', $provider->id)
+            ->where('status', 'approved')
+            ->with('user')
+            ->orderByDesc('is_active')
+            ->orderBy('deliveries_today')
+            ->get();
+
+        $query = PickupRequest::where('logistics_provider_id', $provider->id)
+            ->with(['seller.user', 'rider.user']);
+
         if ($search !== '') {
             $query->where(function ($query) use ($search) {
                 $query->where('address', 'like', '%' . $search . '%')
                     ->orWhereHas('seller', fn ($seller) => $seller->where('name', 'like', '%' . $search . '%'))
-                    ->orWhereHas('seller.user', fn ($user) => $user->where('name', 'like', '%' . $search . '%')->orWhere('email', 'like', '%' . $search . '%'));
+                    ->orWhereHas('seller.user', fn ($user) => $user->where('name', 'like', '%' . $search . '%')->orWhere('email', 'like', '%' . $search . '%'))
+                    ->orWhereHas('rider.user', fn ($user) => $user->where('name', 'like', '%' . $search . '%')->orWhere('phone', 'like', '%' . $search . '%'))
+                    ->orWhereHas('rider', fn ($rider) => $rider->where('area', 'like', '%' . $search . '%')->orWhere('plate_no', 'like', '%' . $search . '%'));
             });
         }
 
-        if ($filter !== 'all') {
-            $query->where('status', $filter);
+        if ($filter === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($filter === 'confirmed') {
+            $query->where('status', 'confirmed');
+        } elseif ($filter === 'assigned') {
+            $query->whereNotNull('rider_id');
+        } elseif ($filter === 'unassigned') {
+            $query->whereNull('rider_id');
         }
 
         $pickups = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
-            ->orderBy('pickup_date')->orderBy('id')->paginate(15)->withQueryString()->through(function ($p) {
-            return [
-                'id'           => $p->id,
-                'seller_name'  => $p->seller->name ?? ($p->seller->user->name ?? 'Shop Partner'),
-                'seller_email' => $p->seller->user->email ?? 'N/A',
-                'parcel_count' => $p->parcel_count,
-                'weight_kg'    => $p->weight_kg,
-                'pickup_date'  => $p->pickup_date ? Carbon::parse($p->pickup_date)->format('M d, Y') : 'Not scheduled',
-                'pickup_time'  => $p->pickup_time ?: 'Time not specified',
-                'address'      => $p->address,
-                'status'       => $p->status,
-                'confirmed_at' => $p->confirmed_at ? $p->confirmed_at->format('M d, Y h:i A') : null,
-                'notes'        => $p->notes,
-            ];
-        });
+            ->orderBy('pickup_date')->orderBy('id')->paginate(15)->withQueryString()->through(function ($p) use ($allRiders) {
+                $rankedRiders = $this->rankRidersForPickup($allRiders, (string) ($p->address ?? ''));
+                $topNearby    = $rankedRiders->first();
 
-        return view('logistics.pickups', compact('hub', 'pickups', 'filter', 'search', 'counts'));
+                return [
+                    'id'            => $p->id,
+                    'seller_name'   => $p->seller->name ?? ($p->seller->user->name ?? 'Shop Partner'),
+                    'seller_email'  => $p->seller->user->email ?? 'N/A',
+                    'seller_phone'  => $p->seller->user->phone ?? ($p->seller->contact_phone ?? 'N/A'),
+                    'parcel_count'  => $p->parcel_count,
+                    'weight_kg'     => $p->weight_kg,
+                    'pickup_date'   => $p->pickup_date ? Carbon::parse($p->pickup_date)->format('M d, Y') : 'Not scheduled',
+                    'pickup_time'   => $p->pickup_time ?: 'Time not specified',
+                    'address'       => $p->address,
+                    'status'        => $p->status,
+                    'confirmed_at'  => $p->confirmed_at ? $p->confirmed_at->format('M d, Y h:i A') : null,
+                    'assigned_at'   => $p->assigned_at ? $p->assigned_at->format('M d, Y h:i A') : null,
+                    'notes'         => $p->notes,
+                    'rider_id'      => $p->rider_id,
+                    'rider'         => $p->rider ? [
+                        'id'               => $p->rider->id,
+                        'name'             => $p->rider->user->name ?? 'Rider',
+                        'phone'            => $p->rider->user->phone ?? '',
+                        'vehicle_type'     => $p->rider->vehicle_type ?: 'Motorcycle',
+                        'plate_no'         => $p->rider->plate_no ?: 'N/A',
+                        'area'             => $p->rider->area ?: 'General Area',
+                        'rating'           => $p->rider->rating ?? 5.0,
+                        'deliveries_today' => $p->rider->deliveries_today ?? 0,
+                        'is_active'        => (bool) $p->rider->is_active,
+                    ] : null,
+                    'nearest_rider' => $topNearby ? [
+                        'id'               => $topNearby['rider']->id,
+                        'name'             => $topNearby['rider']->user->name ?? 'Rider',
+                        'phone'            => $topNearby['rider']->user->phone ?? '',
+                        'vehicle_type'     => $topNearby['rider']->vehicle_type ?: 'Motorcycle',
+                        'plate_no'         => $topNearby['rider']->plate_no ?: 'N/A',
+                        'area'             => $topNearby['rider']->area ?: 'General Area',
+                        'rating'           => $topNearby['rider']->rating ?? 5.0,
+                        'deliveries_today' => $topNearby['rider']->deliveries_today ?? 0,
+                        'is_active'        => (bool) $topNearby['rider']->is_active,
+                        'score'            => $topNearby['score'],
+                        'match_badge'      => $topNearby['match_badge'],
+                        'is_nearby'        => $topNearby['is_nearby'],
+                    ] : null,
+                    'ranked_riders' => $rankedRiders->take(12)->map(function ($r) {
+                        return [
+                            'id'               => $r['rider']->id,
+                            'name'             => $r['rider']->user->name ?? 'Rider',
+                            'phone'            => $r['rider']->user->phone ?? '',
+                            'vehicle_type'     => $r['rider']->vehicle_type ?: 'Motorcycle',
+                            'plate_no'         => $r['rider']->plate_no ?: 'N/A',
+                            'area'             => $r['rider']->area ?: 'General Area',
+                            'rating'           => $r['rider']->rating ?? 5.0,
+                            'deliveries_today' => $r['rider']->deliveries_today ?? 0,
+                            'is_active'        => (bool) $r['rider']->is_active,
+                            'score'            => $r['score'],
+                            'match_badge'      => $r['match_badge'],
+                            'is_nearby'        => $r['is_nearby'],
+                        ];
+                    })->values()->toArray(),
+                ];
+            });
+
+        return view('logistics.pickups', compact('hub', 'pickups', 'filter', 'search', 'counts', 'allRiders'));
     }
 
     public function confirmPickup(Request $request, $id)
     {
         $provider = $this->provider();
         $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->findOrFail($id);
+        
         $pickup->status       = 'confirmed';
         $pickup->confirmed_at = now();
+
+        if ($request->filled('rider_id')) {
+            $rider = Rider::where('logistics_provider_id', $provider->id)
+                ->where('status', 'approved')
+                ->find($request->input('rider_id'));
+            if ($rider) {
+                $pickup->rider_id    = $rider->id;
+                $pickup->assigned_at = now();
+            }
+        }
+
         $pickup->save();
 
         // Also if connected to seller_order, mark delivery event
         if ($pickup->seller_order_id && $pickup->sellerOrder?->shipment) {
+            $shipment = $pickup->sellerOrder->shipment;
+            if ($pickup->rider_id) {
+                $shipment->update(['rider_id' => $pickup->rider_id]);
+            }
             DeliveryEvent::create([
-                'shipment_id' => $pickup->sellerOrder->shipment->id,
+                'shipment_id' => $shipment->id,
                 'status'      => 'pickup_confirmed',
                 'attempt'     => 1,
                 'user_id'     => Auth::id(),
-                'note'        => 'Pickup schedule confirmed by Hub.',
+                'note'        => 'Pickup schedule confirmed by Hub' . ($pickup->rider_id ? ' (Rider assigned).' : '.'),
                 'occurred_at' => now(),
             ]);
         }
 
         return back()->with('success', 'Pickup request confirmed in database! Seller has been notified.');
+    }
+
+    public function assignPickupRider(Request $request, $id)
+    {
+        $provider = $this->provider();
+        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with('seller.user')->findOrFail($id);
+
+        $data = $request->validate([
+            'rider_id' => ['required', 'integer', 'exists:riders,id'],
+        ]);
+
+        $rider = Rider::where('logistics_provider_id', $provider->id)
+            ->where('status', 'approved')
+            ->with('user')
+            ->findOrFail($data['rider_id']);
+
+        $pickup->rider_id     = $rider->id;
+        $pickup->status       = 'confirmed';
+        $pickup->confirmed_at = $pickup->confirmed_at ?? now();
+        $pickup->assigned_at  = now();
+        $pickup->save();
+
+        if ($pickup->seller_order_id && $pickup->sellerOrder?->shipment) {
+            $shipment = $pickup->sellerOrder->shipment;
+            $shipment->update(['rider_id' => $rider->id]);
+            DeliveryEvent::create([
+                'shipment_id' => $shipment->id,
+                'status'      => 'pickup_assigned',
+                'attempt'     => 1,
+                'user_id'     => Auth::id(),
+                'note'        => "Rider {$rider->user->name} dispatched for pickup by Hub.",
+                'occurred_at' => now(),
+            ]);
+        }
+
+        // Notify Rider
+        if ($rider->user_id) {
+            AppNotification::create([
+                'user_id' => $rider->user_id,
+                'type'    => 'pickup',
+                'title'   => 'New Pickup Assignment',
+                'message' => "You've been requested to pick up {$pickup->parcel_count} parcel(s) at {$pickup->address}.",
+                'link'    => route('courier.pickups'),
+                'is_read' => false,
+            ]);
+        }
+
+        // Notify Seller
+        if ($pickup->seller?->user_id) {
+            AppNotification::create([
+                'user_id' => $pickup->seller->user_id,
+                'type'    => 'pickup_accepted',
+                'title'   => 'Rider Dispatched for Pickup',
+                'message' => "Rider {$rider->user->name} has been assigned to pick up your packages.",
+                'link'    => route('seller.courier'),
+                'is_read' => false,
+            ]);
+        }
+
+        return back()->with('success', "Rider {$rider->user->name} assigned to pickup #PR-" . str_pad($pickup->id, 4, '0', STR_PAD_LEFT) . "!");
+    }
+
+    public function autoAssignPickupRider(Request $request, $id)
+    {
+        $provider = $this->provider();
+        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with('seller.user')->findOrFail($id);
+
+        $riders = Rider::where('logistics_provider_id', $provider->id)
+            ->where('status', 'approved')
+            ->where('is_active', true)
+            ->with('user')
+            ->get();
+
+        if ($riders->isEmpty()) {
+            return back()->with('error', 'No active riders available in hub. Please activate an approved rider first.');
+        }
+
+        $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''));
+        $best   = $ranked->first()['rider'];
+
+        $pickup->rider_id     = $best->id;
+        $pickup->status       = 'confirmed';
+        $pickup->confirmed_at = $pickup->confirmed_at ?? now();
+        $pickup->assigned_at  = now();
+        $pickup->save();
+
+        if ($pickup->seller_order_id && $pickup->sellerOrder?->shipment) {
+            $shipment = $pickup->sellerOrder->shipment;
+            $shipment->update(['rider_id' => $best->id]);
+            DeliveryEvent::create([
+                'shipment_id' => $shipment->id,
+                'status'      => 'pickup_assigned',
+                'attempt'     => 1,
+                'user_id'     => Auth::id(),
+                'note'        => "Nearest rider {$best->user->name} auto-dispatched by Hub.",
+                'occurred_at' => now(),
+            ]);
+        }
+
+        // Notify Rider
+        if ($best->user_id) {
+            AppNotification::create([
+                'user_id' => $best->user_id,
+                'type'    => 'pickup',
+                'title'   => 'New Pickup Assignment',
+                'message' => "You've been dispatched to pick up {$pickup->parcel_count} parcel(s) from " . ($pickup->seller->name ?? 'Seller') . " at {$pickup->address}.",
+                'link'    => route('courier.pickups'),
+                'is_read' => false,
+            ]);
+        }
+
+        return back()->with('success', "⚡ Nearest rider {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
+    }
+
+    public function unassignPickupRider(Request $request, $id)
+    {
+        $provider = $this->provider();
+        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with('rider.user')->findOrFail($id);
+        $oldRiderName = $pickup->rider?->user?->name ?? 'Rider';
+
+        $pickup->rider_id    = null;
+        $pickup->assigned_at = null;
+        $pickup->save();
+
+        return back()->with('success', "Rider {$oldRiderName} unassigned from pickup request.");
+    }
+
+    /**
+     * Rank riders for a pickup address based on proximity/area matching, activity, workload and rating
+     */
+    protected function rankRidersForPickup($riders, string $address)
+    {
+        return collect($riders)->map(function ($rider) use ($address) {
+            $analysis = $this->scoreRiderForAddress($rider, $address);
+            return [
+                'rider'       => $rider,
+                'score'       => $analysis['score'],
+                'match_type'  => $analysis['match_type'],
+                'match_badge' => $analysis['match_badge'],
+                'is_nearby'   => $analysis['is_nearby'],
+            ];
+        })->sortByDesc('score')->values();
+    }
+
+    /**
+     * Compute proximity match score for rider's assigned area and pickup address
+     */
+    protected function scoreRiderForAddress(Rider $rider, string $address): array
+    {
+        $cleanAddress = mb_strtolower(preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $address));
+        $riderArea    = (string) ($rider->area ?? '');
+        $cleanArea    = mb_strtolower(preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $riderArea));
+
+        $score = 0;
+        $hasCityMatch = false;
+        $hasProvinceMatch = false;
+
+        $provinces = ['laguna', 'batangas', 'cavite', 'rizal', 'quezon', 'metro manila', 'manila', 'bulacan', 'pampanga', 'cebu', 'davao'];
+
+        $segments = array_filter(array_map('trim', preg_split('/[-,\/|]/', $riderArea)));
+
+        foreach ($segments as $segment) {
+            $cleanSegment = mb_strtolower(trim($segment));
+            if (mb_strlen($cleanSegment) < 3) continue;
+
+            if (str_contains($cleanAddress, $cleanSegment)) {
+                if (in_array($cleanSegment, $provinces, true)) {
+                    $score += 40;
+                    $hasProvinceMatch = true;
+                } else {
+                    $score += 70;
+                    $hasCityMatch = true;
+                }
+            }
+        }
+
+        // Additional token matching
+        $areaTokens = array_filter(explode(' ', $cleanArea), fn($t) => mb_strlen($t) > 3 && !in_array($t, ['sector', 'area', 'north', 'south', 'east', 'west']));
+        foreach ($areaTokens as $token) {
+            if (str_contains($cleanAddress, $token)) {
+                $score += 15;
+            }
+        }
+
+        $matchType = 'standard';
+        $matchBadge = 'Available in Fleet';
+
+        if ($hasCityMatch && $hasProvinceMatch) {
+            $matchType  = 'exact_area';
+            $matchBadge = '📍 Direct Area Match';
+        } elseif ($hasCityMatch) {
+            $matchType  = 'city_match';
+            $matchBadge = '📍 Nearby Town Match';
+        } elseif ($hasProvinceMatch) {
+            $matchType  = 'province_match';
+            $matchBadge = '📍 Same Province / Region';
+        }
+
+        // Online status boost
+        if ($rider->is_active) {
+            $score += 30;
+        }
+
+        // Workload bonus (prefer riders with lower workload)
+        $deliveries = (int) ($rider->deliveries_today ?? 0);
+        $score += max(0, 15 - min($deliveries, 15));
+
+        // Rating boost
+        $rating = (float) ($rider->rating ?? 4.5);
+        $score += ($rating * 2);
+
+        return [
+            'score'       => round($score, 1),
+            'match_type'  => $matchType,
+            'match_badge' => $matchBadge,
+            'is_nearby'   => ($hasCityMatch || $hasProvinceMatch),
+        ];
     }
 
     /**
@@ -849,8 +1150,12 @@ class LogisticsPortalController extends Controller
             }
         }
 
-        // Sellers
-        $sellers = User::where('role', 'seller')->take(3)->get();
+        // Sellers who messaged this hub (seller logistics chat) or have pickups with it
+        $sellerUserIds = LogisticsMessage::where('logistics_provider_id', $provider->id)->pluck('contact_user_id')
+            ->merge(PickupRequest::where('logistics_provider_id', $provider->id)->with('seller:id,user_id')->get()->pluck('seller.user_id'))
+            ->filter()->unique();
+        $sellers = User::where('role', 'seller')->whereIn('id', $sellerUserIds)->with('seller:id,user_id,name')->get()
+            ->sortByDesc(fn ($sUser) => LogisticsMessage::where('logistics_provider_id', $provider->id)->where('contact_user_id', $sUser->id)->max('id') ?? 0);
         foreach ($sellers as $sUser) {
             $lastMsg = LogisticsMessage::where('logistics_provider_id', $provider->id)
                 ->where('contact_user_id', $sUser->id)
@@ -865,7 +1170,7 @@ class LogisticsPortalController extends Controller
 
             $contacts[] = [
                 'id'           => $sUser->id,
-                'name'         => ($sUser->business_name ?: $sUser->name) . ' (Seller)',
+                'name'         => ($sUser->seller?->name ?: $sUser->business_name ?: $sUser->name) . ' (Seller)',
                 'role'         => 'Seller',
                 'avatar'       => '🏬',
                 'status'       => 'online',

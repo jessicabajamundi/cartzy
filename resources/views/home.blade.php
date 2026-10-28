@@ -67,7 +67,7 @@
                     $price = $minVariant ? $minVariant->price : 0;
                     $origPrice = $minVariant && $product->sale_is_active && $minVariant->original_price > $price ? $minVariant->original_price : null;
                     $discountPct = $origPrice ? round((($origPrice - $price) / $origPrice) * 100) : null;
-                    $coverImg = $product->coverImage ? (str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : asset('storage/' . $product->coverImage->path)) : ($product->variants->first()?->image_path ? (str_starts_with($product->variants->first()->image_path, 'http') ? $product->variants->first()->image_path : asset('storage/' . $product->variants->first()->image_path)) : asset('images/logo-transparent.png'));
+                    $coverImg = $product->coverImage ? (str_starts_with($product->coverImage->path, 'http') || str_starts_with($product->coverImage->path, '/') ? $product->coverImage->path : Storage::disk('public')->url($product->coverImage->path)) : ($product->variants->first()?->image_path ? (str_starts_with($product->variants->first()->image_path, 'http') ? $product->variants->first()->image_path : Storage::disk('public')->url($product->variants->first()->image_path)) : asset('images/logo-transparent.png'));
                     $rating = $product->ratingLabel();
                     $hasFreeShipping = \App\Models\Product::qualifiesForFreeShipping($minVariant?->price_minor, $product->seller_id);
                     $sold = $product->sold_quantity ? ($product->sold_quantity >= 1000 ? round($product->sold_quantity / 1000, 1) . 'k sold' : $product->sold_quantity . ' sold') : '0 sold';

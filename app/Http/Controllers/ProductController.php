@@ -9,7 +9,7 @@ class ProductController extends Controller
 {
     private function availableProduct(string|int $id): Product
     {
-        return Product::where('is_active', true)
+        $query = Product::where('is_active', true)
             ->whereHas('seller', fn ($q) => $q->where('status', 'approved')
                 ->whereHas('user', fn ($user) => $user->where('status', 'active')))
             ->with(['seller', 'category', 'images', 'coverImage', 'variants' => fn ($q) => $q->where('is_active', true)])
@@ -19,8 +19,16 @@ class ProductController extends Controller
                 } else {
                     $q->where('slug', (string) $id);
                 }
-            })
-            ->firstOrFail();
+            });
+
+        $user = auth()->user();
+        $isPrivileged = $user && ($user->role === 'admin' || ($user->seller && Product::where('id', is_numeric($id) ? (int)$id : 0)->orWhere('slug', (string)$id)->where('seller_id', $user->seller->id)->exists()));
+
+        if (!$isPrivileged) {
+            $query->where('approval_status', Product::APPROVAL_APPROVED);
+        }
+
+        return $query->firstOrFail();
     }
 
     public function show(string|int $id)
@@ -40,7 +48,7 @@ class ProductController extends Controller
                 'images' => $variant->gallery_urls,
             ];
         });
-        $imageUrl = fn ($path) => preg_match('~^(https?://|/)~', $path) ? $path : asset('storage/'.$path);
+        $imageUrl = fn ($path) => preg_match('~^(https?://|/)~', $path) ? $path : \Illuminate\Support\Facades\Storage::disk('public')->url($path);
         $photos = $product->images->pluck('path')->map($imageUrl)
             ->merge($variants->pluck('images')->flatten()->filter())->unique()->values();
         $assignedPhotos = $variants->pluck('images')->flatten()->filter()->unique();

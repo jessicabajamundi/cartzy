@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\OrderController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,7 +16,10 @@ Route::prefix('auth')->group(function () {
     Route::post('/otp/request', [AuthController::class, 'requestOtp'])->middleware('throttle:5,1');
     Route::post('/otp/verify', [AuthController::class, 'verifyOtp'])->middleware('throttle:10,1');
     Route::post('/register/buyer', [AuthController::class, 'registerBuyer'])->middleware('throttle:5,1');
-    Route::post('/google', [AuthController::class, 'googleLogin'])->middleware('throttle:10,1');
+    Route::post('/password/forgot', [AuthController::class, 'forgotPassword'])->middleware('throttle:5,1');
+    Route::post('/password/verify', [AuthController::class, 'verifyResetCode'])->middleware('throttle:10,1');
+    Route::post('/password/reset', [AuthController::class, 'resetPassword'])->middleware('throttle:5,1');
+    Route::post('/google',[AuthController::class, 'googleLogin'])->middleware('throttle:10,1');
 });
 
 Route::get('/categories', [CatalogController::class, 'categories']);
@@ -34,6 +38,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/addresses/{id}', [AddressController::class, 'update'])->whereNumber('id');
         Route::put('/addresses/{id}/default', [AddressController::class, 'setDefault'])->whereNumber('id');
         Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->whereNumber('id');
+
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/{id}/tracking', [OrderController::class, 'tracking'])->whereNumber('id');
+        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->whereNumber('id');
+        Route::post('/orders/{id}/report', [OrderController::class, 'report'])->whereNumber('id')->middleware('throttle:10,1');
+        Route::post('/orders/pay/{reference}', [OrderController::class, 'pay']);
+        Route::post('/reviews', [OrderController::class, 'review']);
     });
 });
 

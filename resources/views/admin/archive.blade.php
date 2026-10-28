@@ -109,7 +109,7 @@
                         <td>
                             <div class="archive-product-row">
                                 @if($coverPath)
-                                    <img class="archive-product-img" src="{{ str_starts_with($coverPath, 'http') || str_starts_with($coverPath, '/') ? $coverPath : asset('storage/'.$coverPath) }}" alt="">
+                                    <img class="archive-product-img" src="{{ str_starts_with($coverPath, 'http') || str_starts_with($coverPath, '/') ? $coverPath : Storage::disk('public')->url($coverPath) }}" alt="">
                                 @else
                                     <div class="archive-product-img">
                                         @include('admin.partials.icon', ['name' => 'box'])
@@ -150,14 +150,14 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
-                                <form method="POST" action="{{ route('admin.archive.products.restore', $product->id) }}" data-confirm="Restore '{{ $product->name }}' and make it active on the marketplace?">
+                                <form method="POST" action="{{ route('admin.archive.products.restore', $product->id) }}" data-archive-action="restore" data-product-name="{{ $product->name }}" data-confirm="Restore '{{ $product->name }}' and make it active on the marketplace?">
                                     @csrf
                                     <button type="submit" class="button" style="min-height: 34px; padding: 6px 12px; font-size: 11px;">
                                         @include('admin.partials.icon', ['name' => 'refresh']) Restore Listing
                                     </button>
                                 </form>
 
-                                <form method="POST" action="{{ route('admin.archive.products.force', $product->id) }}" data-confirm="Permanently delete '{{ $product->name }}' from the database? This cannot be undone.">
+                                <form method="POST" action="{{ route('admin.archive.products.force', $product->id) }}" data-archive-action="delete" data-product-name="{{ $product->name }}" data-confirm="Permanently delete '{{ $product->name }}' from the database? This cannot be undone.">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="button subtle danger" style="min-height: 34px; padding: 6px 12px; font-size: 11px;">
@@ -339,10 +339,10 @@
                             <span class="badge danger">Rejected</span>
                             <small>ID Status: {{ ucfirst($applicant->id_status) }}</small>
                             @if($applicant->id_photo)
-                                <small><a class="text-link" href="{{ asset('storage/'.$applicant->id_photo) }}" target="_blank" rel="noopener">View Submitted ID ↗</a></small>
+                                <small><a class="text-link" href="{{ Storage::disk('public')->url($applicant->id_photo) }}" target="_blank" rel="noopener">View Submitted ID ↗</a></small>
                             @endif
                             @if($applicant->dti_permit)
-                                <small><a class="text-link" href="{{ asset('storage/'.$applicant->dti_permit) }}" target="_blank" rel="noopener">View DTI Permit ↗</a></small>
+                                <small><a class="text-link" href="{{ Storage::disk('public')->url($applicant->dti_permit) }}" target="_blank" rel="noopener">View DTI Permit ↗</a></small>
                             @endif
                         </td>
                         <td>
@@ -446,4 +446,5 @@
         @endif
     @endif
 </section>
+@include('admin.partials.archive-confirm')
 @endsection

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{ActivityLog, AppNotification, Order, Product, Seller, SellerOrder, User};
+use App\Models\{ActivityLog, AppNotification, LogisticsProvider, Order, Product, Rider, Seller, SellerOrder, User};
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB, Hash, Log, Mail};
@@ -41,6 +41,7 @@ class AdminPortalController extends Controller
             'orders' => Order::count(),
             'pending' => $this->applicants()->where(fn ($q) => $q->where('id_status', 'pending')
                 ->orWhere(fn ($q) => $q->where('status', 'pending')->where('id_status', '!=', 'rejected')))->count(),
+            'pending_products' => Product::where('approval_status', Product::APPROVAL_PENDING)->count(),
             'buyers' => User::where('role', 'buyer')->count(),
             'sellers' => User::where('role', 'seller')->count(),
             'couriers' => User::where('role', 'courier')->count(),
@@ -52,25 +53,392 @@ class AdminPortalController extends Controller
         return view('admin.dashboard', compact('stats', 'registrations', 'orders', 'activity'));
     }
 
+    public function products(Request $request)
+    {
+        $statusCounts = [
+            'all' => Product::count(),
+            'pending' => Product::where('approval_status', Product::APPROVAL_PENDING)->count(),
+            'approved' => Product::where('approval_status', Product::APPROVAL_APPROVED)->count(),
+            'rejected' => Product::where('approval_status', Product::APPROVAL_REJECTED)->count(),
+        ];
+
+        $query = Product::with([
+            'seller.user',
+            'category',
+            'categories',
+            'coverImage',
+            'images',
+            'variants',
+            'reviewer',
+        ])->latest('id');
+
+        if ($request->filled('status')) {
+            $status = $request->string('status')->toString();
+            if (in_array($status, [Product::APPROVAL_PENDING, Product::APPROVAL_APPROVED, Product::APPROVAL_REJECTED], true)) {
+                $query->where('approval_status', $status);
+            }
+        }
+
+        if ($request->filled('category')) {
+            $catId = (int) $request->input('category');
+            $query->where(fn ($q) => $q->where('category_id', $catId)->orWhereHas('categories', fn ($c) => $c->where('categories.id', $catId)));
+        }
+
+        if ($request->filled('seller')) {
+            $query->where('seller_id', (int) $request->input('seller'));
+        }
+
+        if ($request->filled('search')) {
+            $search = '%'.$request->string('search')->trim()->toString().'%';
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', $search)
+                    ->orWhere('description', 'like', $search)
+                    ->orWhereHas('variants', fn ($v) => $v->where('sku', 'like', $search))
+                    ->orWhereHas('seller', fn ($s) => $s->where('name', 'like', $search)->orWhereHas('user', fn ($u) => $u->where('name', 'like', $search)->orWhere('email', 'like', $search)));
+            });
+        }
+
+        $products = $query->paginate(15)->withQueryString();
+        $categories = \App\Models\Category::where('is_active', true)->orderBy('name')->get();
+        $sellers = Seller::with('user')->orderBy('name')->get();
+
+        return view('admin.products', compact('products', 'statusCounts', 'categories', 'sellers'));
+    }
+
+    public function approveProduct(Request $request, int $id)
+    {
+        $product = Product::with('seller.user')->findOrFail($id);
+
+        DB::transaction(function () use ($product) {
+            $product->update([
+                'approval_status' => Product::APPROVAL_APPROVED,
+                'rejection_reason' => null,
+                'reviewed_at' => now(),
+                'reviewed_by' => Auth::id(),
+                'is_active' => true,
+            ]);
+
+            $this->audit('Product approved', "Product #{$product->id} \"{$product->name}\" for store \"{$product->seller?->name}\" was approved.");
+
+            if ($product->seller?->user_id) {
+                try {
+                    NotificationService::notify(
+                        $product->seller->user_id,
+                        'product_approved',
+                        'Product Approved',
+                        "Your product \"{$product->name}\" has been approved and is now live on the marketplace.",
+                        route('seller.products', ['search' => $product->name])
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Product approval notification error: ' . $e->getMessage());
+                }
+            }
+        });
+
+        return back()->with('success', "Product \"{$product->name}\" has been approved and published to the marketplace.");
+    }
+
+    public function rejectProduct(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $product = Product::with('seller.user')->findOrFail($id);
+
+        DB::transaction(function () use ($product, $data) {
+            $product->update([
+                'approval_status' => Product::APPROVAL_REJECTED,
+                'rejection_reason' => $data['reason'],
+                'reviewed_at' => now(),
+                'reviewed_by' => Auth::id(),
+                'is_active' => false,
+            ]);
+
+            $this->audit('Product rejected', "Product #{$product->id} \"{$product->name}\" for store \"{$product->seller?->name}\" was rejected. Reason: {$data['reason']}");
+
+            if ($product->seller?->user_id) {
+                try {
+                    NotificationService::notify(
+                        $product->seller->user_id,
+                        'product_rejected',
+                        'Product Review Notice',
+                        "Your product \"{$product->name}\" was not approved. Reason: {$data['reason']}",
+                        route('seller.products.edit', $product->id)
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Product rejection notification error: ' . $e->getMessage());
+                }
+            }
+        });
+
+        return back()->with('success', "Product \"{$product->name}\" was rejected and removed from storefront.");
+    }
+
+    /**
+     * Workspace 2b: Merchant & Partner Account Registrations (Seller, Courier, Logistics Onboarding)
+     */
     public function registrations(Request $request)
     {
-        $query = $this->applicants();
-        $this->filterUsers($query, $request, true);
-        $registrations = $query->latest()->paginate(15)->withQueryString();
-        return view('admin.registrations', compact('registrations'));
+        $baseQuery = User::whereIn('role', ['seller', 'logistics', 'courier']);
+
+        $statusCounts = [
+            'all' => (clone $baseQuery)->count(),
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'active' => (clone $baseQuery)->where('status', 'active')->count(),
+            'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
+        ];
+
+        $query = (clone $baseQuery)->with(['seller', 'logisticsProvider'])->latest('id');
+
+        if ($request->filled('role')) {
+            $query->where('role', $request->string('role')->toString());
+        }
+
+        if ($request->filled('seller_type')) {
+            $query->where('seller_type', $request->string('seller_type')->toString());
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->string('status')->toString();
+            if (in_array($status, ['pending', 'active', 'rejected'], true)) {
+                $query->where('status', $status);
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = '%'.$request->string('search')->trim()->toString().'%';
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', $search)
+                    ->orWhere('email', 'like', $search)
+                    ->orWhere('phone', 'like', $search)
+                    ->orWhere('business_name', 'like', $search)
+                    ->orWhere('tin_number', 'like', $search);
+            });
+        }
+
+        $registrations = $query->paginate(15)->withQueryString();
+
+        return view('admin.registrations', compact('registrations', 'statusCounts'));
+    }
+
+    /**
+     * Workspace 2c: Buyer Government ID Checks & Verification (Buyers Only)
+     */
+    public function idChecks(Request $request)
+    {
+        $tab = $request->query('tab', 'to_review');
+        if (!in_array($tab, ['to_review', 'approved', 'rejected'], true)) {
+            $tab = 'to_review';
+        }
+
+        $baseQuery = User::where('role', User::ROLE_BUYER)
+            ->where(fn ($q) => $q->whereNotNull('id_photo')->orWhereIn('id_status', ['pending', 'verified', 'rejected']));
+
+        $counts = [
+            'to_review' => (clone $baseQuery)->where('id_status', 'pending')->count(),
+            'approved' => (clone $baseQuery)->where('id_status', 'verified')->count(),
+            'rejected' => (clone $baseQuery)->where('id_status', 'rejected')->count(),
+        ];
+
+        $query = (clone $baseQuery)->with(['buyer'])->latest('id');
+
+        if ($tab === 'to_review') {
+            $query->where('id_status', 'pending');
+        } elseif ($tab === 'approved') {
+            $query->where('id_status', 'verified');
+        } elseif ($tab === 'rejected') {
+            $query->where('id_status', 'rejected');
+        }
+
+        $idChecks = $query->paginate(15)->appends(['tab' => $tab]);
+
+        return view('admin.id-checks', compact('idChecks', 'counts', 'tab'));
+    }
+
+    /**
+     * Update Buyer Government ID Verification Status (Approve or Reject KYC)
+     */
+    public function updateIdStatus(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['approved', 'rejected'])],
+            'reason' => ['required_if:status,rejected', 'nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($data, $id) {
+            $user = User::where('role', User::ROLE_BUYER)->lockForUpdate()->findOrFail($id);
+            $approved = $data['status'] === 'approved';
+            abort_if($approved && !$user->id_photo, 422, 'An uploaded identity document is required before verification.');
+
+            $user->update([
+                'id_status' => $approved ? 'verified' : 'rejected',
+                'id_verified_at' => $approved ? now() : null,
+                'id_rejection_reason' => $approved ? null : $data['reason'],
+            ]);
+
+            if ($user->buyer) {
+                $user->buyer()->update([
+                    'id_status' => $approved ? 'verified' : 'rejected',
+                    'id_verified_at' => $approved ? now() : null,
+                    'id_rejection_reason' => $approved ? null : $data['reason'],
+                ]);
+            }
+
+            $this->audit('Buyer Government ID reviewed', "{$user->name} (#{$user->id}) — {$data['status']}");
+
+            // In-app notification
+            try {
+                NotificationService::notify(
+                    $user->id,
+                    $approved ? 'id_verified' : 'id_rejected',
+                    $approved ? 'Government ID Verified' : 'Identity Verification Disapproved',
+                    $approved
+                        ? 'Congratulations! Your government identity document has been verified. You can now proceed to checkout your cart.'
+                        : 'Your identity document was not approved. Reason: ' . ($data['reason'] ?? 'Submitted ID did not meet verification criteria. Please upload a clear valid ID.'),
+                    url('/cart')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Buyer ID notification skipped: ' . $e->getMessage());
+            }
+        });
+
+        return back()->with('success', 'Buyer identity verification decision saved and buyer notified.');
+    }
+
+    /**
+     * Workspace 2d: Logistics Partners & Fleet Management
+     */
+    public function logistics(Request $request)
+    {
+        $baseQuery = LogisticsProvider::query();
+
+        $counts = [
+            'all' => (clone $baseQuery)->count(),
+            'approved' => (clone $baseQuery)->where('status', 'approved')->count(),
+            'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
+            'suspended' => (clone $baseQuery)->where('status', 'suspended')->count(),
+            'rejected' => (clone $baseQuery)->where('status', 'rejected')->count(),
+        ];
+
+        $status = $request->query('status');
+        $query = LogisticsProvider::with(['user', 'riders.user'])->withCount([
+            'riders',
+            'riders as pending_riders_count' => function ($q) {
+                $q->where('status', 'pending');
+            }
+        ])->latest('id');
+
+        if ($status && in_array($status, ['approved', 'pending', 'suspended', 'rejected'], true)) {
+            $query->where('status', $status);
+        }
+
+        if ($request->filled('search')) {
+            $search = '%' . $request->string('search')->trim() . '%';
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', $search)
+                    ->orWhere('contact_phone', 'like', $search)
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', $search)
+                           ->orWhere('email', 'like', $search)
+                           ->orWhere('phone', 'like', $search)
+                           ->orWhere('city', 'like', $search)
+                           ->orWhere('province', 'like', $search);
+                    });
+            });
+        }
+
+        $providers = $query->paginate(15)->withQueryString();
+
+        return view('admin.logistics', compact('providers', 'counts', 'status'));
+    }
+
+    /**
+     * Update Logistics Partner Status (Approve, Suspend, Deactivate / Reject, Unsuspend)
+     */
+    public function updateLogisticsStatus(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['approved', 'suspended', 'rejected', 'pending'])],
+            'reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($data, $id) {
+            $provider = LogisticsProvider::with('user')->lockForUpdate()->findOrFail($id);
+            $newStatus = $data['status'];
+
+            $provider->update([
+                'status' => $newStatus,
+                'rejection_reason' => in_array($newStatus, ['rejected', 'suspended'], true) ? ($data['reason'] ?? $provider->rejection_reason) : null,
+            ]);
+
+            // Sync with associated user account
+            if ($provider->user) {
+                $userStatus = match ($newStatus) {
+                    'approved' => 'active',
+                    'suspended' => 'suspended',
+                    'rejected' => 'rejected',
+                    default => 'pending',
+                };
+                $provider->user->update([
+                    'status' => $userStatus,
+                    'is_suspended' => $newStatus === 'suspended',
+                ]);
+            }
+
+            $actionTitle = match ($newStatus) {
+                'approved' => 'Logistics Partner Approved',
+                'suspended' => 'Logistics Partner Suspended',
+                'rejected' => 'Logistics Partner Deactivated/Rejected',
+                default => 'Logistics Partner Status Updated',
+            };
+
+            $this->audit('Logistics Partner status updated', "{$provider->name} (#{$provider->id}) -> {$newStatus}");
+
+            // In-app notification
+            if ($provider->user) {
+                try {
+                    $message = match ($newStatus) {
+                        'approved' => 'Congratulations! Your company is now an approved logistics partner on Cartzy. You can now onboard riders and dispatch deliveries.',
+                        'suspended' => 'Notice: Your logistics partner account has been suspended by administration. ' . ($data['reason'] ?? ''),
+                        'rejected' => 'Notice: Your logistics partner application has been declined or deactivated. Reason: ' . ($data['reason'] ?? 'Requirements not met.'),
+                        default => 'Your logistics partner application is under review.',
+                    };
+
+                    NotificationService::notify(
+                        $provider->user->id,
+                        'logistics_status_' . $newStatus,
+                        $actionTitle,
+                        $message,
+                        url('/')
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Logistics notification skipped: ' . $e->getMessage());
+                }
+            }
+        });
+
+        return back()->with('success', 'Logistics partner status has been successfully updated.');
     }
 
     private function filterUsers($query, Request $request, bool $kyc = false): void
     {
-        if ($request->filled('role')) $query->where('role', $request->string('role')->toString());
-        if ($kyc && $request->query('status') === 'pending') {
-            $query->where(fn ($q) => $q->where('id_status', 'pending')->orWhere(fn ($q) => $q->where('status', 'pending')->where('id_status', '!=', 'rejected')));
-        } elseif ($request->filled('status')) {
-            $query->where($kyc ? 'id_status' : 'status', $request->string('status')->toString());
+        if ($request->filled('role')) {
+            $query->where('role', $request->string('role')->toString());
         }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status')->toString());
+        }
+
         if ($request->filled('search')) {
             $search = '%'.$request->string('search')->trim()->toString().'%';
-            $query->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search));
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', $search)
+                    ->orWhere('email', 'like', $search)
+                    ->orWhere('phone', 'like', $search)
+                    ->orWhere('business_name', 'like', $search);
+            });
         }
     }
 

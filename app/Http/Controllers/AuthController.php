@@ -912,6 +912,14 @@ class AuthController extends Controller
                 }
             }
 
+            // Google authentication is restricted to buyer accounts
+            if ($user && in_array($user->role, [User::ROLE_SELLER, User::ROLE_LOGISTICS, User::ROLE_COURIER], true)) {
+                $roleLabel = $user->role === User::ROLE_COURIER ? 'rider' : $user->role;
+                return redirect()->route('login', ['portal' => $user->role])->withErrors([
+                    'email' => 'Google sign-in is only available for buyer accounts. ' . ucfirst($roleLabel) . ' accounts must sign in manually.',
+                ]);
+            }
+
             // Ensure account is not suspended/rejected/pending
             if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
                 return redirect()->route('login')->withErrors([

@@ -37,7 +37,7 @@ if (typeof document !== 'undefined') {
         const start = panel.querySelector('[name="discount_starts_at"]');
         const end = panel.querySelector('[name="discount_ends_at"]');
         const rows = [...editor.querySelectorAll('[data-price-minor]')];
-        const money = minor => `PHP ${(minor / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const money = minor => `₱${(minor / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const dateLabel = raw => new Intl.DateTimeFormat('en-PH', {
             timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit',
         }).format(new Date(`${raw}+08:00`)) + ' PHT';
@@ -47,7 +47,7 @@ if (typeof document !== 'undefined') {
             value.required = Boolean(type);
             value.max = type === 'percentage' ? '99.99' : '99999999.99';
             start.disabled = end.disabled = !type;
-            panel.querySelector('[data-discount-label]').textContent = type === 'percentage' ? 'Percentage off (%)' : 'Amount off (PHP)';
+            panel.querySelector('[data-discount-label]').textContent = type === 'percentage' ? 'Percentage off (%)' : 'Amount off (₱)';
             panel.querySelector('.sale-presets').hidden = type !== 'percentage';
             panel.querySelectorAll('[data-sale-preset]').forEach(button => {
                 button.setAttribute('aria-pressed', String(type === 'percentage' && Number(button.dataset.salePreset) === Number(value.value)));

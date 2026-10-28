@@ -13,6 +13,7 @@ class PickupRequest extends Model
         'logistics_provider_id',
         'seller_id',
         'seller_order_id',
+        'rider_id',
         'parcel_count',
         'weight_kg',
         'pickup_date',
@@ -20,12 +21,14 @@ class PickupRequest extends Model
         'address',
         'status',
         'confirmed_at',
+        'assigned_at',
         'notes',
     ];
 
     protected $casts = [
         'pickup_date' => 'date',
         'confirmed_at' => 'datetime',
+        'assigned_at' => 'datetime',
         'weight_kg' => 'float',
         'parcel_count' => 'integer',
     ];
@@ -43,5 +46,10 @@ class PickupRequest extends Model
     public function sellerOrder()
     {
         return $this->belongsTo(SellerOrder::class);
+    }
+
+    public function rider()
+    {
+        return $this->belongsTo(Rider::class);
     }
 }

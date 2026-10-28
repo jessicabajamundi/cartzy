@@ -23,7 +23,9 @@ class StoreController extends Controller
     /** Products a buyer can see and order: active, with at least one active variant. */
     private function catalog(Seller $seller)
     {
-        return Product::where('seller_id', $seller->id)->where('is_active', true)
+        return Product::where('seller_id', $seller->id)
+            ->where('is_active', true)
+            ->where('approval_status', Product::APPROVAL_APPROVED)
             ->whereHas('variants', fn ($q) => $q->where('is_active', true));
     }
 

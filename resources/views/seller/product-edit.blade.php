@@ -12,7 +12,7 @@
     $stockStatus = $units === 0 ? 'out' : ($live->contains(fn ($v) => $v->stock <= $limit) ? 'low' : 'ok');
     $stockLabel = ['ok' => number_format($units).' available', 'low' => 'Low · '.number_format($units).' left', 'out' => 'Out of stock'][$stockStatus];
     $coverPath = $product->coverImage?->path;
-    $coverUrl = $coverPath ? (str_starts_with($coverPath, 'http') || str_starts_with($coverPath, '/') ? $coverPath : asset('storage/'.$coverPath)) : null;
+    $coverUrl = $coverPath ? (str_starts_with($coverPath, 'http') || str_starts_with($coverPath, '/') ? $coverPath : Storage::disk('public')->url($coverPath)) : null;
 
     $galleryImages = $product->images->sortBy('position')->values();
     $photoSlots = [];
@@ -20,7 +20,7 @@
         $img = $galleryImages->get($i);
         $url = null;
         if ($img) {
-            $url = str_starts_with($img->path, 'http') || str_starts_with($img->path, '/') ? $img->path : asset('storage/'.$img->path);
+            $url = str_starts_with($img->path, 'http') || str_starts_with($img->path, '/') ? $img->path : Storage::disk('public')->url($img->path);
         } elseif ($i === 0 && $coverUrl) {
             $url = $coverUrl;
         }
@@ -120,6 +120,37 @@
             </a>
         @endif
     </header>
+
+    @if($product->isPending())
+        <div style="background: #FFFDF5; border-left: 4px solid #F59E0B; padding: 14px 18px; border-radius: 10px; margin-bottom: 22px; font-size: 13px; color: #92400E; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div>
+                <strong>⏳ Pending Administrator Review:</strong>
+                <p style="margin: 3px 0 0; font-size: 12px; color: #78350F;">This product is currently under review by our admin team. It will appear live on the storefront once approved.</p>
+            </div>
+            <span class="badge warning" style="background: #FEF3C7; color: #B45309; font-weight: 700; white-space: nowrap;">Pending Approval</span>
+        </div>
+    @elseif($product->isRejected())
+        <div style="background: #FFF5F5; border-left: 4px solid #E53E3E; padding: 14px 18px; border-radius: 10px; margin-bottom: 22px; font-size: 13px; color: #9B2C2C; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px;">
+                <strong>✕ Action Required — Listing Rejected:</strong>
+                <span class="badge danger" style="background: #FED7D7; color: #9B2C2C; font-weight: 700;">Rejected</span>
+            </div>
+            <p style="margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: #742A2A;">
+                <strong>Admin Reason:</strong> {{ $product->rejection_reason }}
+            </p>
+            <p style="margin: 0; font-size: 11px; color: #9B2C2C; background: #FED7D740; padding: 6px 10px; border-radius: 6px;">
+                💡 <em>Tip: Correct the issues described above and click <strong>Save product details</strong> below. Your product will automatically be resubmitted for admin approval.</em>
+            </p>
+        </div>
+    @elseif($product->isApproved())
+        <div style="background: #F0FDF4; border-left: 4px solid #16A34A; padding: 12px 18px; border-radius: 10px; margin-bottom: 22px; font-size: 13px; color: #166534; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div>
+                <strong>✓ Approved & Verified Listing:</strong>
+                <span style="display: block; font-size: 12px; color: #15803D; margin-top: 2px;">This product is verified by admin and actively visible to marketplace shoppers.</span>
+            </div>
+            <span class="badge good" style="background: #DCFCE7; color: #166534; font-weight: 700; white-space: nowrap;">Approved</span>
+        </div>
+    @endif
 
     @unless($canEdit)
         <div class="pe-blocked is-pending pe-locked"><strong>Editing is locked</strong><p>Your store needs administrator approval before you can change products.</p></div>

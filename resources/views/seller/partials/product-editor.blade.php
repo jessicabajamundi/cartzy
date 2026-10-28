@@ -171,7 +171,7 @@
                                 <div class="pe-size-price-row">
                                     <strong>{{ $sizeStock['size'] ?? '' }}</strong>
                                     <input type="hidden" name="primary_size_stocks[{{ $index }}][size]" value="{{ $sizeStock['size'] ?? '' }}" disabled>
-                                    <label class="pe-field"><span class="pe-size-field-label">{{ $sizeStock['size'] ?? '' }} price (PHP)</span>
+                                    <label class="pe-field"><span class="pe-size-field-label">{{ $sizeStock['size'] ?? '' }} price (₱)</span>
                                         <span class="pe-money"><span aria-hidden="true">&#8369;</span><input type="number" data-size-price name="primary_size_stocks[{{ $index }}][price]" value="{{ $sizeStock['price'] ?? old('price') }}" min="0.01" max="99999999.99" step="0.01" disabled></span>
                                     </label>
                                     <label class="pe-field"><span class="pe-size-field-label">{{ $sizeStock['size'] ?? '' }} stock</span>
