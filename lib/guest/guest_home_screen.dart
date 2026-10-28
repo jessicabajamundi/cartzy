@@ -3,6 +3,7 @@ import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
 import 'package:cartzy/guest/guest_wishlist_screen.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
+import 'package:cartzy/guest/guest_account_screen.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
@@ -420,7 +421,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                       icon: Icons.person_outline_rounded,
                       label: 'Profile',
                       selected: false,
-                      onClick: widget.onLogin,
+                      onClick: () => GuestAccountScreen.open(
+                        context,
+                        onLogin: widget.onLogin,
+                        onSignUp: widget.onSignUp,
+                      ),
                     ),
                   ],
                 ),

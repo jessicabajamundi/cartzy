@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/cartzy_button_styles.dart';
 import 'package:cartzy/guest/guest_wishlist_screen.dart';
+import 'package:cartzy/guest/guest_account_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 
 class GuestCartScreen extends StatelessWidget {
@@ -219,7 +220,11 @@ class GuestCartScreen extends StatelessWidget {
                 icon: Icons.person_outline_rounded,
                 label: 'Profile',
                 selected: false,
-                onClick: onLogin,
+                onClick: () => GuestAccountScreen.open(
+                  context,
+                  onLogin: onLogin,
+                  onSignUp: onSignUp,
+                ),
               ),
             ],
           ),
