@@ -143,7 +143,10 @@
                                max="{{ now()->subYears(18)->toDateString() }}"
                                required>
                     </div>
-                    <p class="rider-field-hint">Riders must be at least 18 years old.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                        <p class="rider-field-hint" style="margin: 0;">Riders must be at least 18 years old.</p>
+                        <span id="rider_birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: #059669;"></span>
+                    </div>
                     <p class="rider-field-error" id="error_birthday"></p>
                 </div>
             </div>
@@ -2452,8 +2455,63 @@
         goToRiderStep(2);
     }
 
+    function setupRiderBirthdayHandling() {
+        const bday = document.getElementById('birthday');
+        const ageText = document.getElementById('rider_birthday_age_text');
+        const bdayErr = document.getElementById('error_birthday');
+        if (!bday) return;
+
+        function calcAndClampRiderAge() {
+            let val = bday.value;
+            if (!val) {
+                if (ageText) ageText.textContent = '';
+                return;
+            }
+            if (bday.max && val > bday.max) {
+                val = bday.max;
+                bday.value = val;
+            }
+            const birth = new Date(val + 'T00:00:00');
+            if (isNaN(birth.getTime())) {
+                if (ageText) ageText.textContent = '';
+                return;
+            }
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const m = today.getMonth() - birth.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+            if (ageText) {
+                if (age >= 18) {
+                    ageText.textContent = `Age: ${age} years old`;
+                    ageText.style.color = '#059669';
+                    if (bdayErr) {
+                        bdayErr.textContent = '';
+                        bdayErr.classList.remove('visible');
+                    }
+                    bday.classList.remove('error');
+                } else if (age >= 0) {
+                    ageText.textContent = `Age: ${age} (Must be 18+)`;
+                    ageText.style.color = '#ef4444';
+                }
+            }
+        }
+
+        bday.addEventListener('input', calcAndClampRiderAge);
+        bday.addEventListener('change', calcAndClampRiderAge);
+        bday.addEventListener('focus', function() {
+            if (!this.value && this.max) {
+                this.value = this.max;
+                calcAndClampRiderAge();
+            }
+        });
+
+        if (bday.value) calcAndClampRiderAge();
+    }
+
     // OTP Boxes Handlers & Form Submission
     document.addEventListener('DOMContentLoaded', function () {
+        setupRiderBirthdayHandling();
         const otpInputs = document.querySelectorAll('.otp-input');
         const hiddenOtp = document.getElementById('email_verification_otp');
 

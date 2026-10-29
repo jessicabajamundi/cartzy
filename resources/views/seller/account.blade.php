@@ -185,7 +185,7 @@
 
             <label>
                 Birthday <span style="color:#ef4444">*</span>
-                <input type="date" name="birthday" id="owner_birthday" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" required onchange="calculateSellerAge(this.value)">
+                <input type="date" name="birthday" id="owner_birthday" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" required oninput="calculateSellerAge(this.value)" onchange="calculateSellerAge(this.value)">
                 <small>You must be at least 18 years old.</small>
             </label>
 
@@ -411,17 +411,43 @@
 
 <script>
 function calculateSellerAge(dateStr) {
-    if (!dateStr) {
-        document.getElementById('owner_age').value = '—';
+    const input = document.getElementById('owner_birthday');
+    const ageEl = document.getElementById('owner_age');
+    if (!dateStr || !input) {
+        if (ageEl) ageEl.value = '—';
         return;
     }
+    // Auto-clamp if date exceeds max allowed (e.g. 2026)
+    if (input.max && dateStr > input.max) {
+        dateStr = input.max;
+        input.value = dateStr;
+    }
     const today = new Date();
-    const bday = new Date(dateStr);
+    const bday = new Date(dateStr + 'T00:00:00');
+    if (isNaN(bday.getTime())) {
+        if (ageEl) ageEl.value = '—';
+        return;
+    }
     let age = today.getFullYear() - bday.getFullYear();
     const m = today.getMonth() - bday.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
-    document.getElementById('owner_age').value = (age >= 0 ? age + ' years old' : '—');
+    if (ageEl) ageEl.value = (age >= 0 ? age + ' years old' : '—');
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const bdayInput = document.getElementById('owner_birthday');
+    if (bdayInput) {
+        bdayInput.addEventListener('focus', function() {
+            if (!this.value && this.max) {
+                this.value = this.max;
+                calculateSellerAge(this.value);
+            }
+        });
+        if (bdayInput.value) {
+            calculateSellerAge(bdayInput.value);
+        }
+    }
+});
 
 (function () {
     const input = document.getElementById('store-logo-input');

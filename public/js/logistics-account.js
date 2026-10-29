@@ -109,7 +109,7 @@
     }
 
     const updateAge = () => {
-        const val = birthday.value;
+        let val = birthday.value;
         if (!val) {
             age.value = '';
             birthday.setCustomValidity('');
@@ -117,6 +117,12 @@
             inlineError.style.display = 'none';
             inlineError.textContent = '';
             return;
+        }
+
+        // Auto-clamp if date exceeds max allowed (e.g. 2026)
+        if (birthday.max && val > birthday.max) {
+            val = birthday.max;
+            birthday.value = val;
         }
 
         const birth = new Date(`${val}T00:00:00`);
@@ -156,6 +162,12 @@
     birthday.addEventListener('input', updateAge);
     birthday.addEventListener('change', updateAge);
     birthday.addEventListener('blur', updateAge);
+    birthday.addEventListener('focus', function() {
+        if (!this.value && this.max) {
+            this.value = this.max;
+            updateAge();
+        }
+    });
     updateAge();
 
     form.addEventListener('submit', (e) => {

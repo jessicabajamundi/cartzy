@@ -4,14 +4,30 @@
  */
 
 function updateAgeDisplay(dateStr) {
-    if (!dateStr) return;
+    const bdayInput = document.getElementById('birthday');
+    const input = document.getElementById('ageDisplay');
+    if (!dateStr || !bdayInput) {
+        if (input) input.value = '';
+        return;
+    }
+
+    // Auto-clamp if date exceeds max allowed (e.g. 2026)
+    if (bdayInput.max && dateStr > bdayInput.max) {
+        dateStr = bdayInput.max;
+        bdayInput.value = dateStr;
+    }
+
     const today = new Date();
-    const bday = new Date(dateStr);
+    const bday = new Date(dateStr + 'T00:00:00');
+    if (isNaN(bday.getTime())) {
+        if (input) input.value = '';
+        return;
+    }
+
     let age = today.getFullYear() - bday.getFullYear();
     const m = today.getMonth() - bday.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
     
-    const input = document.getElementById('ageDisplay');
     if (input) {
         input.value = (age >= 0 ? age : 0) + ' years old';
     }
@@ -34,8 +50,19 @@ function scrollToSection(event, sectionId) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const bdayInput = document.getElementById('birthday');
-    if (bdayInput && bdayInput.value) {
-        updateAgeDisplay(bdayInput.value);
+    if (bdayInput) {
+        if (bdayInput.value) {
+            updateAgeDisplay(bdayInput.value);
+        }
+        bdayInput.addEventListener('focus', function() {
+            if (!this.value && this.max) {
+                this.value = this.max;
+                updateAgeDisplay(this.value);
+            }
+        });
+        bdayInput.addEventListener('input', function() {
+            updateAgeDisplay(this.value);
+        });
     }
 
     // Handle auto-scroll based on URL tab query or hash

@@ -136,31 +136,61 @@ function validateRegistrationNames(focusInvalid = false) {
 function validateRegistrationBirthday(focus = false) {
     if (['logistics', 'seller'].includes(document.getElementById('role_input')?.value)) return true;
     const input = document.getElementById('birthday');
+    if (!input) return true;
     let message = '';
     if (!input.value) {
         message = 'Please enter your birthday.';
     } else if (!/^\d{4}-\d{2}-\d{2}$/.test(input.value) || input.validity.badInput) {
         message = 'Please enter a valid birthday.';
     } else if (input.value > input.max) {
-        message = 'You must be at least 18 years old to register.';
+        input.value = input.max;
+        autoCalcAge(input.value);
     }
     return showRegistrationError('birthday', message, focus);
 }
 
-// Age auto-calculate from birthday
+// Age auto-calculate from birthday with auto-clamp and live age display
 function autoCalcAge(dateStr) {
-    if (!dateStr) {
-        const ageEl = document.getElementById('age_display');
+    const input = document.getElementById('birthday');
+    const ageEl = document.getElementById('age_display');
+    const ageText = document.getElementById('birthday_age_text');
+
+    if (!dateStr || !input) {
         if (ageEl) ageEl.value = '';
+        if (ageText) ageText.textContent = '';
         return;
     }
+
+    // Auto-clamp if date exceeds max allowed (e.g. 2026 or future dates)
+    if (input.max && dateStr > input.max) {
+        dateStr = input.max;
+        input.value = dateStr;
+    }
+
     const today = new Date();
     const bday = new Date(dateStr + 'T00:00:00');
+    if (isNaN(bday.getTime())) {
+        if (ageEl) ageEl.value = '';
+        if (ageText) ageText.textContent = '';
+        return;
+    }
+
     let age = today.getFullYear() - bday.getFullYear();
     const m = today.getMonth() - bday.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < bday.getDate())) age--;
-    const ageEl = document.getElementById('age_display');
+
     if (ageEl) ageEl.value = age >= 0 ? age : '';
+    if (ageText) {
+        if (age >= 18) {
+            ageText.textContent = `Age: ${age} years old`;
+            ageText.style.color = '#059669';
+        } else if (age >= 0) {
+            ageText.textContent = `Age: ${age} (Must be 18+)`;
+            ageText.style.color = '#ef4444';
+        } else {
+            ageText.textContent = '';
+        }
+    }
 }
 
 // Update Cartzy Stepper UI
@@ -805,12 +835,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form Submit Check
     const form = document.getElementById('registerForm');
     if (form) {
-        document.getElementById('birthday')?.addEventListener('invalid', function(e) {
-            e.preventDefault();
-            currentStep = 1;
-            updateStepperUI();
-            validateRegistrationBirthday(true);
-        });
+        const bdayInput = document.getElementById('birthday');
+        if (bdayInput) {
+            bdayInput.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                currentStep = 1;
+                updateStepperUI();
+                validateRegistrationBirthday(true);
+            });
+            bdayInput.addEventListener('focus', function() {
+                if (!this.value && this.max) {
+                    this.value = this.max;
+                    autoCalcAge(this.value);
+                    validateRegistrationBirthday();
+                }
+            });
+            if (bdayInput.value) {
+                autoCalcAge(bdayInput.value);
+            }
+        }
         form.addEventListener('submit', function(e) {
             if (!validateSellerDetails()) {
                 e.preventDefault();

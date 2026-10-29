@@ -46,7 +46,69 @@
                     @endforeach
                 </select>
             </label>
-            <label><span class="settings-label">Birthday</span><input class="settings-input" type="date" name="birthday" autocomplete="bday" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}"><span class="mt-1 block text-xs text-gray-500">You must be at least 18 years old.</span></label>
+            <label>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="settings-label">Birthday</span>
+                    <span id="settings-birthday-age" class="text-xs font-semibold text-emerald-600"></span>
+                </div>
+                <input class="settings-input" type="date" id="settings-birthday" name="birthday" autocomplete="bday" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}">
+                <span class="mt-1 block text-xs text-gray-500">You must be at least 18 years old.</span>
+            </label>
+            <script>
+            (function() {
+                function initSettingsBirthday() {
+                    const input = document.getElementById('settings-birthday');
+                    const ageEl = document.getElementById('settings-birthday-age');
+                    if (!input) return;
+
+                    function calcSettingsAge() {
+                        let val = input.value;
+                        if (!val) {
+                            if (ageEl) ageEl.textContent = '';
+                            return;
+                        }
+                        if (input.max && val > input.max) {
+                            val = input.max;
+                            input.value = val;
+                        }
+                        const birth = new Date(val + 'T00:00:00');
+                        if (isNaN(birth.getTime())) {
+                            if (ageEl) ageEl.textContent = '';
+                            return;
+                        }
+                        const today = new Date();
+                        let age = today.getFullYear() - birth.getFullYear();
+                        const m = today.getMonth() - birth.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+                        if (ageEl) {
+                            if (age >= 18) {
+                                ageEl.textContent = `Age: ${age} years old`;
+                                ageEl.className = 'text-xs font-semibold text-emerald-600';
+                            } else if (age >= 0) {
+                                ageEl.textContent = `Age: ${age} (Under 18)`;
+                                ageEl.className = 'text-xs font-semibold text-red-600';
+                            }
+                        }
+                    }
+
+                    input.addEventListener('input', calcSettingsAge);
+                    input.addEventListener('change', calcSettingsAge);
+                    input.addEventListener('focus', function() {
+                        if (!this.value && this.max) {
+                            this.value = this.max;
+                            calcSettingsAge();
+                        }
+                    });
+                    if (input.value) calcSettingsAge();
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initSettingsBirthday);
+                } else {
+                    initSettingsBirthday();
+                }
+            })();
+            </script>
         </div>
         @include('buyer.partials.identity-verification')
         <div class="settings-form-footer"><span>Keep your details up to date for easy deliveries.</span><button class="settings-button" type="submit">Save changes <span aria-hidden="true">&rarr;</span></button></div>

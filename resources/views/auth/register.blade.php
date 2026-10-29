@@ -223,11 +223,15 @@
                         required
                         aria-describedby="birthday_error"
                         aria-invalid="{{ $errors->has('birthday') ? 'true' : 'false' }}"
+                        oninput="autoCalcAge(this.value); validateRegistrationBirthday()"
                         onchange="autoCalcAge(this.value); validateRegistrationBirthday()"
                     >
                 </div>
                 <p id="birthday_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('birthday')) hidden @endif>{{ $errors->first('birthday') }}</p>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; margin-bottom: 0;">You must be at least 18 years old to register.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <p style="font-size: 0.78rem; color: #6b7280; margin: 0;">You must be at least 18 years old to register.</p>
+                    <span id="birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: #059669;"></span>
+                </div>
             </div>
 
             <!-- Logistics Partner Company & Service Area Fields (Shown for Logistics) -->

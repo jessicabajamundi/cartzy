@@ -299,6 +299,7 @@
                                         id="birthday"
                                         value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}"
                                         max="{{ now()->subYearsNoOverflow(18)->toDateString() }}"
+                                        oninput="updateAgeDisplay(this.value)"
                                         onchange="updateAgeDisplay(this.value)"
                                         class="w-full px-4 py-3 text-sm sm:text-base text-gray-900 border border-gray-200 rounded-xl focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition bg-white shadow-2xs"
                                     >
