@@ -955,14 +955,33 @@ class AuthController extends Controller
                         ]);
                     }
 
-                    // Buyer registration (Google does not provide birthday: require age check)
-                    return redirect()->route('register')->withInput([
-                        'email' => $email,
-                        'name' => $name,
-                        'role' => User::ROLE_BUYER,
-                    ])->withErrors([
-                        'birthday' => 'Please complete registration with your birthday. You must be at least 18 years old to register.',
-                    ]);
+                    // Buyer registration (Google does not provide birthday: create buyer account directly)
+                    $user = \Illuminate\Support\Facades\DB::transaction(function () use ($email, $name, $googleId, $avatar) {
+                        $created = User::create([
+                            'name'              => $name,
+                            'email'             => $email,
+                            'google_id'         => $googleId,
+                            'avatar'            => $avatar,
+                            'role'              => User::ROLE_BUYER,
+                            'status'            => 'active',
+                            'email_verified_at' => now(),
+                            'password'          => Hash::make(\Illuminate\Support\Str::random(32)),
+                        ]);
+
+                        \App\Models\Buyer::firstOrCreate(
+                            ['user_id' => $created->id],
+                            [
+                                'name'      => $created->name,
+                                'id_status' => 'unverified',
+                                'status'    => 'active',
+                            ]
+                        );
+
+                        $roleModel = \App\Models\Role::firstOrCreate(['name' => 'buyer']);
+                        $created->roles()->syncWithoutDetaching([$roleModel->id]);
+
+                        return $created;
+                    });
                 }
             }
 

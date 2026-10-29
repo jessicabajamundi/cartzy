@@ -12,7 +12,7 @@ class GoogleRegistrationAgeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_new_google_users_must_complete_age_checked_registration(): void
+    public function test_new_google_buyer_automatically_creates_account(): void
     {
         $googleUser = (new GoogleUser)->map([
             'id' => 'google-new-buyer',
@@ -24,12 +24,20 @@ class GoogleRegistrationAgeTest extends TestCase
         $provider->shouldReceive('user')->once()->andReturn($googleUser);
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
-        $this->get('/auth/google/callback')
-            ->assertRedirect(route('register'))
-            ->assertSessionHasErrors(['birthday'])
-            ->assertSessionHasInput('email', 'new.buyer@example.com');
-        $this->assertDatabaseCount('users', 0);
-        $this->assertGuest();
+        $response = $this->get('/auth/google/callback');
+
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', [
+            'email' => 'new.buyer@example.com',
+            'name' => 'New Buyer',
+            'google_id' => 'google-new-buyer',
+            'role' => 'buyer',
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas('buyers', [
+            'name' => 'New Buyer',
+        ]);
+        $response->assertRedirect(route('home'));
     }
 
     public function test_seller_cannot_sign_in_via_google(): void
@@ -51,7 +59,7 @@ class GoogleRegistrationAgeTest extends TestCase
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
         $this->get('/auth/google/callback')
-            ->assertRedirect(route('login', ['portal' => 'seller']))
+            ->assertRedirect(route('login'))
             ->assertSessionHasErrors(['email']);
         $this->assertGuest();
     }
@@ -75,7 +83,7 @@ class GoogleRegistrationAgeTest extends TestCase
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
         $this->get('/auth/google/callback')
-            ->assertRedirect(route('login', ['portal' => 'logistics']))
+            ->assertRedirect(route('login'))
             ->assertSessionHasErrors(['email']);
         $this->assertGuest();
     }
@@ -99,7 +107,7 @@ class GoogleRegistrationAgeTest extends TestCase
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
         $this->get('/auth/google/callback')
-            ->assertRedirect(route('login', ['portal' => 'courier']))
+            ->assertRedirect(route('login'))
             ->assertSessionHasErrors(['email']);
         $this->assertGuest();
     }
