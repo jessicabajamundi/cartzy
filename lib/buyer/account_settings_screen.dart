@@ -1014,48 +1014,47 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        toolbarHeight: 76,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 20, color: CartzyColors.navy),
           onPressed: widget.onBack,
         ),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'YOUR CARTZY',
+              style: GoogleFonts.dmSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5,
+                color: CartzyColors.burgundy,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'My account',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 26,
+                fontWeight: FontWeight.w700,
+                color: CartzyColors.navy,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ],
+        ),
+        actions: const [
+          SizedBox(width: 48),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ==========================================
-              // 1. TOP HEADER: YOUR CARTZY / Account
-              // ==========================================
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'YOUR CARTZY',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.5,
-                        color: CartzyColors.burgundy,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'My account',
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w700,
-                        color: CartzyColors.navy,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 22),
 
               // ==========================================
               // 2. USER PROFILE CARD (Hi, Jan / Email)
