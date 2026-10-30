@@ -125,3 +125,4 @@ class AppUpdateService {
     return false;
   }
 }
+
