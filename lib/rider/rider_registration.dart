@@ -21,6 +21,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/services/api_service.dart' show ApiException;
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/government_id_parser.dart';
 import 'package:cartzy/widgets/id_scanner_screen.dart';
 
@@ -85,6 +87,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
   // ── Step 1: Documents ──
   String? _orCrFileName;
+  String? _orCrFilePath;
 
   // Errors for Step 1
   bool _firstNameError = false;
@@ -125,6 +128,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   // ── Step 3: Verification ──
   final _otpController = TextEditingController();
   bool _otpError = false;
+  String? _otpErrorMessage;
+  bool _isSendingOtp = false;
+  bool _isResendingOtp = false;
   bool _isSubmitting = false;
 
   static final _upperCase = TextInputFormatter.withFunction(
@@ -227,6 +233,34 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
+  static String _toIsoDate(String formatted) {
+    if (formatted.isEmpty) return '';
+    try {
+      final parts = formatted.replaceAll(',', '').trim().split(RegExp(r'\s+'));
+      const months = <String, String>{
+        'January': '01',
+        'February': '02',
+        'March': '03',
+        'April': '04',
+        'May': '05',
+        'June': '06',
+        'July': '07',
+        'August': '08',
+        'September': '09',
+        'October': '10',
+        'November': '11',
+        'December': '12',
+      };
+      final month = months[parts[0]];
+      if (month == null) return '';
+      final day = parts[1].padLeft(2, '0');
+      final year = parts[2];
+      return '$year-$month-$day';
+    } catch (_) {
+      return '';
+    }
+  }
+
   // ── File Pickers ──
   Future<void> _pickOrCrFile() async {
     try {
@@ -236,6 +270,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       if (file != null) {
         setState(() {
           _orCrFileName = file.name;
+          _orCrFilePath = file.path;
           _orCrError = false;
         });
       }
@@ -368,9 +403,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     });
   }
 
-  // ── Step 2 Validation ──
-  void _validateAndSendVerification() {
-    final email = _emailController.text.trim();
+  // ── Step 2 Validation & Send OTP ──
+  Future<void> _validateAndSendVerification() async {
+    if (_isSendingOtp) return;
+
+    final email = _emailController.text.trim().toLowerCase();
     final password = _passwordController.text;
     final confirm = _confirmPasswordController.text;
 
@@ -399,10 +436,87 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       return;
     }
 
-    showCartzyFlash(context, 'Verification code sent to $email');
+    setState(() => _isSendingOtp = true);
+
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final phone = BuyerRegistrationValidation.phoneForApi(
+        _contactNoController.text.trim());
+
+    try {
+      await AuthService.requestRegistrationCode(
+        email: email,
+        name: '$firstName $lastName',
+        phone: phone,
+        role: 'rider',
+      );
+      if (!mounted) return;
+      setState(() {
+        _isSendingOtp = false;
+        _otpError = false;
+        _otpErrorMessage = null;
+        _currentStep = 3;
+      });
+      showCartzyFlash(context, 'We sent a 6-digit code to $email');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      final errors = e.body['errors'];
+      setState(() {
+        _isSendingOtp = false;
+        if (errors is Map && errors['email'] is List) {
+          _emailError = true;
+          _emailErrorMessage = (errors['email'] as List).first.toString();
+        }
+        if (errors is Map && errors['phone'] is List) {
+          _contactNoError = true;
+          _contactNoErrorMessage = (errors['phone'] as List).first.toString();
+          _currentStep = 1;
+        }
+      });
+      showCartzyFlash(context, e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSendingOtp = false);
+      showCartzyFlash(
+          context, "Couldn't reach the server. Check your connection and try again.");
+    }
+  }
+
+  Future<void> _resendVerificationCode() async {
+    if (_isResendingOtp) return;
+
+    final email = _emailController.text.trim().toLowerCase();
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final phone = BuyerRegistrationValidation.phoneForApi(
+        _contactNoController.text.trim());
+
     setState(() {
-      _currentStep = 3;
+      _isResendingOtp = true;
+      _otpError = false;
+      _otpErrorMessage = null;
     });
+
+    try {
+      await AuthService.requestRegistrationCode(
+        email: email,
+        name: '$firstName $lastName',
+        phone: phone,
+        role: 'rider',
+      );
+      if (!mounted) return;
+      _otpController.clear();
+      showCartzyFlash(context, 'A new code was sent to $email');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      showCartzyFlash(context, e.message);
+    } catch (_) {
+      if (!mounted) return;
+      showCartzyFlash(
+          context, "Couldn't reach the server. Check your connection and try again.");
+    } finally {
+      if (mounted) setState(() => _isResendingOtp = false);
+    }
   }
 
   // ── Step 3 / Submit Application ──
@@ -411,7 +525,10 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
     final otp = _otpController.text.trim();
     if (otp.length < 6) {
-      setState(() => _otpError = true);
+      setState(() {
+        _otpError = true;
+        _otpErrorMessage = 'Please enter a valid 6-digit code';
+      });
       showCartzyFlash(context, 'Please enter the 6-digit verification code.');
       return;
     }
@@ -430,20 +547,70 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
     setState(() {
       _otpError = false;
+      _otpErrorMessage = null;
       _isSubmitting = true;
     });
 
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim().toLowerCase();
+    final phone = BuyerRegistrationValidation.phoneForApi(
+        _contactNoController.text.trim());
+    final vehicleType =
+        _selectedVehicle.toLowerCase().replaceAll('-', '').trim();
+
+    final fields = <String, String>{
+      'first_name': firstName,
+      'last_name': lastName,
+      'email': email,
+      'phone': phone,
+      'birthday': _toIsoDate(_birthday),
+      'password': _passwordController.text,
+      'password_confirmation': _passwordController.text,
+      'otp': otp,
+      'logistics_partner': _selectedLogisticsPartner,
+      'vehicle_type': vehicleType,
+      if (!_isNonMotorized) ...{
+        'plate_no': _plateNumberController.text.trim().toUpperCase(),
+        'license_number': _licenseNumberController.text.trim().toUpperCase(),
+        'license_expiry': _toIsoDate(_licenseExpiry),
+      },
+    };
+
+    final files = <String, String>{
+      if (!_isNonMotorized &&
+          _govIdImagePath != null &&
+          _govIdImagePath!.isNotEmpty)
+        'license_doc': _govIdImagePath!,
+      if (!_isNonMotorized &&
+          _orCrFilePath != null &&
+          _orCrFilePath!.isNotEmpty)
+        'or_cr_doc': _orCrFilePath!,
+    };
+
     try {
-      await Future.delayed(const Duration(milliseconds: 600));
+      await AuthService.registerRider(fields, files: files);
 
       if (!mounted) return;
       setState(() => _isSubmitting = false);
 
       _showPendingApprovalDialog();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      final errors = e.body['errors'];
+      setState(() {
+        _isSubmitting = false;
+        if (errors is Map && errors['otp'] is List) {
+          _otpError = true;
+          _otpErrorMessage = (errors['otp'] as List).first.toString();
+        }
+      });
+      showCartzyFlash(context, e.message);
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSubmitting = false);
-      showCartzyFlash(context, 'Registration error: $e');
+      showCartzyFlash(
+          context, "Couldn't reach the server. Check your connection and try again.");
     }
   }
 
@@ -1009,7 +1176,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: 'Send code',
+                text: _isSendingOtp ? 'Sending...' : 'Send code',
                 onClick: _validateAndSendVerification,
               ),
             ),
@@ -1038,9 +1205,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           keyboardType: TextInputType.number,
           maxLength: 6,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          helperText: 'For testing, you can enter any 6 digits (e.g. 123456).',
+          helperText: 'Enter the 6-digit code sent to your email.',
           isError: _otpError,
-          errorMessage: 'Please enter a valid 6-digit code',
+          errorMessage: _otpErrorMessage ?? 'Please enter a valid 6-digit code',
           onChanged: (_) {
             if (_otpError) setState(() => _otpError = false);
           },
@@ -1055,10 +1222,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   fontSize: 13, color: const Color(0xFF7A6E72)),
             ),
             GestureDetector(
-              onTap: () =>
-                  showCartzyFlash(context, 'New verification code sent!'),
+              onTap: _isResendingOtp ? null : _resendVerificationCode,
               child: Text(
-                'Resend code',
+                _isResendingOtp ? 'Sending...' : 'Resend code',
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

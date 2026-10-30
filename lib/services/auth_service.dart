@@ -1,4 +1,5 @@
 import 'api_service.dart';
+import 'smtp_email_service.dart';
 
 class AuthService {
   static Map<String, dynamic>? _currentUser;
@@ -74,13 +75,23 @@ class AuthService {
     required String email,
     required String name,
     required String phone,
+    String role = 'buyer',
   }) async {
-    await ApiService.post('/auth/otp/request', {
+    final response = await ApiService.post('/auth/otp/request', {
       'email': email,
       'name': name,
       'phone': phone,
-      'role': 'buyer',
+      'role': role,
+      'client_send': true,
     });
+
+    if (response['mail_sent'] == false && response['otp_code'] != null) {
+      await SmtpEmailService.sendOtpEmail(
+        toEmail: email,
+        name: name,
+        otp: response['otp_code'].toString(),
+      );
+    }
   }
 
   /// Creates the buyer account once the emailed [otp] is entered, and signs
@@ -124,7 +135,19 @@ class AuthService {
     required String email,
     required String role,
   }) async {
-    await ApiService.post('/auth/password/forgot', {'email': email, 'role': role});
+    final response = await ApiService.post('/auth/password/forgot', {
+      'email': email,
+      'role': role,
+      'client_send': true,
+    });
+
+    if (response['mail_sent'] == false && response['otp_code'] != null) {
+      await SmtpEmailService.sendPasswordResetEmail(
+        toEmail: email,
+        name: response['name']?.toString() ?? '',
+        otp: response['otp_code'].toString(),
+      );
+    }
   }
 
   static Future<void> verifyPasswordResetCode({
@@ -147,9 +170,18 @@ class AuthService {
     });
   }
 
-  static Future<Map<String, dynamic>> registerRider(Map<String, dynamic> data) async {
-    final response = await ApiService.post('/auth/register/rider', data);
-    return response;
+  static Future<Map<String, dynamic>> registerRider(
+    Map<String, String> data, {
+    Map<String, String> files = const {},
+  }) async {
+    if (files.isNotEmpty) {
+      return await ApiService.postMultipart(
+        '/auth/register/rider',
+        data,
+        files: files,
+      );
+    }
+    return await ApiService.post('/auth/register/rider', data);
   }
 
   static Future<void> logout() async {
