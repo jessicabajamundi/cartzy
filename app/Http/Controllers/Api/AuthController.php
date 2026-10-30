@@ -75,6 +75,78 @@ class AuthController extends Controller
     /** Same email OTP as the website: request a code, then register with it. */
     public function requestOtp(Request $request)
     {
+        $webhookUrl = trim((string) config('services.mail_webhook.url', ''));
+        if ($request->boolean('client_send') && $webhookUrl === '') {
+            if (is_string($request->input('email'))) {
+                $request->merge(['email' => strtolower(trim($request->input('email')))]);
+            }
+            if (is_string($request->input('phone'))) {
+                $phone = trim($request->input('phone'));
+                if (preg_match('/\A\+639[0-9]{9}\z/', $phone)) {
+                    $phone = '0' . substr($phone, 3);
+                } elseif (preg_match('/\A9[0-9]{9}\z/', $phone)) {
+                    $phone = '0' . $phone;
+                }
+                $request->merge(['phone' => $phone]);
+            }
+
+            $validated = $request->validate([
+                'email' => [
+                    'bail', 'required', 'string', 'max:255', 'email',
+                    'regex:/\A[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+\z/',
+                    function ($attribute, $value, $fail) {
+                        if (User::whereRaw('LOWER(email) = ?', [strtolower($value)])->exists()) {
+                            $fail('This email is already in use. Please log in instead. To register another account, use a different email address.');
+                        }
+                    },
+                ],
+                'name' => ['nullable', 'string'],
+                'role' => ['nullable', 'string'],
+                'phone' => [
+                    'bail', 'nullable', 'string', 'regex:/\A[0-9]+\z/', 'size:11', 'starts_with:09',
+                    function ($attribute, $value, $fail) {
+                        if (!empty($value)) {
+                            $valClean = trim($value);
+                            $formattedLocal = str_starts_with($valClean, '0') ? $valClean : '0' . $valClean;
+                            $formattedIntl = '+63' . ltrim($formattedLocal, '0');
+                            if (User::whereIn('phone', [$valClean, $formattedLocal, $formattedIntl])->exists()) {
+                                $fail('This mobile number is already in use.');
+                            }
+                        }
+                    },
+                ],
+            ], [
+                'email.email' => 'Please enter a valid email address.',
+                'email.regex' => 'Please enter a valid email address.',
+            ]);
+
+            $email = strtolower(trim($validated['email']));
+            $name = trim($validated['name'] ?? 'Applicant');
+            $role = $validated['role'] ?? 'buyer';
+            $otpCode = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+            $otpItem = [
+                'id' => (string) str_replace(['.', '@'], '', $email) . '_' . time(),
+                'email' => $email,
+                'name' => $name,
+                'role' => $role,
+                'otp' => $otpCode,
+                'status' => 'sent',
+                'requested_at' => now()->format('M d, Y h:i A'),
+                'sent_at' => now()->format('M d, Y h:i A'),
+            ];
+
+            Cache::put('otp_' . $email, $otpItem, now()->addMinutes(10));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'A 6-digit verification code has been sent to your email address.',
+                'email' => $email,
+                'mail_sent' => false,
+                'otp_code' => $otpCode,
+            ]);
+        }
+
         return app(\App\Http\Controllers\AuthController::class)->requestOtp($request);
     }
 
@@ -98,6 +170,32 @@ class AuthController extends Controller
                     .($user->role === User::ROLE_COURIER ? 'Courier' : ucfirst($user->role)).' login instead.',
                 'account_role' => $user->role === User::ROLE_COURIER ? 'rider' : $user->role,
             ], 403);
+        }
+
+        $webhookUrl = trim((string) config('services.mail_webhook.url', ''));
+        if ($request->boolean('client_send') && $webhookUrl === '') {
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No account found with this email address.',
+                ], 404);
+            }
+            $email = strtolower(trim($data['email']));
+            $otpCode = (string) str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            Cache::put('pwd_reset_otp_' . $email, [
+                'otp' => $otpCode,
+                'name' => $user->name,
+                'created_at' => now(),
+            ], now()->addMinutes(15));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'A 6-digit verification code has been sent to your email address.',
+                'email' => $email,
+                'name' => $user->name,
+                'mail_sent' => false,
+                'otp_code' => $otpCode,
+            ]);
         }
 
         return app(\App\Http\Controllers\AuthController::class)->sendResetOtp($request);
@@ -192,6 +290,106 @@ class AuthController extends Controller
         Cache::forget('otp_'.$email);
 
         return response()->json(['token' => $user->createToken('cartzy-mobile')->plainTextToken, 'user' => self::userJson($user)], 201);
+    }
+
+    public function registerRider(Request $request)
+    {
+        if (is_string($request->input('vehicle_type'))) {
+            $vt = strtolower(str_replace('-', '', trim($request->input('vehicle_type'))));
+            $request->merge(['vehicle_type' => $vt]);
+        }
+        if (is_string($request->input('license_number'))) {
+            $request->merge(['license_number' => strtoupper(trim($request->input('license_number')))]);
+        }
+
+        $nonMotorized = in_array($request->input('vehicle_type'), ['bicycle', 'ebike'], true);
+
+        $data = $request->validate([
+            'first_name' => ['required', 'string', 'max:50', 'regex:/\A(?:\p{L}\p{M}*| )+\z/u'],
+            'last_name' => ['required', 'string', 'max:50', 'regex:/\A(?:\p{L}\p{M}*| )+\z/u'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'phone' => ['required', 'regex:/^09\d{9}$/', Rule::unique('users', 'phone')],
+            'birthday' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now()->subYearsNoOverflow(18)->toDateString()],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'otp' => ['required', 'digits:6'],
+            'logistics_partner' => ['nullable', 'string', 'max:255'],
+            'logistics_provider_id' => ['nullable', 'integer', 'exists:logistics_providers,id'],
+            'vehicle_type' => ['required', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'plate_no' => [
+                Rule::requiredIf(fn () => !$nonMotorized),
+                'nullable', 'string', 'min:5', 'max:8', 'regex:/^[a-zA-Z0-9]+$/',
+            ],
+            'license_number' => [
+                Rule::requiredIf(fn () => !$nonMotorized),
+                'nullable', 'string', 'size:13', 'regex:/^[A-Za-z][0-9]{2}-[0-9]{2}-[0-9]{6}$/',
+            ],
+            'license_expiry' => [
+                Rule::requiredIf(fn () => !$nonMotorized),
+                'nullable', 'date',
+            ],
+            'license_doc' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'or_cr_doc' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+        ], [
+            'phone.regex' => 'Enter an 11-digit mobile number starting with 09.',
+            'birthday.before_or_equal' => 'You must be at least 18 years old to register.',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+        $otp = Cache::get('otp_'.$email);
+        if (!$otp || $otp['otp'] !== $data['otp']) {
+            return response()->json(['message' => 'Invalid or expired verification code.', 'errors' => ['otp' => ['Invalid or expired verification code.']]], 422);
+        }
+
+        if ($request->hasFile('license_doc') && $request->file('license_doc')->isValid()) {
+            $request->file('license_doc')->store('rider_documents', 'public');
+        }
+        if ($request->hasFile('or_cr_doc') && $request->file('or_cr_doc')->isValid()) {
+            $request->file('or_cr_doc')->store('rider_documents', 'public');
+        }
+
+        $providerId = $data['logistics_provider_id'] ?? null;
+        if (!$providerId && !empty($data['logistics_partner'])) {
+            $providerId = \App\Models\LogisticsProvider::whereRaw('LOWER(name) = ?', [strtolower(trim($data['logistics_partner']))])->value('id');
+        }
+        if (!$providerId) {
+            $providerId = \App\Models\LogisticsProvider::where('status', 'approved')->value('id')
+                ?? \App\Models\LogisticsProvider::value('id');
+        }
+
+        $user = DB::transaction(function () use ($data, $email, $providerId) {
+            $user = User::create([
+                'name' => trim($data['first_name'].' '.$data['last_name']),
+                'email' => $email,
+                'phone' => $data['phone'],
+                'birthday' => $data['birthday'],
+                'age' => \Carbon\Carbon::parse($data['birthday'])->age,
+                'role' => User::ROLE_COURIER,
+                'status' => 'pending',
+                'email_verified_at' => now(),
+                'password' => Hash::make($data['password']),
+            ]);
+
+            if ($providerId) {
+                \App\Models\Rider::firstOrCreate(['user_id' => $user->id], [
+                    'logistics_provider_id' => $providerId,
+                    'vehicle_type' => $data['vehicle_type'],
+                    'plate_no' => !empty($data['plate_no']) ? strtoupper(trim($data['plate_no'])) : null,
+                    'status' => 'pending',
+                    'is_active' => false,
+                ]);
+            }
+
+            $user->roles()->syncWithoutDetaching([\App\Models\Role::firstOrCreate(['name' => 'courier'])->id]);
+
+            return $user;
+        });
+
+        Cache::forget('otp_'.$email);
+
+        return response()->json([
+            'message' => 'Your rider application has been submitted and is pending approval.',
+            'user' => self::userJson($user),
+        ], 201);
     }
 
     public function me(Request $request)

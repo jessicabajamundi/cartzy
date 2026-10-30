@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
@@ -253,6 +254,53 @@ class AuthController extends Controller
     }
 
     /**
+     * Option A: Dispatch an HTML email via Google Apps Script HTTPS Relay (port 443)
+     * when MAIL_WEBHOOK_URL is configured (bypasses Render Free Tier's SMTP port 587 block
+     * using authenticationfor63@gmail.com directly), falling back to standard Laravel
+     * Mail::send for local SMTP and PHPUnit Mail::fake().
+     */
+    private function sendTransactionalEmail(string $to, string $subject, string $view, array $data): void
+    {
+        if (Mail::isFake()) {
+            Mail::send($view, $data, function ($message) use ($to, $subject) {
+                $message->to($to)->subject($subject);
+            });
+            return;
+        }
+
+        // Option A: Google Apps Script HTTPS Relay (port 443)
+        $webhookUrl = trim((string) config('services.mail_webhook.url', ''));
+        if ($webhookUrl !== '') {
+            $html = view($view, $data)->render();
+            $fromName = (string) config('mail.from.name', 'Cartzy');
+
+            $response = Http::timeout(15)
+                ->withOptions(['allow_redirects' => true])
+                ->acceptJson()
+                ->post($webhookUrl, [
+                    'to' => $to,
+                    'subject' => $subject,
+                    'html' => $html,
+                    'name' => $fromName,
+                ]);
+
+            if (!$response->successful() && !$response->redirect()) {
+                throw new \RuntimeException('Google Apps Script relay error (' . $response->status() . '): ' . $response->body());
+            }
+            return;
+        }
+
+        // Default Laravel Mailer (local SMTP development)
+        if (in_array(config('mail.default'), ['log', 'array', 'failover'], true)) {
+            throw new \RuntimeException('Registration requires a delivery-capable mailer.');
+        }
+
+        Mail::send($view, $data, function ($message) use ($to, $subject) {
+            $message->to($to)->subject($subject);
+        });
+    }
+
+    /**
      * Handle AJAX request to automatically generate and send OTP to applicant email.
      */
     public function requestOtp(Request $request)
@@ -286,20 +334,21 @@ class AuthController extends Controller
 
         // Automatically dispatch email
         try {
-            if (!Mail::isFake() && in_array(config('mail.default'), ['log', 'array', 'failover'], true)) {
-                throw new \RuntimeException('Registration requires a delivery-capable mailer.');
-            }
-            Mail::send('emails.otp-verification', [
-                'name' => $name,
-                'otp' => $otpCode,
-                'email' => $email,
-            ], function ($message) use ($email) {
-                $message->to($email)
-                    ->subject('Your Cartzy email verification code');
-            });
+            $this->sendTransactionalEmail(
+                $email,
+                'Your Cartzy email verification code',
+                'emails.otp-verification',
+                [
+                    'name' => $name,
+                    'otp' => $otpCode,
+                    'email' => $email,
+                ]
+            );
         } catch (\Exception $e) {
             Log::warning('Registration verification email could not be sent.', [
-                'mailer' => config('mail.default'), 'exception' => get_class($e),
+                'mailer' => config('mail.default'),
+                'exception' => get_class($e),
+                'error' => $e->getMessage(),
             ]);
             return response()->json([
                 'success' => false, 'mail_sent' => false,
@@ -1084,14 +1133,16 @@ class AuthController extends Controller
         // Dispatch Email
         $mailSent = false;
         try {
-            Mail::send('emails.password-reset-otp', [
-                'name' => $user->name,
-                'otp'  => $otpCode,
-                'email'=> $email,
-            ], function ($message) use ($email, $otpCode) {
-                $message->to($email)
-                    ->subject('Your cartzy Password Reset Code [' . $otpCode . ']');
-            });
+            $this->sendTransactionalEmail(
+                $email,
+                'Your cartzy Password Reset Code [' . $otpCode . ']',
+                'emails.password-reset-otp',
+                [
+                    'name' => $user->name,
+                    'otp'  => $otpCode,
+                    'email'=> $email,
+                ]
+            );
             $mailSent = true;
         } catch (\Exception $e) {
             Log::info("Password reset OTP for {$email}: {$otpCode} (Mail driver: " . config('mail.default') . "). Note: " . $e->getMessage());
