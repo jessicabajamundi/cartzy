@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
+import 'package:cartzy/services/app_update_service.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -1352,6 +1353,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       icon: Icons.description_outlined,
                       label: 'Terms & policies',
                       onTap: _openTermsModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Patch notes & What's new
+                    _buildMenuTile(
+                      icon: Icons.auto_awesome_rounded,
+                      label: "What's new (Patch notes)",
+                      onTap: () {
+                        AppUpdateService.checkLocalPatchNotes(context, forceShow: true);
+                      },
                     ),
                   ],
                 ),

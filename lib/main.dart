@@ -20,6 +20,7 @@ import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/auth/email_verification_screen.dart';
 import 'package:cartzy/widgets/access_denied_screen.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
+import 'package:cartzy/services/app_update_service.dart';
 
 void main() {
   runApp(const CartzyApp());
@@ -54,6 +55,25 @@ class CartzyHome extends StatefulWidget {
 
 class _CartzyHomeState extends State<CartzyHome> {
   late String currentRoute = widget.initialRoute;
+  bool _hasCheckedUpdates = false;
+
+  void _triggerUpdateCheck() {
+    if (_hasCheckedUpdates) return;
+    _hasCheckedUpdates = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        AppUpdateService.checkOnAppStart(context);
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialRoute != 'splash') {
+      _triggerUpdateCheck();
+    }
+  }
 
   Map<String, dynamic>? _loggedInUser;
 
@@ -274,6 +294,7 @@ class _CartzyHomeState extends State<CartzyHome> {
         return SplashScreen(
           onFinished: () {
             goTo('guest');
+            _triggerUpdateCheck();
           },
         );
 
