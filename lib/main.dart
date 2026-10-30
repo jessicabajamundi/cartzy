@@ -104,6 +104,14 @@ class _CartzyHomeState extends State<CartzyHome> {
     goTo('guest');
   }
 
+  /// Signs out directly without showing a second confirmation modal when
+  /// called from screens (like [AccountSettingsScreen]) that already show
+  /// their own sign-out dialog.
+  Future<void> performLogout() async {
+    await AuthService.logout();
+    if (mounted) logout();
+  }
+
   Future<void> confirmLogout() async {
     final userName = loggedInUser?['name']?.toString().trim();
     final displayName = (userName == null || userName.isEmpty)
@@ -395,7 +403,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onVouchersClick: () {
             goTo('vouchers');
           },
-          onLogout: confirmLogout,
+          onLogout: performLogout,
         );
 
       // ========================================================
@@ -501,7 +509,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onBack: () {
             goTo(loggedInUser != null ? 'dashboard' : 'guest');
           },
-          onLogout: confirmLogout,
+          onLogout: performLogout,
           onProfileUpdated: (updatedUser) {
             setState(() {
               loggedInUser = {

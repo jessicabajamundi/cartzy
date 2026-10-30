@@ -8,7 +8,6 @@ import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
@@ -188,10 +187,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   bool _confirmPasswordError = false;
   String _confirmPasswordMessage = 'This field is required';
 
-  String? _idFileName;
-  XFile? _idFile;
-  bool _idError = false;
-
   bool _agreeToTerms = false;
   bool _agreeToPrivacy = false;
   bool _termsError = false;
@@ -297,33 +292,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         },
       ),
     );
-  }
-
-  Future<void> _pickIdFile() async {
-    try {
-      final picker = ImagePicker();
-
-      final XFile? pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-      );
-
-      if (pickedFile == null) return;
-
-      setState(() {
-        _idFile = pickedFile;
-        _idFileName = pickedFile.name;
-        _idError = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unable to select ID photo: $e'),
-        ),
-      );
-    }
   }
 
   String _birthdayForDatabase() {
@@ -649,8 +617,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         _confirmPasswordError = false;
       }
 
-      _idError = _idFile == null;
-
       // TC-BUY-021: Terms AND Privacy Policy must both be accepted
       _termsError = !_agreeToTerms;
       _privacyError = !_agreeToPrivacy;
@@ -658,7 +624,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
 
     if (_passwordError ||
         _confirmPasswordError ||
-        _idError ||
         _termsError ||
         _privacyError) {
       return;
@@ -1154,15 +1119,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         ),
         const SizedBox(height: 20),
 
-        RegistrationUploadField(
-          label: 'Upload ID *',
-          fileName: _idFileName,
-          isError: _idError,
-          errorMessage: 'Please upload a valid ID',
-          onTap: _pickIdFile,
-        ),
-        const SizedBox(height: 20),
-
         // ── Terms of Service ──
         InkWell(
           onTap: () {
@@ -1312,7 +1268,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: _isSubmitting ? 'Sending code...' : 'Create account',
+                text: _isSubmitting ? 'Sending...' : 'Create',
                 onClick: _isSubmitting ? () {} : _registerBuyer,
               ),
             ),
@@ -2985,16 +2941,23 @@ class PrimaryButton extends StatelessWidget {
             shadowColor: Colors.transparent,
             foregroundColor: Colors.white,
             elevation: 0,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-          child: Text(
-            text,
-            style: GoogleFonts.dmSans(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: GoogleFonts.dmSans(
+                fontSize: 14.5,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -3027,17 +2990,24 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onClick,
         style: OutlinedButton.styleFrom(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           side: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        child: Text(
-          text,
-          style: GoogleFonts.dmSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF231F20),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            style: GoogleFonts.dmSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF231F20),
+            ),
           ),
         ),
       ),

@@ -619,60 +619,204 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   // ============================================================
 
   void _showPendingApprovalDialog() {
+    final submittedEmail = _emailController.text.trim();
+    final partner = _selectedLogisticsPartner;
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F2F3),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.hourglass_top,
-                    color: Color(0xFF865561), size: 22),
-              ),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  'Registration Submitted',
-                  style: GoogleFonts.dmSans(
-                    color: const Color(0xFF231F20),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // ── Top Icon Badge ──
+                Container(
+                  width: 68,
+                  height: 68,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0xFFFDF3F5),
+                    border: Border.all(
+                      color: const Color(0xFFF2DCE2),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF865561).withValues(alpha: 0.10),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF493D4C), Color(0xFF865561)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.hourglass_top_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          content: Text(
-            "After submitting your registration, please wait for the "
-            "Logistics/Sorting Center's approval, which will be sent to "
-            "your email.",
-            style: GoogleFonts.dmSans(
-                fontSize: 14, color: const Color(0xFF7A6E72), height: 1.4),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onRegistrationSubmitted();
-              },
-              child: Text(
-                'OK',
-                style: GoogleFonts.dmSans(
-                  color: const Color(0xFF865561),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                const SizedBox(height: 16),
+
+                // ── Status Pill ──
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFBF0F3),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFEED6DD)),
+                  ),
+                  child: Text(
+                    'PENDING APPROVAL',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
+                      color: const Color(0xFF865561),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 12),
+
+                // ── Title ──
+                Text(
+                  'Registration Submitted',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.playfairDisplay(
+                    color: const Color(0xFF231F20),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 22,
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // ── Message ──
+                Text(
+                  "Your rider application has been received! Please wait for the Logistics/Sorting Center's approval, which will be sent to your email.",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 13.5,
+                    color: const Color(0xFF6E6266),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // ── Summary Box ──
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFAF6F7),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFEDE3E6)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.local_shipping_outlined,
+                            size: 16,
+                            color: Color(0xFF865561),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Partner:',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 12,
+                              color: const Color(0xFF7A6E72),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              partner,
+                              textAlign: TextAlign.right,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF231F20),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (submittedEmail.isNotEmpty) ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Divider(height: 1, color: Color(0xFFEDE3E6)),
+                        ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.mark_email_read_outlined,
+                              size: 16,
+                              color: Color(0xFF865561),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Email:',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 12,
+                                color: const Color(0xFF7A6E72),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                submittedEmail,
+                                textAlign: TextAlign.right,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF231F20),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // ── Action Button ──
+                PrimaryButton(
+                  text: 'Got it, thanks!',
+                  onClick: () {
+                    Navigator.of(dialogContext).pop();
+                    widget.onRegistrationSubmitted();
+                  },
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );
@@ -1246,7 +1390,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             const SizedBox(width: 14),
             Expanded(
               child: PrimaryButton(
-                text: _isSubmitting ? 'Submitting...' : 'Submit application',
+                text: _isSubmitting ? 'Submitting...' : 'Submit',
                 onClick: _submitApplication,
               ),
             ),
