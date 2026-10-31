@@ -76,6 +76,15 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.1.4' || version == 'v1.1.4') {
+      return const [
+        'Live Messages: Real-time buyer messaging and product inquiries synced directly with the database.',
+        'Database Notifications: Accurate real-time alerts with unread counter, order deep linking, and swipe dismissal.',
+        'Interactive Search: Trending search suggestions, typeahead search, and categorized product grid.',
+        'Search History & Filters: Instant recent search recall and 4-way product sorting.',
+        'Auto-Sliding Navigation: Responsive bottom navigation bar that slides down on scroll.',
+      ];
+    }
     return const [
       'Interactive Search: Tap the header search bar to discover trending items, explore categories, and get live suggestions.',
       'Search History: Easily view recent searches with one-tap search and single or clear-all removal.',
