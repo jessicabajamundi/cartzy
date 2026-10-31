@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cartzy/utils/input_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,6 +41,42 @@ class AccountSettingsScreen extends StatefulWidget {
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   late TextEditingController _nameController;
+  bool _isNavVisible = true;
+  Timer? _scrollStopTimer;
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.pixels <= 20) {
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+      return false;
+    }
+
+    if (notification is ScrollStartNotification) {
+      if (_isNavVisible) {
+        setState(() => _isNavVisible = false);
+      }
+    } else if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta.abs() > 1.0) {
+        if (_isNavVisible) {
+          setState(() => _isNavVisible = false);
+        }
+        _scrollStopTimer?.cancel();
+        _scrollStopTimer = Timer(const Duration(milliseconds: 400), () {
+          if (mounted && !_isNavVisible) {
+            setState(() => _isNavVisible = true);
+          }
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollStopTimer?.cancel();
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+    }
+    return false;
+  }
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
 
@@ -78,6 +115,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
   @override
   void dispose() {
+    _scrollStopTimer?.cancel();
     _nameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
@@ -1054,7 +1092,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1481,10 +1521,18 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ),
         ),
       ),
+    ),
       bottomNavigationBar: SafeArea(
         top: false,
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: AnimatedSlide(
+          offset: _isNavVisible ? Offset.zero : const Offset(0, 1.8),
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeInOutCubic,
+          child: AnimatedOpacity(
+            opacity: _isNavVisible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
           decoration: const ShapeDecoration(
             color: CartzyColors.surface,
             shape: StadiumBorder(
@@ -1559,7 +1607,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   // ==========================================

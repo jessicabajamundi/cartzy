@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -6,7 +7,7 @@ import 'package:cartzy/guest/guest_wishlist_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 
-class GuestCartScreen extends StatelessWidget {
+class GuestCartScreen extends StatefulWidget {
   static void open(BuildContext context) {
     final navigator = Navigator.of(context);
     void goTo(String route) =>
@@ -38,6 +39,54 @@ class GuestCartScreen extends StatelessWidget {
     required this.onHome,
     required this.onWishlist,
   });
+
+  @override
+  State<GuestCartScreen> createState() => _GuestCartScreenState();
+}
+
+class _GuestCartScreenState extends State<GuestCartScreen> {
+  bool _isNavVisible = true;
+  Timer? _scrollStopTimer;
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.pixels <= 20) {
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+      return false;
+    }
+
+    if (notification is ScrollStartNotification) {
+      if (_isNavVisible) {
+        setState(() => _isNavVisible = false);
+      }
+    } else if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta.abs() > 1.0) {
+        if (_isNavVisible) {
+          setState(() => _isNavVisible = false);
+        }
+        _scrollStopTimer?.cancel();
+        _scrollStopTimer = Timer(const Duration(milliseconds: 400), () {
+          if (mounted && !_isNavVisible) {
+            setState(() => _isNavVisible = true);
+          }
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollStopTimer?.cancel();
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+    }
+    return false;
+  }
+
+  @override
+  void dispose() {
+    _scrollStopTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,85 +130,88 @@ class GuestCartScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 28, vertical: 28),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Center(child: _CartIllustration()),
-                        const SizedBox(height: 24),
-                        Text('GOOD FINDS START HERE',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 10,
-                              letterSpacing: 1.8,
-                              fontWeight: FontWeight.w700,
-                              color: CartzyColors.rose700,
-                            )),
-                        const SizedBox(height: 10),
-                        Text('Your next favorite awaits',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.playfairDisplay(
-                              fontSize: 28,
-                              height: 1.2,
-                              fontWeight: FontWeight.w700,
-                              color: CartzyColors.brand900,
-                            )),
-                        const SizedBox(height: 12),
-                        Text(
-                            'Make it yours. Log in to add your favorite finds to your cart and check out.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 14,
-                              height: 1.6,
-                              color: CartzyColors.brandDeep,
-                            )),
-                        const SizedBox(height: 28),
-                        ElevatedButton.icon(
-                          style: CartzyButtonStyles.primary.copyWith(
-                            minimumSize:
-                                const WidgetStatePropertyAll(Size(0, 50)),
-                            shape:
-                                const WidgetStatePropertyAll(StadiumBorder()),
+            builder: (context, constraints) => NotificationListener<ScrollNotification>(
+              onNotification: _onScrollNotification,
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 28, vertical: 28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Center(child: _CartIllustration()),
+                          const SizedBox(height: 24),
+                          Text('GOOD FINDS START HERE',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 10,
+                                letterSpacing: 1.8,
+                                fontWeight: FontWeight.w700,
+                                color: CartzyColors.rose700,
+                              )),
+                          const SizedBox(height: 10),
+                          Text('Your next favorite awaits',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 28,
+                                height: 1.2,
+                                fontWeight: FontWeight.w700,
+                                color: CartzyColors.brand900,
+                              )),
+                          const SizedBox(height: 12),
+                          Text(
+                              'Make it yours. Log in to add your favorite finds to your cart and check out.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.dmSans(
+                                fontSize: 14,
+                                height: 1.6,
+                                color: CartzyColors.brandDeep,
+                              )),
+                          const SizedBox(height: 28),
+                          ElevatedButton.icon(
+                            style: CartzyButtonStyles.primary.copyWith(
+                              minimumSize:
+                                  const WidgetStatePropertyAll(Size(0, 50)),
+                              shape:
+                                  const WidgetStatePropertyAll(StadiumBorder()),
+                            ),
+                            onPressed: widget.onLogin,
+                            icon: const Icon(Icons.login_rounded, size: 18),
+                            label: const Text('Log In'),
                           ),
-                          onPressed: onLogin,
-                          icon: const Icon(Icons.login_rounded, size: 18),
-                          label: const Text('Log In'),
-                        ),
-                        const SizedBox(height: 12),
-                        OutlinedButton(
-                          style: CartzyButtonStyles.outline.copyWith(
-                            foregroundColor: const WidgetStatePropertyAll(
-                                CartzyColors.rose700),
-                            backgroundColor: const WidgetStatePropertyAll(
-                                CartzyColors.rose50Warm),
-                            side: const WidgetStatePropertyAll(
-                                BorderSide(color: CartzyColors.rose200)),
-                            minimumSize:
-                                const WidgetStatePropertyAll(Size(0, 50)),
-                            shape:
-                                const WidgetStatePropertyAll(StadiumBorder()),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            style: CartzyButtonStyles.outline.copyWith(
+                              foregroundColor: const WidgetStatePropertyAll(
+                                  CartzyColors.rose700),
+                              backgroundColor: const WidgetStatePropertyAll(
+                                  CartzyColors.rose50Warm),
+                              side: const WidgetStatePropertyAll(
+                                  BorderSide(color: CartzyColors.rose200)),
+                              minimumSize:
+                                  const WidgetStatePropertyAll(Size(0, 50)),
+                              shape:
+                                  const WidgetStatePropertyAll(StadiumBorder()),
+                            ),
+                            onPressed: widget.onSignUp,
+                            child: const Text('Create Account'),
                           ),
-                          onPressed: onSignUp,
-                          child: const Text('Create Account'),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: onHome,
-                          style: TextButton.styleFrom(
-                            foregroundColor: CartzyColors.brandDeep,
-                            minimumSize: const Size(0, 48),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: widget.onHome,
+                            style: TextButton.styleFrom(
+                              foregroundColor: CartzyColors.brandDeep,
+                              minimumSize: const Size(0, 48),
+                            ),
+                            child: const Text('Keep exploring'),
                           ),
-                          child: const Text('Keep exploring'),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -170,63 +222,72 @@ class GuestCartScreen extends StatelessWidget {
       ),
       bottomNavigationBar: SafeArea(
         top: false,
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          decoration: const ShapeDecoration(
-            color: CartzyColors.surface,
-            shape: StadiumBorder(
-              side: BorderSide(color: CartzyColors.border),
-            ),
-            shadows: [
-              BoxShadow(
-                color: Color(0x148B3A3A),
-                blurRadius: 16,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Row(
-            children: [
-              _BottomNavItem(
-                icon: Icons.home_rounded,
-                label: 'Home',
-                selected: false,
-                onClick: onHome,
-              ),
-              _BottomNavItem(
-                icon: Icons.shopping_cart_outlined,
-                label: 'Cart',
-                selected: true,
-                onClick: () {},
-              ),
-              _BottomNavItem(
-                icon: Icons.local_offer_outlined,
-                label: 'Sale',
-                selected: false,
-                isSale: true,
-                onClick: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ProductListScreen(
-                        initialCategory: 'Flash Deals',
-                        title: 'Sale & Flash Deals',
-                      ),
-                    ),
-                  );
-                },
-              ),
-              _BottomNavItem(
-                icon: Icons.person_outline_rounded,
-                label: 'Profile',
-                selected: false,
-                onClick: () => GuestAccountScreen.open(
-                  context,
-                  onLogin: onLogin,
-                  onSignUp: onSignUp,
+        child: AnimatedSlide(
+          offset: _isNavVisible ? Offset.zero : const Offset(0, 1.8),
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeInOutCubic,
+          child: AnimatedOpacity(
+            opacity: _isNavVisible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              decoration: const ShapeDecoration(
+                color: CartzyColors.surface,
+                shape: StadiumBorder(
+                  side: BorderSide(color: CartzyColors.border),
                 ),
+                shadows: [
+                  BoxShadow(
+                    color: Color(0x148B3A3A),
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                children: [
+                  _BottomNavItem(
+                    icon: Icons.home_rounded,
+                    label: 'Home',
+                    selected: false,
+                    onClick: widget.onHome,
+                  ),
+                  _BottomNavItem(
+                    icon: Icons.shopping_cart_outlined,
+                    label: 'Cart',
+                    selected: true,
+                    onClick: () {},
+                  ),
+                  _BottomNavItem(
+                    icon: Icons.local_offer_outlined,
+                    label: 'Sale',
+                    selected: false,
+                    isSale: true,
+                    onClick: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ProductListScreen(
+                            initialCategory: 'Flash Deals',
+                            title: 'Sale & Flash Deals',
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _BottomNavItem(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Profile',
+                    selected: false,
+                    onClick: () => GuestAccountScreen.open(
+                      context,
+                      onLogin: widget.onLogin,
+                      onSignUp: widget.onSignUp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
