@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/messages/thread', [MessageController::class, 'thread']);
         Route::post('/messages/send', [MessageController::class, 'send'])->middleware('throttle:60,1');
         Route::post('/messages/inquire', [MessageController::class, 'inquire'])->middleware('throttle:20,1');
+
+        // Buyer Notifications
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->whereNumber('id');
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
     });
 });
 
