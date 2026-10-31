@@ -29,6 +29,20 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
+  static const _softBlend = LinearGradient(
+    colors: [
+      CartzyColors.brand200,
+      CartzyColors.brand100,
+      CartzyColors.rose200
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  static const _accentBlend = LinearGradient(
+    colors: [CartzyColors.brandDark, CartzyColors.rose700],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _replyController = TextEditingController();
   final ScrollController _messagesScrollController = ScrollController();
@@ -107,7 +121,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
     if (widget.initialProductId != null) {
       // Inquire about product
       setState(() => _isLoadingMessages = true);
-      final res = await MessageService.inquire(productId: widget.initialProductId);
+      final res =
+          await MessageService.inquire(productId: widget.initialProductId);
       if (mounted && res != null && res['thread'] != null) {
         final t = res['thread'] as Map<String, dynamic>;
         final thread = ConversationThread(
@@ -205,7 +220,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     if (mounted) {
       final newMsgs = (res['messages'] as List<ChatMessage>?) ?? [];
       if (newMsgs.length != _messages.length ||
-          (newMsgs.isNotEmpty && _messages.isNotEmpty && newMsgs.last.id != _messages.last.id)) {
+          (newMsgs.isNotEmpty &&
+              _messages.isNotEmpty &&
+              newMsgs.last.id != _messages.last.id)) {
         setState(() {
           _messages = newMsgs;
         });
@@ -303,9 +320,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     final isChatOpen = _selectedThread != null;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: BoxDecoration(
-        color: CartzyColors.surface,
+        gradient: _softBlend,
         border: Border(
           bottom: BorderSide(color: CartzyColors.border.withValues(alpha: 0.8)),
         ),
@@ -329,10 +346,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
               }
             },
             child: Container(
-              padding: const EdgeInsets.all(7),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: CartzyColors.border),
               ),
               child: const Icon(
@@ -364,7 +381,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   ),
                   Text(
                     _selectedThread!.type == 'order'
-                        ? (_selectedThread!.orderReference ?? 'Order conversation')
+                        ? (_selectedThread!.orderReference ??
+                            'Order conversation')
                         : (_selectedThread!.productName ?? 'Store inquiry'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -393,7 +411,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   Text(
                     'Store Conversations',
                     style: GoogleFonts.playfairDisplay(
-                      fontSize: 17,
+                      fontSize: 23,
                       fontWeight: FontWeight.bold,
                       color: CartzyColors.navy,
                     ),
@@ -445,15 +463,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
       children: [
         // Search & Filter Bar
         Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-          color: CartzyColors.surface,
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+          color: CartzyColors.background,
           child: Column(
             children: [
               Container(
-                height: 38,
+                constraints: const BoxConstraints(minHeight: 48),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF4F2F5),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: CartzyColors.border),
                 ),
                 child: Row(
@@ -479,7 +497,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             fontSize: 12.5,
                             color: CartzyColors.grayMid,
                           ),
+                          filled: false,
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
                           isDense: true,
                           contentPadding:
                               const EdgeInsets.symmetric(vertical: 9),
@@ -505,7 +526,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
+              Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     '${_filteredConversations.length} conversation${_filteredConversations.length == 1 ? '' : 's'}',
@@ -515,17 +539,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       color: CartzyColors.grayMid,
                     ),
                   ),
-                  const Spacer(),
                   InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () => setState(() => _filterUnreadOnly = !_filterUnreadOnly),
+                    onTap: () =>
+                        setState(() => _filterUnreadOnly = !_filterUnreadOnly),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3.5),
+                          horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: _filterUnreadOnly
-                            ? CartzyColors.rose50Warm
-                            : Colors.transparent,
+                        gradient: _filterUnreadOnly ? _accentBlend : _softBlend,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _filterUnreadOnly
@@ -542,8 +564,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 : Icons.mark_email_unread_outlined,
                             size: 13,
                             color: _filterUnreadOnly
-                                ? CartzyColors.rose700
-                                : CartzyColors.grayMid,
+                                ? Colors.white
+                                : CartzyColors.brandDeep,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -554,8 +576,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   ? FontWeight.bold
                                   : FontWeight.w500,
                               color: _filterUnreadOnly
-                                  ? CartzyColors.rose700
-                                  : CartzyColors.grayMid,
+                                  ? Colors.white
+                                  : CartzyColors.brandDeep,
                             ),
                           ),
                         ],
@@ -582,31 +604,47 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       color: CartzyColors.brandDark,
                       onRefresh: _loadConversations,
                       child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
                         itemCount: _filteredConversations.length,
-                        separatorBuilder: (_, __) => Divider(
-                          height: 1,
-                          indent: 68,
-                          color: CartzyColors.border.withValues(alpha: 0.5),
-                        ),
+                        separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final thread = _filteredConversations[index];
                           final isSelected = _selectedThread?.key == thread.key;
 
                           return InkWell(
+                            borderRadius: BorderRadius.circular(20),
                             onTap: () => _selectThread(thread),
-                            child: Container(
-                              color: isSelected
-                                  ? const Color(0xFFF1EEF5)
-                                  : (thread.unreadCount > 0
-                                      ? const Color(0xFFFFF9F8)
-                                      : Colors.transparent),
+                            child: Ink(
+                              decoration: BoxDecoration(
+                                gradient: isSelected || thread.unreadCount > 0
+                                    ? _softBlend
+                                    : const LinearGradient(
+                                        colors: [
+                                          Colors.white,
+                                          CartzyColors.rose50Warm
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? CartzyColors.brand500
+                                      : thread.unreadCount > 0
+                                          ? CartzyColors.rose400
+                                          : CartzyColors.brand200,
+                                ),
+                              ),
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 12),
+                                  horizontal: 14, vertical: 16),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Avatar
-                                  _buildAvatar(thread.avatar, thread.store, 44),
+                                  _buildAvatar(thread.avatar, thread.store, 48),
                                   const SizedBox(width: 12),
 
                                   // Thread info
@@ -626,9 +664,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                 overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.dmSans(
                                                   fontSize: 13.5,
-                                                  fontWeight: thread.unreadCount > 0
-                                                      ? FontWeight.bold
-                                                      : FontWeight.w600,
+                                                  fontWeight:
+                                                      thread.unreadCount > 0
+                                                          ? FontWeight.bold
+                                                          : FontWeight.w600,
                                                   color: CartzyColors.navy,
                                                 ),
                                               ),
@@ -641,9 +680,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                 color: thread.unreadCount > 0
                                                     ? CartzyColors.rose700
                                                     : CartzyColors.grayMid,
-                                                fontWeight: thread.unreadCount > 0
-                                                    ? FontWeight.bold
-                                                    : FontWeight.normal,
+                                                fontWeight:
+                                                    thread.unreadCount > 0
+                                                        ? FontWeight.bold
+                                                        : FontWeight.normal,
                                               ),
                                             ),
                                           ],
@@ -664,8 +704,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                             Expanded(
                                               child: Text(
                                                 thread.type == 'order'
-                                                    ? (thread.orderReference ?? 'Order')
-                                                    : (thread.productName ?? 'Store inquiry'),
+                                                    ? (thread.orderReference ??
+                                                        'Order')
+                                                    : (thread.productName ??
+                                                        'Store inquiry'),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.dmSans(
@@ -689,12 +731,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                 overflow: TextOverflow.ellipsis,
                                                 style: GoogleFonts.dmSans(
                                                   fontSize: 12.5,
-                                                  fontWeight: thread.unreadCount > 0
-                                                      ? FontWeight.w600
-                                                      : FontWeight.normal,
+                                                  fontWeight:
+                                                      thread.unreadCount > 0
+                                                          ? FontWeight.w600
+                                                          : FontWeight.normal,
                                                   color: thread.unreadCount > 0
                                                       ? CartzyColors.navy
-                                                      : CartzyColors.grayMid,
+                                                      : CartzyColors.brandDeep,
                                                 ),
                                               ),
                                             ),
@@ -706,7 +749,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                         horizontal: 6,
                                                         vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: CartzyColors.rose700,
+                                                  gradient: _accentBlend,
                                                   borderRadius:
                                                       BorderRadius.circular(10),
                                                 ),
@@ -833,8 +876,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       itemCount: _messages.length,
                       itemBuilder: (context, index) {
                         final msg = _messages[index];
-                        final showDateHeader = index == 0 ||
-                            msg.date != _messages[index - 1].date;
+                        final showDateHeader =
+                            index == 0 || msg.date != _messages[index - 1].date;
 
                         return Column(
                           children: [
@@ -889,7 +932,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(14, 9, 14, 7),
             decoration: BoxDecoration(
-              color: isMe ? CartzyColors.navy : const Color(0xFFF1EFF4),
+              gradient: isMe ? _accentBlend : _softBlend,
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -986,12 +1029,16 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   color: CartzyColors.navy,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Type a message to ${_selectedThread?.store ?? 'store'}...',
+                  hintText:
+                      'Type a message to ${_selectedThread?.store ?? 'store'}...',
                   hintStyle: GoogleFonts.dmSans(
                     fontSize: 13,
                     color: CartzyColors.grayMid,
                   ),
+                  filled: false,
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
@@ -1045,7 +1092,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildFallbackAvatar(String name, double size) {
-    final initials = name.trim().split(' ').map((p) => p.isNotEmpty ? p[0] : '').take(2).join();
+    final initials = name
+        .trim()
+        .split(' ')
+        .map((p) => p.isNotEmpty ? p[0] : '')
+        .take(2)
+        .join();
 
     return Container(
       width: size,
@@ -1053,7 +1105,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [CartzyColors.brand50Lavender, CartzyColors.rose50Warm],
+          colors: [CartzyColors.brand200, CartzyColors.rose200],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

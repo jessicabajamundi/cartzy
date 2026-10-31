@@ -76,6 +76,15 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.1.5' || version == 'v1.1.5') {
+      return const [
+        'Live Database Wishlist: Real-time sync for saving products with instant database connection.',
+        'Header Wishlist Badge: Live red counter badge on the dashboard for saved items.',
+        'Full Wishlist Management: Dedicated screen with Add to Cart, Undo removal, and direct product navigation.',
+        'Messages Redesign: Soft luxury gradients, refined message bubbles, and smooth responsive layout.',
+        'Distraction-Free Search: Full-screen search tab without navigator obstruction.',
+      ];
+    }
     if (version == '1.1.4' || version == 'v1.1.4') {
       return const [
         'Live Messages: Real-time buyer messaging and product inquiries synced directly with the database.',
