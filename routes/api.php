@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,6 +63,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->whereNumber('id');
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
+
+        // Buyer Wishlist
+        Route::get('/wishlist', [WishlistController::class, 'index']);
+        Route::get('/wishlist/refs', [WishlistController::class, 'refs']);
+        Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->middleware('throttle:60,1');
+        Route::delete('/wishlist/{ref}', [WishlistController::class, 'destroy'])->middleware('throttle:60,1');
     });
 });
 
