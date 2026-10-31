@@ -9,8 +9,6 @@ import 'package:cartzy/services/cart_service.dart';
 import 'package:cartzy/widgets/product_card.dart';
 import 'package:cartzy/products/product_details_screen.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
-import 'package:cartzy/guest/guest_account_screen.dart';
-import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 
@@ -65,10 +63,6 @@ class _SearchScreenState extends State<SearchScreen> {
   String _activeQuery = '';
   SearchSortOption _currentSort = SearchSortOption.relevance;
 
-  // Auto-sliding bottom navigator
-  bool _isNavVisible = true;
-  Timer? _scrollStopTimer;
-
   static const List<String> _trendingSearches = [
     'Linen Maxi Dress',
     'Wireless Noise-Canceling Earbuds',
@@ -109,7 +103,6 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
-    _scrollStopTimer?.cancel();
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -358,143 +351,20 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _openProfile() {
-    if (widget.isLoggedIn || AuthService.isAuthenticated) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => AccountSettingsScreen(
-            isLoggedIn: true,
-            userName: widget.userName ?? 'Buyer',
-            userEmail: widget.userEmail ?? '',
-            onBack: () => Navigator.of(context).pop(),
-            onLogout: widget.onLogout ?? () => Navigator.of(context).pop(),
-          ),
-        ),
-      );
-    } else {
-      GuestAccountScreen.open(
-        context,
-        onLogin: widget.onLogin ?? () => Navigator.of(context).pushNamed('/login'),
-        onSignUp: widget.onSignUp ?? () => Navigator.of(context).pushNamed('/signup'),
-      );
-    }
-  }
-
-  void _openSale() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const ProductListScreen(
-          initialCategory: 'Flash Deals',
-          title: 'Sale & Flash Deals',
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CartzyColors.background,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            Column(
-              children: [
-                // ─────────────────────────────────────────────────────────
-                // STICKY TOP SEARCH APP BAR
-                // ─────────────────────────────────────────────────────────
-                _buildSearchAppBar(),
+            // STICKY TOP SEARCH APP BAR
+            _buildSearchAppBar(),
 
-                // ─────────────────────────────────────────────────────────
-                // DYNAMIC BODY
-                // ─────────────────────────────────────────────────────────
-                Expanded(
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: (scrollInfo) {
-                      if (scrollInfo is ScrollUpdateNotification) {
-                        if (scrollInfo.metrics.pixels <= 20) {
-                          if (!_isNavVisible) setState(() => _isNavVisible = true);
-                        } else if (_isNavVisible) {
-                          setState(() => _isNavVisible = false);
-                        }
-                        _scrollStopTimer?.cancel();
-                        _scrollStopTimer = Timer(const Duration(milliseconds: 300), () {
-                          if (mounted && !_isNavVisible) {
-                            setState(() => _isNavVisible = true);
-                          }
-                        });
-                      }
-                      return false;
-                    },
-                    child: _buildSearchBody(),
-                  ),
-                ),
-              ],
-            ),
-
-            // ─────────────────────────────────────────────────────────
-            // BOTTOM NAV BAR (Home, Search, Cart, Sale, Profile)
-            // ─────────────────────────────────────────────────────────
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedSlide(
-                offset: _isNavVisible ? Offset.zero : const Offset(0, 1.8),
-                duration: const Duration(milliseconds: 260),
-                curve: Curves.easeInOutCubic,
-                child: AnimatedOpacity(
-                  opacity: _isNavVisible ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                    decoration: const ShapeDecoration(
-                      color: CartzyColors.surface,
-                      shape: StadiumBorder(
-                        side: BorderSide(color: CartzyColors.border),
-                      ),
-                      shadows: [
-                        BoxShadow(
-                          color: Color(0x148B3A3A),
-                          blurRadius: 16,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                    child: Row(
-                      children: [
-                        _SearchBottomNavItem(
-                          icon: Icons.home_rounded,
-                          label: 'Home',
-                          selected: false,
-                          onClick: () => Navigator.of(context).maybePop(),
-                        ),
-                        _SearchBottomNavItem(
-                          icon: Icons.shopping_cart_outlined,
-                          label: 'Cart',
-                          selected: false,
-                          onClick: _openCart,
-                        ),
-                        _SearchBottomNavItem(
-                          icon: Icons.local_offer_outlined,
-                          label: 'Sale',
-                          selected: false,
-                          isSale: true,
-                          onClick: _openSale,
-                        ),
-                        _SearchBottomNavItem(
-                          icon: Icons.person_outline_rounded,
-                          label: 'Profile',
-                          selected: false,
-                          onClick: _openProfile,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            // DYNAMIC BODY
+            Expanded(
+              child: _buildSearchBody(),
             ),
           ],
         ),
@@ -1061,7 +931,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       color: CartzyColors.brandDark,
                       onRefresh: () => _performSearch(_activeQuery),
                       child: GridView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 90),
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           crossAxisSpacing: 10,
@@ -1289,57 +1159,6 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// BOTTOM NAV ITEM (SEARCH SCREEN)
-// ─────────────────────────────────────────────────────────────────
-class _SearchBottomNavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final bool isSale;
-  final VoidCallback onClick;
-
-  const _SearchBottomNavItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    this.isSale = false,
-    required this.onClick,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isSale
-        ? (selected ? CartzyColors.rose : CartzyColors.roseDark)
-        : (selected ? CartzyColors.navy : CartzyColors.grayLight);
-
-    return Expanded(
-      child: InkWell(
-        onTap: onClick,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: GoogleFonts.dmSans(
-                  fontSize: 10.5,
-                  fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
