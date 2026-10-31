@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/cartzy_button_styles.dart';
+import 'package:cartzy/guest/guest_cart_screen.dart';
+import 'package:cartzy/products/product_list_screen.dart';
 
 class GuestAccountScreen extends StatelessWidget {
   const GuestAccountScreen({
@@ -36,6 +38,7 @@ class GuestAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: CartzyColors.rose50Warm,
       appBar: AppBar(
         centerTitle: true,
@@ -80,8 +83,9 @@ class GuestAccountScreen extends StatelessWidget {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 90),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 90),
                 child: Center(
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 440),
@@ -171,6 +175,78 @@ class GuestAccountScreen extends StatelessWidget {
           ),
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          decoration: const ShapeDecoration(
+            color: CartzyColors.surface,
+            shape: StadiumBorder(
+              side: BorderSide(color: CartzyColors.border),
+            ),
+            shadows: [
+              BoxShadow(
+                color: Color(0x148B3A3A),
+                blurRadius: 16,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              _BottomNavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                selected: false,
+                onClick: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              ),
+              _BottomNavItem(
+                icon: Icons.shopping_cart_outlined,
+                label: 'Cart',
+                selected: false,
+                onClick: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => GuestCartScreen(
+                        onLogin: onLogin,
+                        onSignUp: onSignUp,
+                        onHome: () =>
+                            Navigator.of(context).popUntil((route) => route.isFirst),
+                        onWishlist: () {},
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _BottomNavItem(
+                icon: Icons.local_offer_outlined,
+                label: 'Sale',
+                selected: false,
+                isSale: true,
+                onClick: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ProductListScreen(
+                        initialCategory: 'Flash Deals',
+                        title: 'Sale & Flash Deals',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _BottomNavItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Profile',
+                selected: true,
+                onClick: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -245,6 +321,69 @@ class _AccountIllustration extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool isSale;
+  final VoidCallback onClick;
+
+  const _BottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    this.isSale = false,
+    required this.onClick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSale
+        ? CartzyColors.burgundy
+        : selected
+            ? CartzyColors.burgundy
+            : CartzyColors.gray;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onClick,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 11,
+                  color: color,
+                  fontWeight:
+                      selected || isSale ? FontWeight.w600 : FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 2,
+                width: selected ? 16 : 0,
+                decoration: BoxDecoration(
+                  color: CartzyColors.burgundy,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

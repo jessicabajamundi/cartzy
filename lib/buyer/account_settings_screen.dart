@@ -6,6 +6,9 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
 import 'package:cartzy/services/app_update_service.dart';
+import 'package:cartzy/cart/cart_screen.dart';
+import 'package:cartzy/checkout/checkout_screen.dart';
+import 'package:cartzy/products/product_list_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -1478,6 +1481,84 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          decoration: const ShapeDecoration(
+            color: CartzyColors.surface,
+            shape: StadiumBorder(
+              side: BorderSide(color: CartzyColors.border),
+            ),
+            shadows: [
+              BoxShadow(
+                color: Color(0x148B3A3A),
+                blurRadius: 16,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              _ProfileBottomNavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                selected: false,
+                onClick: widget.onBack,
+              ),
+              _ProfileBottomNavItem(
+                icon: Icons.shopping_cart_outlined,
+                label: 'Cart',
+                selected: false,
+                onClick: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CartScreen(
+                        onBack: () => Navigator.of(context).pop(),
+                        onCheckout: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CheckoutScreen(
+                                onBack: () => Navigator.of(context).pop(),
+                                onOrderPlaced: () {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _ProfileBottomNavItem(
+                icon: Icons.local_offer_outlined,
+                label: 'Sale',
+                selected: false,
+                isSale: true,
+                onClick: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const ProductListScreen(
+                        initialCategory: 'Flash Deals',
+                        title: 'Sale & Flash Deals',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              _ProfileBottomNavItem(
+                icon: Icons.person_outline_rounded,
+                label: 'Profile',
+                selected: true,
+                onClick: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -1613,6 +1694,69 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               const Icon(Icons.chevron_right,
                   size: 18, color: Color(0xFF8E8286)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileBottomNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool isSale;
+  final VoidCallback onClick;
+
+  const _ProfileBottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    this.isSale = false,
+    required this.onClick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSale
+        ? CartzyColors.burgundy
+        : selected
+            ? CartzyColors.burgundy
+            : CartzyColors.gray;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onClick,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 11,
+                  color: color,
+                  fontWeight:
+                      selected || isSale ? FontWeight.w600 : FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 2,
+                width: selected ? 16 : 0,
+                decoration: BoxDecoration(
+                  color: CartzyColors.burgundy,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
