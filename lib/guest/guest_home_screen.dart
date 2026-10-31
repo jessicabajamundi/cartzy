@@ -451,12 +451,6 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                       onClick: () {},
                     ),
                     _BottomNavItem(
-                      icon: Icons.search_rounded,
-                      label: 'Search',
-                      selected: false,
-                      onClick: _openSearch,
-                    ),
-                    _BottomNavItem(
                       icon: Icons.shopping_cart_outlined,
                       label: 'Cart',
                       selected: false,

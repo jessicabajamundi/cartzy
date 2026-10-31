@@ -5,7 +5,6 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/cartzy_button_styles.dart';
 import 'package:cartzy/guest/guest_wishlist_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
-import 'package:cartzy/search/search_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 
 class GuestCartScreen extends StatefulWidget {
@@ -253,22 +252,6 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                     label: 'Home',
                     selected: false,
                     onClick: widget.onHome,
-                  ),
-                  _BottomNavItem(
-                    icon: Icons.search_rounded,
-                    label: 'Search',
-                    selected: false,
-                    onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => SearchScreen(
-                            isLoggedIn: false,
-                            onLogin: widget.onLogin,
-                            onSignUp: widget.onSignUp,
-                          ),
-                        ),
-                      );
-                    },
                   ),
                   _BottomNavItem(
                     icon: Icons.shopping_cart_outlined,

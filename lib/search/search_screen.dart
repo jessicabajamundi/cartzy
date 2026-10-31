@@ -472,12 +472,6 @@ class _SearchScreenState extends State<SearchScreen> {
                           onClick: () => Navigator.of(context).maybePop(),
                         ),
                         _SearchBottomNavItem(
-                          icon: Icons.search_rounded,
-                          label: 'Search',
-                          selected: true,
-                          onClick: () {},
-                        ),
-                        _SearchBottomNavItem(
                           icon: Icons.shopping_cart_outlined,
                           label: 'Cart',
                           selected: false,
