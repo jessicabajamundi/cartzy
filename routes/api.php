@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\OrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +47,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/orders/{id}/report', [OrderController::class, 'report'])->whereNumber('id')->middleware('throttle:10,1');
         Route::post('/orders/pay/{reference}', [OrderController::class, 'pay']);
         Route::post('/reviews', [OrderController::class, 'review']);
+
+        // Buyer Messages & Chat
+        Route::get('/messages', [MessageController::class, 'index']);
+        Route::get('/messages/unread-count', [MessageController::class, 'unreadCount']);
+        Route::get('/messages/thread', [MessageController::class, 'thread']);
+        Route::post('/messages/send', [MessageController::class, 'send'])->middleware('throttle:60,1');
+        Route::post('/messages/inquire', [MessageController::class, 'inquire'])->middleware('throttle:20,1');
     });
 });
 
