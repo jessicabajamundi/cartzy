@@ -52,6 +52,8 @@ String _errorText(Object error) => error is ApiException
 class MyOrdersScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback? onStartShopping;
+  final String? initialSearch;
+  final String? initialFilter;
 
   /// Loads the orders; defaults to the Cartzy API.
   final Future<BuyerOrdersData> Function()? loadOrders;
@@ -61,6 +63,8 @@ class MyOrdersScreen extends StatefulWidget {
     required this.onBack,
     this.onStartShopping,
     this.loadOrders,
+    this.initialSearch,
+    this.initialFilter,
   });
 
   @override
@@ -71,15 +75,18 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   BuyerOrdersData? _data;
   bool _loading = true;
   String? _error;
-  String _filter = 'all';
-  String _search = '';
-  final _searchController = TextEditingController();
+  late String _filter;
+  late String _search;
+  late final TextEditingController _searchController;
 
   List<BuyerOrder> get _orders => _data?.orders ?? const [];
 
   @override
   void initState() {
     super.initState();
+    _filter = widget.initialFilter ?? 'all';
+    _search = widget.initialSearch ?? '';
+    _searchController = TextEditingController(text: _search);
     _load();
   }
 

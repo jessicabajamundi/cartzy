@@ -4,6 +4,7 @@ import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
 import 'package:cartzy/buyer/wishlist_screen.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
+import 'package:cartzy/services/notification_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -48,6 +49,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   bool _isNavVisible = true;
   Timer? _scrollStopTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.fetchUnreadCount();
+  }
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification.metrics.pixels <= 20) {
@@ -246,25 +253,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     icon: const BannerActionIcon(
                                         Icons.favorite_border_rounded),
                                   ),
-                                  IconButton(
-                                    tooltip: 'Notifications',
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NotificationsScreen(
-                                            onBack: () =>
-                                                Navigator.of(context).pop(),
-                                          ),
+                                  ValueListenableBuilder<int>(
+                                    valueListenable: NotificationService.unreadCountNotifier,
+                                    builder: (context, unreadCount, _) {
+                                      return IconButton(
+                                        tooltip: 'Notifications',
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => NotificationsScreen(
+                                                onBack: () =>
+                                                    Navigator.of(context).pop(),
+                                              ),
+                                            ),
+                                          ).then((_) => NotificationService.fetchUnreadCount());
+                                        },
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: Colors.transparent,
+                                          foregroundColor: CartzyColors.burgundy,
+                                          minimumSize: const Size(48, 48),
+                                        ),
+                                        icon: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            const BannerActionIcon(
+                                                Icons.notifications_none_rounded),
+                                            if (unreadCount > 0)
+                                              Positioned(
+                                                right: 6,
+                                                top: 6,
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(4),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFFEF4444),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  constraints: const BoxConstraints(
+                                                    minWidth: 8,
+                                                    minHeight: 8,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
                                         ),
                                       );
                                     },
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: CartzyColors.burgundy,
-                                      minimumSize: const Size(48, 48),
-                                    ),
-                                    icon: const BannerActionIcon(
-                                        Icons.notifications_none_rounded),
                                   ),
                                 ],
                               ),

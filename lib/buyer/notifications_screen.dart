@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/services/notification_service.dart';
+import 'package:cartzy/buyer/my_orders_screen.dart';
+import 'package:cartzy/buyer/vouchers_screen.dart';
 
 // ============================================================
-// NOTIFICATIONS SCREEN
+// NOTIFICATIONS SCREEN (Connected to Cartzy Database API)
 // ============================================================
 
 class NotificationsScreen extends StatefulWidget {
@@ -19,109 +23,510 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   int _activeTab = 0; // 0=All 1=Orders 2=Promos 3=System
   final List<String> _tabs = ['All', 'Orders', 'Promos', 'System'];
 
-  // Sample notifications — empty by default to show empty state
-  final List<Map<String, dynamic>> _notifications = [];
+  bool _isLoading = true;
+  String? _error;
+  List<AppNotificationItem> _notifications = [];
+  Map<String, int> _counts = {'all': 0, 'orders': 0, 'promos': 0, 'system': 0};
 
-  List<Map<String, dynamic>> get _filtered {
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+
+    try {
+      final data = await NotificationService.fetchNotifications();
+      if (!mounted) return;
+      setState(() {
+        _notifications = data.notifications;
+        _counts = data.counts;
+        _isLoading = false;
+        _error = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _error = 'Unable to load notifications. Please check your connection.';
+      });
+    }
+  }
+
+  List<AppNotificationItem> get _filtered {
     if (_activeTab == 0) return _notifications;
     final tag = _tabs[_activeTab].toLowerCase();
-    return _notifications.where((n) => n['tag'] == tag).toList();
+    return _notifications.where((n) => n.tag == tag).toList();
   }
 
-  int get _unreadCount =>
-      _notifications.where((n) => n['read'] != true).length;
+  int get _unreadCount => _notifications.where((n) => !n.isRead).length;
 
-  void _markAllRead() {
+  Future<void> _markAllRead() async {
     setState(() {
-      for (final n in _notifications) {
-        n['read'] = true;
-      }
+      _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
     });
+    await NotificationService.markAllAsRead();
   }
 
-  void _markRead(Map<String, dynamic> notif) {
-    setState(() => notif['read'] = true);
-  }
+  Future<void> _handleTap(AppNotificationItem n) async {
+    if (!n.isRead) {
+      setState(() {
+        final index = _notifications.indexWhere((item) => item.id == n.id);
+        if (index != -1) {
+          _notifications[index] = _notifications[index].copyWith(isRead: true);
+        }
+      });
+      NotificationService.markAsRead(n.id);
+    }
 
-  // ── Notif card ──────────────────────────────────────────────
-  Widget _notifCard(Map<String, dynamic> n) {
-    final bool isRead = n['read'] == true;
-    final IconData icon = _iconFor(n['tag']);
-    final Color iconBg = _colorFor(n['tag']);
-
-    return GestureDetector(
-      onTap: () => _markRead(n),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isRead ? Colors.white : const Color(0xFFFBF6F8),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isRead ? CartzyColors.border : CartzyColors.rose,
-            width: isRead ? 1 : 1.2,
+    // Direct routing if notification references an order
+    if (n.orderReference != null && n.orderReference!.isNotEmpty) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MyOrdersScreen(
+            onBack: () => Navigator.of(context).pop(),
+            initialSearch: n.orderReference,
           ),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 20, color: CartzyColors.navy),
+      );
+      return;
+    }
+
+    // Route if promo / voucher notification
+    if (n.tag == 'promos' || n.type == 'voucher') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => VouchersScreen(
+            onBack: () => Navigator.of(context).pop(),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteNotif(AppNotificationItem n) async {
+    final deletedId = n.id;
+    setState(() {
+      _notifications.removeWhere((item) => item.id == deletedId);
+      _updateCounts();
+    });
+
+    await NotificationService.deleteNotification(deletedId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Notification removed', style: GoogleFonts.dmSans()),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _updateCounts() {
+    _counts = {
+      'all': _notifications.length,
+      'orders': _notifications.where((n) => n.tag == 'orders').length,
+      'promos': _notifications.where((n) => n.tag == 'promos').length,
+      'system': _notifications.where((n) => n.tag == 'system').length,
+    };
+  }
+
+  // ── Icon helper ─────────────────────────────────────────────
+  IconData _iconFor(String? type, String? tag) {
+    final t = (type ?? '').toLowerCase();
+    if (t.contains('deliver') || t == 'order_delivered') {
+      return Icons.check_circle_outline_rounded;
+    }
+    if (t.contains('ship') || t == 'pickup_accepted') {
+      return Icons.local_shipping_outlined;
+    }
+    if (t.contains('cancel')) {
+      return Icons.assignment_return_outlined;
+    }
+    if (t.contains('payment')) {
+      return Icons.account_balance_wallet_outlined;
+    }
+    if (t.contains('voucher') || tag == 'promos') {
+      return Icons.confirmation_number_outlined;
+    }
+    if (tag == 'system' || t.contains('admin')) {
+      return Icons.notifications_active_outlined;
+    }
+    return Icons.receipt_long_outlined;
+  }
+
+  // ── Icon background color helper ─────────────────────────────
+  Color _colorFor(String? type, String? tag) {
+    final t = (type ?? '').toLowerCase();
+    if (t.contains('deliver') || t == 'order_delivered') {
+      return const Color(0xFFE8F5E9); // Light green
+    }
+    if (t.contains('ship') || t == 'pickup_accepted') {
+      return const Color(0xFFE3F2FD); // Light blue
+    }
+    if (t.contains('cancel')) {
+      return const Color(0xFFFFEBEE); // Light red/rose
+    }
+    if (t.contains('payment')) {
+      return const Color(0xFFFFF8E1); // Light amber
+    }
+    if (t.contains('voucher') || tag == 'promos') {
+      return const Color(0xFFFFF3E0); // Light orange
+    }
+    if (tag == 'system' || t.contains('admin')) {
+      return const Color(0xFFEDE7F6); // Light purple
+    }
+    return const Color(0xFFEEEBF6); // Brand lavender tint
+  }
+
+  // ── Icon tint color helper ───────────────────────────────────
+  Color _iconTintFor(String? type, String? tag) {
+    final t = (type ?? '').toLowerCase();
+    if (t.contains('deliver') || t == 'order_delivered') {
+      return const Color(0xFF2E7D32);
+    }
+    if (t.contains('ship') || t == 'pickup_accepted') {
+      return const Color(0xFF1976D2);
+    }
+    if (t.contains('cancel')) {
+      return const Color(0xFFC62828);
+    }
+    if (t.contains('payment')) {
+      return const Color(0xFFF57F17);
+    }
+    if (t.contains('voucher') || tag == 'promos') {
+      return const Color(0xFFE65100);
+    }
+    if (tag == 'system' || t.contains('admin')) {
+      return const Color(0xFF5E35B1);
+    }
+    return CartzyColors.brandDark;
+  }
+
+  // ── Notification Card ─────────────────────────────────────────
+  Widget _notifCard(AppNotificationItem n) {
+    final bool isRead = n.isRead;
+    final IconData icon = _iconFor(n.type, n.tag);
+    final Color iconBg = _colorFor(n.type, n.tag);
+    final Color iconColor = _iconTintFor(n.type, n.tag);
+
+    return Dismissible(
+      key: Key('notif-${n.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFDC2626),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        alignment: Alignment.centerRight,
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 24),
+      ),
+      onDismissed: (_) => _deleteNotif(n),
+      child: GestureDetector(
+        onTap: () => _handleTap(n),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isRead ? Colors.white : const Color(0xFFFDF8F9),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isRead ? CartzyColors.border : const Color(0xFFE8D4D8),
+              width: isRead ? 1 : 1.3,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          n['title'] ?? '',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 13.5,
-                            fontWeight: isRead
-                                ? FontWeight.w500
-                                : FontWeight.w700,
-                            color: CartzyColors.text,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isRead ? 0.02 : 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icon container
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, size: 22, color: iconColor),
+              ),
+              const SizedBox(width: 14),
+              // Text Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            n.title,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 14,
+                              fontWeight: isRead ? FontWeight.w600 : FontWeight.w800,
+                              color: isRead ? CartzyColors.text : CartzyColors.brand900,
+                            ),
                           ),
+                        ),
+                        if (!isRead)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.only(left: 6),
+                            decoration: const BoxDecoration(
+                              color: CartzyColors.burgundy,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      n.message,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: isRead ? CartzyColors.gray : const Color(0xFF4A3E4E),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          n.time,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: CartzyColors.gray,
+                          ),
+                        ),
+                        if (n.orderReference != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: CartzyColors.brand50Lavender,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFD6CEE0)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  n.orderReference!,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: CartzyColors.brandDark,
+                                  ),
+                                ),
+                                const SizedBox(width: 3),
+                                const Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: 13,
+                                  color: CartzyColors.brandDark,
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Empty State ──────────────────────────────────────────────
+  Widget _emptyState() {
+    final String activeLabel = _tabs[_activeTab];
+    final String title = activeLabel == 'All'
+        ? 'No notifications yet'
+        : 'No $activeLabel notifications yet';
+    final String subtitle = activeLabel == 'Orders'
+        ? 'Your order tracking, delivery updates, and status changes will appear here.'
+        : activeLabel == 'Promos'
+            ? 'Exclusive discounts, store vouchers, and seasonal sales will be announced here.'
+            : activeLabel == 'System'
+                ? 'Account security notices and platform updates will appear here.'
+                : 'Order status alerts, flash sales, price drops and promotions will appear here.';
+
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 28),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: CartzyColors.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 18,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEBF6),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_none_rounded,
+                          size: 40,
+                          color: Color(0xFF7C6B8E),
                         ),
                       ),
-                      if (!isRead)
-                        Container(
-                          width: 8,
-                          height: 8,
+                      Positioned(
+                        right: -4,
+                        bottom: -4,
+                        child: Container(
+                          width: 24,
+                          height: 24,
                           decoration: const BoxDecoration(
-                            color: CartzyColors.burgundy,
+                            color: Color(0xFFE07B39),
                             shape: BoxShape.circle,
                           ),
+                          child: const Icon(Icons.check, size: 14, color: Colors.white),
                         ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 24),
                   Text(
-                    n['body'] ?? '',
+                    'YOUR CARTZY UPDATES',
                     style: GoogleFonts.dmSans(
-                      fontSize: 12.5,
-                      height: 1.45,
-                      color: CartzyColors.gray,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.6,
+                      color: CartzyColors.rose700,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
-                    n['time'] ?? '',
+                    title,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: CartzyColors.brand900,
+                      height: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    subtitle,
                     style: GoogleFonts.dmSans(
-                      fontSize: 11,
+                      fontSize: 13,
+                      height: 1.55,
                       color: CartzyColors.gray,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CartzyColors.brand50Lavender,
+                      foregroundColor: CartzyColors.brandDark,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                      shape: const StadiumBorder(),
+                    ),
+                    onPressed: () => _fetch(),
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: Text(
+                      'Refresh Notifications',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Error State ──────────────────────────────────────────────
+  Widget _errorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFEBEE),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.cloud_off_rounded, size: 30, color: Color(0xFFC62828)),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Couldn\'t load notifications',
+              style: GoogleFonts.dmSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: CartzyColors.text,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _error ?? 'An unexpected error occurred.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.gray),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => _fetch(),
+              icon: const Icon(Icons.refresh, size: 16),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CartzyColors.brandDark,
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               ),
             ),
           ],
@@ -130,128 +535,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  IconData _iconFor(String? tag) {
-    switch (tag) {
-      case 'orders':  return Icons.receipt_long_outlined;
-      case 'promos':  return Icons.local_offer_outlined;
-      case 'system':  return Icons.info_outline;
-      default:        return Icons.notifications_outlined;
-    }
-  }
-
-  Color _colorFor(String? tag) {
-    switch (tag) {
-      case 'orders':  return const Color(0xFFEEEBF6);
-      case 'promos':  return const Color(0xFFFFF0E8);
-      case 'system':  return const Color(0xFFE8F0FF);
-      default:        return CartzyColors.background;
-    }
-  }
-
-  // ── Empty state ─────────────────────────────────────────────
-  Widget _emptyState() {
-    return SingleChildScrollView(
-      child: Center(
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          padding: const EdgeInsets.symmetric(vertical: 52, horizontal: 32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: CartzyColors.border),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 78,
-                    height: 78,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEEBF6),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: const Icon(
-                      Icons.notifications_none_rounded,
-                      size: 38,
-                      color: Color(0xFF7C6B8E),
-                    ),
-                  ),
-                  Positioned(
-                    right: -6,
-                    bottom: -6,
-                    child: Container(
-                      width: 22,
-                      height: 22,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE07B39),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.add, size: 14, color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
-              Text(
-                'YOUR UPDATES',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.4,
-                  color: const Color(0xFF9C7B8A),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'No notifications yet',
-                style: GoogleFonts.dmSans(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: CartzyColors.text,
-                  height: 1.2,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Order status alerts, flash sales, price\ndrops and promotions will appear here.',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13.5,
-                  height: 1.55,
-                  color: CartzyColors.gray,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'You\'ll be notified as soon as there\'s an update.',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11.5,
-                  color: CartzyColors.gray,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── Build ───────────────────────────────────────────────────
+  // ── Build ────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final items = _filtered;
+    final unread = _unreadCount;
 
     return Scaffold(
       backgroundColor: CartzyColors.background,
@@ -259,30 +547,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header ───────────────────────────────────────
+            // ── Top Header ──────────────────────────────────────
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
               decoration: const BoxDecoration(
                 color: CartzyColors.background,
                 border: Border(bottom: BorderSide(color: CartzyColors.border)),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   GestureDetector(
                     onTap: widget.onBack,
                     child: Container(
-                      margin: const EdgeInsets.only(top: 2, right: 14),
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: CartzyColors.border),
                       ),
                       child: const Icon(Icons.arrow_back,
                           size: 18, color: CartzyColors.navy),
                     ),
                   ),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,112 +578,117 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Text(
                           'YOUR UPDATES',
                           style: GoogleFonts.dmSans(
-                            fontSize: 10.5,
+                            fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.4,
-                            color: const Color(0xFF9C7B8A),
+                            color: CartzyColors.rose700,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           'Notifications',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w800,
-                            color: CartzyColors.text,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Order status alerts, sales and promotions.',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 12.5,
-                            color: CartzyColors.gray,
-                            height: 1.4,
+                          style: GoogleFonts.playfairDisplay(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: CartzyColors.brand900,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  // Chips
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // Unread badge chip
-                      Container(
+                  if (unread > 0)
+                    GestureDetector(
+                      onTap: _markAllRead,
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 13, vertical: 7),
+                            horizontal: 12, vertical: 7),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: CartzyColors.brandDark,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: CartzyColors.border),
                         ),
-                        child: Text(
-                          '$_unreadCount unread',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: CartzyColors.text,
-                          ),
-                        ),
-                      ),
-                      if (_unreadCount > 0) ...[
-                        const SizedBox(height: 6),
-                        GestureDetector(
-                          onTap: _markAllRead,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 13, vertical: 7),
-                            decoration: BoxDecoration(
-                              color: CartzyColors.navy,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.done_all_rounded,
+                                size: 14, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(
                               'Mark all read',
                               style: GoogleFonts.dmSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.white,
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ],
-                  ),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: CartzyColors.border),
+                      ),
+                      child: Text(
+                        'All caught up',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: CartzyColors.gray,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
 
-            // ── Tab Filter ───────────────────────────────────
+            // ── Tab Filters with live database counts ─────────────
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
                 children: List.generate(_tabs.length, (i) {
                   final active = _activeTab == i;
+                  final key = _tabs[i].toLowerCase();
+                  final count = _counts[key] ?? 0;
+                  final label = count > 0 ? '${_tabs[i]} ($count)' : _tabs[i];
+
                   return GestureDetector(
                     onTap: () => setState(() => _activeTab = i),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
                       margin: const EdgeInsets.only(right: 8),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                          horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
-                        color: active ? CartzyColors.navy : Colors.white,
+                        color: active ? CartzyColors.brandDark : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: active
-                              ? CartzyColors.navy
+                              ? CartzyColors.brandDark
                               : CartzyColors.border,
                         ),
+                        boxShadow: active
+                            ? [
+                                BoxShadow(
+                                  color: CartzyColors.brandDark
+                                      .withValues(alpha: 0.15),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                )
+                              ]
+                            : null,
                       ),
                       child: Text(
-                        _tabs[i],
+                        label,
                         style: GoogleFonts.dmSans(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          fontWeight:
+                              active ? FontWeight.w700 : FontWeight.w600,
                           color: active ? Colors.white : CartzyColors.text,
                         ),
                       ),
@@ -405,17 +698,34 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 4),
 
-            // ── Content ──────────────────────────────────────
+            // ── Main Content Area ──────────────────────────────
             Expanded(
-              child: items.isEmpty
-                  ? _emptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      itemCount: items.length,
-                      itemBuilder: (context, i) => _notifCard(items[i]),
-                    ),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: CartzyColors.brandDark,
+                        strokeWidth: 2.5,
+                      ),
+                    )
+                  : _error != null
+                      ? _errorState()
+                      : items.isEmpty
+                          ? _emptyState()
+                          : RefreshIndicator(
+                              color: CartzyColors.brandDark,
+                              backgroundColor: Colors.white,
+                              onRefresh: () => _fetch(silent: true),
+                              child: ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                                itemCount: items.length,
+                                itemBuilder: (context, i) =>
+                                    _notifCard(items[i]),
+                              ),
+                            ),
             ),
           ],
         ),

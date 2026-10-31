@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
+import 'package:cartzy/buyer/notifications_screen.dart';
+import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/services/message_service.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
@@ -123,6 +125,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _phoneController = TextEditingController(text: widget.userPhone);
     _emailController = TextEditingController(text: widget.userEmail);
     _loadUnreadMessagesCount();
+    NotificationService.fetchUnreadCount();
   }
 
   @override
@@ -1338,6 +1341,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               onBack: () {
                                 Navigator.of(context).pop();
                                 _loadUnreadMessagesCount();
+    NotificationService.fetchUnreadCount();
                               },
                             ),
                           ),
@@ -1350,28 +1354,44 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         color: CartzyColors.creamSection,
                         indent: 68),
 
-                    // Notifications (with badge 1)
-                    _buildMenuTile(
-                      icon: Icons.notifications_none_rounded,
-                      label: 'Notifications',
-                      badgeWidget: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFEF4444),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Text(
-                          '1',
-                          style: TextStyle(
-                            color: CartzyColors.creamLight,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      onTap: () {
-                        showCartzyFlash(
-                            context, 'You have 1 order update notification.');
+                    // Notifications (with real database badge & tap navigation)
+                    ValueListenableBuilder<int>(
+                      valueListenable: NotificationService.unreadCountNotifier,
+                      builder: (context, unreadCount, _) {
+                        return _buildMenuTile(
+                          icon: Icons.notifications_none_rounded,
+                          label: 'Notifications',
+                          badgeWidget: unreadCount > 0
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFEF4444),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                  child: Text(
+                                    unreadCount > 99
+                                        ? '99+'
+                                        : unreadCount.toString(),
+                                    style: const TextStyle(
+                                      color: CartzyColors.creamLight,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NotificationsScreen(
+                                  onBack: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                            ).then((_) => NotificationService.fetchUnreadCount());
+                          },
+                        );
                       },
                     ),
                     const Divider(

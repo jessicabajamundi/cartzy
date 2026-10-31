@@ -5,6 +5,8 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'buyer_account_screen.dart';
 import 'reviews_screen.dart';
 import 'vouchers_screen.dart';
+import 'notifications_screen.dart';
+import 'package:cartzy/services/notification_service.dart';
 
 class AccountMenuScreen extends StatelessWidget {
   final VoidCallback onBack;
@@ -373,16 +375,24 @@ class AccountMenuScreen extends StatelessWidget {
             // NOTIFICATIONS
             // ==================================================
 
-            _MenuItem(
-              icon:
-                  Icons.notifications_outlined,
-
-              label: 'Notifications',
-
-              badgeCount: 1,
-
-              onTap: () =>
-                  _comingSoon(context),
+            ValueListenableBuilder<int>(
+              valueListenable: NotificationService.unreadCountNotifier,
+              builder: (context, unreadCount, _) {
+                return _MenuItem(
+                  icon: Icons.notifications_outlined,
+                  label: 'Notifications',
+                  badgeCount: unreadCount,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => NotificationsScreen(
+                          onBack: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ).then((_) => NotificationService.fetchUnreadCount());
+                  },
+                );
+              },
             ),
 
             // ==================================================
