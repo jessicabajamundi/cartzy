@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
+import 'package:cartzy/guest/guest_account_screen.dart';
+import 'package:cartzy/buyer/messages_screen.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/cart_service.dart';
@@ -368,6 +370,26 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           label: 'VIEW CART',
           textColor: CartzyColors.coral,
           onPressed: () => _navigateToCart(),
+        ),
+      ),
+    );
+  }
+
+  void _openChatWithSeller() {
+    if (!AuthService.isAuthenticated) {
+      GuestAccountScreen.open(
+        context,
+        onLogin: () => Navigator.of(context).pushNamed('/login'),
+        onSignUp: () => Navigator.of(context).pushNamed('/signup'),
+      );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MessagesScreen(
+          onBack: () => Navigator.of(context).pop(),
+          initialProductId: widget.productId,
+          initialStoreName: _sellerName,
         ),
       ),
     );
@@ -1436,14 +1458,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
             icon: const Icon(Icons.chat_outlined, size: 16),
             label: const Text('Chat', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Chat with $_sellerName initiated'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
+            onPressed: _openChatWithSeller,
           ),
         ],
       ),
@@ -1896,14 +1911,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
             icon: const Icon(Icons.chat_bubble_outline, color: CartzyColors.navy, size: 20),
             tooltip: 'Chat with Seller',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Chat with $_sellerName initiated'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            },
+            onPressed: _openChatWithSeller,
           ),
           const SizedBox(width: 8),
 

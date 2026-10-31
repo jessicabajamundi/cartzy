@@ -4,6 +4,8 @@ import 'package:cartzy/utils/input_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/buyer/messages_screen.dart';
+import 'package:cartzy/services/message_service.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
 import 'package:cartzy/services/app_update_service.dart';
@@ -83,6 +85,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   String _selectedSex = 'Female';
   final String _selectedIdType = 'National ID';
   bool _isIdVerified = true;
+  int _unreadMessagesCount = 0;
+
+  Future<void> _loadUnreadMessagesCount() async {
+    if (!widget.isLoggedIn) return;
+    final count = await MessageService.fetchUnreadCount();
+    if (mounted) {
+      setState(() => _unreadMessagesCount = count);
+    }
+  }
 
   // Security Controllers
   final TextEditingController _currentPasswordController =
@@ -111,6 +122,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _nameController = TextEditingController(text: widget.userName);
     _phoneController = TextEditingController(text: widget.userPhone);
     _emailController = TextEditingController(text: widget.userEmail);
+    _loadUnreadMessagesCount();
   }
 
   @override
@@ -1300,9 +1312,36 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     _buildMenuTile(
                       icon: Icons.chat_bubble_outline_rounded,
                       label: 'Messages',
-                      showChevron: false,
+                      showChevron: true,
+                      badgeWidget: _unreadMessagesCount > 0
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: CartzyColors.rose700,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$_unreadMessagesCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : null,
                       onTap: () {
-                        showCartzyFlash(context, 'No new messages.');
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => MessagesScreen(
+                              onBack: () {
+                                Navigator.of(context).pop();
+                                _loadUnreadMessagesCount();
+                              },
+                            ),
+                          ),
+                        );
                       },
                     ),
                     const Divider(
