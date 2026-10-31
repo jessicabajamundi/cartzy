@@ -4,6 +4,7 @@ import 'package:cartzy/utils/input_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/search/search_screen.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
 import 'package:cartzy/services/app_update_service.dart';
@@ -195,13 +196,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
       if (file != null) {
         setState(() => _isIdVerified = true);
-        if (mounted)
+        if (mounted) {
           showCartzyFlash(context, 'ID Document uploaded: ${file.name}');
+        }
       }
     } catch (_) {
       setState(() => _isIdVerified = true);
-      if (mounted)
+      if (mounted) {
         showCartzyFlash(context, 'ID Document submitted for verification!');
+      }
     }
   }
 
@@ -1554,6 +1557,23 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 label: 'Home',
                 selected: false,
                 onClick: widget.onBack,
+              ),
+              _ProfileBottomNavItem(
+                icon: Icons.search_rounded,
+                label: 'Search',
+                selected: false,
+                onClick: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => SearchScreen(
+                        isLoggedIn: true,
+                        userName: widget.userName,
+                        userEmail: widget.userEmail,
+                        onLogout: widget.onLogout,
+                      ),
+                    ),
+                  );
+                },
               ),
               _ProfileBottomNavItem(
                 icon: Icons.shopping_cart_outlined,

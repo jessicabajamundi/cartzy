@@ -13,6 +13,7 @@ import 'package:cartzy/widgets/home_sections.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/products/product_details_screen.dart';
 import 'package:cartzy/products/all_categories_screen.dart';
+import 'package:cartzy/search/search_screen.dart';
 
 class GuestHomeScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -156,12 +157,15 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
     super.dispose();
   }
 
-  void _openSearch() {
-    final query = _searchController.text.trim();
+  void _openSearch([String? query]) {
+    final q = query ?? _searchController.text.trim();
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => ProductListScreen(
-        title: query.isEmpty ? 'All Products' : 'Search: $query',
-        initialQuery: query,
+      builder: (_) => SearchScreen(
+        initialQuery: q.isNotEmpty ? q : null,
+        autoFocus: q.isEmpty,
+        isLoggedIn: false,
+        onLogin: widget.onLogin,
+        onSignUp: widget.onSignUp,
       ),
     ));
   }
@@ -207,6 +211,8 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                   Expanded(
                                     child: TextField(
                                       controller: _searchController,
+                                      readOnly: true,
+                                      onTap: _openSearch,
                                       textInputAction: TextInputAction.search,
                                       onSubmitted: (_) => _openSearch(),
                                       style: GoogleFonts.dmSans(
@@ -443,6 +449,12 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                       label: 'Home',
                       selected: true,
                       onClick: () {},
+                    ),
+                    _BottomNavItem(
+                      icon: Icons.search_rounded,
+                      label: 'Search',
+                      selected: false,
+                      onClick: _openSearch,
                     ),
                     _BottomNavItem(
                       icon: Icons.shopping_cart_outlined,

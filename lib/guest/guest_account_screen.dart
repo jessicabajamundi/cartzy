@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/cartzy_button_styles.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
+import 'package:cartzy/search/search_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 
 class GuestAccountScreen extends StatefulWidget {
@@ -260,6 +261,22 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                     selected: false,
                     onClick: () {
                       Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
+                  ),
+                  _BottomNavItem(
+                    icon: Icons.search_rounded,
+                    label: 'Search',
+                    selected: false,
+                    onClick: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => SearchScreen(
+                            isLoggedIn: false,
+                            onLogin: widget.onLogin,
+                            onSignUp: widget.onSignUp,
+                          ),
+                        ),
+                      );
                     },
                   ),
                   _BottomNavItem(
