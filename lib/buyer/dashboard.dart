@@ -5,6 +5,7 @@ import 'package:cartzy/widgets/banner_action_icon.dart';
 import 'package:cartzy/buyer/wishlist_screen.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:cartzy/services/notification_service.dart';
+import 'package:cartzy/services/wishlist_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -54,6 +55,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     NotificationService.fetchUnreadCount();
+    WishlistService.fetchWishlistRefs();
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -143,7 +145,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onBack: () => Navigator.of(context).pop(),
         onDiscoverProducts: () => Navigator.of(context).pop(),
       ),
-    ));
+    )).then((_) => WishlistService.fetchWishlistRefs(force: true));
   }
 
   @override
@@ -242,17 +244,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  IconButton(
-                                    tooltip: 'Wishlist',
-                                    onPressed: _openWishlist,
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: CartzyColors.burgundy,
-                                      minimumSize: const Size(48, 48),
-                                    ),
-                                    icon: const BannerActionIcon(
-                                        Icons.favorite_border_rounded),
-                                  ),
+                                   ValueListenableBuilder<int>(
+                                     valueListenable: WishlistService.countNotifier,
+                                     builder: (context, wishCount, _) {
+                                       return IconButton(
+                                         tooltip: 'Wishlist',
+                                         onPressed: _openWishlist,
+                                         style: IconButton.styleFrom(
+                                           backgroundColor: Colors.transparent,
+                                           foregroundColor: CartzyColors.burgundy,
+                                           minimumSize: const Size(48, 48),
+                                         ),
+                                         icon: Stack(
+                                           clipBehavior: Clip.none,
+                                           children: [
+                                             const BannerActionIcon(
+                                                 Icons.favorite_border_rounded),
+                                             if (wishCount > 0)
+                                               Positioned(
+                                                 right: 6,
+                                                 top: 6,
+                                                 child: Container(
+                                                   padding: const EdgeInsets.all(4),
+                                                   decoration: const BoxDecoration(
+                                                     color: Color(0xFFD1495B),
+                                                     shape: BoxShape.circle,
+                                                   ),
+                                                   constraints: const BoxConstraints(
+                                                     minWidth: 14,
+                                                     minHeight: 14,
+                                                   ),
+                                                   child: Center(
+                                                     child: Text(
+                                                       wishCount > 99 ? '99+' : '$wishCount',
+                                                       style: const TextStyle(
+                                                         color: Colors.white,
+                                                         fontSize: 8.5,
+                                                         fontWeight: FontWeight.bold,
+                                                         height: 1,
+                                                       ),
+                                                     ),
+                                                   ),
+                                                 ),
+                                               ),
+                                           ],
+                                         ),
+                                       );
+                                     },
+                                   ),
                                   ValueListenableBuilder<int>(
                                     valueListenable: NotificationService.unreadCountNotifier,
                                     builder: (context, unreadCount, _) {

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
 import 'package:cartzy/utils/product_images.dart';
+import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/services/cart_service.dart';
+import 'package:cartzy/services/wishlist_service.dart';
 
 /// Mobile product card used by Daily Discover and the Sale / product grids:
 /// - Edge-to-edge square photo with a corner discount tag, a floating
@@ -12,6 +15,7 @@ import 'package:cartzy/utils/product_images.dart';
 ///
 /// The card fills the height it is given; see [ProductCard.bodyHeight].
 class ProductCard extends StatefulWidget {
+  final int? productId;
   final String name;
   final String price;
   final String? originalPrice;
@@ -30,6 +34,7 @@ class ProductCard extends StatefulWidget {
 
   const ProductCard({
     super.key,
+    this.productId,
     required this.name,
     required this.price,
     this.originalPrice,
@@ -138,35 +143,95 @@ class _ProductCardState extends State<ProductCard> {
                     Positioned(
                       top: 7,
                       right: 7,
-                      child: Semantics(
-                        button: true,
-                        label: _isFavorite ? 'Remove from wishlist' : 'Add to wishlist',
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() => _isFavorite = !_isFavorite);
-                            widget.onFavoriteToggle?.call();
-                          },
-                          child: Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.92),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.10),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
+                      child: ValueListenableBuilder<Set<String>>(
+                        valueListenable: WishlistService.wishlistRefsNotifier,
+                        builder: (context, refs, _) {
+                          final ref = widget.productId != null
+                              ? widget.productId.toString()
+                              : widget.name;
+                          final isFav = refs.contains(ref) || _isFavorite;
+
+                          return Semantics(
+                            button: true,
+                            label: isFav
+                                ? 'Remove from wishlist'
+                                : 'Add to wishlist',
+                            child: GestureDetector(
+                              onTap: () async {
+                                if (widget.onFavoriteToggle != null) {
+                                  widget.onFavoriteToggle!();
+                                  return;
+                                }
+
+                                if (AuthService.isLoggedIn) {
+                                  final cleanPrice =
+                                      CartService.parsePrice(widget.price);
+                                  try {
+                                    final nextWished =
+                                        await WishlistService.toggleWishlist(
+                                      ref: ref,
+                                      name: widget.name,
+                                      price: cleanPrice,
+                                      image: widget.imageUrl,
+                                    );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .hideCurrentSnackBar();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(nextWished
+                                              ? 'Added to your Wishlist!'
+                                              : 'Removed from Wishlist'),
+                                          duration: const Duration(seconds: 1),
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Could not update wishlist: $e'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } else {
+                                  setState(() => _isFavorite = !_isFavorite);
+                                }
+                              },
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.92),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.10),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                                child: Icon(
+                                  isFav
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  size: 16,
+                                  color: isFav
+                                      ? const Color(0xFFD1495B)
+                                      : _ink,
+                                ),
+                              ),
                             ),
-                            child: Icon(
-                              _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                              size: 16,
-                              color: _isFavorite ? const Color(0xFFD1495B) : _ink,
-                            ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
 

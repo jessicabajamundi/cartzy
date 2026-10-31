@@ -1,5 +1,6 @@
 import 'api_service.dart';
 import 'smtp_email_service.dart';
+import 'wishlist_service.dart';
 
 class AuthService {
   static Map<String, dynamic>? _currentUser;
@@ -8,6 +9,7 @@ class AuthService {
   static Map<String, dynamic>? get currentUser => _currentUser;
   static String? get token => _token;
   static bool get isAuthenticated => _token != null || _currentUser != null;
+  static bool get isLoggedIn => isAuthenticated;
 
   static void setSession({Map<String, dynamic>? user, String? token}) {
     _currentUser = user != null ? Map<String, dynamic>.from(user) : null;
@@ -17,6 +19,7 @@ class AuthService {
   static void clearSession() {
     _currentUser = null;
     _token = null;
+    WishlistService.clear();
   }
 
   static Future<Map<String, dynamic>> login({

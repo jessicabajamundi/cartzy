@@ -426,6 +426,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             itemBuilder: (context, index) {
                               final product = filtered[index];
                               return ProductCard(
+                                productId: product.id,
                                 name: product.name,
                                 price: product.price,
                                 originalPrice: product.originalPrice,

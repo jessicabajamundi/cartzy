@@ -1606,6 +1606,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                                     return SizedBox(
                                       width: 155,
                                       child: ProductCard(
+                                          productId: p.id,
                                         name: p.name,
                                         price: p.price,
                                         originalPrice: p.originalPrice,

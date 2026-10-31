@@ -942,6 +942,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         itemBuilder: (context, index) {
                           final product = _searchResults[index];
                           return ProductCard(
+                            productId: product.id,
                             name: product.name,
                             price: product.price,
                             originalPrice: product.originalPrice,

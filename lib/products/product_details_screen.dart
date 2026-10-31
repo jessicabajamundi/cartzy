@@ -12,6 +12,7 @@ import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/widgets/write_review_dialog.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
 import 'package:cartzy/utils/product_images.dart';
+import 'package:cartzy/services/wishlist_service.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final int? productId;
@@ -110,6 +111,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ? widget.imageUrl!
         : CartzyProductImages.getImage(widget.name, widget.category);
     _images = [initialImg];
+    final initialRef = widget.productId != null ? widget.productId.toString() : widget.name;
+    _isWishlisted = WishlistService.isWishlisted(initialRef);
 
     if (widget.productId != null) {
       _loadProductDetails(widget.productId!);
@@ -120,6 +123,62 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  
+  Future<void> _toggleWishlist() async {
+    if (widget.isGuest || !AuthService.isLoggedIn) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to save items to your wishlist.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final ref = widget.productId != null ? widget.productId.toString() : widget.name;
+    final cleanPrice = CartService.parsePrice(_price);
+    final effectiveImg = _images.isNotEmpty ? _images.first : (widget.imageUrl ?? '');
+    final nextState = !_isWishlisted;
+
+    setState(() => _isWishlisted = nextState);
+
+    try {
+      final actualState = await WishlistService.toggleWishlist(
+        ref: ref,
+        name: _name,
+        price: cleanPrice,
+        image: effectiveImg,
+        variation: _selectedVariant != null ? (_selectedVariant!['name']?.toString() ?? 'Standard') : 'Standard',
+      );
+
+      if (mounted && _isWishlisted != actualState) {
+        setState(() => _isWishlisted = actualState);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(actualState ? 'Added to your Wishlist!' : 'Removed from Wishlist'),
+            duration: const Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isWishlisted = !nextState);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not update wishlist: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _loadProductDetails(int id) async {
@@ -626,16 +685,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               color: _isWishlisted ? Colors.redAccent : CartzyColors.navy,
             ),
             tooltip: 'Wishlist',
-            onPressed: () {
-              setState(() => _isWishlisted = !_isWishlisted);
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_isWishlisted ? 'Added to your Wishlist!' : 'Removed from Wishlist'),
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            },
+            onPressed: _toggleWishlist,
           ),
           ListenableBuilder(
             listenable: CartService.instance,
@@ -1927,16 +1977,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               size: 20,
             ),
             tooltip: 'Save to Wishlist',
-            onPressed: () {
-              setState(() => _isWishlisted = !_isWishlisted);
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(_isWishlisted ? 'Added to your Wishlist!' : 'Removed from Wishlist'),
-                  duration: const Duration(seconds: 1),
-                ),
-              );
-            },
+            onPressed: _toggleWishlist,
           ),
           const SizedBox(width: 10),
 
