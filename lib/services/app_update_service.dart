@@ -6,14 +6,14 @@ import 'package:cartzy/widgets/patch_notes_dialog.dart';
 
 class AppUpdateService {
   /// The current app release version.
-  static const String currentAppVersion = '1.1.2';
+  static const String currentAppVersion = '1.1.3';
 
   /// GitHub repository release endpoint for Cartzy.
   static const String latestReleaseApi =
       'https://api.github.com/repos/jessicabajamundi/cartzy/releases/latest';
 
   static const String defaultReleasePage =
-      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.1.2';
+      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.1.3';
 
   static const String _keyLastSeenPatch = 'cartzy_last_seen_patch_version';
 
@@ -92,10 +92,27 @@ class AppUpdateService {
           if (_isVersionNewer(tagName, currentAppVersion)) {
             if (!context.mounted) return false;
 
+            List<String>? remoteHighlights;
+            final rawBody = data['body']?.toString();
+            if (rawBody != null && rawBody.trim().isNotEmpty) {
+              final lines = rawBody
+                  .split('\n')
+                  .map((l) => l.trim())
+                  .where((l) => l.startsWith('- ') || l.startsWith('* ') || l.startsWith('• '))
+                  .map((l) => l.replaceFirst(RegExp(r'^[-*•]\s*(\*\*)?'), '').replaceFirst(RegExp(r'\*\*'), '').trim())
+                  .where((l) => l.isNotEmpty)
+                  .take(6)
+                  .toList();
+              if (lines.isNotEmpty) {
+                remoteHighlights = lines;
+              }
+            }
+
             await PatchNotesDialog.showUpdateAvailable(
               context,
               newVersion: tagName,
               currentVersion: currentAppVersion,
+              highlights: remoteHighlights,
               downloadUrl: downloadUrl,
             );
             return true;

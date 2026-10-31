@@ -77,11 +77,11 @@ class PatchNotesDialog extends StatelessWidget {
 
   static List<String> defaultHighlights(String version) {
     return const [
-      'Reliable Email OTP: Codes are delivered straight to your inbox without timeouts.',
-      'Refined Forms: Centered buttons and improved spacing for both Buyer & Rider sign-up.',
-      'Buyer Registration: Removed Upload ID requirement for a faster onboarding.',
-      'Account & Settings: Streamlined profile header and removed duplicate sign-out dialogs.',
-      'Rider Onboarding: Redesigned application submission status confirmation modal.',
+      'Interactive Search: Tap the header search bar to discover trending items, explore categories, and get live suggestions.',
+      'Search History: Easily view recent searches with one-tap search and single or clear-all removal.',
+      'Product Sorting: Sort items by Relevance, Latest, Top Sales, and Price Low/High with responsive layout.',
+      'Refined Navigation: Unified 4-tab bottom navigation with auto-slide down on scroll across all main screens.',
+      'Account Layout: Refreshed Guest Account screen aligned with Cart and Wishlist styling.',
     ];
   }
 
