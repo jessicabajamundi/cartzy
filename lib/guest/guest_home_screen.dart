@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
@@ -33,6 +34,43 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   final GlobalKey<HeroBannerState> _heroKey = GlobalKey<HeroBannerState>();
   final GlobalKey<DailyDiscoverSectionState> _discoverKey =
       GlobalKey<DailyDiscoverSectionState>();
+
+  bool _isNavVisible = true;
+  Timer? _scrollStopTimer;
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.pixels <= 20) {
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+      return false;
+    }
+
+    if (notification is ScrollStartNotification) {
+      if (_isNavVisible) {
+        setState(() => _isNavVisible = false);
+      }
+    } else if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta.abs() > 1.0) {
+        if (_isNavVisible) {
+          setState(() => _isNavVisible = false);
+        }
+        _scrollStopTimer?.cancel();
+        _scrollStopTimer = Timer(const Duration(milliseconds: 400), () {
+          if (mounted && !_isNavVisible) {
+            setState(() => _isNavVisible = true);
+          }
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollStopTimer?.cancel();
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+    }
+    return false;
+  }
 
   void _showLoginRequiredDialog() {
     showDialog(
@@ -113,6 +151,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 
   @override
   void dispose() {
+    _scrollStopTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -138,7 +177,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
             // Hero banner with an overlaid search, wishlist, and notifications
             // ─────────────────────────────────────────────────
             Positioned.fill(
-              child: RefreshIndicator(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: RefreshIndicator(
                 color: CartzyColors.burgundy,
                 onRefresh: () async {
                   CatalogService.clearCache();
@@ -362,6 +403,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 ),
               ),
             ),
+          ),
 
             // ─────────────────────────────────────────────────
             // BOTTOM NAV BAR (Home, Cart, Sale, Profile)
@@ -370,8 +412,15 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: AnimatedSlide(
+                offset: _isNavVisible ? Offset.zero : const Offset(0, 1.8),
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeInOutCubic,
+                child: AnimatedOpacity(
+                  opacity: _isNavVisible ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 decoration: const ShapeDecoration(
                   color: CartzyColors.surface,
                   shape: StadiumBorder(
@@ -431,7 +480,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 ),
               ),
             ),
-          ],
+          ),
+        ),
+      ],
         ),
       ),
     );
