@@ -1,25 +1,68 @@
 import 'api_service.dart';
 import 'smtp_email_service.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'wishlist_service.dart';
 
 class AuthService {
   static Map<String, dynamic>? _currentUser;
   static String? _token;
 
+  static const String _kAuthToken = 'cartzy_auth_token';
+  static const String _kAuthUser = 'cartzy_auth_user';
+  static const String _kAuthRole = 'cartzy_auth_role';
+
   static Map<String, dynamic>? get currentUser => _currentUser;
   static String? get token => _token;
-  static bool get isAuthenticated => _token != null || _currentUser != null;
+  static bool get isAuthenticated => (_token != null && _token!.isNotEmpty) || _currentUser != null;
   static bool get isLoggedIn => isAuthenticated;
 
   static void setSession({Map<String, dynamic>? user, String? token}) {
     _currentUser = user != null ? Map<String, dynamic>.from(user) : null;
-    _token = token;
+    if (token != null && token.isNotEmpty) {
+      _token = token;
+    }
+    _persistSession();
+  }
+
+  static Future<void> _persistSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_token != null && _token!.isNotEmpty) {
+        await prefs.setString(_kAuthToken, _token!);
+      }
+      if (_currentUser != null) {
+        await prefs.setString(_kAuthUser, jsonEncode(_currentUser));
+        if (_currentUser!['role'] != null) {
+          await prefs.setString(_kAuthRole, _currentUser!['role'].toString());
+        }
+      }
+    } catch (_) {}
+  }
+
+  static Future<bool> restoreSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedToken = prefs.getString(_kAuthToken);
+      final savedUserJson = prefs.getString(_kAuthUser);
+      if (savedUserJson != null && savedUserJson.isNotEmpty) {
+        _currentUser = Map<String, dynamic>.from(jsonDecode(savedUserJson) as Map);
+        _token = savedToken;
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   static void clearSession() {
     _currentUser = null;
     _token = null;
     WishlistService.clear();
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.remove(_kAuthToken);
+      prefs.remove(_kAuthUser);
+      prefs.remove(_kAuthRole);
+    }).catchError((_) {});
   }
 
   static Future<Map<String, dynamic>> login({
@@ -42,6 +85,7 @@ class AuthService {
     if (response['user'] != null && response['user'] is Map) {
       _currentUser = Map<String, dynamic>.from(response['user'] as Map);
     }
+    _persistSession();
 
     return response;
   }
@@ -68,6 +112,7 @@ class AuthService {
     if (response['user'] != null && response['user'] is Map) {
       _currentUser = Map<String, dynamic>.from(response['user'] as Map);
     }
+    _persistSession();
 
     return response;
   }
@@ -117,6 +162,7 @@ class AuthService {
     if (response['user'] is Map) {
       _currentUser = Map<String, dynamic>.from(response['user'] as Map);
     }
+    _persistSession();
 
     // The account exists now; a failed address save shouldn't undo signup.
     if (address is Map && _token != null) {

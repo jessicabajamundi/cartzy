@@ -6,14 +6,14 @@ import 'package:cartzy/widgets/patch_notes_dialog.dart';
 
 class AppUpdateService {
   /// The current app release version.
-  static const String currentAppVersion = '1.1.5';
+  static const String currentAppVersion = '1.1.6';
 
   /// GitHub repository release endpoint for Cartzy.
   static const String latestReleaseApi =
       'https://api.github.com/repos/jessicabajamundi/cartzy/releases/latest';
 
   static const String defaultReleasePage =
-      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.1.5';
+      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.1.6';
 
   static const String _keyLastSeenPatch = 'cartzy_last_seen_patch_version';
 

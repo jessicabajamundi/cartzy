@@ -76,6 +76,15 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.1.6' || version == 'v1.1.6') {
+      return const [
+        'Official Storefront: Visit seller stores directly from products with live catalog, reviews, and store info.',
+        'Follow & Chat with Sellers: Seamless seller following and real-time messaging from store pages.',
+        'Profile Settings Screen: Dedicated full-screen profile management with birthday calendar picker.',
+        'Header Message Shortcut: Live unread message indicator on the dashboard header.',
+        'Persistent Navigation: Fluid animated navigation bar on Cart and Sale pages.',
+      ];
+    }
     if (version == '1.1.5' || version == 'v1.1.5') {
       return const [
         'Live Database Wishlist: Real-time sync for saving products with instant database connection.',

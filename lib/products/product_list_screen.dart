@@ -8,6 +8,9 @@ import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/utils/product_images.dart';
 import 'package:cartzy/services/catalog_service.dart';
+import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'product_details_screen.dart';
 
 class ProductItem {
@@ -71,6 +74,43 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   final TextEditingController _searchController = TextEditingController();
+  bool _isNavVisible = true;
+  Timer? _scrollStopTimer;
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.axis != Axis.vertical) return false;
+    if (notification.metrics.pixels <= 20) {
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+      return false;
+    }
+
+    if (notification is ScrollStartNotification) {
+      if (_isNavVisible) {
+        setState(() => _isNavVisible = false);
+      }
+    } else if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta.abs() > 1.0) {
+        if (_isNavVisible) {
+          setState(() => _isNavVisible = false);
+        }
+        _scrollStopTimer?.cancel();
+        _scrollStopTimer = Timer(const Duration(milliseconds: 400), () {
+          if (mounted && !_isNavVisible) {
+            setState(() => _isNavVisible = true);
+          }
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollStopTimer?.cancel();
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+    }
+    return false;
+  }
   late String _selectedCategory;
   List<ProductItem> _baseProducts = [];
   bool _loading = true;
@@ -158,6 +198,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   void dispose() {
+    _scrollStopTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -219,6 +260,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     final filtered = _filteredProducts;
     return Scaffold(
+      extendBody: true,
       backgroundColor: CartzyColors.background,
       appBar: AppBar(
         backgroundColor: CartzyColors.surface,
@@ -290,8 +332,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
-        children: [
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _onScrollNotification,
+        child: Column(
+          children: [
           // Search bar
           Container(
             color: CartzyColors.surface,
@@ -414,7 +458,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           final cardHeight =
                               cardWidth + ProductCard.bodyHeight(context);
                           return GridView.builder(
-                            padding: const EdgeInsets.all(16),
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
@@ -476,6 +521,174 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ],
       ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: AnimatedSlide(
+          offset: _isNavVisible ? Offset.zero : const Offset(0, 1.8),
+          duration: const Duration(milliseconds: 260),
+          curve: Curves.easeInOutCubic,
+          child: AnimatedOpacity(
+            opacity: _isNavVisible ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              decoration: const ShapeDecoration(
+                color: CartzyColors.surface,
+                shape: StadiumBorder(
+                  side: BorderSide(color: CartzyColors.border),
+                ),
+                shadows: [
+                  BoxShadow(
+                    color: Color(0x148B3A3A),
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Row(
+                children: [
+                  _ProductBottomNavItem(
+                    icon: Icons.home_rounded,
+                    label: 'Home',
+                    selected: false,
+                    onClick: () {
+                      if (widget.onBack != null) {
+                        widget.onBack!();
+                      } else {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      }
+                    },
+                  ),
+                  _ProductBottomNavItem(
+                    icon: Icons.shopping_cart_outlined,
+                    label: 'Cart',
+                    selected: false,
+                    onClick: () => _navigateToCart(context),
+                  ),
+                  _ProductBottomNavItem(
+                    icon: Icons.local_offer_rounded,
+                    label: 'Sale',
+                    selected: _selectedCategory == 'Flash Deals' || (widget.title != null && widget.title!.toLowerCase().contains('sale')),
+                    isSale: true,
+                    onClick: () {
+                      if (_selectedCategory != 'Flash Deals') {
+                        setState(() => _selectedCategory = 'Flash Deals');
+                        _loadProducts();
+                      }
+                    },
+                  ),
+                  _ProductBottomNavItem(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Profile',
+                    selected: false,
+                    onClick: () {
+                      if (!AuthService.isAuthenticated) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AccountSettingsScreen(
+                              isLoggedIn: false,
+                              userName: 'Guest',
+                              userEmail: '',
+                              onBack: () => Navigator.of(context).pop(),
+                              onLogout: () {},
+                            ),
+                          ),
+                        );
+                      } else {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AccountSettingsScreen(
+                              isLoggedIn: true,
+                              userName: 'Buyer',
+                              userEmail: '',
+                              onBack: () => Navigator.of(context).pop(),
+                              onLogout: () async {
+                                await AuthService.logout();
+                                if (context.mounted) {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
+
+// ──────────────────────────────────────────────────────────────
+// PRODUCT LIST BOTTOM NAV ITEM
+// ──────────────────────────────────────────────────────────────
+class _ProductBottomNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool isSale;
+  final VoidCallback onClick;
+
+  const _ProductBottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    this.isSale = false,
+    required this.onClick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSale
+        ? CartzyColors.burgundy
+        : selected
+            ? CartzyColors.burgundy
+            : CartzyColors.gray;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onClick,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 11,
+                  color: color,
+                  fontWeight:
+                      selected || isSale ? FontWeight.w600 : FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 2,
+                width: selected ? 16 : 0,
+                decoration: BoxDecoration(
+                  color: CartzyColors.burgundy,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

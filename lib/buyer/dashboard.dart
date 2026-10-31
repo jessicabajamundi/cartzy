@@ -19,6 +19,8 @@ import 'package:cartzy/products/all_categories_screen.dart';
 
 import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/search/search_screen.dart';
+import 'package:cartzy/buyer/messages_screen.dart';
+import 'package:cartzy/services/message_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
@@ -56,6 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     NotificationService.fetchUnreadCount();
     WishlistService.fetchWishlistRefs();
+    MessageService.fetchUnreadCount();
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -100,6 +103,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         MaterialPageRoute(
           builder: (_) => CartScreen(
             onBack: () => Navigator.of(context).pop(),
+            onProfileClick: widget.onProfileClick,
+            onLogout: widget.onLogout,
             onCheckout: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -139,6 +144,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ));
   }
 
+  void _openMessages() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MessagesScreen(
+          onBack: () {
+            Navigator.of(context).pop();
+            MessageService.fetchUnreadCount();
+          },
+        ),
+      ),
+    ).then((_) => MessageService.fetchUnreadCount());
+  }
+
   void _openWishlist() {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => WishlistScreen(
@@ -165,6 +183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: CartzyColors.burgundy,
                 onRefresh: () async {
                   CatalogService.clearCache();
+                  MessageService.fetchUnreadCount();
                   await Future.wait([
                     _heroKey.currentState?.reload() ?? Future.value(),
                     _discoverKey.currentState?.reload() ?? Future.value(),
@@ -183,9 +202,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             left: 0,
                             right: 0,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 10, 8, 12),
+                              padding: const EdgeInsets.fromLTRB(10, 10, 6, 12),
                               child: Row(
                                 children: [
+                                  // MESSAGE ICON BUTTON (Live Database unread counter)
+                                  ValueListenableBuilder<int>(
+                                    valueListenable: MessageService.unreadCountNotifier,
+                                    builder: (context, msgCount, _) {
+                                      return IconButton(
+                                        tooltip: 'Messages',
+                                        onPressed: _openMessages,
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: Colors.transparent,
+                                          foregroundColor: CartzyColors.burgundy,
+                                          minimumSize: const Size(44, 44),
+                                        ),
+                                        icon: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            const BannerActionIcon(
+                                                Icons.chat_bubble_outline_rounded),
+                                            if (msgCount > 0)
+                                              Positioned(
+                                                right: 4,
+                                                top: 4,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(
+                                                      horizontal: 4, vertical: 2),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFFEF4444),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  constraints: const BoxConstraints(
+                                                    minWidth: 14,
+                                                    minHeight: 14,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      msgCount > 99
+                                                          ? '99+'
+                                                          : '$msgCount',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 8.5,
+                                                        fontWeight: FontWeight.bold,
+                                                        height: 1,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 4),
+
+                                  // SEARCH BAR
                                   Expanded(
                                     child: TextField(
                                       controller: _searchController,
@@ -206,14 +280,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                                horizontal: 16, vertical: 8),
+                                                horizontal: 14, vertical: 8),
                                         suffixIconConstraints:
                                             const BoxConstraints(
-                                                minWidth: 40, minHeight: 40),
+                                                minWidth: 38, minHeight: 38),
                                         suffixIcon: IconButton(
                                           tooltip: 'Search products',
                                           style: IconButton.styleFrom(
-                                              minimumSize: const Size(40, 40),
+                                              minimumSize: const Size(38, 38),
                                               tapTargetSize:
                                                   MaterialTapTargetSize
                                                       .shrinkWrap),
@@ -243,55 +317,59 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                   ValueListenableBuilder<int>(
-                                     valueListenable: WishlistService.countNotifier,
-                                     builder: (context, wishCount, _) {
-                                       return IconButton(
-                                         tooltip: 'Wishlist',
-                                         onPressed: _openWishlist,
-                                         style: IconButton.styleFrom(
-                                           backgroundColor: Colors.transparent,
-                                           foregroundColor: CartzyColors.burgundy,
-                                           minimumSize: const Size(48, 48),
-                                         ),
-                                         icon: Stack(
-                                           clipBehavior: Clip.none,
-                                           children: [
-                                             const BannerActionIcon(
-                                                 Icons.favorite_border_rounded),
-                                             if (wishCount > 0)
-                                               Positioned(
-                                                 right: 6,
-                                                 top: 6,
-                                                 child: Container(
-                                                   padding: const EdgeInsets.all(4),
-                                                   decoration: const BoxDecoration(
-                                                     color: Color(0xFFD1495B),
-                                                     shape: BoxShape.circle,
-                                                   ),
-                                                   constraints: const BoxConstraints(
-                                                     minWidth: 14,
-                                                     minHeight: 14,
-                                                   ),
-                                                   child: Center(
-                                                     child: Text(
-                                                       wishCount > 99 ? '99+' : '$wishCount',
-                                                       style: const TextStyle(
-                                                         color: Colors.white,
-                                                         fontSize: 8.5,
-                                                         fontWeight: FontWeight.bold,
-                                                         height: 1,
-                                                       ),
-                                                     ),
-                                                   ),
-                                                 ),
-                                               ),
-                                           ],
-                                         ),
-                                       );
-                                     },
-                                   ),
+                                  const SizedBox(width: 2),
+
+                                  // WISHLIST BUTTON
+                                  ValueListenableBuilder<int>(
+                                    valueListenable: WishlistService.countNotifier,
+                                    builder: (context, wishCount, _) {
+                                      return IconButton(
+                                        tooltip: 'Wishlist',
+                                        onPressed: _openWishlist,
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: Colors.transparent,
+                                          foregroundColor: CartzyColors.burgundy,
+                                          minimumSize: const Size(44, 44),
+                                        ),
+                                        icon: Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            const BannerActionIcon(
+                                                Icons.favorite_border_rounded),
+                                            if (wishCount > 0)
+                                              Positioned(
+                                                right: 4,
+                                                top: 4,
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(4),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFFD1495B),
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  constraints: const BoxConstraints(
+                                                    minWidth: 14,
+                                                    minHeight: 14,
+                                                  ),
+                                                  child: Center(
+                                                    child: Text(
+                                                      wishCount > 99 ? '99+' : '$wishCount',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 8.5,
+                                                        fontWeight: FontWeight.bold,
+                                                        height: 1,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+
+                                  // NOTIFICATIONS BUTTON
                                   ValueListenableBuilder<int>(
                                     valueListenable: NotificationService.unreadCountNotifier,
                                     builder: (context, unreadCount, _) {
@@ -310,7 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         style: IconButton.styleFrom(
                                           backgroundColor: Colors.transparent,
                                           foregroundColor: CartzyColors.burgundy,
-                                          minimumSize: const Size(48, 48),
+                                          minimumSize: const Size(44, 44),
                                         ),
                                         icon: Stack(
                                           clipBehavior: Clip.none,
@@ -319,8 +397,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 Icons.notifications_none_rounded),
                                             if (unreadCount > 0)
                                               Positioned(
-                                                right: 6,
-                                                top: 6,
+                                                right: 4,
+                                                top: 4,
                                                 child: Container(
                                                   padding: const EdgeInsets.all(4),
                                                   decoration: const BoxDecoration(

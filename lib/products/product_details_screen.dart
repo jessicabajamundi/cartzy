@@ -3,6 +3,7 @@ import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
+import 'package:cartzy/products/official_store_screen.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/cart_service.dart';
@@ -64,6 +65,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   String? _originalPrice;
   late String _sellerName;
   String? _sellerLogoUrl;
+  int? _sellerId;
+  String? _sellerSlug;
   double? _sellerFreeShippingMin;
   late String _badge;
   late double _rating;
@@ -195,6 +198,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           if (data['seller'] is Map) {
             _sellerName = data['seller']['name']?.toString() ?? _sellerName;
             _sellerLogoUrl = data['seller']['logo_url']?.toString();
+            final rawId = data['seller']['id'];
+            if (rawId is int) {
+              _sellerId = rawId;
+            } else if (rawId != null) {
+              _sellerId = int.tryParse(rawId.toString());
+            }
+            _sellerSlug = data['seller']['slug']?.toString();
             if (data['seller']['free_shipping_min'] != null) {
               _sellerFreeShippingMin = (data['seller']['free_shipping_min'] as num).toDouble();
             }
@@ -429,6 +439,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           label: 'VIEW CART',
           textColor: CartzyColors.coral,
           onPressed: () => _navigateToCart(),
+        ),
+      ),
+    );
+  }
+
+  void _openStoreScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OfficialStoreScreen(
+          sellerId: _sellerId,
+          sellerSlug: _sellerSlug,
+          sellerName: _sellerName,
+          sellerLogoUrl: _sellerLogoUrl,
         ),
       ),
     );
@@ -1435,7 +1458,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       child: Row(
         children: [
           // Store avatar
-          Container(
+          GestureDetector(
+            onTap: _openStoreScreen,
+            child: Container(
             width: 46,
             height: 46,
             decoration: BoxDecoration(
@@ -1469,34 +1494,39 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
                   ),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Sold by',
-                  style: TextStyle(fontSize: 11, color: CartzyColors.gray),
-                ),
-                Text(
-                  _sellerName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+            child: GestureDetector(
+              onTap: _openStoreScreen,
+              behavior: HitTestBehavior.opaque,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Sold by',
+                    style: TextStyle(fontSize: 11, color: CartzyColors.gray),
                   ),
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Visit store →',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: CartzyColors.coral,
+                  Text(
+                    _sellerName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: CartzyColors.navy,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Visit store →',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: CartzyColors.coral,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           OutlinedButton.icon(
@@ -1577,7 +1607,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           const SizedBox(height: 12),
 
           _buildSpecRow('Category', _category),
-          _buildSpecRow('Store', _sellerName),
+          _buildSpecRow('Store', _sellerName, onTap: _openStoreScreen),
           if (_gender != null && _gender!.isNotEmpty)
             _buildSpecRow('For', _gender![0].toUpperCase() + _gender!.substring(1)),
           if (_colors.isNotEmpty)
@@ -1590,7 +1620,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  Widget _buildSpecRow(String label, String value) {
+  Widget _buildSpecRow(String label, String value, {VoidCallback? onTap}) {
+    final textWidget = Text(
+      value,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: onTap != null ? CartzyColors.coral : CartzyColors.navy,
+        decoration: onTap != null ? TextDecoration.underline : TextDecoration.none,
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -1604,14 +1644,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: CartzyColors.navy,
-              ),
-            ),
+            child: onTap != null
+                ? InkWell(
+                    onTap: onTap,
+                    child: textWidget,
+                  )
+                : textWidget,
           ),
         ],
       ),

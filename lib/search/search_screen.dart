@@ -439,6 +439,8 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       decoration: InputDecoration(
                         isDense: true,
+                        filled: false,
+                        fillColor: Colors.transparent,
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                         hintText: 'Search dresses, bags, electronics...',
                         hintStyle: GoogleFonts.dmSans(
@@ -446,6 +448,10 @@ class _SearchScreenState extends State<SearchScreen> {
                           color: CartzyColors.grayMid,
                         ),
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
                       ),
                     ),
                   ),

@@ -1,699 +1,397 @@
 import 'package:flutter/material.dart';
-import 'package:cartzy/utils/input_rules.dart';
-import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/utils/input_rules.dart';
+import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 
-class EditBuyerProfileScreen extends StatefulWidget {
+// ============================================================
+// PROFILE SETTINGS SCREEN (Cartzy Design)
+// Matches the dedicated profile settings screen layout
+// ============================================================
+
+class ProfileSettingsScreen extends StatefulWidget {
   final VoidCallback onBack;
+  final ValueChanged<Map<String, dynamic>>? onProfileUpdated;
+  final String? initialName;
+  final String? initialEmail;
+  final String? initialPhone;
+  final String? initialBirthday;
 
-  const EditBuyerProfileScreen({
+  const ProfileSettingsScreen({
     super.key,
     required this.onBack,
+    this.onProfileUpdated,
+    this.initialName,
+    this.initialEmail,
+    this.initialPhone,
+    this.initialBirthday,
   });
 
   @override
-  State<EditBuyerProfileScreen> createState() =>
-      _EditBuyerProfileScreenState();
+  State<ProfileSettingsScreen> createState() => _ProfileSettingsScreenState();
 }
 
-class _EditBuyerProfileScreenState
-    extends State<EditBuyerProfileScreen> {
-  // =========================================================
-  // CONTROLLERS
-  // =========================================================
+// Backwards-compatibility alias
+typedef EditBuyerProfileScreen = ProfileSettingsScreen;
 
-  // Prefilled from the signed-in buyer.
-  static String _user(String key) =>
-      AuthService.currentUser?[key]?.toString() ?? '';
+class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _birthdayController;
 
-  final TextEditingController _nameController =
-      TextEditingController(text: _user('name'));
+  bool _isSaving = false;
 
-  final TextEditingController _usernameController =
-      TextEditingController(text: _user('email').split('@').first);
+  @override
+  void initState() {
+    super.initState();
+    final user = AuthService.currentUser ?? {};
+    final rawName = (widget.initialName != null && widget.initialName!.isNotEmpty)
+        ? widget.initialName!
+        : (user['name']?.toString() ?? '');
+    final rawEmail = (widget.initialEmail != null && widget.initialEmail!.isNotEmpty)
+        ? widget.initialEmail!
+        : (user['email']?.toString() ?? '');
+    final rawPhone = (widget.initialPhone != null && widget.initialPhone!.isNotEmpty)
+        ? widget.initialPhone!
+        : (user['phone']?.toString() ?? '');
+    final rawBirthday = (widget.initialBirthday != null && widget.initialBirthday!.isNotEmpty)
+        ? widget.initialBirthday!
+        : (user['birthday']?.toString() ?? '');
 
-  final TextEditingController _emailController =
-      TextEditingController(text: _user('email'));
-
-  final TextEditingController _contactController =
-      TextEditingController(text: _user('phone'));
-
-  final TextEditingController _passwordController =
-      TextEditingController();
-
-  final TextEditingController _houseNumberController =
-      TextEditingController();
-
-  // =========================================================
-  // ADDRESS
-  // =========================================================
-
-  String _selectedProvince = 'Select Province';
-
-  String _selectedMunicipality =
-      'Select Municipality/City';
-
-  String _selectedBarangay = 'Select Barangay';
-
-  // =========================================================
-  // PASSWORD
-  // =========================================================
-
-  bool _obscurePassword = true;
-
-  // =========================================================
-  // DISPOSE
-  // =========================================================
+    _nameController = TextEditingController(text: rawName);
+    _emailController = TextEditingController(text: rawEmail);
+    _phoneController = TextEditingController(text: rawPhone);
+    _birthdayController = TextEditingController(
+      text: rawBirthday.isNotEmpty ? rawBirthday : '2005-09-20',
+    );
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _usernameController.dispose();
     _emailController.dispose();
-    _contactController.dispose();
-    _passwordController.dispose();
-    _houseNumberController.dispose();
-
+    _phoneController.dispose();
+    _birthdayController.dispose();
     super.dispose();
   }
 
-  // =========================================================
-  // TEXT FIELD
-  // =========================================================
+  Future<void> _pickBirthday() async {
+    DateTime initial = DateTime.tryParse(_birthdayController.text.trim()) ??
+        DateTime(2005, 9, 20);
+    if (initial.isAfter(DateTime.now())) initial = DateTime(2005, 9, 20);
 
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    String? hintText,
-    TextInputType keyboardType = TextInputType.text,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    List<TextInputFormatter>? inputFormatters,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: CartzyColors.navy,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          inputFormatters: inputFormatters,
-
-          decoration: InputDecoration(
-            hintText: hintText,
-            suffixIcon: suffixIcon,
-
-            filled: true,
-            fillColor: Colors.white,
-
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 15,
-            ),
-
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: CartzyColors.border,
-              ),
-            ),
-
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: CartzyColors.border,
-              ),
-            ),
-
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: CartzyColors.navy,
-                width: 1.5,
-              ),
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1930),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: CartzyColors.burgundy,
+              onPrimary: Colors.white,
+              onSurface: CartzyColors.navy,
             ),
           ),
-        ),
-
-        const SizedBox(height: 18),
-      ],
+          child: child!,
+        );
+      },
     );
+
+    if (picked != null) {
+      final formatted =
+          '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      setState(() {
+        _birthdayController.text = formatted;
+      });
+    }
   }
-
-  // =========================================================
-  // DROPDOWN
-  // =========================================================
-
-  Widget _buildDropdown({
-    required String label,
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: CartzyColors.navy,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        DropdownButtonFormField<String>(
-          initialValue: value,
-
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white,
-
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 4,
-            ),
-
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: CartzyColors.border,
-              ),
-            ),
-
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: CartzyColors.border,
-              ),
-            ),
-
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: CartzyColors.navy,
-                width: 1.5,
-              ),
-            ),
-          ),
-
-          items: items.map((item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(
-                item,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: CartzyColors.navy,
-                ),
-              ),
-            );
-          }).toList(),
-
-          onChanged: onChanged,
-        ),
-
-        const SizedBox(height: 18),
-      ],
-    );
-  }
-
-  // =========================================================
-  // NEUMORPHIC SAVE BUTTON
-  // =========================================================
-
-  Widget _buildNeumorphicButton({
-    required String text,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      width: double.infinity,
-      height: 52,
-
-      decoration: BoxDecoration(
-        color: CartzyColors.navy,
-
-        borderRadius: BorderRadius.circular(12),
-
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            offset: Offset(4, 5),
-            blurRadius: 6,
-          ),
-        ],
-      ),
-
-      child: ElevatedButton(
-        onPressed: onPressed,
-
-        style: ElevatedButton.styleFrom(
-          backgroundColor: CartzyColors.navy,
-          foregroundColor: Colors.white,
-
-          elevation: 0,
-
-          shadowColor: Colors.transparent,
-
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // =========================================================
-  // SAVE CHANGES
-  // =========================================================
 
   void _saveChanges() {
-    final nameError = InputRules.fullName(
-      _nameController.text,
-      label: 'full name',
-    );
+    final nameError = InputRules.fullName(_nameController.text);
     if (nameError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(nameError),
-        ),
-      );
-
+      showCartzyFlash(context, nameError);
       return;
     }
 
-    if (_usernameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter your username.',
-          ),
-        ),
-      );
-
-      return;
+    final phoneText = _phoneController.text.trim();
+    if (phoneText.isNotEmpty) {
+      final phoneError = InputRules.phone(phoneText);
+      if (phoneError != null) {
+        showCartzyFlash(context, phoneError);
+        return;
+      }
     }
 
-    if (_emailController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter your email address.',
-          ),
-        ),
-      );
+    setState(() => _isSaving = true);
 
-      return;
-    }
+    final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+    updated['name'] = _nameController.text.trim();
+    updated['phone'] = _phoneController.text.trim();
+    updated['birthday'] = _birthdayController.text.trim();
 
-    final phoneError = InputRules.phone(_contactController.text);
-    if (phoneError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(phoneError),
-        ),
-      );
+    AuthService.setSession(user: updated, token: AuthService.token);
+    widget.onProfileUpdated?.call(updated);
 
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Profile updated successfully!',
-        ),
-      ),
-    );
+    showCartzyFlash(context, 'Profile updated successfully!');
+    widget.onBack();
   }
-
-  // =========================================================
-  // BUILD
-  // =========================================================
 
   @override
   Widget build(BuildContext context) {
+    const fieldBorderColor = Color(0xFFEDE4E7);
+    const textColor = Color(0xFF231F20);
+    const labelColor = Color(0xFF231F20);
+    const subtitleColor = Color(0xFF8E8286);
+
     return Scaffold(
-      backgroundColor: CartzyColors.background,
-
-      // =====================================================
-      // APP BAR
-      // =====================================================
-
+      backgroundColor: const Color(0xFFFAF7F5),
       appBar: AppBar(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: const Color(0xFFFAF7F5),
         elevation: 0,
-
-        leading: IconButton(
-          onPressed: widget.onBack,
-
-          icon: const Icon(
-            Icons.arrow_back,
-            color: CartzyColors.navy,
-          ),
-        ),
-
-        title: const Text(
-          'Edit My Information',
-          style: TextStyle(
-            color: CartzyColors.navy,
-            fontWeight: FontWeight.bold,
-            fontSize: 19,
-          ),
-        ),
-
+        scrolledUnderElevation: 0,
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: widget.onBack,
+        ),
+        title: Text(
+          'Profile settings',
+          style: GoogleFonts.dmSans(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: textColor,
+          ),
+        ),
       ),
-
-      // =====================================================
-      // BODY
-      // =====================================================
-
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            20,
-            10,
-            20,
-            30,
-          ),
-
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
-              // =================================================
-              // PROFILE ICON
-              // =================================================
-
-              Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 90,
-                      height: 90,
-
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: CartzyColors.navy,
-
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            offset: const Offset(4, 5),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    const Text(
-                      'Update your account information',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: CartzyColors.gray,
-                      ),
-                    ),
-                  ],
+              // ── Full Name ──
+              Text(
+                'Full name',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: labelColor,
                 ),
               ),
-
-              const SizedBox(height: 30),
-
-              // =================================================
-              // ACCOUNT INFORMATION
-              // =================================================
-
-              const Text(
-                'Account Information',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: CartzyColors.navy,
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _nameController,
+                inputFormatters: InputRules.fullNameFormatters,
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: textColor, width: 1.5),
+                  ),
                 ),
               ),
 
               const SizedBox(height: 18),
 
-              // FULL NAME
-
-              _buildTextField(
-                label: 'Full Name',
-                controller: _nameController,
-                hintText: 'Enter your full name',
-                inputFormatters: InputRules.fullNameFormatters,
+              // ── Email Address ──
+              Text(
+                'Email address',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: labelColor,
+                ),
               ),
-
-              // USERNAME
-
-              _buildTextField(
-                label: 'Username',
-                controller: _usernameController,
-                hintText: 'Enter your username',
-              ),
-
-              // EMAIL
-
-              _buildTextField(
-                label: 'Email Address',
+              const SizedBox(height: 8),
+              TextFormField(
                 controller: _emailController,
-                hintText: 'Enter your email address',
-                keyboardType:
-                    TextInputType.emailAddress,
+                readOnly: true,
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'This email is linked to Google and cannot be changed here.',
+                style: GoogleFonts.dmSans(
+                  fontSize: 12,
+                  color: subtitleColor,
+                  height: 1.35,
+                ),
               ),
 
-              // CONTACT NUMBER
+              const SizedBox(height: 18),
 
-              _buildTextField(
-                label: 'Contact Number',
-                controller: _contactController,
-                hintText: 'Enter your contact number',
+              // ── Mobile Number ──
+              Text(
+                'Mobile number',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: labelColor,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 inputFormatters: InputRules.phoneFormatters,
-              ),
-
-              // PASSWORD
-
-              _buildTextField(
-                label: 'Password',
-                controller: _passwordController,
-                hintText: 'Enter new password',
-                obscureText: _obscurePassword,
-
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword =
-                          !_obscurePassword;
-                    });
-                  },
-
-                  icon: Icon(
-                    _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-
-                    color: CartzyColors.gray,
-                  ),
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: textColor,
                 ),
-              ),
-
-              const SizedBox(height: 8),
-
-              // =================================================
-              // DELIVERY ADDRESS
-              // =================================================
-
-              const Text(
-                'Delivery Address',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: CartzyColors.navy,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide:
+                        const BorderSide(color: textColor, width: 1.5),
+                  ),
                 ),
               ),
 
               const SizedBox(height: 18),
 
-              // HOUSE NUMBER / STREET
-
-              _buildTextField(
-                label: 'House Number / Street',
-                controller:
-                    _houseNumberController,
-                hintText:
-                    'Enter house number and street',
+              // ── Birthday ──
+              Text(
+                'Birthday',
+                style: GoogleFonts.dmSans(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: labelColor,
+                ),
               ),
-
-              // PROVINCE
-
-              _buildDropdown(
-                label: 'Province',
-
-                value: _selectedProvince,
-
-                items: const [
-                  'Select Province',
-                  'Metro Manila',
-                  'Cavite',
-                  'Laguna',
-                  'Rizal',
-                  'Batangas',
-                  'Bulacan',
-                  'Pampanga',
-                  'Cebu',
-                  'Davao del Sur',
-                ],
-
-                onChanged: (value) {
-                  if (value == null) return;
-
-                  setState(() {
-                    _selectedProvince = value;
-
-                    _selectedMunicipality =
-                        'Select Municipality/City';
-
-                    _selectedBarangay =
-                        'Select Barangay';
-                  });
-                },
-              ),
-
-              // MUNICIPALITY / CITY
-
-              _buildDropdown(
-                label: 'Municipality / City',
-
-                value: _selectedMunicipality,
-
-                items: const [
-                  'Select Municipality/City',
-                  'Quezon City',
-                  'Manila',
-                  'Makati',
-                  'Pasig',
-                  'Taguig',
-                  'Antipolo',
-                  'Bacoor',
-                  'Dasmarinas',
-                  'Calamba',
-                ],
-
-                onChanged: (value) {
-                  if (value == null) return;
-
-                  setState(() {
-                    _selectedMunicipality =
-                        value;
-
-                    _selectedBarangay =
-                        'Select Barangay';
-                  });
-                },
-              ),
-
-              // BARANGAY
-
-              _buildDropdown(
-                label: 'Barangay',
-
-                value: _selectedBarangay,
-
-                items: const [
-                  'Select Barangay',
-                  'Barangay 1',
-                  'Barangay 2',
-                  'Barangay 3',
-                  'Barangay 4',
-                  'Barangay 5',
-                  'Barangay 6',
-                  'Barangay 7',
-                  'Barangay 8',
-                  'Barangay 9',
-                  'Barangay 10',
-                ],
-
-                onChanged: (value) {
-                  if (value == null) return;
-
-                  setState(() {
-                    _selectedBarangay =
-                        value;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 10),
-
-              // =================================================
-              // SAVE BUTTON
-              // =================================================
-
-              _buildNeumorphicButton(
-                text: 'SAVE CHANGES',
-                onPressed: _saveChanges,
-              ),
-
-              const SizedBox(height: 14),
-
-              // =================================================
-              // CANCEL BUTTON
-              // =================================================
-
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-
-                child: OutlinedButton(
-                  onPressed: widget.onBack,
-
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(
-                      color: CartzyColors.navy,
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: _pickBirthday,
+                borderRadius: BorderRadius.circular(14),
+                child: IgnorePointer(
+                  child: TextFormField(
+                    controller: _birthdayController,
+                    readOnly: true,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: textColor,
                     ),
-
-                    shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(12),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 15),
+                      suffixIcon: const Padding(
+                        padding: EdgeInsets.only(right: 14),
+                        child: Icon(
+                          Icons.calendar_month_outlined,
+                          color: Color(0xFF7A6E72),
+                          size: 22,
+                        ),
+                      ),
+                      suffixIconConstraints:
+                          const BoxConstraints(minWidth: 40, minHeight: 40),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                            color: fieldBorderColor, width: 1.2),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                            color: fieldBorderColor, width: 1.2),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide:
+                            const BorderSide(color: textColor, width: 1.5),
+                      ),
                     ),
                   ),
+                ),
+              ),
 
-                  child: const Text(
-                    'CANCEL',
-                    style: TextStyle(
-                      color: CartzyColors.navy,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+              const SizedBox(height: 32),
+
+              // ── SAVE CHANGES Button ──
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isSaving ? null : _saveChanges,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF231F20),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: const Color(0xFF7A6E72),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'SAVE CHANGES',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
                     ),
                   ),
                 ),

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cartzy/utils/input_rules.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -14,6 +13,7 @@ import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
+import 'package:cartzy/buyer/edit_buyer_profile_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -84,7 +84,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
 
-  String _selectedSex = 'Female';
   final String _selectedIdType = 'National ID';
   bool _isIdVerified = true;
   int _unreadMessagesCount = 0;
@@ -190,19 +189,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     );
   }
 
-  Future<void> _pickProfilePhoto() async {
-    try {
-      final picker = ImagePicker();
-      final XFile? photo =
-          await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-      if (photo != null && mounted) {
-        showCartzyFlash(context, 'Profile photo updated!');
-      }
-    } catch (_) {
-      if (mounted) showCartzyFlash(context, 'Profile photo updated!');
-    }
-  }
-
   Future<void> _pickIdDocument() async {
     try {
       final picker = ImagePicker();
@@ -223,204 +209,24 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   }
 
   // ==========================================
-  // PROFILE SETTINGS MODAL
+  // PROFILE SETTINGS SCREEN
   // ==========================================
   void _openProfileSettingsModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Profile Settings',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
-                        onPressed: () => Navigator.pop(ctx),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 38,
-                          backgroundColor: CartzyColors.navy,
-                          child: Text(
-                            _getInitials(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: () async {
-                              await _pickProfilePhoto();
-                              setModalState(() {});
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: CartzyColors.coral,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.camera_alt,
-                                  color: Colors.white, size: 16),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text('Full Name',
-                      style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF7A6E72))),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _nameController,
-                    inputFormatters: InputRules.fullNameFormatters,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF9F7F8),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFEDE4E7))),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFEDE4E7))),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text('Phone Number',
-                      style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF7A6E72))),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    inputFormatters: InputRules.phoneFormatters,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF9F7F8),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFEDE4E7))),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFEDE4E7))),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Text('Sex / Gender',
-                      style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF7A6E72))),
-                  const SizedBox(height: 6),
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedSex,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF9F7F8),
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFEDE4E7))),
-                      enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFEDE4E7))),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'Female', child: Text('Female')),
-                      DropdownMenuItem(value: 'Male', child: Text('Male')),
-                      DropdownMenuItem(
-                          value: 'Other', child: Text('Prefer not to say')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) setModalState(() => _selectedSex = val);
-                    },
-                  ),
-                  const SizedBox(height: 22),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: CartzyColors.navy,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: () {
-                        final error = InputRules.fullName(_nameController.text) ??
-                            (_phoneController.text.trim().isEmpty
-                                ? null
-                                : InputRules.phone(_phoneController.text));
-                        if (error != null) {
-                          showCartzyFlash(context, error);
-                          return;
-                        }
-                        setState(() {});
-                        widget.onProfileUpdated?.call({
-                          'name': _nameController.text.trim(),
-                          'phone': _phoneController.text.trim(),
-                          'sex': _selectedSex,
-                        });
-                        Navigator.pop(ctx);
-                        showCartzyFlash(
-                            context, 'Profile updated successfully!');
-                      },
-                      child: Text('Save Changes',
-                          style: GoogleFonts.dmSans(
-                              fontSize: 15, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ProfileSettingsScreen(
+          initialName: _nameController.text.trim(),
+          initialEmail: _emailController.text.trim(),
+          initialPhone: _phoneController.text.trim(),
+          onBack: () => Navigator.of(context).pop(),
+          onProfileUpdated: (updated) {
+            setState(() {
+              if (updated['name'] != null) _nameController.text = updated['name'];
+              if (updated['phone'] != null) _phoneController.text = updated['phone'];
+            });
+            widget.onProfileUpdated?.call(updated);
+          },
+        ),
       ),
     );
   }
@@ -1120,7 +926,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               // ==========================================
               // 2. USER PROFILE CARD (Hi, Jan / Email)
               // ==========================================
-              Container(
+              GestureDetector(
+                onTap: widget.isLoggedIn ? _openProfileSettingsModal : null,
+                child: Container(
                 width: double.infinity,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -1195,6 +1003,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           ),
                         ],
                       ),
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -1625,6 +1434,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     MaterialPageRoute(
                       builder: (_) => CartScreen(
                         onBack: () => Navigator.of(context).pop(),
+                        onProfileClick: () => Navigator.of(context).pop(),
+                        onLogout: widget.onLogout,
                         onCheckout: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(

@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:async';
 import 'package:cartzy/services/cart_service.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/products/product_list_screen.dart';
+import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/services/auth_service.dart';
 
 class CartScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onCheckout;
+  final VoidCallback? onProfileClick;
+  final VoidCallback? onLogout;
 
   const CartScreen({
     super.key,
     required this.onBack,
     required this.onCheckout,
+    this.onProfileClick,
+    this.onLogout,
   });
 
   @override
@@ -18,6 +27,42 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final double _shippingFee = 60.00;
+  bool _isNavVisible = true;
+  Timer? _scrollStopTimer;
+
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.pixels <= 20) {
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+      return false;
+    }
+
+    if (notification is ScrollStartNotification) {
+      if (_isNavVisible) {
+        setState(() => _isNavVisible = false);
+      }
+    } else if (notification is ScrollUpdateNotification) {
+      final delta = notification.scrollDelta ?? 0;
+      if (delta.abs() > 1.0) {
+        if (_isNavVisible) {
+          setState(() => _isNavVisible = false);
+        }
+        _scrollStopTimer?.cancel();
+        _scrollStopTimer = Timer(const Duration(milliseconds: 400), () {
+          if (mounted && !_isNavVisible) {
+            setState(() => _isNavVisible = true);
+          }
+        });
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollStopTimer?.cancel();
+      if (!_isNavVisible) {
+        setState(() => _isNavVisible = true);
+      }
+    }
+    return false;
+  }
 
   @override
   void initState() {
@@ -27,6 +72,7 @@ class _CartScreenState extends State<CartScreen> {
 
   @override
   void dispose() {
+    _scrollStopTimer?.cancel();
     CartService.instance.removeListener(_onCartChanged);
     super.dispose();
   }
@@ -166,10 +212,14 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       backgroundColor: const Color(0xFFFAF8F9),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1140),
@@ -228,8 +278,101 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+    bottomNavigationBar: SafeArea(
+      top: false,
+      child: AnimatedSlide(
+        offset: _isNavVisible ? Offset.zero : const Offset(0, 1.8),
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeInOutCubic,
+        child: AnimatedOpacity(
+          opacity: _isNavVisible ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            decoration: const ShapeDecoration(
+              color: CartzyColors.surface,
+              shape: StadiumBorder(
+                side: BorderSide(color: CartzyColors.border),
+              ),
+              shadows: [
+                BoxShadow(
+                  color: Color(0x148B3A3A),
+                  blurRadius: 16,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Row(
+              children: [
+                _CartBottomNavItem(
+                  icon: Icons.home_rounded,
+                  label: 'Home',
+                  selected: false,
+                  onClick: widget.onBack,
+                ),
+                _CartBottomNavItem(
+                  icon: Icons.shopping_cart_rounded,
+                  label: 'Cart',
+                  selected: true,
+                  onClick: () {},
+                ),
+                _CartBottomNavItem(
+                  icon: Icons.local_offer_outlined,
+                  label: 'Sale',
+                  selected: false,
+                  isSale: true,
+                  onClick: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ProductListScreen(
+                          initialCategory: 'Flash Deals',
+                          title: 'Sale & Flash Deals',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _CartBottomNavItem(
+                  icon: Icons.person_outline_rounded,
+                  label: 'Profile',
+                  selected: false,
+                  onClick: () {
+                    if (widget.onProfileClick != null) {
+                      widget.onProfileClick!();
+                    } else {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AccountSettingsScreen(
+                            isLoggedIn: true,
+                            userName: 'Buyer',
+                            userEmail: '',
+                            onBack: () => Navigator.of(context).pop(),
+                            onLogout: () async {
+                              if (widget.onLogout != null) {
+                                widget.onLogout!();
+                              } else {
+                                await AuthService.logout();
+                                if (context.mounted) {
+                                  Navigator.of(context).popUntil((route) => route.isFirst);
+                                }
+                              }
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
   // ============================================================
   // HEADER
@@ -1047,7 +1190,87 @@ class _CartScreenState extends State<CartScreen> {
                 color: const Color(0xFF7A6E72),
               ),
             ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: widget.onBack,
+              icon: const Icon(Icons.arrow_back_rounded, size: 16),
+              label: const Text('Start Shopping'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: CartzyColors.burgundy,
+                foregroundColor: Colors.white,
+                shape: const StadiumBorder(),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                elevation: 0,
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+
+// ──────────────────────────────────────────────────────────────
+// CART BOTTOM NAV ITEM
+// ──────────────────────────────────────────────────────────────
+class _CartBottomNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool isSale;
+  final VoidCallback onClick;
+
+  const _CartBottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    this.isSale = false,
+    required this.onClick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isSale
+        ? CartzyColors.burgundy
+        : selected
+            ? CartzyColors.burgundy
+            : CartzyColors.gray;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onClick,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 22),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 11,
+                  color: color,
+                  fontWeight:
+                      selected || isSale ? FontWeight.w600 : FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: 2,
+                width: selected ? 16 : 0,
+                decoration: BoxDecoration(
+                  color: CartzyColors.burgundy,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

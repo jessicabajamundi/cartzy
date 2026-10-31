@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 
@@ -102,17 +103,25 @@ class ChatMessage {
 }
 
 class MessageService {
+  static final ValueNotifier<int> unreadCountNotifier = ValueNotifier<int>(0);
+
   /// Fetch all conversation threads for current user
   static Future<List<ConversationThread>> fetchConversations() async {
     final token = AuthService.token;
-    if (token == null || token.isEmpty) return [];
+    if (token == null || token.isEmpty) {
+      unreadCountNotifier.value = 0;
+      return [];
+    }
 
     try {
       final res = await ApiService.get('/messages', token: token);
       final rawList = res['conversations'] as List? ?? [];
-      return rawList
+      final list = rawList
           .map((item) => ConversationThread.fromJson(Map<String, dynamic>.from(item as Map)))
           .toList();
+      final total = list.fold<int>(0, (sum, c) => sum + c.unreadCount);
+      unreadCountNotifier.value = total;
+      return list;
     } catch (_) {
       return [];
     }
@@ -121,13 +130,18 @@ class MessageService {
   /// Get total unread count across all conversations
   static Future<int> fetchUnreadCount() async {
     final token = AuthService.token;
-    if (token == null || token.isEmpty) return 0;
+    if (token == null || token.isEmpty) {
+      unreadCountNotifier.value = 0;
+      return 0;
+    }
 
     try {
       final res = await ApiService.get('/messages/unread-count', token: token);
-      return res['unread_total'] as int? ?? 0;
+      final total = res['unread_total'] as int? ?? 0;
+      unreadCountNotifier.value = total;
+      return total;
     } catch (_) {
-      return 0;
+      return unreadCountNotifier.value;
     }
   }
 

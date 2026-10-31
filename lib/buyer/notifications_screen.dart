@@ -27,11 +27,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String? _error;
   List<AppNotificationItem> _notifications = [];
   Map<String, int> _counts = {'all': 0, 'orders': 0, 'promos': 0, 'system': 0};
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetch({bool silent = false}) async {
@@ -61,9 +69,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   List<AppNotificationItem> get _filtered {
-    if (_activeTab == 0) return _notifications;
-    final tag = _tabs[_activeTab].toLowerCase();
-    return _notifications.where((n) => n.tag == tag).toList();
+    List<AppNotificationItem> list = _notifications;
+    if (_activeTab != 0) {
+      final tag = _tabs[_activeTab].toLowerCase();
+      list = list.where((n) => n.tag == tag).toList();
+    }
+    if (_searchQuery.trim().isNotEmpty) {
+      final q = _searchQuery.trim().toLowerCase();
+      list = list.where((n) {
+        final title = n.title.toLowerCase();
+        final msg = n.message.toLowerCase();
+        final ref = (n.orderReference ?? '').toLowerCase();
+        final type = n.type.toLowerCase();
+        return title.contains(q) || msg.contains(q) || ref.contains(q) || type.contains(q);
+      }).toList();
+    }
+    return list;
   }
 
   int get _unreadCount => _notifications.where((n) => !n.isRead).length;
@@ -359,6 +380,69 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // ── Empty State ──────────────────────────────────────────────
   Widget _emptyState() {
+    if (_searchQuery.trim().isNotEmpty) {
+      return LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 64,
+                      height: 64,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF3F1F4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.search_off_rounded,
+                        size: 32,
+                        color: CartzyColors.grayMid,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No matching notifications',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: CartzyColors.brand900,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'No alerts found matching "$_searchQuery".',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13,
+                        color: CartzyColors.gray,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                      icon: const Icon(Icons.close_rounded, size: 16),
+                      label: const Text('Clear search'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: CartzyColors.brandDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     final String activeLabel = _tabs[_activeTab];
     final String title = activeLabel == 'All'
         ? 'No notifications yet'
@@ -643,6 +727,75 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ),
                 ],
+              ),
+            ),
+
+            // ── Search Bar (Single clean border) ─────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 2),
+              child: Container(
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F1F4),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: const Color(0xFFE5E0E8),
+                    width: 1.2,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.search_rounded,
+                      color: CartzyColors.brandDeep,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (val) => setState(() => _searchQuery = val),
+                        style: GoogleFonts.dmSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: CartzyColors.navy,
+                        ),
+                        decoration: InputDecoration(
+                          isDense: true,
+                          filled: false,
+                          fillColor: Colors.transparent,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 9),
+                          hintText: 'Search notifications by order, title...',
+                          hintStyle: GoogleFonts.dmSans(
+                            fontSize: 12.5,
+                            color: CartzyColors.grayMid,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    if (_searchQuery.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          color: CartzyColors.grayMid,
+                          size: 16,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                        splashRadius: 16,
+                      )
+                    else
+                      const SizedBox(width: 8),
+                  ],
+                ),
               ),
             ),
 

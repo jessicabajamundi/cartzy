@@ -127,7 +127,13 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                               },
                             )
                           : null,
+                      filled: false,
+                      fillColor: Colors.transparent,
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),

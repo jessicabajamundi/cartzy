@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:cartzy/theme/cartzy_theme.dart';
 import 'splash_screen.dart';
@@ -9,6 +10,7 @@ import 'package:cartzy/buyer/dashboard.dart';
 import 'package:cartzy/rider/rider_dashboard.dart';
 import 'package:cartzy/buyer/account_menu_screen.dart';
 import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/buyer/edit_buyer_profile_screen.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 import 'package:cartzy/auth/buyer_registration.dart';
@@ -67,11 +69,29 @@ class _CartzyHomeState extends State<CartzyHome> {
     });
   }
 
+  DateTime? _lastBackPressTime;
+
   @override
   void initState() {
     super.initState();
+    _initSession();
     if (widget.initialRoute != 'splash') {
       _triggerUpdateCheck();
+    }
+  }
+
+  Future<void> _initSession() async {
+    final restored = await AuthService.restoreSession();
+    if (restored && AuthService.isAuthenticated && mounted) {
+      setState(() {
+        loggedInUser = AuthService.currentUser;
+        if (AuthService.currentUser?['role'] == 'rider') {
+          riderToken = AuthService.token;
+          pendingAccountType = AccountType.rider;
+        } else {
+          pendingAccountType = AccountType.buyer;
+        }
+      });
     }
   }
 
@@ -292,9 +312,29 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'splash':
         return SplashScreen(
-          onFinished: () {
-            goTo('guest');
+          onFinished: () async {
             _triggerUpdateCheck();
+            final restored = await AuthService.restoreSession();
+            if (restored && AuthService.isAuthenticated) {
+              if (mounted) {
+                setState(() {
+                  loggedInUser = AuthService.currentUser;
+                  if (AuthService.currentUser?['role'] == 'rider') {
+                    riderToken = AuthService.token;
+                    pendingAccountType = AccountType.rider;
+                  } else {
+                    pendingAccountType = AccountType.buyer;
+                  }
+                });
+              }
+              if (AuthService.currentUser?['role'] == 'rider') {
+                goTo('riderDashboard');
+              } else {
+                goTo('dashboard');
+              }
+            } else {
+              goTo('guest');
+            }
           },
         );
 
@@ -514,6 +554,24 @@ class _CartzyHomeState extends State<CartzyHome> {
       // ACCOUNT SETTINGS & PROFILE
       // ========================================================
 
+      case 'profileSettings':
+      case 'editProfile':
+        return ProfileSettingsScreen(
+          initialName: loggedInUser?['name']?.toString() ?? '',
+          initialEmail: loggedInUser?['email']?.toString() ?? '',
+          initialPhone: loggedInUser?['phone']?.toString() ?? '',
+          initialBirthday: loggedInUser?['birthday']?.toString() ?? '',
+          onBack: () => goTo('accountSettings'),
+          onProfileUpdated: (updatedUser) {
+            setState(() {
+              loggedInUser = {
+                ...(loggedInUser ?? {}),
+                ...updatedUser,
+              };
+            });
+          },
+        );
+
       case 'accountSettings':
       case 'profile':
         return AccountSettingsScreen(
@@ -641,6 +699,65 @@ class _CartzyHomeState extends State<CartzyHome> {
 
   @override
   Widget build(BuildContext context) {
-    return buildRoute();
+    final isRoot = currentRoute == 'dashboard' ||
+        currentRoute == 'guest' ||
+        currentRoute == 'riderDashboard';
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // Internal navigation for sub-screens when pressing system back button
+        if (currentRoute == 'accountSettings' || currentRoute == 'profile') {
+          goTo(loggedInUser != null ? 'dashboard' : 'guest');
+          return;
+        }
+        if (currentRoute == 'cart' || currentRoute == 'vouchers') {
+          goTo(loggedInUser != null ? 'dashboard' : 'guest');
+          return;
+        }
+        if (currentRoute == 'addAddress') {
+          goTo('addresses');
+          return;
+        }
+        if (currentRoute == 'addresses') {
+          goTo('accountSettings');
+          return;
+        }
+        if (currentRoute == 'login' || currentRoute == 'buyerRegistration') {
+          goTo('guest');
+          return;
+        }
+        if (currentRoute == 'emailVerification') {
+          goTo('login');
+          return;
+        }
+        if (currentRoute == 'checkout') {
+          goTo('cart');
+          return;
+        }
+
+        // On root screen: double tap to exit app safely without logging out
+        if (isRoot) {
+          final now = DateTime.now();
+          if (_lastBackPressTime == null ||
+              now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+            _lastBackPressTime = now;
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Press back again to exit Cartzy'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+            return;
+          }
+          await SystemNavigator.pop();
+        }
+      },
+      child: buildRoute(),
+    );
   }
 }

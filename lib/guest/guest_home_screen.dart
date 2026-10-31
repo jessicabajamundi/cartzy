@@ -205,9 +205,24 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                             left: 0,
                             right: 0,
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 10, 8, 12),
+                              padding: const EdgeInsets.fromLTRB(10, 10, 6, 12),
                               child: Row(
                                 children: [
+                                  // MESSAGE ICON (Login required for guest)
+                                  IconButton(
+                                    tooltip: 'Messages',
+                                    onPressed: _showLoginRequiredDialog,
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      foregroundColor: CartzyColors.burgundy,
+                                      minimumSize: const Size(44, 44),
+                                    ),
+                                    icon: const BannerActionIcon(
+                                        Icons.chat_bubble_outline_rounded),
+                                  ),
+                                  const SizedBox(width: 4),
+
+                                  // SEARCH BAR
                                   Expanded(
                                     child: TextField(
                                       controller: _searchController,
@@ -228,14 +243,14 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
-                                                horizontal: 16, vertical: 8),
+                                                horizontal: 14, vertical: 8),
                                         suffixIconConstraints:
                                             const BoxConstraints(
-                                                minWidth: 40, minHeight: 40),
+                                                minWidth: 38, minHeight: 38),
                                         suffixIcon: IconButton(
                                           tooltip: 'Search products',
                                           style: IconButton.styleFrom(
-                                              minimumSize: const Size(40, 40),
+                                              minimumSize: const Size(38, 38),
                                               tapTargetSize:
                                                   MaterialTapTargetSize
                                                       .shrinkWrap),
@@ -265,25 +280,29 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: 2),
+
+                                  // WISHLIST BUTTON
                                   IconButton(
                                     tooltip: 'Wishlist',
                                     onPressed: _openWishlist,
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: CartzyColors.burgundy,
-                                      minimumSize: const Size(48, 48),
+                                      minimumSize: const Size(44, 44),
                                     ),
                                     icon: const BannerActionIcon(
                                         Icons.favorite_border_rounded),
                                   ),
+
+                                  // NOTIFICATIONS BUTTON
                                   IconButton(
                                     tooltip: 'Notifications',
                                     onPressed: _showLoginRequiredDialog,
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       foregroundColor: CartzyColors.burgundy,
-                                      minimumSize: const Size(48, 48),
+                                      minimumSize: const Size(44, 44),
                                     ),
                                     icon: const BannerActionIcon(
                                         Icons.notifications_none_rounded),
