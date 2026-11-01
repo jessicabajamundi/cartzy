@@ -14,10 +14,10 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 
 /* Bear art and moods */
 .buddy-bear { display: block; width: 100%; height: 100%; overflow: visible; }
-.buddy-bear-body, .buddy-bear-head, .buddy-bear-bow { transform-box: view-box; }
+.buddy-bear-body, .buddy-bear-head { transform-box: view-box; }
 .buddy-bear-body { transform-origin: 100px 185px; animation: buddy-breathe 3.200s ease-in-out infinite; }
-.buddy-bear-head { transform-origin: 100px 118px; animation: buddy-sway 5s ease-in-out infinite; }
-.buddy-bear-bow { transform-origin: 100px 120px; animation: buddy-sway 5s ease-in-out infinite; }
+.buddy-bear-head { transform-origin: 100px 135px; animation: buddy-sway 5s ease-in-out infinite; }
+.buddy-bear-bow { transform-box: fill-box; transform-origin: center; animation: buddy-bow 4s ease-in-out infinite; }
 .buddy-bear-ear { transform-box: fill-box; transform-origin: center; }
 .buddy-bear-ear-left { animation: buddy-ear 6s ease-in-out infinite; }
 .buddy-bear-ear-right { animation: buddy-ear 6s ease-in-out 1.200s infinite; }
@@ -100,6 +100,7 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 
 @keyframes buddy-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.025, .975); } }
 @keyframes buddy-sway { 0%, 100% { transform: rotate(-1.500deg); } 50% { transform: rotate(1.500deg) translateY(1.500px); } }
+@keyframes buddy-bow { 0%, 88%, 100% { transform: rotate(0); } 92% { transform: rotate(-9deg) scale(1.08); } 96% { transform: rotate(7deg) scale(1.04); } }
 @keyframes buddy-ear { 0%, 90%, 100% { transform: rotate(0); } 93% { transform: rotate(-12deg); } 96% { transform: rotate(9deg); } }
 @keyframes buddy-blink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(.08); } }
 @keyframes buddy-bounce { 0%, 100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-14px) scale(1.04, .97); } 70% { transform: translateY(0) scale(.97, 1.03); } }

@@ -15,12 +15,8 @@
     const productMatch = location.pathname.match(/^\/products\/(\d+)/);
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // SVG ids must stay unique, so only the first bear keeps the gradients and the rest reuse them.
     const bears = [...root.querySelectorAll('[data-bear]')];
-    bears.forEach((slot, index) => {
-        slot.appendChild(art.content.cloneNode(true));
-        if (index > 0) slot.querySelector('defs')?.remove();
-    });
+    bears.forEach((slot) => slot.appendChild(art.content.cloneNode(true)));
 
     let history = [];   // {role, content} sent to the server
     let transcript = []; // {role, text, products} shown on screen
