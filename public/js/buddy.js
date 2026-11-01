@@ -51,23 +51,32 @@
         }
     };
 
-    // Cozy's eyes follow the pointer.
+    // Cozy's eyes follow the pointer, and wander on their own when nothing is moving (always, on phones).
+    const lookAt = (x, y) => {
+        root.querySelectorAll('.buddy-pupil').forEach((pupil) => {
+            pupil.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+        });
+    };
     if (!reducedMotion) {
         let frame = 0;
+        let lastPointer = 0;
         window.addEventListener('pointermove', (event) => {
+            lastPointer = Date.now();
             if (frame) return;
             frame = requestAnimationFrame(() => {
                 frame = 0;
-                bears.forEach((slot) => {
-                    const box = slot.getBoundingClientRect();
-                    if (!box.width) return;
-                    const angle = Math.atan2(event.clientY - box.top - box.height * .34, event.clientX - box.left - box.width / 2);
-                    slot.querySelectorAll('.buddy-pupil').forEach((pupil) => {
-                        pupil.style.transform = `translate(${(Math.cos(angle) * 3.500).toFixed(1)}px, ${(Math.sin(angle) * 3.500).toFixed(1)}px)`;
-                    });
-                });
+                const box = bears.find((slot) => slot.getBoundingClientRect().width && getComputedStyle(slot).visibility !== 'hidden')?.getBoundingClientRect();
+                if (!box) return;
+                const angle = Math.atan2(event.clientY - box.top - box.height * .4, event.clientX - box.left - box.width / 2);
+                lookAt(Math.cos(angle) * 4, Math.sin(angle) * 4);
             });
         }, { passive: true });
+        setInterval(() => {
+            if (Date.now() - lastPointer < 3000) return;
+            const angle = Math.random() * Math.PI * 2;
+            const reach = Math.random() < .3 ? 0 : 4;
+            lookAt(Math.cos(angle) * reach, Math.sin(angle) * reach);
+        }, 1800);
     }
 
     const save = () => {
