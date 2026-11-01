@@ -23,6 +23,8 @@ services:
         value: https://cartzyy.shop
       - key: APP_KEY
         sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL

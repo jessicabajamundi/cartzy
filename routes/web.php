@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::get('/sale', [\App\Http\Controllers\HomeController::class, 'sale'])->name('sale');
 Route::get('/products/{id}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+Route::post('/buddy/chat', [\App\Http\Controllers\BuddyController::class, 'chat'])->middleware('throttle:buddy')->name('buddy.chat');
 Route::post('/products/{id}/comments', [\App\Http\Controllers\ProductController::class, 'comment'])->whereNumber('id')->middleware(['auth', 'role:buyer,seller', 'throttle:10,1'])->name('products.comments.store');
 Route::post('/comments/{commentId}/react', [\App\Http\Controllers\ProductController::class, 'react'])->whereNumber('commentId')->middleware(['auth', 'role:buyer,seller', 'throttle:60,1'])->name('products.comments.react');
 Route::get('/category/{slug}', [\App\Http\Controllers\HomeController::class, 'category'])->name('category.show');

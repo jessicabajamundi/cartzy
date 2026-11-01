@@ -178,6 +178,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap">
     <link rel="stylesheet" href="{{ asset('css/header-primary.css') }}?v={{ filemtime(public_path('css/header-primary.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/rose-gold-borders.css') }}?v={{ filemtime(public_path('css/rose-gold-borders.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     @if(Auth::check() && Auth::user()->isBuyer() && Auth::user()->status === 'active')
     <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
     @endif
@@ -213,6 +214,8 @@
         <script src="{{ asset('js/chat-widget.js') }}?v={{ filemtime(public_path('js/chat-widget.js')) }}"></script>
     @endif
     <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
+    @include('partials.buddy')
+    <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
 </body>

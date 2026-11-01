@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\BuddyController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +31,9 @@ Route::get('/categories', [CatalogController::class, 'categories']);
 Route::get('/products', [CatalogController::class, 'products']);
 Route::get('/products/{id}', [CatalogController::class, 'product'])->whereNumber('id');
 Route::get('/hero-slides', [CatalogController::class, 'heroSlides']);
+
+// Cozy the teddy bear chatbot: open to guests; a Bearer token unlocks the buyer's own orders.
+Route::post('/buddy/chat', [BuddyController::class, 'chat'])->middleware('throttle:buddy');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);

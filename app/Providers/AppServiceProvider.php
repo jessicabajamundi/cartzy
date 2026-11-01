@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Session;
@@ -21,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Each Cozy message costs an AI call, and the endpoint is open to guests.
+        RateLimiter::for('buddy', fn (Request $request) => [
+            Limit::perMinute(15)->by('buddy-min:'.$request->ip()),
+            Limit::perDay(150)->by('buddy-day:'.$request->ip()),
+        ]);
+
         // Sellers get the restock reminder once, on the first seller page after signing in.
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
             if (method_exists($event->user, 'isSeller') && $event->user->isSeller()) {
