@@ -97,6 +97,78 @@ class BuddyChatTest extends TestCase
             ->assertJsonPath('products.0.url', route('products.show', $product->id));
     }
 
+    /** The same catalog shape that went wrong on the live site. */
+    private function shoeCatalog(): array
+    {
+        $seller = Seller::create(['user_id' => User::factory()->create(['role' => 'seller', 'status' => 'active'])->id, 'name' => 'Shop', 'slug' => 'shop-'.uniqid(), 'status' => 'approved']);
+        $add = function (string $name, string $description, string $category, int $price) use ($seller) {
+            $cat = Category::firstOrCreate(['name' => $category], ['slug' => str($category)->slug(), 'is_active' => true]);
+            $product = Product::create(['seller_id' => $seller->id, 'category_id' => $cat->id, 'name' => $name, 'slug' => 'p-'.uniqid(), 'description' => $description, 'is_active' => true, 'approval_status' => Product::APPROVAL_APPROVED]);
+            ProductVariant::create(['product_id' => $product->id, 'name' => 'Default', 'sku' => 'SKU-'.uniqid(), 'price_minor' => $price * 100, 'stock' => 5, 'is_active' => true]);
+
+            return $product;
+        };
+
+        return [
+            'backpack' => $add('Training Backpack', 'Room for clothes, shoes, and other belongings.', 'Bags & Luggage', 2295),
+            'jordan' => $add('Air Jordan 1 Low', 'A classic.', 'Shoes', 7000),
+            'runner' => $add('Basketball Shoes', 'Bouncy.', 'Sports & Outdoors', 2500),
+            'socks' => $add('Crew Socks', 'Goes with your shoes.', 'Sneakers & Footwear', 500),
+            'dress' => $add('Spring Dress', 'Light and airy.', 'Women Clothing', 900),
+        ];
+    }
+
+    private function askedFor(string $text): array
+    {
+        config(['services.anthropic.key' => null]);
+
+        return collect($this->postJson('/api/buddy/chat', $this->say($text))->assertOk()->json('products'))->pluck('name')->all();
+    }
+
+    public function test_asking_for_shoes_finds_shoes_and_not_bags_that_mention_them(): void
+    {
+        $this->shoeCatalog();
+
+        foreach (['shoes', 'can you show me some shoes?', 'hi, patingin ng sapatos', 'gusto ko ng sneakers'] as $request) {
+            $names = $this->askedFor($request);
+            $this->assertContains('Air Jordan 1 Low', $names, $request);
+            $this->assertContains('Basketball Shoes', $names, $request);
+            $this->assertNotContains('Training Backpack', $names, $request);
+            $this->assertNotContains('Crew Socks', $names, $request);
+        }
+    }
+
+    public function test_keywords_match_whole_words_and_socks_can_still_be_found(): void
+    {
+        $this->shoeCatalog();
+
+        $this->assertNotContains('Spring Dress', $this->askedFor('rings'));
+        $this->assertSame(['Crew Socks'], $this->askedFor('socks'));
+    }
+
+    public function test_asking_for_bags_finds_bags(): void
+    {
+        $this->shoeCatalog();
+
+        $this->assertSame(['Training Backpack'], $this->askedFor('do you have bags?'));
+    }
+
+    public function test_more_specific_words_and_budgets_narrow_the_results(): void
+    {
+        $this->shoeCatalog();
+
+        $this->assertSame('Basketball Shoes', $this->askedFor('basketball shoes')[0]);
+        $this->assertSame(['Basketball Shoes'], $this->askedFor('shoes under 3,000'));
+        $this->assertSame('Basketball Shoes', $this->askedFor('murang sapatos')[0]);
+    }
+
+    public function test_description_match_still_counts_when_nothing_better_exists(): void
+    {
+        $this->shoeCatalog();
+
+        $this->assertSame(['Air Jordan 1 Low'], $this->askedFor('classic'));
+    }
+
     public function test_tool_loop_returns_cards_only_for_products_a_tool_returned(): void
     {
         $product = $this->product();

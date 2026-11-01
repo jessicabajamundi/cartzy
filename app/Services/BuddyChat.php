@@ -36,7 +36,7 @@ For any policy you aren't sure about, say so and suggest chatting with the selle
 
 You can't place orders, add to cart, cancel, pay or change anything. Tell the person where to do it instead. If they ask about their orders and aren't signed in, ask them, cutely, to sign in first.
 
-Recommend at most 4 products, and never pressure anyone to buy. Put recommended product ids in product_ids, and only ids that a tool returned in this turn. Choose the mood that matches your reply. Give 0 to 3 suggestions: very short things the person might say next, written in their voice and their language.
+Recommend only products that are what the person asked for: a bag is not an answer to a request for shoes, even if search returned it. If nothing fits, say so honestly. Recommend at most 4 products, and never pressure anyone to buy. Put recommended product ids in product_ids, and only ids that a tool returned in this turn. Choose the mood that matches your reply. Give 0 to 3 suggestions: very short things the person might say next, written in their voice and their language.
 PROMPT;
 
     private const OUTPUT_SCHEMA = [
@@ -49,6 +49,30 @@ PROMPT;
         ],
         'required' => ['reply', 'mood', 'suggestions', 'product_ids'],
         'additionalProperties' => false,
+    ];
+
+    /** Everyday words for what people shop for, in English and Tagalog, and the storefront categories they mean. */
+    private const CONCEPTS = [
+        ['words' => ['shoe', 'shoes', 'sapatos', 'sneaker', 'sneakers', 'footwear', 'kicks', 'rubbershoes', 'trainers'], 'terms' => ['shoe', 'sneaker'], 'categories' => ['Shoes', 'Sneakers & Footwear'], 'not' => ['sock', 'insole', 'lace']],
+        ['words' => ['bag', 'bags', 'bagpack', 'backpack', 'backpacks', 'handbag', 'handbags', 'duffel', 'luggage', 'bayong'], 'terms' => ['bag', 'handbag', 'backpack', 'duffel'], 'categories' => ['Bags & Luggage', 'Bags & Accessories']],
+        ['words' => ['clothes', 'clothing', 'damit', 'apparel', 'outfit', 'outfits'], 'terms' => ['shirt', 'dress'], 'categories' => ['Women Clothing', 'Men Clothing', 'Fashion & Apparel']],
+        ['words' => ['jewelry', 'jewellery', 'kwintas', 'necklace', 'singsing', 'ring', 'rings', 'hikaw', 'earrings', 'bracelet'], 'terms' => ['necklace', 'ring', 'bracelet'], 'categories' => ['Jewelry & Accessories']],
+        ['words' => ['phone', 'phones', 'cellphone', 'cellphones', 'cp', 'smartphone', 'selpon'], 'terms' => ['phone'], 'categories' => ['Cell Phones & Accessories']],
+        ['words' => ['headphone', 'headphones', 'earphone', 'earphones', 'headset', 'earbuds'], 'terms' => ['headphone', 'earphone', 'headset', 'earbud'], 'categories' => ['Headphones & Audio']],
+        ['words' => ['watch', 'watches', 'relo', 'smartwatch'], 'terms' => ['watch'], 'categories' => ['Smart Watches & Wearables']],
+        ['words' => ['gadget', 'gadgets', 'electronics'], 'terms' => ['gadget'], 'categories' => ['Electronics']],
+        ['words' => ['makeup', 'skincare', 'lipstick', 'pabango', 'perfume', 'beauty'], 'terms' => ['makeup', 'skincare', 'lipstick', 'perfume'], 'categories' => ['Beauty & Health']],
+        ['words' => ['toy', 'toys', 'laruan'], 'terms' => ['toy'], 'categories' => ['Toys & Games']],
+        ['words' => ['pet', 'pets', 'aso', 'pusa'], 'terms' => ['pet', 'dog', 'cat food'], 'categories' => ['Pet Supplies']],
+        ['words' => ['appliance', 'appliances'], 'terms' => ['appliance'], 'categories' => ['Appliances']],
+        ['words' => ['baby', 'sanggol'], 'terms' => ['baby'], 'categories' => ['Baby & Maternity']],
+        ['words' => ['kitchen', 'furniture', 'kusina'], 'terms' => ['kitchen'], 'categories' => ['Home & Living']],
+    ];
+
+    private const FILLER_WORDS = [
+        'show', 'find', 'want', 'need', 'looking', 'look', 'search', 'please', 'some', 'with', 'for', 'the', 'and', 'can', 'could', 'you', 'give', 'any', 'have', 'like', 'what', 'where', 'this', 'that', 'are', 'how', 'about',
+        'cozy', 'bear', 'me', 'my', 'of', 'to', 'in', 'is', 'do', 'am', 'an', 'hi', 'hello', 'hey', 'good', 'morning', 'afternoon', 'evening', 'new', 'arrivals', 'gift', 'gifts', 'items', 'item', 'popular', 'products', 'product', 'under', 'below', 'less', 'than', 'cheap', 'cheapest', 'affordable', 'budget', 'peso', 'pesos', 'php',
+        'gusto', 'ako', 'ng', 'mga', 'yung', 'ang', 'sa', 'na', 'po', 'ba', 'may', 'meron', 'kayo', 'hanap', 'hanapan', 'naghahanap', 'pakita', 'ipakita', 'patingin', 'pahingi', 'bigyan', 'mo', 'nga', 'naman', 'lang', 'pa', 'wala', 'pang', 'mura', 'murang', 'kumusta', 'kamusta', 'musta', 'ano',
     ];
 
     /** Products the tools returned this turn: the only ones a reply may show as cards. */
@@ -199,13 +223,14 @@ PROMPT;
         return [
             [
                 'name' => 'search_products',
-                'description' => 'Search the live Cartzy catalog. A query matches literal text in product names and descriptions, so use one or two simple keywords and retry with a different word when nothing matches. Leave query empty to browse newest items.',
+                'description' => 'Search the live Cartzy catalog, best matches first. Understands everyday words such as "shoes" or "sapatos" and includes that whole category. Use one to three keywords and retry with a different word when nothing matches. Leave query empty to browse newest items.',
                 'inputSchema' => [
                     'type' => 'object',
                     'properties' => [
                         'query' => ['type' => 'string', 'description' => 'One or two keywords, such as "mug".'],
                         'category' => ['type' => 'string', 'description' => 'Optional exact category name from list_categories.'],
                         'sort' => ['type' => 'string', 'enum' => ['newest', 'price_asc', 'price_desc']],
+                        'max_price' => ['type' => 'number', 'description' => 'Optional highest price in pesos, when the person gave a budget.'],
                     ],
                 ],
             ],
@@ -253,19 +278,61 @@ PROMPT;
         };
     }
 
+    /**
+     * Finds what the person means rather than matching literal text: "shoes" must find Air Jordans
+     * in the Shoes category, and must not find a backpack whose description mentions packing shoes.
+     */
     private function searchProducts(array $input): array
     {
-        $query = array_filter([
-            'q' => $input['query'] ?? null,
-            'category' => $input['category'] ?? null,
-            'sort' => $input['sort'] ?? null,
-        ], 'filled') + ['per_page' => 8];
+        $category = filled($input['category'] ?? null) ? (string) $input['category'] : null;
+        $sort = $input['sort'] ?? null;
+        $maxPrice = isset($input['max_price']) ? (float) $input['max_price'] : null;
+        $base = array_filter(['category' => $category, 'sort' => $sort], 'filled') + ['per_page' => 20];
 
-        $found = $this->catalog->products(Request::create('/', 'GET', $query))->getData(true);
+        // Each keyword becomes the name terms that count as a match, plus any categories it stands for.
+        $wanted = array_map(fn ($word) => $this->meaningOf($word), $this->keywords((string) ($input['query'] ?? '')));
+
+        $searches = [];
+        foreach ($wanted as $meaning) {
+            foreach ($meaning['terms'] as $term) {
+                $searches[] = [$base + ['q' => $term], false];
+            }
+            foreach ($category ? [] : $meaning['categories'] as $name) {
+                $searches[] = [$base + ['category' => $name], true];
+            }
+        }
+        $searches = $searches ?: [[$base, false]];
+
+        $pool = [];
+        foreach ($searches as [$query, $byCategory]) {
+            foreach ($this->catalog->products(Request::create('/', 'GET', $query))->getData(true)['products'] as $product) {
+                $pool[$product['id']] ??= $product + ['in_wanted_category' => false];
+                $pool[$product['id']]['in_wanted_category'] = $pool[$product['id']]['in_wanted_category'] || $byCategory;
+            }
+        }
+
+        $products = array_values(array_filter($pool, fn ($p) => $maxPrice === null || ($p['price'] !== null && $p['price'] <= $maxPrice)));
+        foreach ($products as &$product) {
+            $product += $this->relevance($product, $wanted);
+        }
+        unset($product);
+        $products = array_filter($products, fn ($p) => !$p['word_fragment']);
+
+        // A product that only mentions the word in passing is dropped whenever real matches exist.
+        if (collect($products)->contains('on_topic', true)) {
+            $products = array_filter($products, fn ($p) => $p['on_topic']);
+        } elseif (collect($products)->contains(fn ($p) => $p['score'] >= 2)) {
+            $products = array_filter($products, fn ($p) => $p['score'] >= 2);
+        }
+
+        $ordered = collect($products)->sortByDesc('score');
+        if ($sort === 'price_asc' || $sort === 'price_desc') {
+            $ordered = collect($products)->sortBy('price', SORT_REGULAR, $sort === 'price_desc');
+        }
 
         return [
-            'total' => $found['meta']['total'],
-            'products' => array_map(function ($product) {
+            'total' => $ordered->count(),
+            'products' => $ordered->take(8)->values()->map(function ($product) {
                 $this->remember($product);
 
                 return [
@@ -274,8 +341,57 @@ PROMPT;
                     'regular_price' => $product['regular_price'], 'on_sale' => $product['on_sale'],
                     'rating' => $product['rating'], 'sold' => $product['sold'], 'in_stock' => $product['in_stock'],
                 ];
-            }, $found['products']),
+            })->all(),
         ];
+    }
+
+    /** Scores a product: a keyword in its name counts, and so does being in a category the person asked for. */
+    private function relevance(array $product, array $wanted): array
+    {
+        $name = mb_strtolower($product['name']);
+        // Whole words only, so "ring" doesn't match "Spring".
+        $named = fn (array $terms) => collect($terms)->contains(fn ($term) => preg_match('/\b'.preg_quote($term, '/').'(s|es)?\b/u', $name));
+        $score = $product['in_wanted_category'] ? 2 : 0;
+        $onTopic = $product['in_wanted_category'];
+
+        foreach ($wanted as $meaning) {
+            // Socks live in the footwear category, but nobody asking for shoes means socks.
+            if ($named($meaning['not'])) {
+                return ['score' => 0, 'on_topic' => false, 'word_fragment' => false];
+            }
+            if ($named($meaning['terms'])) {
+                $score += 2;
+                $onTopic = $onTopic || $meaning['categories'] !== [];
+            }
+        }
+
+        // The catalog search matches inside words, so "Spring" comes back for "ring".
+        $fragment = $score === 0 && collect($wanted)->flatMap(fn ($m) => $m['terms'])->contains(fn ($term) => str_contains($name, $term));
+
+        return ['score' => $score, 'on_topic' => $onTopic, 'word_fragment' => $fragment];
+    }
+
+    /** The name terms and categories one keyword stands for. */
+    private function meaningOf(string $word): array
+    {
+        foreach (self::CONCEPTS as $concept) {
+            if (in_array($word, $concept['words'], true)) {
+                return ['terms' => $concept['terms'], 'categories' => $concept['categories'], 'not' => $concept['not'] ?? []];
+            }
+        }
+
+        return ['terms' => [preg_replace('/(?<=[a-z]{3})(?<!s)s$/', '', $word)], 'categories' => [], 'not' => []];
+    }
+
+    /** Lowercase search words from a message, without filler words. */
+    private function keywords(string $text): array
+    {
+        $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
+
+        return array_slice(array_values(array_unique(array_filter(
+            array_diff($words, self::FILLER_WORDS),
+            fn ($word) => !is_numeric($word) && mb_strlen($word) > 1,
+        ))), 0, 3);
     }
 
     private function productDetails(int $id): array
@@ -349,8 +465,10 @@ PROMPT;
     private function offlineReply(string $message, ?User $user): array
     {
         $text = mb_strtolower($message);
+        $words = $this->keywords($text);
 
-        if (preg_match('/\b(hi|hello|hey|kumusta|kamusta|musta|good (morning|afternoon|evening))\b/u', $text)) {
+        // "Hi, show me shoes" is a shopping request, so only a bare hello gets the greeting.
+        if (!$words && preg_match('/\b(hi|hello|hey|kumusta|kamusta|musta|good (morning|afternoon|evening))\b/u', $text)) {
             return [
                 'reply' => 'Hi hi! I\'m Cozy, your Cartzy shopping buddy! Tell me what you\'re looking for and I\'ll sniff it out.',
                 'mood' => 'excited', 'suggestions' => ['Show me new arrivals', 'Find a gift'], 'products' => [],
@@ -370,10 +488,14 @@ PROMPT;
             ];
         }
 
-        $words = array_diff(preg_split('/[^\p{L}\p{N}]+/u', $text, -1, PREG_SPLIT_NO_EMPTY), ['show', 'find', 'want', 'need', 'looking', 'please', 'some', 'with', 'for', 'the', 'and', 'can', 'you', 'gusto', 'ako', 'ng', 'me', 'a', 'an', 'new', 'arrivals', 'gift', 'items', 'popular']);
-        $keyword = collect($words)->sortByDesc(fn ($word) => mb_strlen($word))->first();
+        $keyword = implode(' ', $words);
+        preg_match('/(?:under|below|less than|wala pang|budget(?: ko)?|max)\s*(?:of\s*)?(?:₱|php|p)?\s*(\d[\d,]*)/u', $text, $budget);
         try {
-            $found = $this->searchProducts(['query' => $keyword]);
+            $found = $this->searchProducts(array_filter([
+                'query' => $keyword,
+                'max_price' => isset($budget[1]) ? (float) str_replace(',', '', $budget[1]) : null,
+                'sort' => preg_match('/\b(cheap|cheapest|affordable|mura|murang)\b/u', $text) ? 'price_asc' : null,
+            ]));
         } catch (\Throwable $e) {
             Log::warning('Buddy offline search failed: '.$e->getMessage());
             $found = ['products' => []];
