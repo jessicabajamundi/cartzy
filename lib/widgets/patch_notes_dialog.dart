@@ -76,6 +76,15 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.1.7' || version == 'v1.1.7') {
+      return const [
+        'Google Sign-In Stability: Streamlined native authentication with clear error feedback.',
+        'Official Store Action Buttons: Polished Follow and Chat buttons with centered text and zero clipping.',
+        'Product Card Proportions: Expanded grid card heights so prices and Add buttons are never cut off.',
+        'Wishlist Grid Polish: Optimized card heights for responsive browsing across all screen sizes.',
+        'Performance & UI Polish: Smooth navigation and refined layout throughout the store views.',
+      ];
+    }
     if (version == '1.1.6' || version == 'v1.1.6') {
       return const [
         'Official Storefront: Visit seller stores directly from products with live catalog, reviews, and store info.',

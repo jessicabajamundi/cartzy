@@ -2341,12 +2341,15 @@ class CartzyRegisterHeader extends StatelessWidget {
               }
             } catch (e) {
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Google Sign-In: $e'),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
+                final msg = e.toString().replaceFirst('Exception: ', '');
+                if (msg.trim().isNotEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(msg),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                }
               }
             }
           },

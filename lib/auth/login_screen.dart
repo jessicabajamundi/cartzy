@@ -185,13 +185,16 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoggingIn = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Google Sign-In: ${e.toString()}'),
-          backgroundColor: Colors.redAccent,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      final msg = e.toString().replaceFirst('Exception: ', '');
+      if (msg.trim().isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: Colors.redAccent,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 

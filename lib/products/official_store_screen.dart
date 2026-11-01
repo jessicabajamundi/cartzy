@@ -410,7 +410,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         return [
           // Sliver Hero Header with Banner and Profile
           SliverAppBar(
-            expandedHeight: 260,
+            expandedHeight: 280,
             pinned: true,
             backgroundColor: CartzyColors.burgundy,
             elevation: innerBoxIsScrolled ? 2 : 0,
@@ -561,28 +561,42 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                           children: [
                             // Follow Button
                             Expanded(
-                              child: SizedBox(
-                                height: 38,
-                                child: ElevatedButton.icon(
-                                  onPressed: _toggleFollow,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: _isFollowing ? Colors.white24 : CartzyColors.coral,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
+                              child: Material(
+                                color: _isFollowing ? Colors.white24 : CartzyColors.coral,
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  onTap: _toggleFollow,
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    height: 42,
+                                    decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
-                                      side: _isFollowing
-                                          ? const BorderSide(color: Colors.white70)
-                                          : BorderSide.none,
+                                      border: _isFollowing
+                                          ? Border.all(color: Colors.white70, width: 1.2)
+                                          : null,
                                     ),
-                                  ),
-                                  icon: Icon(
-                                    _isFollowing ? Icons.check : Icons.add,
-                                    size: 16,
-                                  ),
-                                  label: Text(
-                                    _isFollowing ? 'Following' : 'Follow',
-                                    style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold),
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _isFollowing ? Icons.check : Icons.add,
+                                          size: 16,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          _isFollowing ? 'Following' : 'Follow',
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -590,20 +604,40 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                             const SizedBox(width: 10),
                             // Chat Button
                             Expanded(
-                              child: SizedBox(
-                                height: 38,
-                                child: OutlinedButton.icon(
-                                  onPressed: _openChatWithSeller,
-                                  style: OutlinedButton.styleFrom(
-                                    backgroundColor: Colors.white.withValues(alpha: 0.15),
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(color: Colors.white),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                                  label: Text(
-                                    'Chat',
-                                    style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold),
+                              child: Material(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  onTap: _openChatWithSeller,
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    height: 42,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.white, width: 1.2),
+                                    ),
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.chat_bubble_outline,
+                                          size: 16,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Chat',
+                                          style: GoogleFonts.dmSans(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -976,11 +1010,12 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 0.62,
+                  mainAxisExtent: ((MediaQuery.sizeOf(context).width - 28 - 12) / 2) +
+                      ProductCard.bodyHeight(context),
                 ),
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {

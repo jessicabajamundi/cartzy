@@ -55,7 +55,7 @@ class ProductCard extends StatefulWidget {
   /// Height of everything below the square photo. A card of width `w` needs
   /// a height of `w + bodyHeight(context)`.
   static double bodyHeight(BuildContext context) =>
-      MediaQuery.textScalerOf(context).scale(132);
+      MediaQuery.textScalerOf(context).scale(150);
 
   @override
   State<ProductCard> createState() => _ProductCardState();

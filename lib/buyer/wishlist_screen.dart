@@ -396,11 +396,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.62,
+                mainAxisExtent: ((MediaQuery.sizeOf(context).width - 32 - 12) / 2) + 140,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
