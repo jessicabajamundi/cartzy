@@ -879,8 +879,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     final email = _emailController.text.trim();
     final initials = _getInitials();
 
-    return Scaffold(
-      backgroundColor: CartzyColors.cream,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        (widget.onHomeClick ?? widget.onBack).call();
+      },
+      child: Scaffold(
+        backgroundColor: CartzyColors.cream,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -890,7 +896,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
               size: 20, color: CartzyColors.navy),
-          onPressed: widget.onBack,
+          onPressed: widget.onHomeClick ?? widget.onBack,
         ),
         title: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1429,34 +1435,40 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 icon: Icons.home_rounded,
                 label: 'Home',
                 selected: false,
-                onClick: widget.onBack,
+                onClick: widget.onHomeClick ?? widget.onBack,
               ),
               _ProfileBottomNavItem(
                 icon: Icons.shopping_cart_outlined,
                 label: 'Cart',
                 selected: false,
                 onClick: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => CartScreen(
-                        onBack: () => Navigator.of(context).pop(),
-                        onProfileClick: () => Navigator.of(context).pop(),
-                        onLogout: widget.onLogout,
-                        onCheckout: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => CheckoutScreen(
-                                onBack: () => Navigator.of(context).pop(),
-                                onOrderPlaced: () {
-                                  Navigator.of(context).popUntil((route) => route.isFirst);
-                                },
+                  if (widget.onCartClick != null) {
+                    widget.onCartClick!();
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => CartScreen(
+                          onBack: widget.onHomeClick ?? widget.onBack,
+                          onHomeClick: widget.onHomeClick ?? widget.onBack,
+                          onSaleClick: widget.onSaleClick,
+                          onProfileClick: () => Navigator.of(context).pop(),
+                          onLogout: widget.onLogout,
+                          onCheckout: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CheckoutScreen(
+                                  onBack: () => Navigator.of(context).pop(),
+                                  onOrderPlaced: () {
+                                    Navigator.of(context).popUntil((route) => route.isFirst);
+                                  },
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
               ),
               _ProfileBottomNavItem(
@@ -1465,14 +1477,23 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 selected: false,
                 isSale: true,
                 onClick: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const ProductListScreen(
-                        initialCategory: 'Flash Deals',
-                        title: 'Sale & Flash Deals',
+                  if (widget.onSaleClick != null) {
+                    widget.onSaleClick!();
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => ProductListScreen(
+                          initialCategory: 'Flash Deals',
+                          title: 'Sale & Flash Deals',
+                          onHomeClick: widget.onHomeClick ?? widget.onBack,
+                          onBack: widget.onHomeClick ?? widget.onBack,
+                          onCartClick: widget.onCartClick,
+                          onSaleClick: widget.onSaleClick,
+                          onProfileClick: () => Navigator.of(context).pop(),
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
               ),
               _ProfileBottomNavItem(
@@ -1487,7 +1508,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       ),
     ),
   ),
-);
+),
+    );
   }
 
   // ==========================================

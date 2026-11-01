@@ -282,7 +282,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredProducts;
-    return Scaffold(
+    return PopScope(
+      canPop: widget.onHomeClick == null && widget.onBack == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (widget.onHomeClick != null) {
+          widget.onHomeClick!();
+        } else if (widget.onBack != null) {
+          widget.onBack!();
+        }
+      },
+      child: Scaffold(
       extendBody: true,
       backgroundColor: CartzyColors.background,
       appBar: AppBar(
@@ -628,6 +638,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               userEmail: '',
                               onBack: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).pop(),
                               onHomeClick: widget.onHomeClick ?? widget.onBack,
+                              onCartClick: widget.onCartClick,
+                              onSaleClick: widget.onSaleClick,
                               onLogout: () {},
                             ),
                           ),
@@ -641,6 +653,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               userEmail: '',
                               onBack: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).pop(),
                               onHomeClick: widget.onHomeClick ?? widget.onBack,
+                              onCartClick: widget.onCartClick,
+                              onSaleClick: widget.onSaleClick,
                               onLogout: () async {
                                 await AuthService.logout();
                                 if (context.mounted) {
@@ -659,6 +673,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

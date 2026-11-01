@@ -666,6 +666,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 userName: widget.userName ?? 'Buyer',
                                 userEmail: '',
                                 onBack: () => Navigator.of(context).pop(),
+                                onHomeClick: () => Navigator.of(context).pop(),
+                                onCartClick: widget.onCartClick,
+                                onSaleClick: widget.onSaleClick,
                                 onLogout: () {
                                   Navigator.of(context).pop();
                                   widget.onLogout?.call();

@@ -338,6 +338,8 @@ class _CartScreenState extends State<CartScreen> {
                             title: 'Sale & Flash Deals',
                             onBack: widget.onHomeClick ?? widget.onBack,
                             onHomeClick: widget.onHomeClick ?? widget.onBack,
+                            onCartClick: () => Navigator.of(context).pop(),
+                            onSaleClick: () {},
                             onProfileClick: widget.onProfileClick,
                           ),
                         ),
@@ -361,6 +363,8 @@ class _CartScreenState extends State<CartScreen> {
                             userEmail: '',
                             onBack: widget.onHomeClick ?? widget.onBack,
                             onHomeClick: widget.onHomeClick ?? widget.onBack,
+                            onCartClick: () => Navigator.of(context).pop(),
+                            onSaleClick: widget.onSaleClick,
                             onLogout: () async {
                               if (widget.onLogout != null) {
                                 widget.onLogout!();
