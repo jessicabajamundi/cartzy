@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
@@ -26,6 +28,7 @@ class AccountSettingsScreen extends StatefulWidget {
   final String userName;
   final String userEmail;
   final String userPhone;
+  final String? userAvatar;
   final VoidCallback onBack;
   final VoidCallback? onHomeClick;
   final VoidCallback? onCartClick;
@@ -42,6 +45,7 @@ class AccountSettingsScreen extends StatefulWidget {
     required this.userName,
     required this.userEmail,
     this.userPhone = '',
+    this.userAvatar,
     required this.onBack,
     this.onHomeClick,
     this.onCartClick,
@@ -57,6 +61,7 @@ class AccountSettingsScreen extends StatefulWidget {
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   late TextEditingController _nameController;
+  String? _profileImagePath;
   bool _isNavVisible = true;
   Timer? _scrollStopTimer;
 
@@ -151,8 +156,318 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _nameController = TextEditingController(text: widget.userName);
     _phoneController = TextEditingController(text: widget.userPhone);
     _emailController = TextEditingController(text: widget.userEmail);
+    _profileImagePath = widget.userAvatar;
+    _loadProfileImage();
     _loadUnreadMessagesCount();
     NotificationService.fetchUnreadCount();
+  }
+
+  Future<void> _loadProfileImage() async {
+    if (_profileImagePath != null && _profileImagePath!.isNotEmpty) {
+      return;
+    }
+    final currentAvatar = AuthService.currentUser?['avatar']?.toString();
+    if (currentAvatar != null && currentAvatar.isNotEmpty) {
+      if (mounted) setState(() => _profileImagePath = currentAvatar);
+      return;
+    }
+    final email = widget.userEmail.isNotEmpty
+        ? widget.userEmail
+        : (AuthService.currentUser?['email']?.toString() ?? '');
+    if (email.isNotEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final saved = prefs.getString('cartzy_avatar_$email');
+        if (saved != null && saved.isNotEmpty && mounted) {
+          setState(() => _profileImagePath = saved);
+          final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+          updated['avatar'] = saved;
+          AuthService.setSession(user: updated, token: AuthService.token);
+        }
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _pickProfileImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      setState(() {
+        _profileImagePath = picked.path;
+      });
+
+      final email = widget.userEmail.isNotEmpty
+          ? widget.userEmail
+          : (AuthService.currentUser?['email']?.toString() ?? '');
+      if (email.isNotEmpty) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cartzy_avatar_$email', picked.path);
+        } catch (_) {}
+      }
+
+      final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+      updated['avatar'] = picked.path;
+      AuthService.setSession(user: updated, token: AuthService.token);
+      widget.onProfileUpdated?.call(updated);
+
+      if (mounted) {
+        showCartzyFlash(context, 'Profile picture updated successfully');
+      }
+    } catch (e) {
+      if (mounted) {
+        showCartzyFlash(context, 'Failed to update profile picture: $e');
+      }
+    }
+  }
+
+  Future<void> _removeProfileImage() async {
+    setState(() {
+      _profileImagePath = null;
+    });
+
+    final email = widget.userEmail.isNotEmpty
+        ? widget.userEmail
+        : (AuthService.currentUser?['email']?.toString() ?? '');
+    if (email.isNotEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('cartzy_avatar_$email');
+      } catch (_) {}
+    }
+
+    final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+    updated.remove('avatar');
+    AuthService.setSession(user: updated, token: AuthService.token);
+    widget.onProfileUpdated?.call(updated);
+
+    if (mounted) {
+      showCartzyFlash(context, 'Profile picture removed');
+    }
+  }
+
+  void _showImagePickerSheet() {
+    if (!widget.isLoggedIn) {
+      widget.onLogin?.call();
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Profile Photo',
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: CartzyColors.burgundy,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 22, color: Colors.grey),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CartzyColors.cream,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.camera_alt_rounded, color: CartzyColors.burgundy, size: 22),
+              ),
+              title: Text(
+                'Take a photo',
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
+                ),
+              ),
+              subtitle: Text(
+                'Use camera to capture a new picture',
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickProfileImage(ImageSource.camera);
+              },
+            ),
+            const SizedBox(height: 6),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CartzyColors.cream,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.photo_library_rounded, color: CartzyColors.burgundy, size: 22),
+              ),
+              title: Text(
+                'Choose from gallery',
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
+                ),
+              ),
+              subtitle: Text(
+                'Select an image from device gallery',
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickProfileImage(ImageSource.gallery);
+              },
+            ),
+            if (_profileImagePath != null && _profileImagePath!.isNotEmpty) ...[
+              const Divider(height: 20),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
+                ),
+                title: Text(
+                  'Remove photo',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
+                  ),
+                ),
+                subtitle: Text(
+                  'Revert to initials avatar',
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _removeProfileImage();
+                },
+              ),
+            ],
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarWidget(String initials, {double size = 56}) {
+    final hasImage = _profileImagePath != null && _profileImagePath!.isNotEmpty;
+    ImageProvider? imageProvider;
+    if (hasImage) {
+      if (_profileImagePath!.startsWith('http://') || _profileImagePath!.startsWith('https://')) {
+        imageProvider = NetworkImage(_profileImagePath!);
+      } else {
+        final file = File(_profileImagePath!);
+        if (file.existsSync()) {
+          imageProvider = FileImage(file);
+        }
+      }
+    }
+
+    return GestureDetector(
+      onTap: _showImagePickerSheet,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: CartzyColors.cream,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: imageProvider != null
+                  ? Image(
+                      image: imageProvider,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _buildInitialsFallback(initials, size),
+                    )
+                  : _buildInitialsFallback(initials, size),
+            ),
+          ),
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: CartzyColors.cream,
+                shape: BoxShape.circle,
+                border: Border.all(color: CartzyColors.burgundy, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 3,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.camera_alt_rounded,
+                size: 13,
+                color: CartzyColors.burgundy,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInitialsFallback(String initials, double size) {
+    return Center(
+      child: Text(
+        initials,
+        style: GoogleFonts.dmSans(
+          color: CartzyColors.burgundy,
+          fontSize: size * 0.36,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
   }
 
   @override
@@ -246,11 +561,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           initialName: _nameController.text.trim(),
           initialEmail: _emailController.text.trim(),
           initialPhone: _phoneController.text.trim(),
+          initialAvatar: _profileImagePath,
           onBack: () => Navigator.of(context).pop(),
           onProfileUpdated: (updated) {
             setState(() {
               if (updated['name'] != null) _nameController.text = updated['name'];
               if (updated['phone'] != null) _phoneController.text = updated['phone'];
+              if (updated.containsKey('avatar')) _profileImagePath = updated['avatar'];
             });
             widget.onProfileUpdated?.call(updated);
           },
@@ -811,26 +1128,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ? _buildGuestProfileCard()
                     : Row(
                         children: [
-                          // Circle Avatar with Initials
-                          Container(
-                            width: 52,
-                            height: 52,
-                            decoration: const BoxDecoration(
-                              color: CartzyColors.cream,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Text(
-                                initials,
-                                style: GoogleFonts.dmSans(
-                                  color: CartzyColors.burgundy,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
+                          // Circle Avatar with Profile Image / Initials + Camera Badge
+                          _buildAvatarWidget(initials, size: 54),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(

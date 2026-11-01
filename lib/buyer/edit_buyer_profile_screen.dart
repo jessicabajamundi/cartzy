@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -17,6 +20,7 @@ class ProfileSettingsScreen extends StatefulWidget {
   final String? initialEmail;
   final String? initialPhone;
   final String? initialBirthday;
+  final String? initialAvatar;
 
   const ProfileSettingsScreen({
     super.key,
@@ -26,6 +30,7 @@ class ProfileSettingsScreen extends StatefulWidget {
     this.initialEmail,
     this.initialPhone,
     this.initialBirthday,
+    this.initialAvatar,
   });
 
   @override
@@ -42,6 +47,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   late final TextEditingController _birthdayController;
 
   bool _isSaving = false;
+  String? _profileImagePath;
 
   @override
   void initState() {
@@ -66,6 +72,217 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     _birthdayController = TextEditingController(
       text: rawBirthday.isNotEmpty ? rawBirthday : '2005-09-20',
     );
+    _profileImagePath = widget.initialAvatar ?? user['avatar']?.toString();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    if (_profileImagePath != null && _profileImagePath!.isNotEmpty) return;
+    final email = _emailController.text.trim();
+    if (email.isNotEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final saved = prefs.getString('cartzy_avatar_$email');
+        if (saved != null && saved.isNotEmpty && mounted) {
+          setState(() => _profileImagePath = saved);
+        }
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _pickProfileImage(ImageSource source) async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      setState(() {
+        _profileImagePath = picked.path;
+      });
+
+      final email = _emailController.text.trim();
+      if (email.isNotEmpty) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cartzy_avatar_$email', picked.path);
+        } catch (_) {}
+      }
+
+      final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+      updated['avatar'] = picked.path;
+      AuthService.setSession(user: updated, token: AuthService.token);
+      widget.onProfileUpdated?.call(updated);
+
+      if (mounted) {
+        showCartzyFlash(context, 'Profile picture updated successfully');
+      }
+    } catch (e) {
+      if (mounted) {
+        showCartzyFlash(context, 'Failed to update profile picture: $e');
+      }
+    }
+  }
+
+  Future<void> _removeProfileImage() async {
+    setState(() {
+      _profileImagePath = null;
+    });
+
+    final email = _emailController.text.trim();
+    if (email.isNotEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('cartzy_avatar_$email');
+      } catch (_) {}
+    }
+
+    final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+    updated.remove('avatar');
+    AuthService.setSession(user: updated, token: AuthService.token);
+    widget.onProfileUpdated?.call(updated);
+
+    if (mounted) {
+      showCartzyFlash(context, 'Profile picture removed');
+    }
+  }
+
+  void _showImagePickerSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Profile Photo',
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 19,
+                    fontWeight: FontWeight.bold,
+                    color: CartzyColors.burgundy,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 22, color: Colors.grey),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CartzyColors.cream,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.camera_alt_rounded, color: CartzyColors.burgundy, size: 22),
+              ),
+              title: Text(
+                'Take a photo',
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
+                ),
+              ),
+              subtitle: Text(
+                'Use camera to capture a new picture',
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickProfileImage(ImageSource.camera);
+              },
+            ),
+            const SizedBox(height: 6),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: CartzyColors.cream,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.photo_library_rounded, color: CartzyColors.burgundy, size: 22),
+              ),
+              title: Text(
+                'Choose from gallery',
+                style: GoogleFonts.dmSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF231F20),
+                ),
+              ),
+              subtitle: Text(
+                'Select an image from device gallery',
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickProfileImage(ImageSource.gallery);
+              },
+            ),
+            if (_profileImagePath != null && _profileImagePath!.isNotEmpty) ...[
+              const Divider(height: 20),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
+                ),
+                title: Text(
+                  'Remove photo',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
+                  ),
+                ),
+                subtitle: Text(
+                  'Revert to initials avatar',
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _removeProfileImage();
+                },
+              ),
+            ],
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getInitials() {
+    final raw = _nameController.text.trim();
+    if (raw.isEmpty) return 'U';
+    final parts = raw.split(' ').where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    return raw.substring(0, raw.length >= 2 ? 2 : 1).toUpperCase();
   }
 
   @override
@@ -132,6 +349,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     updated['name'] = _nameController.text.trim();
     updated['phone'] = _phoneController.text.trim();
     updated['birthday'] = _birthdayController.text.trim();
+    if (_profileImagePath != null && _profileImagePath!.isNotEmpty) {
+      updated['avatar'] = _profileImagePath;
+    } else {
+      updated.remove('avatar');
+    }
 
     AuthService.setSession(user: updated, token: AuthService.token);
     widget.onProfileUpdated?.call(updated);
@@ -173,6 +395,120 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Profile Photo Header ──
+              Center(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: _showImagePickerSheet,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              color: CartzyColors.cream,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: CartzyColors.burgundy, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: (_profileImagePath != null && _profileImagePath!.isNotEmpty)
+                                  ? (_profileImagePath!.startsWith('http')
+                                      ? Image.network(
+                                          _profileImagePath!,
+                                          width: 86,
+                                          height: 86,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Center(
+                                            child: Text(
+                                              _getInitials(),
+                                              style: GoogleFonts.dmSans(
+                                                color: CartzyColors.burgundy,
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : Image.file(
+                                          File(_profileImagePath!),
+                                          width: 86,
+                                          height: 86,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Center(
+                                            child: Text(
+                                              _getInitials(),
+                                              style: GoogleFonts.dmSans(
+                                                color: CartzyColors.burgundy,
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ))
+                                  : Center(
+                                      child: Text(
+                                        _getInitials(),
+                                        style: GoogleFonts.dmSans(
+                                          color: CartzyColors.burgundy,
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: CartzyColors.burgundy,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _showImagePickerSheet,
+                      child: Text(
+                        _profileImagePath != null ? 'Change photo' : 'Add photo',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: CartzyColors.burgundy,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 22),
+
               // ── Full Name ──
               Text(
                 'Full name',

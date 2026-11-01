@@ -592,6 +592,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           initialEmail: loggedInUser?['email']?.toString() ?? '',
           initialPhone: loggedInUser?['phone']?.toString() ?? '',
           initialBirthday: loggedInUser?['birthday']?.toString() ?? '',
+          initialAvatar: loggedInUser?['avatar']?.toString(),
           onBack: () => goTo('accountSettings'),
           onProfileUpdated: (updatedUser) {
             setState(() {
@@ -616,6 +617,8 @@ class _CartzyHomeState extends State<CartzyHome> {
               loggedInUser?['email']?.toString() ?? '',
           userPhone:
               loggedInUser?['phone']?.toString() ?? '',
+          userAvatar:
+              loggedInUser?['avatar']?.toString(),
           onBack: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
           onHomeClick: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
           onCartClick: () => goTo(loggedInUser != null ? 'cart' : 'guestCart'),
