@@ -113,7 +113,7 @@ class BuddyBearState extends State<BuddyBear> with TickerProviderStateMixin {
   }
 }
 
-/// Paints the bear in a 200 x 200 space, matching the website's SVG.
+/// Paints the cartoon bear in a 200 x 200 space, matching the website's SVG.
 class BuddyBearPainter extends CustomPainter {
   final BuddyMood mood;
   final double seconds;
@@ -127,30 +127,40 @@ class BuddyBearPainter extends CustomPainter {
     this.bounce = 0,
   });
 
-  static const _furLight = Color(0xFFE4DDF0);
-  static const _furMid = Color(0xFFCBC2DC);
-  static const _furDark = Color(0xFFA99FBF);
-  static const _ink = Color(0xFF3E354C);
-  static const _roseDeep = Color(0xFFB76E79);
-  static const _blush = Color(0xFFE8B8AD);
-
-  Paint _fur(Rect rect) => Paint()
-    ..shader = const RadialGradient(
-      center: Alignment(0, -0.24),
-      radius: 0.75,
-      colors: [_furLight, _furMid, _furDark],
-      stops: [0, .65, 1],
-    ).createShader(rect);
-
-  Paint _inner(Rect rect) => Paint()
-    ..shader = const RadialGradient(
-      center: Alignment(0, -0.2),
-      radius: 0.8,
-      colors: [CartzyColors.rose50Warm, Color(0xFFF5CFC7)],
-    ).createShader(rect);
+  static const _outline = Color(0xFF4A3D5C);
+  static const _eye = Color(0xFF2F2740);
+  static const _eyeGlow = CartzyColors.brandDeep;
+  static const _fur = Color(0xFFCFC6E6);
+  static const _furHead = Color(0xFFD6CEEA);
+  static const _furLight = Color(0xFFE9E3F5);
+  static const _rose = Color(0xFFF5CFC7);
+  static const _cheek = Color(0xFFF2B3B0);
+  static const _cream = CartzyColors.rose50Warm;
+  static const _gold = CartzyColors.rose400;
+  static const _goldDeep = Color(0xFFB76E79);
+  static const _tear = Color(0xFFBFD6EE);
 
   Rect _oval(double cx, double cy, double rx, double ry) =>
       Rect.fromCenter(center: Offset(cx, cy), width: rx * 2, height: ry * 2);
+
+  Paint _fill(Color color) => Paint()..color = color;
+
+  Paint _line(Color color, double width) => Paint()
+    ..color = color
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = width
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
+
+  void _blob(Canvas canvas, Rect rect, Color color) {
+    canvas.drawOval(rect, _fill(color));
+    canvas.drawOval(rect, _line(_outline, 5));
+  }
+
+  void _outlined(Canvas canvas, Path path, Color color, [double width = 4]) {
+    canvas.drawPath(path, _fill(color));
+    canvas.drawPath(path, _line(_outline, width));
+  }
 
   void _rotateAround(Canvas canvas, double x, double y, double radians) {
     canvas.translate(x, y);
@@ -158,11 +168,9 @@ class BuddyBearPainter extends CustomPainter {
     canvas.translate(-x, -y);
   }
 
-  Paint _stroke(Color color, double width) => Paint()
-    ..color = color
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = width
-    ..strokeCap = StrokeCap.round;
+  Path _arc(double x1, double y1, double cx, double cy, double x2, double y2) => Path()
+    ..moveTo(x1, y1)
+    ..quadraticBezierTo(cx, cy, x2, y2);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -184,243 +192,235 @@ class BuddyBearPainter extends CustomPainter {
     _paintBody(canvas, t);
     canvas.restore();
 
-    // Head and bow sway together; pondering is a bigger tilt.
-    final swayAngle = switch (mood) {
+    // The head sways; pondering is a bigger tilt.
+    final tilt = switch (mood) {
       BuddyMood.thinking => .1 * math.sin(t / 1.8),
       BuddyMood.sad => -.09,
       _ => .026 * math.sin(t / 5),
     };
     canvas.save();
-    _rotateAround(canvas, 100, 118, swayAngle);
+    _rotateAround(canvas, 100, 135, tilt);
     if (mood == BuddyMood.sad) canvas.translate(0, 4);
     _paintHead(canvas, t);
-    canvas.restore();
-
-    canvas.save();
-    _rotateAround(canvas, 100, 120, mood == BuddyMood.thinking ? 0 : .026 * math.sin(t / 5));
-    _paintBow(canvas);
     canvas.restore();
 
     canvas.restore();
   }
 
   void _paintBody(Canvas canvas, double t) {
-    for (final x in [68.0, 132.0]) {
-      final foot = _oval(x, 182, 20, 14);
-      canvas.drawOval(foot, _fur(foot));
-      final pad = _oval(x, 184, 11, 7.5);
-      canvas.drawOval(pad, _inner(pad));
+    for (final x in [72.0, 128.0]) {
+      _blob(canvas, _oval(x, 183, 18, 12.5), _fur);
+      canvas.drawOval(_oval(x, 185, 9, 6), _fill(_rose));
     }
 
-    final belly = _oval(100, 152, 40, 35);
-    canvas.drawOval(belly, _fur(belly));
-    final tummy = _oval(100, 158, 24, 21);
-    canvas.drawOval(tummy, _inner(tummy));
-    canvas.drawPath(
-      _heart(100, 164, 11),
-      Paint()..color = CartzyColors.rose400.withValues(alpha: .85),
-    );
+    _blob(canvas, _oval(65, 152, 12, 18), _fur);
 
-    final leftArm = _oval(60, 148, 13, 21);
-    canvas.drawOval(leftArm, _fur(leftArm));
-
-    // Right arm waves hello, or scratches the head while thinking.
-    var armAngle = 0.0;
+    // The screen-right arm lifts up and out to wave, or scratches behind the head.
+    var lift = 0.0;
     if (wave > 0 && wave < 1) {
-      final lift = math.min(1.0, math.min(wave, 1 - wave) * 8);
-      armAngle = -lift * (2.3 + .35 * math.sin(wave * 2 * math.pi * 4));
+      final raise = math.min(1.0, math.min(wave, 1 - wave) * 8);
+      lift = raise * (2.3 + .35 * math.sin(wave * 2 * math.pi * 4));
     } else if (mood == BuddyMood.thinking) {
-      armAngle = -2.5 - .13 * math.sin(t / 1.2);
+      lift = 2.5 + .13 * math.sin(t / 1.2);
     }
     canvas.save();
-    // Waving reads as the far side of the bear, so it's the screen-right arm.
-    _rotateAround(canvas, 140, 132, -armAngle);
-    final rightArm = _oval(140, 148, 13, 21);
-    canvas.drawOval(rightArm, _fur(rightArm));
+    _rotateAround(canvas, 135, 136, -lift);
+    _blob(canvas, _oval(135, 152, 12, 18), _fur);
     canvas.restore();
+
+    _blob(canvas, _oval(100, 158, 35, 29), _fur);
+    canvas.drawOval(_oval(100, 165, 21, 17), _fill(_cream));
+    canvas.drawPath(_heart(100, 165, 24), _fill(_gold));
   }
 
   void _paintEar(Canvas canvas, double cx, double phase, double t) {
     final cycle = ((t / (2 * math.pi) + phase) % 6) / 6;
-    var angle = 0.0;
-    if (cycle > .9) {
-      angle = .21 * math.sin((cycle - .9) * 10 * 2 * math.pi);
-    }
+    final angle = cycle > .9 ? .21 * math.sin((cycle - .9) * 10 * 2 * math.pi) : 0.0;
     canvas.save();
-    _rotateAround(canvas, cx, 36, angle);
-    final ear = _oval(cx, 36, 25, 25);
-    canvas.drawOval(ear, _fur(ear));
-    final inner = _oval(cx, 37, 14.5, 14.5);
-    canvas.drawOval(inner, _inner(inner));
+    _rotateAround(canvas, cx, 38, angle);
+    _blob(canvas, _oval(cx, 38, 24, 24), _fur);
+    canvas.drawOval(_oval(cx, 39, 12.5, 12.5), _fill(_rose));
     canvas.restore();
   }
 
   void _paintHead(Canvas canvas, double t) {
-    _paintEar(canvas, 42, 0, t);
-    _paintEar(canvas, 158, 1.2, t);
+    _paintEar(canvas, 38, 0, t);
+    _paintEar(canvas, 162, 1.2, t);
+    _blob(canvas, _oval(100, 78, 74, 62), _furHead);
 
-    final head = _oval(100, 72, 68, 57);
-    canvas.drawOval(head, _fur(head));
-    canvas.drawPath(
-      Path()
-        ..moveTo(86, 28)
-        ..cubicTo(91, 19, 97, 17, 100, 17)
-        ..cubicTo(99, 21, 101, 25, 105, 28),
-      _stroke(_furDark, 3.5),
-    );
+    canvas.save();
+    _rotateAround(canvas, 86, 36, -.14);
+    canvas.drawOval(_oval(86, 36, 34, 13), _fill(_furLight));
+    canvas.restore();
 
-    final cheek = Paint()..color = _blush.withValues(alpha: .8);
-    canvas.drawOval(_oval(50, 92, 13, 8.5), cheek);
-    canvas.drawOval(_oval(150, 92, 13, 8.5), cheek);
-    canvas.drawOval(_oval(100, 92, 24, 19), Paint()..color = CartzyColors.rose50Warm);
+    final tuft = _line(_outline, 4.5);
+    canvas.drawPath(_arc(92, 18, 94, 9, 101, 7), tuft);
+    canvas.drawPath(_arc(101, 17, 104, 10, 111, 10), tuft);
+
+    canvas.drawOval(_oval(38, 106, 14, 9), _fill(_cheek));
+    canvas.drawOval(_oval(162, 106, 14, 9), _fill(_cheek));
+    canvas.drawOval(_oval(100, 108, 25, 19), _fill(_cream));
 
     _paintEyes(canvas, t);
 
-    canvas.drawPath(
-      Path()
-        ..moveTo(100, 91)
-        ..cubicTo(94, 91, 90, 88, 90, 85)
-        ..cubicTo(90, 82, 94, 80, 100, 80)
-        ..cubicTo(106, 80, 110, 82, 110, 85)
-        ..cubicTo(110, 88, 106, 91, 100, 91)
-        ..close(),
-      Paint()..color = CartzyColors.rose700,
-    );
-    canvas.drawOval(_oval(96, 83, 3, 1.6), Paint()..color = Colors.white.withValues(alpha: .7));
+    final nose = Path()
+      ..moveTo(100, 104)
+      ..cubicTo(94, 102, 90, 99, 90, 96)
+      ..cubicTo(90, 93, 94, 91, 100, 91)
+      ..cubicTo(106, 91, 110, 93, 110, 96)
+      ..cubicTo(110, 99, 106, 102, 100, 104)
+      ..close();
+    canvas.drawPath(nose, _fill(CartzyColors.rose700));
+    canvas.drawOval(_oval(96, 94.5, 3.2, 1.7), _fill(Colors.white));
 
     _paintMouth(canvas);
+    _paintBow(canvas, t);
   }
 
-  void _paintOpenEye(Canvas canvas, double cx, double cy, double openness) {
-    canvas.drawOval(_oval(cx, cy, 13, 15 * openness), Paint()..color = _ink);
-    if (openness > .5) {
-      canvas.drawCircle(Offset(cx + 4, cy - 6), 5, Paint()..color = Colors.white);
-      canvas.drawCircle(Offset(cx - 5, cy + 6), 2.5, Paint()..color = Colors.white.withValues(alpha: .85));
-    }
+  void _bigEye(Canvas canvas, double cx, double cy, double glintX, double glintY, {double openness = 1}) {
+    canvas.drawOval(_oval(cx, cy, 16, 19 * openness), _fill(_eye));
+    if (openness < .5) return;
+    canvas.drawOval(_oval(cx, cy + 9, 10, 7), _fill(_eyeGlow));
+    canvas.drawCircle(Offset(cx + glintX, cy + glintY), 6.5, _fill(Colors.white));
+    canvas.drawCircle(Offset(cx - 6, cy + 6), 3, _fill(Colors.white));
   }
 
   void _paintEyes(Canvas canvas, double t) {
-    final ink = _stroke(_ink, 5);
+    final closed = _line(_eye, 6.5);
     switch (mood) {
       case BuddyMood.happy:
         // A quick blink every few seconds.
-        final blink = (seconds % 4.6) > 4.42 ? .08 : 1.0;
-        _paintOpenEye(canvas, 66, 72, blink);
-        _paintOpenEye(canvas, 134, 72, blink);
+        final open = (seconds % 4.6) > 4.42 ? .08 : 1.0;
+        _bigEye(canvas, 62, 84, 6, -8, openness: open);
+        _bigEye(canvas, 138, 84, 6, -8, openness: open);
       case BuddyMood.excited:
-        canvas.drawPath(_arc(53, 76, 66, 58, 79, 76), ink);
-        canvas.drawPath(_arc(121, 76, 134, 58, 147, 76), ink);
+        canvas.drawPath(_arc(45, 90, 62, 66, 79, 90), closed);
+        canvas.drawPath(_arc(121, 90, 138, 66, 155, 90), closed);
+        canvas.drawPath(_sparkle(26, 74.5, 8.5), _fill(_gold));
+        canvas.drawPath(_sparkle(174, 74.5, 8.5), _fill(_gold));
       case BuddyMood.love:
-        final beat = 1 + .08 * math.sin(t * 1.5);
-        final heart = Paint()..color = _roseDeep;
-        canvas.drawPath(_heart(66, 72, 30 * beat), heart);
-        canvas.drawPath(_heart(134, 72, 30 * beat), heart);
+        final beat = 1 + .07 * math.sin(t * 1.5);
+        _outlined(canvas, _heart(62, 84, 44 * beat), _goldDeep);
+        _outlined(canvas, _heart(138, 84, 44 * beat), _goldDeep);
+        canvas.drawCircle(const Offset(54, 76), 3.5, _fill(Colors.white));
+        canvas.drawCircle(const Offset(130, 76), 3.5, _fill(Colors.white));
       case BuddyMood.sad:
-        // Big wobbly eyes, worried brows and one little tear.
-        canvas.drawOval(_oval(66, 75, 12, 13), Paint()..color = _ink);
-        canvas.drawCircle(const Offset(69, 70), 5, Paint()..color = Colors.white);
-        canvas.drawOval(_oval(134, 75, 12, 13), Paint()..color = _ink);
-        canvas.drawCircle(const Offset(137, 70), 5, Paint()..color = Colors.white);
-        final brow = _stroke(CartzyColors.brandDeep, 4.5);
-        canvas.drawLine(const Offset(53, 56), const Offset(71, 49), brow);
-        canvas.drawLine(const Offset(147, 56), const Offset(129, 49), brow);
-        canvas.drawPath(_heart(145, 92, 11), Paint()..color = const Color(0xFFBFD6EE).withValues(alpha: .9));
+        _bigEye(canvas, 62, 87, 5, -7);
+        _bigEye(canvas, 138, 87, 5, -7);
+        final brow = _line(_outline, 5);
+        canvas.drawLine(const Offset(46, 63), const Offset(66, 55), brow);
+        canvas.drawLine(const Offset(154, 63), const Offset(134, 55), brow);
+        final tear = Path()
+          ..moveTo(154, 100)
+          ..cubicTo(148, 108, 146, 112, 150, 116)
+          ..cubicTo(154, 120, 161, 116, 159, 111)
+          ..cubicTo(158, 107, 156, 103, 154, 100)
+          ..close();
+        _outlined(canvas, tear, _tear, 3);
       case BuddyMood.wink:
-        _paintOpenEye(canvas, 66, 72, 1);
-        canvas.drawPath(_arc(121, 76, 134, 61, 147, 76), ink);
+        _bigEye(canvas, 62, 84, 6, -8);
+        canvas.drawPath(_arc(121, 88, 138, 68, 155, 88), closed);
       case BuddyMood.thinking:
-        canvas.drawOval(_oval(66, 70, 13, 15), Paint()..color = _ink);
-        canvas.drawCircle(const Offset(72, 62), 5, Paint()..color = Colors.white);
-        canvas.drawOval(_oval(134, 70, 13, 15), Paint()..color = _ink);
-        canvas.drawCircle(const Offset(140, 62), 5, Paint()..color = Colors.white);
+        _bigEye(canvas, 62, 82, 8, -10);
+        _bigEye(canvas, 138, 82, 8, -10);
     }
   }
 
   void _paintMouth(Canvas canvas) {
-    final line = _stroke(CartzyColors.rose700, 3.5);
+    final line = _line(_outline, 4);
     switch (mood) {
       case BuddyMood.happy:
       case BuddyMood.love:
       case BuddyMood.wink:
-        canvas.drawLine(const Offset(100, 91), const Offset(100, 95), line);
-        canvas.drawPath(_arc(100, 95, 92, 103, 86, 97), line);
-        canvas.drawPath(_arc(100, 95, 108, 103, 114, 97), line);
+        canvas.drawLine(const Offset(100, 104), const Offset(100, 107), line);
+        canvas.drawPath(
+          _arc(87, 108, 93.5, 116, 100, 107)..quadraticBezierTo(106.5, 116, 113, 108),
+          line,
+        );
       case BuddyMood.excited:
-        final open = Path()
-          ..moveTo(86, 96)
-          ..quadraticBezierTo(100, 114, 114, 96)
-          ..close();
-        canvas.drawPath(open, Paint()..color = _roseDeep);
-        canvas.drawPath(open, line..strokeJoin = StrokeJoin.round);
+        _outlined(
+          canvas,
+          Path()
+            ..moveTo(84, 106)
+            ..quadraticBezierTo(100, 130, 116, 106)
+            ..quadraticBezierTo(100, 111, 84, 106)
+            ..close(),
+          _goldDeep,
+        );
       case BuddyMood.sad:
-        canvas.drawLine(const Offset(100, 91), const Offset(100, 95), line);
-        canvas.drawPath(_arc(88, 104, 100, 94, 112, 104), line);
+        canvas.drawLine(const Offset(100, 104), const Offset(100, 108), line);
+        canvas.drawPath(_arc(89, 118, 100, 107, 111, 118), line);
       case BuddyMood.thinking:
-        canvas.drawLine(const Offset(100, 91), const Offset(100, 95), line);
-        canvas.drawOval(_oval(100, 101, 4.5, 5), Paint()..color = _roseDeep);
+        canvas.drawLine(const Offset(100, 104), const Offset(100, 107), line);
+        _blob(canvas, _oval(100, 113, 5, 6), _goldDeep);
     }
   }
 
-  void _paintBow(Canvas canvas) {
-    canvas.translate(100, 120);
-    canvas.scale(.82);
-    canvas.translate(-100, -120);
-    const rect = Rect.fromLTWH(63, 104, 74, 32);
-    final gold = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFF0C4B8), CartzyColors.rose400, _roseDeep],
-        stops: [0, .55, 1],
-      ).createShader(rect);
+  void _paintBow(Canvas canvas, double t) {
+    // A little flutter every few seconds.
+    final cycle = (seconds % 4) / 4;
+    final wiggle = cycle > .88 ? .15 * math.sin((cycle - .88) / .12 * 2 * math.pi) : 0.0;
+    canvas.save();
+    _rotateAround(canvas, 136, 22, wiggle);
 
-    canvas.drawPath(
+    _outlined(
+      canvas,
       Path()
-        ..moveTo(100, 120)
-        ..lineTo(70, 105)
-        ..quadraticBezierTo(63, 102, 63, 109)
-        ..lineTo(63, 131)
-        ..quadraticBezierTo(63, 138, 70, 135)
+        ..moveTo(136, 22)
+        ..lineTo(112, 9)
+        ..quadraticBezierTo(106, 6, 106, 13)
+        ..lineTo(106, 33)
+        ..quadraticBezierTo(106, 40, 112, 37)
         ..close(),
-      gold,
+      _gold,
+      4.5,
     );
-    canvas.drawPath(
+    _outlined(
+      canvas,
       Path()
-        ..moveTo(100, 120)
-        ..lineTo(130, 105)
-        ..quadraticBezierTo(137, 102, 137, 109)
-        ..lineTo(137, 131)
-        ..quadraticBezierTo(137, 138, 130, 135)
+        ..moveTo(136, 22)
+        ..lineTo(160, 9)
+        ..quadraticBezierTo(166, 6, 166, 13)
+        ..lineTo(166, 33)
+        ..quadraticBezierTo(166, 40, 160, 37)
         ..close(),
-      gold,
+      _gold,
+      4.5,
     );
-    final fold = _stroke(_roseDeep.withValues(alpha: .7), 2);
-    canvas.drawLine(const Offset(75, 113), const Offset(88, 120), fold);
-    canvas.drawLine(const Offset(75, 127), const Offset(88, 120), fold);
-    canvas.drawLine(const Offset(125, 113), const Offset(112, 120), fold);
-    canvas.drawLine(const Offset(125, 127), const Offset(112, 120), fold);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(91, 110, 18, 20), const Radius.circular(7)),
-      Paint()..color = CartzyColors.rose500,
-    );
-    canvas.drawPath(
-      _arc(96, 114, 100, 112, 104, 114),
-      _stroke(CartzyColors.rose50Warm.withValues(alpha: .75), 2),
-    );
+    final fold = _line(_goldDeep, 3);
+    canvas.drawLine(const Offset(115, 17), const Offset(126, 22), fold);
+    canvas.drawLine(const Offset(115, 29), const Offset(126, 24), fold);
+    canvas.drawLine(const Offset(157, 17), const Offset(146, 22), fold);
+    canvas.drawLine(const Offset(157, 29), const Offset(146, 24), fold);
+    final knot = RRect.fromRectAndRadius(const Rect.fromLTWH(128, 14, 16, 17), const Radius.circular(6));
+    canvas.drawRRect(knot, _fill(_goldDeep));
+    canvas.drawRRect(knot, _line(_outline, 4.5));
+    canvas.restore();
   }
 
-  Path _arc(double x1, double y1, double cx, double cy, double x2, double y2) => Path()
-    ..moveTo(x1, y1)
-    ..quadraticBezierTo(cx, cy, x2, y2);
-
-  /// A heart about [size] wide, centered near ([cx], [centerY]).
-  Path _heart(double cx, double centerY, double size) {
+  /// A cartoon heart about [size] wide, centered on ([cx], [cy]).
+  Path _heart(double cx, double cy, double size) {
     final s = size / 2;
-    final top = centerY - s * .55;
+    final top = cy - s * .55;
     return Path()
-      ..moveTo(cx, centerY + s * 1.05)
-      ..cubicTo(cx - s * 1.4, centerY + s * .1, cx - s * 1.1, top - s * .75, cx, top)
-      ..cubicTo(cx + s * 1.1, top - s * .75, cx + s * 1.4, centerY + s * .1, cx, centerY + s * 1.05)
+      ..moveTo(cx, cy + s * .95)
+      ..cubicTo(cx - s * 1.3, cy + s * .2, cx - s * 1.15, top - s * .8, cx, top)
+      ..cubicTo(cx + s * 1.15, top - s * .8, cx + s * 1.3, cy + s * .2, cx, cy + s * .95)
+      ..close();
+  }
+
+  /// A four-point sparkle around ([cx], [cy]).
+  Path _sparkle(double cx, double cy, double r) {
+    final k = r * .29;
+    return Path()
+      ..moveTo(cx, cy - r)
+      ..lineTo(cx + k, cy - k)
+      ..lineTo(cx + r, cy)
+      ..lineTo(cx + k, cy + k)
+      ..lineTo(cx, cy + r)
+      ..lineTo(cx - k, cy + k)
+      ..lineTo(cx - r, cy)
+      ..lineTo(cx - k, cy - k)
       ..close();
   }
 
