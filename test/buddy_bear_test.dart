@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -37,6 +38,20 @@ void main() {
     AuthService.setSession(user: {'id': 7, 'name': 'Someone'}, token: 'token');
 
     expect(BuddyService.messages, isEmpty);
+  });
+
+  test('eyes wander over time', () async {
+    Future<List<int>> frame(double seconds) async {
+      final recorder = ui.PictureRecorder();
+      BuddyBearPainter(mood: BuddyMood.happy, seconds: seconds)
+          .paint(Canvas(recorder), const Size(200, 200));
+      final image = await recorder.endRecording().toImage(200, 200);
+      final eyes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+      // The row of pixels through the eyes.
+      return eyes!.buffer.asUint8List(80 * 200 * 4, 200 * 4);
+    }
+
+    expect(await frame(1.0), isNot(equals(await frame(3.0))));
   });
 
   testWidgets('every mood paints without error', (tester) async {

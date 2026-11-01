@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.1.8' || version == 'v1.1.8') {
+      return const [
+        'Independent Section Navigation: Seamlessly jump between Home, Cart, Sale, and Profile without nested stacking.',
+        'Direct Home Return: Tapping Home from Sale, Cart, or Profile takes you directly back to Home in a single step.',
+        'Back Button Predictability: Hardware back button reliably returns you to the Home dashboard before exiting.',
+        'Unified Tab Switching: Consistent navigation behavior across both authenticated and guest shopping modes.',
+      ];
+    }
     if (version == '1.1.7' || version == 'v1.1.7') {
       return const [
         'Google Sign-In Stability: Streamlined native authentication with clear error feedback.',

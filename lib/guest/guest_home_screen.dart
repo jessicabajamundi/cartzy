@@ -19,11 +19,17 @@ import 'package:cartzy/search/search_screen.dart';
 class GuestHomeScreen extends StatefulWidget {
   final VoidCallback onLogin;
   final VoidCallback onSignUp;
+  final VoidCallback? onCartClick;
+  final VoidCallback? onSaleClick;
+  final VoidCallback? onProfileClick;
 
   const GuestHomeScreen({
     super.key,
     required this.onLogin,
     required this.onSignUp,
+    this.onCartClick,
+    this.onSaleClick,
+    this.onProfileClick,
   });
 
   @override
@@ -476,7 +482,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                       icon: Icons.shopping_cart_outlined,
                       label: 'Cart',
                       selected: false,
-                      onClick: _openCart,
+                      onClick: widget.onCartClick ?? _openCart,
                     ),
                     _BottomNavItem(
                       icon: Icons.local_offer_outlined,
@@ -484,25 +490,35 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                       selected: false,
                       isSale: true,
                       onClick: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ProductListScreen(
-                              initialCategory: 'Flash Deals',
-                              title: 'Sale & Flash Deals',
+                        if (widget.onSaleClick != null) {
+                          widget.onSaleClick!();
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ProductListScreen(
+                                initialCategory: 'Flash Deals',
+                                title: 'Sale & Flash Deals',
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                     ),
                     _BottomNavItem(
                       icon: Icons.person_outline_rounded,
                       label: 'Profile',
                       selected: false,
-                      onClick: () => GuestAccountScreen.open(
-                        context,
-                        onLogin: widget.onLogin,
-                        onSignUp: widget.onSignUp,
-                      ),
+                      onClick: () {
+                        if (widget.onProfileClick != null) {
+                          widget.onProfileClick!();
+                        } else {
+                          GuestAccountScreen.open(
+                            context,
+                            onLogin: widget.onLogin,
+                            onSignUp: widget.onSignUp,
+                          );
+                        }
+                      },
                     ),
                   ],
                 ),

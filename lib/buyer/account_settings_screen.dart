@@ -23,6 +23,9 @@ class AccountSettingsScreen extends StatefulWidget {
   final String userEmail;
   final String userPhone;
   final VoidCallback onBack;
+  final VoidCallback? onHomeClick;
+  final VoidCallback? onCartClick;
+  final VoidCallback? onSaleClick;
   final VoidCallback onLogout;
   final ValueChanged<Map<String, dynamic>>? onProfileUpdated;
 
@@ -35,6 +38,9 @@ class AccountSettingsScreen extends StatefulWidget {
     required this.userEmail,
     this.userPhone = '',
     required this.onBack,
+    this.onHomeClick,
+    this.onCartClick,
+    this.onSaleClick,
     required this.onLogout,
     this.onProfileUpdated,
   });

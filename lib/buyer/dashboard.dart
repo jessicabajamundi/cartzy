@@ -26,6 +26,7 @@ import 'package:cartzy/services/message_service.dart';
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
   final VoidCallback? onProfileClick;
+  final VoidCallback? onSaleClick;
   final VoidCallback? onVouchersClick;
   final VoidCallback? onLogout;
   final String? userName;
@@ -34,6 +35,7 @@ class DashboardScreen extends StatefulWidget {
     super.key,
     this.onCartClick,
     this.onProfileClick,
+    this.onSaleClick,
     this.onVouchersClick,
     this.onLogout,
     this.userName,
@@ -635,14 +637,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       selected: false,
                       isSale: true,
                       onClick: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ProductListScreen(
-                              initialCategory: 'Flash Deals',
-                              title: 'Sale & Flash Deals',
+                        if (widget.onSaleClick != null) {
+                          widget.onSaleClick!();
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ProductListScreen(
+                                initialCategory: 'Flash Deals',
+                                title: 'Sale & Flash Deals',
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                     ),
                     _BottomNavigationItem(

@@ -2,8 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import 'package:cartzy/theme/cartzy_colors.dart';
-
 enum BuddyMood {
   happy,
   excited,
@@ -18,7 +16,7 @@ enum BuddyMood {
       );
 }
 
-/// Cozy, the lavender teddy bear with a rose-gold bow. Breathes, sways, blinks
+/// Cozy, the fluffy brown teddy bear. Breathes, sways, blinks, looks around
 /// and wiggles its ears on its own; call [BuddyBearState.wave] for a hello.
 class BuddyBear extends StatefulWidget {
   final double size;
@@ -113,7 +111,7 @@ class BuddyBearState extends State<BuddyBear> with TickerProviderStateMixin {
   }
 }
 
-/// Paints the cartoon bear in a 200 x 200 space, matching the website's SVG.
+/// Paints the fluffy brown bear in a 200 x 200 space, matching the website's SVG.
 class BuddyBearPainter extends CustomPainter {
   final BuddyMood mood;
   final double seconds;
@@ -127,18 +125,41 @@ class BuddyBearPainter extends CustomPainter {
     this.bounce = 0,
   });
 
-  static const _outline = Color(0xFF4A3D5C);
-  static const _eye = Color(0xFF2F2740);
-  static const _eyeGlow = CartzyColors.brandDeep;
-  static const _fur = Color(0xFFCFC6E6);
-  static const _furHead = Color(0xFFD6CEEA);
-  static const _furLight = Color(0xFFE9E3F5);
-  static const _rose = Color(0xFFF5CFC7);
-  static const _cheek = Color(0xFFF2B3B0);
-  static const _cream = CartzyColors.rose50Warm;
-  static const _gold = CartzyColors.rose400;
-  static const _goldDeep = Color(0xFFB76E79);
+  static const _outline = Color(0xFF3D1D10);
+  static const _furLine = Color(0xFF6A3319);
+  static const _furDark = Color(0xFF5F2E1A);
+  static const _pad = Color(0xFF7A4026);
+  static const _socket = Color(0xFF2B1209);
+  static const _pupil = Color(0xFF1E0E08);
+  static const _nose = Color(0xFF2B1209);
+  static const _earInner = Color(0xFFD9B08F);
+  static const _flush = Color(0x80E0855A);
+  static const _mouth = Color(0xFFA5432F);
+  static const _heartRed = Color(0xFFB3402F);
   static const _tear = Color(0xFFBFD6EE);
+
+  static const _furGradient = RadialGradient(
+    center: Alignment(0, -.3),
+    radius: .7,
+    colors: [Color(0xFFBE6C40), Color(0xFF96492A), Color(0xFF6E341C)],
+    stops: [0, .6, 1],
+  );
+  static const _creamGradient = RadialGradient(
+    center: Alignment(0, -.3),
+    radius: .7,
+    colors: [Color(0xFFFCEBD8), Color(0xFFE4BE9B)],
+  );
+  static const _irisGradient = RadialGradient(
+    center: Alignment(0, .4),
+    radius: .65,
+    colors: [Color(0xFFE0A873), _pad],
+  );
+
+  /// Where the eyes wander, as a looping path of targets one step apart.
+  static const _gazePath = [
+    Offset(0, 0), Offset(-4, -1), Offset(-4, 0), Offset(0, 0), Offset(4, 1), Offset(3, -3),
+    Offset(0, 0), Offset(0, 3), Offset(-3, 3), Offset(0, 0), Offset(4, 0), Offset(0, -3),
+  ];
 
   Rect _oval(double cx, double cy, double rx, double ry) =>
       Rect.fromCenter(center: Offset(cx, cy), width: rx * 2, height: ry * 2);
@@ -152,16 +173,6 @@ class BuddyBearPainter extends CustomPainter {
     ..strokeCap = StrokeCap.round
     ..strokeJoin = StrokeJoin.round;
 
-  void _blob(Canvas canvas, Rect rect, Color color) {
-    canvas.drawOval(rect, _fill(color));
-    canvas.drawOval(rect, _line(_outline, 5));
-  }
-
-  void _outlined(Canvas canvas, Path path, Color color, [double width = 4]) {
-    canvas.drawPath(path, _fill(color));
-    canvas.drawPath(path, _line(_outline, width));
-  }
-
   void _rotateAround(Canvas canvas, double x, double y, double radians) {
     canvas.translate(x, y);
     canvas.rotate(radians);
@@ -171,6 +182,30 @@ class BuddyBearPainter extends CustomPainter {
   Path _arc(double x1, double y1, double cx, double cy, double x2, double y2) => Path()
     ..moveTo(x1, y1)
     ..quadraticBezierTo(cx, cy, x2, y2);
+
+  /// An ellipse with a tufted edge, the same shape as the website's fur paths.
+  void _furry(Canvas canvas, double cx, double cy, double rx, double ry, int tufts, double depth, {RadialGradient gradient = _furGradient}) {
+    Offset at(double angle, double extra) =>
+        Offset(cx + math.cos(angle) * (rx + extra), cy + math.sin(angle) * (ry + extra));
+
+    final step = 2 * math.pi / tufts;
+    final path = Path();
+    final start = at(0, 0);
+    path.moveTo(start.dx, start.dy);
+    for (var i = 0; i < tufts; i++) {
+      final a = i * step;
+      final d = depth * (.7 + .3 * math.sin(i * 2.7));
+      final c1 = at(a + step * .35, d * .75);
+      final tip = at(a + step * .85, d);
+      final c2 = at(a + step * .9, d * .35);
+      final next = at(a + step, 0);
+      path.quadraticBezierTo(c1.dx, c1.dy, tip.dx, tip.dy);
+      path.quadraticBezierTo(c2.dx, c2.dy, next.dx, next.dy);
+    }
+    path.close();
+    canvas.drawPath(path, Paint()..shader = gradient.createShader(_oval(cx, cy, rx, ry)));
+    canvas.drawPath(path, _line(_furLine, 1.6));
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -207,13 +242,23 @@ class BuddyBearPainter extends CustomPainter {
     canvas.restore();
   }
 
-  void _paintBody(Canvas canvas, double t) {
-    for (final x in [72.0, 128.0]) {
-      _blob(canvas, _oval(x, 183, 18, 12.5), _fur);
-      canvas.drawOval(_oval(x, 185, 9, 6), _fill(_rose));
+  void _paintFoot(Canvas canvas, double x, double degrees) {
+    _furry(canvas, x, 172, 21, 22, 30, 1.5);
+    canvas.save();
+    canvas.translate(x, 172);
+    canvas.rotate(degrees * math.pi / 180);
+    canvas.drawOval(_oval(0, 6, 11, 10), _fill(_pad));
+    for (final toe in const [Offset(-11, -8), Offset(-4, -12), Offset(4, -12), Offset(11, -8)]) {
+      canvas.drawCircle(toe, 4.5, _fill(_pad));
     }
+    canvas.restore();
+  }
 
-    _blob(canvas, _oval(65, 152, 12, 18), _fur);
+  void _paintBody(Canvas canvas, double t) {
+    _furry(canvas, 168, 168, 14, 15, 22, 2.5);
+    _furry(canvas, 100, 150, 39, 40, 46, 2.5);
+    _furry(canvas, 100, 142, 18, 26, 26, 3, gradient: _creamGradient);
+    _furry(canvas, 70, 166, 12, 20, 24, 2);
 
     // The screen-right arm lifts up and out to wave, or scratches behind the head.
     var lift = 0.0;
@@ -224,178 +269,150 @@ class BuddyBearPainter extends CustomPainter {
       lift = 2.5 + .13 * math.sin(t / 1.2);
     }
     canvas.save();
-    _rotateAround(canvas, 135, 136, -lift);
-    _blob(canvas, _oval(135, 152, 12, 18), _fur);
+    _rotateAround(canvas, 130, 148, -lift);
+    _furry(canvas, 130, 166, 12, 20, 24, 2);
     canvas.restore();
 
-    _blob(canvas, _oval(100, 158, 35, 29), _fur);
-    canvas.drawOval(_oval(100, 165, 21, 17), _fill(_cream));
-    canvas.drawPath(_heart(100, 165, 24), _fill(_gold));
+    _paintFoot(canvas, 47, -12);
+    _paintFoot(canvas, 153, 12);
   }
 
-  void _paintEar(Canvas canvas, double cx, double phase, double t) {
+  void _paintEar(Canvas canvas, double cx, double innerX, double phase, double t) {
     final cycle = ((t / (2 * math.pi) + phase) % 6) / 6;
     final angle = cycle > .9 ? .21 * math.sin((cycle - .9) * 10 * 2 * math.pi) : 0.0;
     canvas.save();
-    _rotateAround(canvas, cx, 38, angle);
-    _blob(canvas, _oval(cx, 38, 24, 24), _fur);
-    canvas.drawOval(_oval(cx, 39, 12.5, 12.5), _fill(_rose));
+    _rotateAround(canvas, cx, 32, angle);
+    _furry(canvas, cx, 32, 24, 24, 34, 2.5);
+    canvas.drawOval(_oval(innerX, 36, 12, 13), _fill(_earInner));
     canvas.restore();
   }
 
   void _paintHead(Canvas canvas, double t) {
-    _paintEar(canvas, 38, 0, t);
-    _paintEar(canvas, 162, 1.2, t);
-    _blob(canvas, _oval(100, 78, 74, 62), _furHead);
+    _paintEar(canvas, 36, 38, 0, t);
+    _paintEar(canvas, 164, 162, 1.2, t);
+    _furry(canvas, 100, 76, 74, 62, 72, 3.5);
 
-    canvas.save();
-    _rotateAround(canvas, 86, 36, -.14);
-    canvas.drawOval(_oval(86, 36, 34, 13), _fill(_furLight));
-    canvas.restore();
+    final tuft = _line(_furDark, 3.5);
+    canvas.drawPath(_arc(84, 20, 87, 9, 97, 7), tuft);
+    canvas.drawPath(_arc(95, 18, 99, 9, 108, 9), tuft);
+    canvas.drawPath(_arc(106, 19, 111, 12, 119, 14), tuft);
 
-    final tuft = _line(_outline, 4.5);
-    canvas.drawPath(_arc(92, 18, 94, 9, 101, 7), tuft);
-    canvas.drawPath(_arc(101, 17, 104, 10, 111, 10), tuft);
+    canvas.drawOval(_oval(44, 104, 15, 9), _fill(_flush));
+    canvas.drawOval(_oval(156, 104, 15, 9), _fill(_flush));
+    final muzzle = _oval(100, 108, 30, 23);
+    canvas.drawOval(muzzle, Paint()..shader = _creamGradient.createShader(muzzle));
 
-    canvas.drawOval(_oval(38, 106, 14, 9), _fill(_cheek));
-    canvas.drawOval(_oval(162, 106, 14, 9), _fill(_cheek));
-    canvas.drawOval(_oval(100, 108, 25, 19), _fill(_cream));
+    _paintFace(canvas, t);
 
-    _paintEyes(canvas, t);
-
-    final nose = Path()
-      ..moveTo(100, 104)
-      ..cubicTo(94, 102, 90, 99, 90, 96)
-      ..cubicTo(90, 93, 94, 91, 100, 91)
-      ..cubicTo(106, 91, 110, 93, 110, 96)
-      ..cubicTo(110, 99, 106, 102, 100, 104)
-      ..close();
-    canvas.drawPath(nose, _fill(CartzyColors.rose700));
-    canvas.drawOval(_oval(96, 94.5, 3.2, 1.7), _fill(Colors.white));
-
+    canvas.drawOval(_oval(100, 97, 12, 8.5), _fill(_nose));
+    canvas.drawOval(_oval(96, 94, 3.5, 2), _fill(Colors.white.withValues(alpha: .85)));
     _paintMouth(canvas);
-    _paintBow(canvas, t);
   }
 
-  void _bigEye(Canvas canvas, double cx, double cy, double glintX, double glintY, {double openness = 1}) {
-    canvas.drawOval(_oval(cx, cy, 16, 19 * openness), _fill(_eye));
-    if (openness < .5) return;
-    canvas.drawOval(_oval(cx, cy + 9, 10, 7), _fill(_eyeGlow));
-    canvas.drawCircle(Offset(cx + glintX, cy + glintY), 6.5, _fill(Colors.white));
-    canvas.drawCircle(Offset(cx - 6, cy + 6), 3, _fill(Colors.white));
+  /// The eyes' current wander, eased between the points of [_gazePath].
+  Offset get _gaze {
+    final position = (seconds / 1.5) % _gazePath.length;
+    final index = position.floor();
+    final progress = Curves.easeInOut.transform(math.min(1.0, (position - index) * 3));
+    return Offset.lerp(_gazePath[index], _gazePath[(index + 1) % _gazePath.length], progress)!;
   }
 
-  void _paintEyes(Canvas canvas, double t) {
-    final closed = _line(_eye, 6.5);
+  void _bigEye(Canvas canvas, double cx, double cy, Offset gaze, {double openness = 1}) {
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.scale(1, openness);
+    canvas.translate(-cx, -cy);
+
+    canvas.drawCircle(Offset(cx, cy), 20, _fill(_socket));
+    if (openness > .5) {
+      final x = cx + gaze.dx;
+      final y = cy + gaze.dy;
+      final iris = _oval(x, y, 16, 16);
+      canvas.drawOval(iris, Paint()..shader = _irisGradient.createShader(iris));
+      canvas.drawCircle(Offset(x, y), 10.5, _fill(_pupil));
+      canvas.drawCircle(Offset(x + 6, y - 7), 6.5, _fill(Colors.white));
+      canvas.drawCircle(Offset(x - 6, y + 7), 3, _fill(Colors.white));
+    }
+    canvas.restore();
+  }
+
+  void _brows(Canvas canvas, double left, double right) {
+    final brow = _line(_furDark, 3);
+    canvas.drawPath(_arc(54, left, 63, left - 6, 72, left - 3), brow);
+    canvas.drawPath(_arc(128, right, 137, right - 3, 146, right + 3), brow);
+  }
+
+  void _paintFace(Canvas canvas, double t) {
+    final closed = _line(_outline, 6.5);
     switch (mood) {
       case BuddyMood.happy:
         // A quick blink every few seconds.
         final open = (seconds % 4.6) > 4.42 ? .08 : 1.0;
-        _bigEye(canvas, 62, 84, 6, -8, openness: open);
-        _bigEye(canvas, 138, 84, 6, -8, openness: open);
+        _brows(canvas, 50, 47);
+        _bigEye(canvas, 66, 80, _gaze, openness: open);
+        _bigEye(canvas, 134, 80, _gaze, openness: open);
       case BuddyMood.excited:
-        canvas.drawPath(_arc(45, 90, 62, 66, 79, 90), closed);
-        canvas.drawPath(_arc(121, 90, 138, 66, 155, 90), closed);
-        canvas.drawPath(_sparkle(26, 74.5, 8.5), _fill(_gold));
-        canvas.drawPath(_sparkle(174, 74.5, 8.5), _fill(_gold));
+        canvas.drawPath(_arc(48, 86, 66, 62, 84, 86), closed);
+        canvas.drawPath(_arc(116, 86, 134, 62, 152, 86), closed);
       case BuddyMood.love:
         final beat = 1 + .07 * math.sin(t * 1.5);
-        _outlined(canvas, _heart(62, 84, 44 * beat), _goldDeep);
-        _outlined(canvas, _heart(138, 84, 44 * beat), _goldDeep);
-        canvas.drawCircle(const Offset(54, 76), 3.5, _fill(Colors.white));
-        canvas.drawCircle(const Offset(130, 76), 3.5, _fill(Colors.white));
+        for (final x in const [66.0, 134.0]) {
+          final heart = _heart(x, 78, 48 * beat);
+          canvas.drawPath(heart, _fill(_heartRed));
+          canvas.drawPath(heart, _line(_outline, 3.5));
+          canvas.drawCircle(Offset(x - 9, 72), 4, _fill(Colors.white));
+        }
       case BuddyMood.sad:
-        _bigEye(canvas, 62, 87, 5, -7);
-        _bigEye(canvas, 138, 87, 5, -7);
-        final brow = _line(_outline, 5);
-        canvas.drawLine(const Offset(46, 63), const Offset(66, 55), brow);
-        canvas.drawLine(const Offset(154, 63), const Offset(134, 55), brow);
+        final brow = _line(_furDark, 3.5);
+        canvas.drawLine(const Offset(50, 58), const Offset(70, 50), brow);
+        canvas.drawLine(const Offset(150, 58), const Offset(130, 50), brow);
+        final gaze = _gaze + const Offset(0, 2);
+        _bigEye(canvas, 66, 82, gaze);
+        _bigEye(canvas, 134, 82, gaze);
         final tear = Path()
-          ..moveTo(154, 100)
-          ..cubicTo(148, 108, 146, 112, 150, 116)
-          ..cubicTo(154, 120, 161, 116, 159, 111)
-          ..cubicTo(158, 107, 156, 103, 154, 100)
+          ..moveTo(152, 96)
+          ..cubicTo(146, 104, 144, 108, 148, 112)
+          ..cubicTo(152, 116, 159, 112, 157, 107)
+          ..cubicTo(156, 103, 154, 99, 152, 96)
           ..close();
-        _outlined(canvas, tear, _tear, 3);
+        canvas.drawPath(tear, _fill(_tear));
+        canvas.drawPath(tear, _line(_outline, 2.5));
       case BuddyMood.wink:
-        _bigEye(canvas, 62, 84, 6, -8);
-        canvas.drawPath(_arc(121, 88, 138, 68, 155, 88), closed);
+        _brows(canvas, 50, 47);
+        _bigEye(canvas, 66, 80, _gaze);
+        canvas.drawPath(_arc(116, 84, 134, 64, 152, 84), closed);
       case BuddyMood.thinking:
-        _bigEye(canvas, 62, 82, 8, -10);
-        _bigEye(canvas, 138, 82, 8, -10);
+        _brows(canvas, 46, 42);
+        const up = Offset(3, -4);
+        _bigEye(canvas, 66, 80, up);
+        _bigEye(canvas, 134, 80, up);
     }
   }
 
   void _paintMouth(Canvas canvas) {
-    final line = _line(_outline, 4);
+    final line = _line(_outline, 3.5);
     switch (mood) {
       case BuddyMood.happy:
       case BuddyMood.love:
       case BuddyMood.wink:
-        canvas.drawLine(const Offset(100, 104), const Offset(100, 107), line);
-        canvas.drawPath(
-          _arc(87, 108, 93.5, 116, 100, 107)..quadraticBezierTo(106.5, 116, 113, 108),
-          line,
-        );
+        canvas.drawLine(const Offset(100, 105), const Offset(100, 110), line);
+        canvas.drawPath(_arc(82, 110, 100, 126, 118, 110), line);
       case BuddyMood.excited:
-        _outlined(
-          canvas,
-          Path()
-            ..moveTo(84, 106)
-            ..quadraticBezierTo(100, 130, 116, 106)
-            ..quadraticBezierTo(100, 111, 84, 106)
-            ..close(),
-          _goldDeep,
-        );
+        final open = Path()
+          ..moveTo(82, 108)
+          ..quadraticBezierTo(100, 136, 118, 108)
+          ..quadraticBezierTo(100, 114, 82, 108)
+          ..close();
+        canvas.drawPath(open, _fill(_mouth));
+        canvas.drawPath(open, line);
       case BuddyMood.sad:
-        canvas.drawLine(const Offset(100, 104), const Offset(100, 108), line);
-        canvas.drawPath(_arc(89, 118, 100, 107, 111, 118), line);
+        canvas.drawLine(const Offset(100, 105), const Offset(100, 110), line);
+        canvas.drawPath(_arc(88, 122, 100, 111, 112, 122), line);
       case BuddyMood.thinking:
-        canvas.drawLine(const Offset(100, 104), const Offset(100, 107), line);
-        _blob(canvas, _oval(100, 113, 5, 6), _goldDeep);
+        canvas.drawLine(const Offset(100, 105), const Offset(100, 108), line);
+        canvas.drawOval(_oval(100, 116, 5.5, 6.5), _fill(_mouth));
+        canvas.drawOval(_oval(100, 116, 5.5, 6.5), line);
     }
-  }
-
-  void _paintBow(Canvas canvas, double t) {
-    // A little flutter every few seconds.
-    final cycle = (seconds % 4) / 4;
-    final wiggle = cycle > .88 ? .15 * math.sin((cycle - .88) / .12 * 2 * math.pi) : 0.0;
-    canvas.save();
-    _rotateAround(canvas, 136, 22, wiggle);
-
-    _outlined(
-      canvas,
-      Path()
-        ..moveTo(136, 22)
-        ..lineTo(112, 9)
-        ..quadraticBezierTo(106, 6, 106, 13)
-        ..lineTo(106, 33)
-        ..quadraticBezierTo(106, 40, 112, 37)
-        ..close(),
-      _gold,
-      4.5,
-    );
-    _outlined(
-      canvas,
-      Path()
-        ..moveTo(136, 22)
-        ..lineTo(160, 9)
-        ..quadraticBezierTo(166, 6, 166, 13)
-        ..lineTo(166, 33)
-        ..quadraticBezierTo(166, 40, 160, 37)
-        ..close(),
-      _gold,
-      4.5,
-    );
-    final fold = _line(_goldDeep, 3);
-    canvas.drawLine(const Offset(115, 17), const Offset(126, 22), fold);
-    canvas.drawLine(const Offset(115, 29), const Offset(126, 24), fold);
-    canvas.drawLine(const Offset(157, 17), const Offset(146, 22), fold);
-    canvas.drawLine(const Offset(157, 29), const Offset(146, 24), fold);
-    final knot = RRect.fromRectAndRadius(const Rect.fromLTWH(128, 14, 16, 17), const Radius.circular(6));
-    canvas.drawRRect(knot, _fill(_goldDeep));
-    canvas.drawRRect(knot, _line(_outline, 4.5));
-    canvas.restore();
   }
 
   /// A cartoon heart about [size] wide, centered on ([cx], [cy]).
@@ -406,21 +423,6 @@ class BuddyBearPainter extends CustomPainter {
       ..moveTo(cx, cy + s * .95)
       ..cubicTo(cx - s * 1.3, cy + s * .2, cx - s * 1.15, top - s * .8, cx, top)
       ..cubicTo(cx + s * 1.15, top - s * .8, cx + s * 1.3, cy + s * .2, cx, cy + s * .95)
-      ..close();
-  }
-
-  /// A four-point sparkle around ([cx], [cy]).
-  Path _sparkle(double cx, double cy, double r) {
-    final k = r * .29;
-    return Path()
-      ..moveTo(cx, cy - r)
-      ..lineTo(cx + k, cy - k)
-      ..lineTo(cx + r, cy)
-      ..lineTo(cx + k, cy + k)
-      ..lineTo(cx, cy + r)
-      ..lineTo(cx - k, cy + k)
-      ..lineTo(cx - r, cy)
-      ..lineTo(cx - k, cy - k)
       ..close();
   }
 

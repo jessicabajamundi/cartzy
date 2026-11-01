@@ -1,3 +1,6 @@
+import 'package:cartzy/guest/guest_account_screen.dart';
+import 'package:cartzy/guest/guest_cart_screen.dart';
+import 'package:cartzy/products/product_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -344,12 +347,30 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'guest':
         return GuestHomeScreen(
-          onLogin: () {
-            goTo('login');
-          },
-          onSignUp: () {
-            goTo('buyerRegistration');
-          },
+          onLogin: () => goTo('login'),
+          onSignUp: () => goTo('buyerRegistration'),
+          onCartClick: () => goTo('guestCart'),
+          onSaleClick: () => goTo('sale'),
+          onProfileClick: () => goTo('guestAccount'),
+        );
+
+      case 'guestCart':
+        return GuestCartScreen(
+          onHome: () => goTo('guest'),
+          onLogin: () => goTo('login'),
+          onSignUp: () => goTo('buyerRegistration'),
+          onSale: () => goTo('sale'),
+          onProfile: () => goTo('guestAccount'),
+          onWishlist: () {},
+        );
+
+      case 'guestAccount':
+        return GuestAccountScreen(
+          onLogin: () => goTo('login'),
+          onSignUp: () => goTo('buyerRegistration'),
+          onHome: () => goTo('guest'),
+          onCart: () => goTo('guestCart'),
+          onSale: () => goTo('sale'),
         );
 
       // ========================================================
@@ -455,15 +476,10 @@ class _CartzyHomeState extends State<CartzyHome> {
       case 'dashboard':
         return DashboardScreen(
           userName: loggedInUser?['name']?.toString() ?? '',
-          onCartClick: () {
-            goTo('cart');
-          },
-          onProfileClick: () {
-            goTo('accountSettings');
-          },
-          onVouchersClick: () {
-            goTo('vouchers');
-          },
+          onCartClick: () => goTo('cart'),
+          onSaleClick: () => goTo('sale'),
+          onProfileClick: () => goTo('accountSettings'),
+          onVouchersClick: () => goTo('vouchers'),
           onLogout: performLogout,
         );
 
@@ -487,12 +503,27 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'cart':
         return CartScreen(
-          onBack: () {
-            goTo('dashboard');
-          },
-          onCheckout: () {
-            goTo('checkout');
-          },
+          onBack: () => goTo('dashboard'),
+          onHomeClick: () => goTo('dashboard'),
+          onSaleClick: () => goTo('sale'),
+          onProfileClick: () => goTo('accountSettings'),
+          onCheckout: () => goTo('checkout'),
+          onLogout: performLogout,
+        );
+
+      // ========================================================
+      // SALE (Independent Section)
+      // ========================================================
+
+      case 'sale':
+        return ProductListScreen(
+          key: const ValueKey('sale_section'),
+          initialCategory: 'Flash Deals',
+          title: 'Sale & Flash Deals',
+          onBack: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
+          onHomeClick: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
+          onCartClick: () => goTo(loggedInUser != null ? 'cart' : 'guestCart'),
+          onProfileClick: () => goTo(loggedInUser != null ? 'accountSettings' : 'guestAccount'),
         );
 
       // ========================================================
@@ -585,9 +616,10 @@ class _CartzyHomeState extends State<CartzyHome> {
               loggedInUser?['email']?.toString() ?? '',
           userPhone:
               loggedInUser?['phone']?.toString() ?? '',
-          onBack: () {
-            goTo(loggedInUser != null ? 'dashboard' : 'guest');
-          },
+          onBack: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
+          onHomeClick: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
+          onCartClick: () => goTo(loggedInUser != null ? 'cart' : 'guestCart'),
+          onSaleClick: () => goTo('sale'),
           onLogout: performLogout,
           onProfileUpdated: (updatedUser) {
             setState(() {
@@ -713,7 +745,12 @@ class _CartzyHomeState extends State<CartzyHome> {
           goTo(loggedInUser != null ? 'dashboard' : 'guest');
           return;
         }
-        if (currentRoute == 'cart' || currentRoute == 'vouchers') {
+        if (currentRoute == 'cart' ||
+            currentRoute == 'vouchers' ||
+            currentRoute == 'sale' ||
+            currentRoute == 'guestCart' ||
+            currentRoute == 'guestAccount' ||
+            currentRoute == 'accountSettings') {
           goTo(loggedInUser != null ? 'dashboard' : 'guest');
           return;
         }

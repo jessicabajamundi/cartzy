@@ -11,6 +11,8 @@ class CartScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onCheckout;
   final VoidCallback? onProfileClick;
+  final VoidCallback? onSaleClick;
+  final VoidCallback? onHomeClick;
   final VoidCallback? onLogout;
 
   const CartScreen({
@@ -18,6 +20,8 @@ class CartScreen extends StatefulWidget {
     required this.onBack,
     required this.onCheckout,
     this.onProfileClick,
+    this.onSaleClick,
+    this.onHomeClick,
     this.onLogout,
   });
 
@@ -310,7 +314,7 @@ class _CartScreenState extends State<CartScreen> {
                   icon: Icons.home_rounded,
                   label: 'Home',
                   selected: false,
-                  onClick: widget.onBack,
+                  onClick: widget.onHomeClick ?? widget.onBack,
                 ),
                 _CartBottomNavItem(
                   icon: Icons.shopping_cart_rounded,
@@ -324,14 +328,21 @@ class _CartScreenState extends State<CartScreen> {
                   selected: false,
                   isSale: true,
                   onClick: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const ProductListScreen(
-                          initialCategory: 'Flash Deals',
-                          title: 'Sale & Flash Deals',
+                    if (widget.onSaleClick != null) {
+                      widget.onSaleClick!();
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => ProductListScreen(
+                            initialCategory: 'Flash Deals',
+                            title: 'Sale & Flash Deals',
+                            onBack: widget.onHomeClick ?? widget.onBack,
+                            onHomeClick: widget.onHomeClick ?? widget.onBack,
+                            onProfileClick: widget.onProfileClick,
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
                 _CartBottomNavItem(
@@ -342,13 +353,14 @@ class _CartScreenState extends State<CartScreen> {
                     if (widget.onProfileClick != null) {
                       widget.onProfileClick!();
                     } else {
-                      Navigator.of(context).push(
+                      Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (_) => AccountSettingsScreen(
                             isLoggedIn: true,
                             userName: 'Buyer',
                             userEmail: '',
-                            onBack: () => Navigator.of(context).pop(),
+                            onBack: widget.onHomeClick ?? widget.onBack,
+                            onHomeClick: widget.onHomeClick ?? widget.onBack,
                             onLogout: () async {
                               if (widget.onLogout != null) {
                                 widget.onLogout!();

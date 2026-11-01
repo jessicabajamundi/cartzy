@@ -9,11 +9,17 @@ import 'package:cartzy/products/product_list_screen.dart';
 class GuestAccountScreen extends StatefulWidget {
   final VoidCallback onLogin;
   final VoidCallback onSignUp;
+  final VoidCallback? onHome;
+  final VoidCallback? onCart;
+  final VoidCallback? onSale;
 
   const GuestAccountScreen({
     super.key,
     required this.onLogin,
     required this.onSignUp,
+    this.onHome,
+    this.onCart,
+    this.onSale,
   });
 
   static void open(
@@ -259,7 +265,11 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                     label: 'Home',
                     selected: false,
                     onClick: () {
-                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      if (widget.onHome != null) {
+                        widget.onHome!();
+                      } else {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      }
                     },
                   ),
                   _BottomNavItem(
@@ -267,17 +277,21 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                     label: 'Cart',
                     selected: false,
                     onClick: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (_) => GuestCartScreen(
-                            onLogin: widget.onLogin,
-                            onSignUp: widget.onSignUp,
-                            onHome: () =>
-                                Navigator.of(context).popUntil((route) => route.isFirst),
-                            onWishlist: () {},
+                      if (widget.onCart != null) {
+                        widget.onCart!();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => GuestCartScreen(
+                              onLogin: widget.onLogin,
+                              onSignUp: widget.onSignUp,
+                              onHome: widget.onHome ?? () =>
+                                  Navigator.of(context).popUntil((route) => route.isFirst),
+                              onWishlist: () {},
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     },
                   ),
                   _BottomNavItem(
@@ -286,14 +300,20 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                     selected: false,
                     isSale: true,
                     onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            initialCategory: 'Flash Deals',
-                            title: 'Sale & Flash Deals',
+                      if (widget.onSale != null) {
+                        widget.onSale!();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => ProductListScreen(
+                              initialCategory: 'Flash Deals',
+                              title: 'Sale & Flash Deals',
+                              onBack: widget.onHome,
+                              onHomeClick: widget.onHome,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     },
                   ),
                   _BottomNavItem(

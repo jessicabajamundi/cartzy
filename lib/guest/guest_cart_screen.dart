@@ -31,6 +31,8 @@ class GuestCartScreen extends StatefulWidget {
   final VoidCallback onSignUp;
   final VoidCallback onHome;
   final VoidCallback onWishlist;
+  final VoidCallback? onSale;
+  final VoidCallback? onProfile;
 
   const GuestCartScreen({
     super.key,
@@ -38,6 +40,8 @@ class GuestCartScreen extends StatefulWidget {
     required this.onSignUp,
     required this.onHome,
     required this.onWishlist,
+    this.onSale,
+    this.onProfile,
   });
 
   @override
@@ -265,25 +269,41 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                     selected: false,
                     isSale: true,
                     onClick: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(
-                            initialCategory: 'Flash Deals',
-                            title: 'Sale & Flash Deals',
+                      if (widget.onSale != null) {
+                        widget.onSale!();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => ProductListScreen(
+                              initialCategory: 'Flash Deals',
+                              title: 'Sale & Flash Deals',
+                              onBack: widget.onHome,
+                              onHomeClick: widget.onHome,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     },
                   ),
                   _BottomNavItem(
                     icon: Icons.person_outline_rounded,
                     label: 'Profile',
                     selected: false,
-                    onClick: () => GuestAccountScreen.open(
-                      context,
-                      onLogin: widget.onLogin,
-                      onSignUp: widget.onSignUp,
-                    ),
+                    onClick: () {
+                      if (widget.onProfile != null) {
+                        widget.onProfile!();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => GuestAccountScreen(
+                              onLogin: widget.onLogin,
+                              onSignUp: widget.onSignUp,
+                              onHome: widget.onHome,
+                            ),
+                          ),
+                        );
+                      }
+                    },
                   ),
                 ],
               ),

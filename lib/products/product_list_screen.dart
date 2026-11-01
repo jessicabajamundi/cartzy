@@ -57,6 +57,10 @@ class ProductListScreen extends StatefulWidget {
   final String? initialCategory;
   final String? title;
   final VoidCallback? onBack;
+  final VoidCallback? onHomeClick;
+  final VoidCallback? onCartClick;
+  final VoidCallback? onSaleClick;
+  final VoidCallback? onProfileClick;
   final bool randomize;
 
   const ProductListScreen({
@@ -65,6 +69,10 @@ class ProductListScreen extends StatefulWidget {
     this.initialCategory,
     this.title,
     this.onBack,
+    this.onHomeClick,
+    this.onCartClick,
+    this.onSaleClick,
+    this.onProfileClick,
     this.randomize = false,
   });
 
@@ -211,14 +219,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _navigateToCart(BuildContext context) {
-    if (!AuthService.isAuthenticated) {
-      GuestCartScreen.open(context);
+    if (widget.onCartClick != null) {
+      widget.onCartClick!();
       return;
     }
-    Navigator.of(context).push(
+    if (!AuthService.isAuthenticated) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => GuestCartScreen(
+            onLogin: () => Navigator.of(context).pushNamed('/login'),
+            onSignUp: () => Navigator.of(context).pushNamed('/signup'),
+            onHome: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).popUntil((route) => route.isFirst),
+            onWishlist: () {},
+          ),
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => CartScreen(
-          onBack: () => Navigator.of(context).pop(),
+          onBack: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).pop(),
+          onHomeClick: widget.onHomeClick ?? widget.onBack,
+          onProfileClick: widget.onProfileClick,
           onCheckout: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -267,7 +290,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
-          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+          onPressed: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         title: Text(
           widget.title ?? 'Products',
@@ -554,7 +577,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     label: 'Home',
                     selected: false,
                     onClick: () {
-                      if (widget.onBack != null) {
+                      if (widget.onHomeClick != null) {
+                        widget.onHomeClick!();
+                      } else if (widget.onBack != null) {
                         widget.onBack!();
                       } else {
                         Navigator.of(context).popUntil((route) => route.isFirst);
@@ -565,7 +590,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     icon: Icons.shopping_cart_outlined,
                     label: 'Cart',
                     selected: false,
-                    onClick: () => _navigateToCart(context),
+                    onClick: () {
+                      if (widget.onCartClick != null) {
+                        widget.onCartClick!();
+                      } else {
+                        _navigateToCart(context);
+                      }
+                    },
                   ),
                   _ProductBottomNavItem(
                     icon: Icons.local_offer_rounded,
@@ -573,7 +604,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     selected: _selectedCategory == 'Flash Deals' || (widget.title != null && widget.title!.toLowerCase().contains('sale')),
                     isSale: true,
                     onClick: () {
-                      if (_selectedCategory != 'Flash Deals') {
+                      if (widget.onSaleClick != null) {
+                        widget.onSaleClick!();
+                      } else if (_selectedCategory != 'Flash Deals') {
                         setState(() => _selectedCategory = 'Flash Deals');
                         _loadProducts();
                       }
@@ -584,26 +617,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     label: 'Profile',
                     selected: false,
                     onClick: () {
-                      if (!AuthService.isAuthenticated) {
-                        Navigator.of(context).push(
+                      if (widget.onProfileClick != null) {
+                        widget.onProfileClick!();
+                      } else if (!AuthService.isAuthenticated) {
+                        Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (_) => AccountSettingsScreen(
                               isLoggedIn: false,
                               userName: 'Guest',
                               userEmail: '',
-                              onBack: () => Navigator.of(context).pop(),
+                              onBack: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).pop(),
+                              onHomeClick: widget.onHomeClick ?? widget.onBack,
                               onLogout: () {},
                             ),
                           ),
                         );
                       } else {
-                        Navigator.of(context).push(
+                        Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
                             builder: (_) => AccountSettingsScreen(
                               isLoggedIn: true,
                               userName: 'Buyer',
                               userEmail: '',
-                              onBack: () => Navigator.of(context).pop(),
+                              onBack: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).pop(),
+                              onHomeClick: widget.onHomeClick ?? widget.onBack,
                               onLogout: () async {
                                 await AuthService.logout();
                                 if (context.mounted) {
