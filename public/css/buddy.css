@@ -1,14 +1,15 @@
-/* Cozy the teddy bear: floating shopping buddy. Sits bottom-left because seller chat owns bottom-right. */
+/* Cozy the teddy bear: floating shopping buddy. Sits bottom-right, above the seller chat bubble where a page has one. */
 .buddy { --buddy-ink: #3E354C; --buddy-deep: #6F6382; --buddy-lav: #A8A0B2; --buddy-line: #E1DDE7; --buddy-soft: #FAF9FB; --buddy-rose: #D4A69A; --buddy-rose-deep: #B76E79; --buddy-blush: #FFF5F3; font-family: 'Lato', sans-serif; }
 .buddy *, .buddy *::before, .buddy *::after { box-sizing: border-box; }
 .buddy [hidden] { display: none !important; }
 
 /* Launcher */
-.buddy-launcher { position: fixed; left: 18px; bottom: 16px; z-index: 58; width: 92px; height: 92px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 8px 14px rgba(40, 33, 51, .28)); transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
+body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
+.buddy-launcher { position: fixed; right: 18px; bottom: 16px; z-index: 58; width: 92px; height: 92px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 8px 14px rgba(40, 33, 51, .28)); transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
 .buddy-launcher:hover { transform: translateY(-5px) scale(1.06); }
 .buddy-launcher:focus-visible { outline: 3px solid var(--buddy-rose-deep); outline-offset: 2px; border-radius: 24px; }
 .buddy-launcher-bear { display: block; width: 100%; height: 100%; animation: buddy-pop-in .7s cubic-bezier(.34, 1.56, .64, 1) both; }
-.buddy-greeting { position: absolute; left: 88px; bottom: 54px; width: max-content; max-width: 210px; padding: 10px 14px; border: 1.500px solid var(--buddy-rose); border-radius: 16px 16px 16px 4px; background: white; color: var(--buddy-ink); font-size: 13.500px; font-weight: 700; line-height: 1.3; text-align: left; box-shadow: 0 8px 20px rgba(40, 33, 51, .14); animation: buddy-bubble-in .4s cubic-bezier(.34, 1.56, .64, 1) both; }
+.buddy-greeting { position: absolute; right: 88px; bottom: 54px; width: max-content; max-width: 210px; padding: 10px 14px; border: 1.500px solid var(--buddy-rose); border-radius: 16px 16px 4px 16px; background: white; color: var(--buddy-ink); font-size: 13.500px; font-weight: 700; line-height: 1.3; text-align: left; box-shadow: 0 8px 20px rgba(40, 33, 51, .14); animation: buddy-bubble-in .4s cubic-bezier(.34, 1.56, .64, 1) both; }
 .buddy.is-open .buddy-launcher { visibility: hidden; }
 
 /* Bear art and moods */
@@ -36,7 +37,7 @@
 .is-giggling .buddy-bear { animation: buddy-giggle .5s ease-in-out; }
 
 /* Panel */
-.buddy-panel { position: fixed; left: 20px; bottom: 20px; z-index: 75; display: flex; flex-direction: column; width: min(392px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 40px)); border: 1.500px solid var(--buddy-rose); border-radius: 26px; background: var(--buddy-soft); box-shadow: 0 24px 60px rgba(40, 33, 51, .3); overflow: hidden; transform-origin: bottom left; animation: buddy-panel-in .35s cubic-bezier(.34, 1.4, .64, 1) both; }
+.buddy-panel { position: fixed; right: 20px; bottom: 20px; z-index: 75; display: flex; flex-direction: column; width: min(392px, calc(100vw - 32px)); height: min(620px, calc(100dvh - 40px)); border: 1.500px solid var(--buddy-rose); border-radius: 26px; background: var(--buddy-soft); box-shadow: 0 24px 60px rgba(40, 33, 51, .3); overflow: hidden; transform-origin: bottom right; animation: buddy-panel-in .35s cubic-bezier(.34, 1.4, .64, 1) both; }
 .buddy-head { position: relative; display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 14px; color: white; background: linear-gradient(120deg, #6F6382 0%, #91879E 55%, #C08B7F 100%); }
 .buddy-head-bear { flex: none; width: 58px; height: 58px; margin: -4px 0 -6px; filter: drop-shadow(0 3px 5px rgba(40, 33, 51, .3)); }
 .buddy-head-text { flex: 1; min-width: 0; }
@@ -91,8 +92,9 @@
 .buddy-heart { position: fixed; z-index: 80; color: #D4A69A; font-size: 18px; pointer-events: none; animation: buddy-heart 1.300s ease-out forwards; }
 
 @media (max-width: 480px) {
-    .buddy-launcher { left: 10px; bottom: 12px; width: 76px; height: 76px; }
-    .buddy-greeting { left: 72px; bottom: 44px; max-width: 170px; font-size: 12.500px; }
+    .buddy-launcher { right: 10px; bottom: 12px; width: 76px; height: 76px; }
+    body:has(.chat-bubble-form) .buddy-launcher { bottom: 78px; }
+    .buddy-greeting { right: 72px; bottom: 44px; max-width: 170px; font-size: 12.500px; }
     .buddy-panel { left: 0; right: 0; bottom: 0; width: 100%; height: 88dvh; border-width: 1.500px 0 0; border-radius: 24px 24px 0 0; transform-origin: bottom center; }
 }
 
@@ -106,7 +108,7 @@
 @keyframes buddy-wave { 0%, 100% { transform: rotate(-150deg); } 50% { transform: rotate(-115deg); } }
 @keyframes buddy-giggle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-7deg) scale(1.05); } 45% { transform: rotate(7deg) scale(.96); } 70% { transform: rotate(-4deg); } }
 @keyframes buddy-pop-in { 0% { transform: translateY(40px) scale(.4); opacity: 0; } 100% { transform: none; opacity: 1; } }
-@keyframes buddy-bubble-in { 0% { transform: scale(.5); opacity: 0; transform-origin: bottom left; } 100% { transform: none; opacity: 1; } }
+@keyframes buddy-bubble-in { 0% { transform: scale(.5); opacity: 0; transform-origin: bottom right; } 100% { transform: none; opacity: 1; } }
 @keyframes buddy-panel-in { 0% { transform: scale(.7) translateY(30px); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @keyframes buddy-msg-in { 0% { transform: translateY(8px) scale(.97); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @keyframes buddy-dot { 0%, 80%, 100% { transform: scale(.6); opacity: .5; } 40% { transform: scale(1.1) translateY(-3px); opacity: 1; } }
