@@ -620,6 +620,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onHomeClick: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
           onCartClick: () => goTo(loggedInUser != null ? 'cart' : 'guestCart'),
           onSaleClick: () => goTo('sale'),
+          onAddressesClick: () => goTo('addresses'),
           onLogout: performLogout,
           onProfileUpdated: (updatedUser) {
             setState(() {
@@ -679,7 +680,7 @@ class _CartzyHomeState extends State<CartzyHome> {
               ) ??
               0,
           onBack: () {
-            goTo('accountMenu');
+            goTo('accountSettings');
           },
           onAddAddress: () {
             goTo('addAddress');

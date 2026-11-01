@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cartzy/utils/input_rules.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/services/auth_service.dart';
@@ -8,6 +8,9 @@ import 'package:cartzy/services/review_service.dart';
 import 'package:cartzy/services/voucher_service.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/address/my_addresses_screen.dart';
+import 'package:cartzy/address/add_address_screen.dart';
+import 'package:cartzy/services/api_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -40,6 +43,90 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     VoucherService.instance.addListener(_onVouchersChanged);
+    _loadDefaultAddressFromApi();
+  }
+
+  Future<void> _loadDefaultAddressFromApi() async {
+    try {
+      final uid = int.tryParse(AuthService.currentUser?['id']?.toString() ?? '') ?? 0;
+      if (uid > 0) {
+        final rows = await ApiService.getAddresses(uid);
+        if (!mounted || rows.isEmpty) return;
+        final list = rows.map((r) => Map<String, dynamic>.from(r as Map)).toList();
+        final defaultAddr = list.firstWhere(
+          (a) => a['is_default'] == true || a['is_default'] == 1,
+          orElse: () => list.first,
+        );
+        final street = [defaultAddr['house_number'], defaultAddr['street']]
+            .where((s) => s != null && s.toString().trim().isNotEmpty)
+            .join(', ');
+        final cityParts = [
+          defaultAddr['barangay'],
+          defaultAddr['municipality'],
+          defaultAddr['province'],
+          defaultAddr['postal_code']
+        ].where((s) => s != null && s.toString().trim().isNotEmpty).join(', ');
+
+        setState(() {
+          _deliveryAddress = {
+            'id': defaultAddr['id']?.toString() ?? '',
+            'name': defaultAddr['name']?.toString() ?? '',
+            'phone': defaultAddr['phone']?.toString() ?? '',
+            'street': street.isNotEmpty ? street : (defaultAddr['street']?.toString() ?? ''),
+            'city': cityParts.isNotEmpty ? cityParts : (defaultAddr['municipality']?.toString() ?? ''),
+          };
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _openAddressPicker() {
+    final uid = int.tryParse(AuthService.currentUser?['id']?.toString() ?? '') ?? 0;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyAddressesScreen(
+          userId: uid,
+          onBack: () => Navigator.of(context).pop(),
+          onAddAddress: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AddAddressScreen(
+                  userId: uid,
+                  onBack: () => Navigator.of(context).pop(),
+                  onSaved: () {
+                    Navigator.of(context).pop();
+                    _loadDefaultAddressFromApi();
+                  },
+                ),
+              ),
+            );
+          },
+          onAddressSelected: (selected) {
+            final street = [selected['house_number'], selected['street']]
+                .where((s) => s != null && s.toString().trim().isNotEmpty)
+                .join(', ');
+            final cityParts = [
+              selected['barangay'],
+              selected['municipality'],
+              selected['province'],
+              selected['postal_code']
+            ].where((s) => s != null && s.toString().trim().isNotEmpty).join(', ');
+
+            setState(() {
+              _deliveryAddress = {
+                'id': selected['id']?.toString() ?? '',
+                'name': selected['name']?.toString() ?? '',
+                'phone': selected['phone']?.toString() ?? '',
+                'street': street.isNotEmpty ? street : (selected['street']?.toString() ?? ''),
+                'city': cityParts.isNotEmpty ? cityParts : (selected['municipality']?.toString() ?? ''),
+              };
+            });
+            Navigator.of(context).pop();
+            showCartzyFlash(context, 'Delivery address updated');
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -124,105 +211,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double get totalPayment {
     final total = subtotal + _deliveryFee - shippingDiscount - voucherDiscount;
     return (total.isNaN || total < 0) ? 0.0 : total;
-  }
-
-  // ── Add Address Modal ──
-  void _showAddAddressDialog() {
-    final user = AuthService.currentUser;
-    final nameCtrl = TextEditingController(text: _deliveryAddress?['name'] ?? user?['name']?.toString() ?? '');
-    final phoneCtrl = TextEditingController(text: _deliveryAddress?['phone'] ?? user?['phone']?.toString() ?? '');
-    final streetCtrl = TextEditingController(text: _deliveryAddress?['street'] ?? '');
-    final cityCtrl = TextEditingController(text: _deliveryAddress?['city'] ?? '');
-
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Text(
-            'Delivery Address',
-            style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  inputFormatters: InputRules.fullNameFormatters,
-                  decoration: const InputDecoration(
-                    labelText: 'Recipient Name',
-                    isDense: true,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: phoneCtrl,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: InputRules.phoneFormatters,
-                  decoration: const InputDecoration(
-                    labelText: 'Contact Phone',
-                    isDense: true,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: streetCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'House / Unit / Street',
-                    isDense: true,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: cityCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'City / Municipality, Province',
-                    isDense: true,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancel', style: GoogleFonts.dmSans(color: const Color(0xFF7A6E72))),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final contactError = InputRules.fullName(nameCtrl.text, label: 'recipient name') ??
-                    InputRules.phone(phoneCtrl.text);
-                if (contactError != null) {
-                  showCartzyFlash(context, contactError);
-                  return;
-                }
-                if (streetCtrl.text.trim().isEmpty || cityCtrl.text.trim().isEmpty) {
-                  showCartzyFlash(context, 'Please enter a valid address');
-                  return;
-                }
-                setState(() {
-                  _deliveryAddress = {
-                    'name': nameCtrl.text.trim(),
-                    'phone': phoneCtrl.text.trim(),
-                    'street': streetCtrl.text.trim(),
-                    'city': cityCtrl.text.trim(),
-                  };
-                });
-                Navigator.pop(ctx);
-                showCartzyFlash(context, 'Delivery address updated');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4452),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('Save Address'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   // ── Apply Voucher Code ──
@@ -477,7 +465,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       stepNumber: '01',
       title: 'Delivery details',
       trailingAction: GestureDetector(
-        onTap: _showAddAddressDialog,
+        onTap: _openAddressPicker,
         child: Text(
           _deliveryAddress == null ? 'Add address' : 'Change address',
           style: GoogleFonts.dmSans(

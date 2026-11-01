@@ -14,6 +14,10 @@ import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/buyer/edit_buyer_profile_screen.dart';
+import 'package:cartzy/address/my_addresses_screen.dart';
+import 'package:cartzy/address/add_address_screen.dart';
+
+import 'package:cartzy/services/auth_service.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -26,6 +30,7 @@ class AccountSettingsScreen extends StatefulWidget {
   final VoidCallback? onHomeClick;
   final VoidCallback? onCartClick;
   final VoidCallback? onSaleClick;
+  final VoidCallback? onAddressesClick;
   final VoidCallback onLogout;
   final ValueChanged<Map<String, dynamic>>? onProfileUpdated;
 
@@ -41,6 +46,7 @@ class AccountSettingsScreen extends StatefulWidget {
     this.onHomeClick,
     this.onCartClick,
     this.onSaleClick,
+    this.onAddressesClick,
     required this.onLogout,
     this.onProfileUpdated,
   });
@@ -109,19 +115,35 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  // Saved Addresses
-  final List<Map<String, String>> _savedAddresses = [
-    {
-      'label': 'Home',
-      'street': 'Blk 12 Lot 4 Dahlia St., San Antonio',
-      'city': 'Pasig City, Metro Manila',
-    },
-    {
-      'label': 'Office',
-      'street': 'Unit 802 Emerald Building, F. Ortigas Jr. Ave',
-      'city': 'Ortigas Center, Pasig City',
-    },
-  ];
+
+  void _openAddressesScreen() {
+    if (widget.onAddressesClick != null) {
+      widget.onAddressesClick!();
+    } else {
+      final currentUserId = int.tryParse(AuthService.currentUser?['id']?.toString() ?? '') ?? 0;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => MyAddressesScreen(
+            userId: currentUserId,
+            onBack: () => Navigator.of(context).pop(),
+            onAddAddress: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => AddAddressScreen(
+                    userId: currentUserId,
+                    onBack: () => Navigator.of(context).pop(),
+                    onSaved: () {
+                      Navigator.of(context).pop();
+                                      },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -326,184 +348,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // SAVED ADDRESSES MODAL
-  // ==========================================
-  void _openSavedAddressesModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Saved Addresses',
-                      style: GoogleFonts.dmSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20)),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ...List.generate(_savedAddresses.length, (idx) {
-                  final addr = _savedAddresses[idx];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFAF8F9),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFEDE4E7)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.location_on,
-                            color: CartzyColors.coral, size: 22),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(addr['label'] ?? 'Address',
-                                  style: GoogleFonts.dmSans(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
-                                      color: const Color(0xFF231F20))),
-                              const SizedBox(height: 2),
-                              Text(addr['street'] ?? '',
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Color(0xFF554B4F))),
-                              Text(addr['city'] ?? '',
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Color(0xFF7A6E72))),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 46,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: CartzyColors.navy),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    icon: const Icon(Icons.add,
-                        color: CartzyColors.navy, size: 18),
-                    label: Text('Add New Address',
-                        style: GoogleFonts.dmSans(
-                            fontWeight: FontWeight.bold,
-                            color: CartzyColors.navy)),
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      _showAddAddressDialog();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showAddAddressDialog() {
-    final streetController = TextEditingController();
-    final cityController =
-        TextEditingController(text: 'Pasig City, Metro Manila');
-    final labelController = TextEditingController(text: 'Home');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'Add Delivery Address',
-          style: GoogleFonts.dmSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF231F20)),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: labelController,
-                decoration: const InputDecoration(
-                    labelText: 'Address Label (e.g. Home, Work)'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: streetController,
-                decoration: const InputDecoration(
-                    labelText: 'House / Unit & Street Name'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: cityController,
-                decoration: const InputDecoration(
-                    labelText: 'City / Municipality & Province'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: Color(0xFF7A6E72))),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (streetController.text.trim().isNotEmpty) {
-                setState(() {
-                  _savedAddresses.add({
-                    'label': labelController.text.trim(),
-                    'street': streetController.text.trim(),
-                    'city': cityController.text.trim(),
-                  });
-                });
-                Navigator.pop(ctx);
-                showCartzyFlash(context, 'New address added!');
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CartzyColors.navy,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Save Address'),
-          ),
-        ],
       ),
     );
   }
@@ -1241,7 +1085,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     _buildMenuTile(
                       icon: Icons.location_on_outlined,
                       label: 'Saved addresses',
-                      onTap: _openSavedAddressesModal,
+                      onTap: _openAddressesScreen,
                     ),
                     const Divider(
                         height: 1,

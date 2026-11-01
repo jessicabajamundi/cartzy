@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/address/add_address_screen.dart';
 
 class MyAddressesScreen extends StatefulWidget {
   final int userId;
@@ -43,7 +44,11 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
     });
 
     try {
-      final rows = await ApiService.getAddresses(widget.userId);
+      final uid = widget.userId > 0
+          ? widget.userId
+          : (int.tryParse(AuthService.currentUser?['id']?.toString() ?? '') ?? 0);
+
+      final rows = await ApiService.getAddresses(uid);
       if (!mounted) return;
       setState(() {
         addresses = rows.map((row) => Map<String, dynamic>.from(row as Map)).toList();
@@ -53,7 +58,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
       if (!mounted) return;
       setState(() {
         isLoading = false;
-        loadError = e.toString();
+        loadError = e is ApiException ? e.message : e.toString();
       });
     }
   }
@@ -116,11 +121,27 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
   }
 
   // ------------------------------------------------------------
-  // EDIT ADDRESS (hooked up once an edit screen exists)
+  // EDIT ADDRESS
   // ------------------------------------------------------------
 
   void _editAddress(Map<String, dynamic> address) {
-    _showMessage('Edit address will be connected next.');
+    final uid = widget.userId > 0
+        ? widget.userId
+        : (int.tryParse(AuthService.currentUser?['id']?.toString() ?? '') ?? 0);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddAddressScreen(
+          userId: uid,
+          initialAddress: address,
+          onBack: () => Navigator.of(context).pop(),
+          onSaved: () {
+            Navigator.of(context).pop();
+            _loadAddresses();
+          },
+        ),
+      ),
+    );
   }
 
   void _showMessage(String message) {
@@ -177,9 +198,11 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                       Icon(
                         address['label'] == 'Work'
                             ? Icons.work_outline
-                            : address['label'] == 'Other'
-                                ? Icons.location_on_outlined
-                                : Icons.home_outlined,
+                            : address['label'] == 'School'
+                                ? Icons.school_outlined
+                                : address['label'] == 'Other'
+                                    ? Icons.location_on_outlined
+                                    : Icons.home_outlined,
                         size: 16,
                         color: CartzyColors.navy,
                       ),
@@ -329,72 +352,79 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CartzyColors.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        widget.onBack();
+      },
+      child: Scaffold(
         backgroundColor: CartzyColors.background,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: widget.onBack,
-          icon: const Icon(Icons.arrow_back),
+        appBar: AppBar(
+          backgroundColor: CartzyColors.background,
+          elevation: 0,
+          leading: IconButton(
+            onPressed: widget.onBack,
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: const Text(
+            'My Addresses',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
         ),
-        title: const Text(
-          'My Addresses',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-      ),
-      body: SafeArea(
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : loadError != null
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            loadError!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: CartzyColors.error),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _loadAddresses,
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : addresses.isEmpty
-                    ? _emptyState()
-                    : RefreshIndicator(
-                        onRefresh: _loadAddresses,
-                        child: ListView(
-                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+        body: SafeArea(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : loadError != null
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'Saved Addresses',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CartzyColors.text),
-                                  ),
-                                ),
-                                TextButton.icon(
-                                  onPressed: widget.onAddAddress,
-                                  icon: const Icon(Icons.add, size: 18),
-                                  label: const Text('Add New'),
-                                  style: TextButton.styleFrom(foregroundColor: CartzyColors.navy),
-                                ),
-                              ],
+                            Text(
+                              loadError!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: CartzyColors.error),
                             ),
-                            const SizedBox(height: 10),
-                            ...addresses.map(_addressCard),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadAddresses,
+                              child: const Text('Retry'),
+                            ),
                           ],
                         ),
                       ),
+                    )
+                  : addresses.isEmpty
+                      ? _emptyState()
+                      : RefreshIndicator(
+                          onRefresh: _loadAddresses,
+                          child: ListView(
+                            padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Saved Addresses',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CartzyColors.text),
+                                    ),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: widget.onAddAddress,
+                                    icon: const Icon(Icons.add, size: 18),
+                                    label: const Text('Add New'),
+                                    style: TextButton.styleFrom(foregroundColor: CartzyColors.navy),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ...addresses.map(_addressCard),
+                            ],
+                          ),
+                        ),
+        ),
       ),
     );
   }

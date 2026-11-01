@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cartzy/utils/input_rules.dart';
-
 import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/psgc_api.dart';
 
@@ -9,47 +10,34 @@ class AddAddressScreen extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback? onSaved;
   final int userId;
+  final Map<String, dynamic>? initialAddress;
 
   const AddAddressScreen({
     super.key,
     required this.onBack,
     required this.userId,
     this.onSaved,
+    this.initialAddress,
   });
 
   @override
-  State<AddAddressScreen> createState() =>
-      _AddAddressScreenState();
+  State<AddAddressScreen> createState() => _AddAddressScreenState();
 }
 
-class _AddAddressScreenState
-    extends State<AddAddressScreen> {
+class _AddAddressScreenState extends State<AddAddressScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController nameController =
-      TextEditingController();
-
-  final TextEditingController phoneController =
-      TextEditingController();
-
-  final TextEditingController houseNumberController =
-      TextEditingController();
-
-  final TextEditingController streetController =
-      TextEditingController();
-
-  final TextEditingController postalController =
-      TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController houseNumberController = TextEditingController();
+  final TextEditingController streetController = TextEditingController();
+  final TextEditingController postalController = TextEditingController();
 
   String selectedLabel = 'Home';
-
   bool isDefault = false;
   bool isSaving = false;
 
-  // ==========================================================
   // PSGC DATA
-  // ==========================================================
-
   List<PsgcRegion> regions = [];
   List<PsgcProvince> provinces = [];
   List<PsgcCityMunicipality> municipalities = [];
@@ -69,6 +57,21 @@ class _AddAddressScreenState
   void initState() {
     super.initState();
 
+    final init = widget.initialAddress;
+    if (init != null) {
+      nameController.text = init['name']?.toString() ?? '';
+      phoneController.text = init['phone']?.toString() ?? '';
+      houseNumberController.text = init['house_number']?.toString() ?? '';
+      streetController.text = init['street']?.toString() ?? '';
+      postalController.text = init['postal_code']?.toString() ?? '';
+      selectedLabel = init['label']?.toString() ?? 'Home';
+      isDefault = init['is_default'] == true || init['is_default'] == 1;
+    } else {
+      final user = AuthService.currentUser;
+      nameController.text = user?['name']?.toString() ?? '';
+      phoneController.text = user?['phone']?.toString() ?? '';
+    }
+
     _loadRegions();
   }
 
@@ -79,7 +82,6 @@ class _AddAddressScreenState
     houseNumberController.dispose();
     streetController.dispose();
     postalController.dispose();
-
     super.dispose();
   }
 
@@ -90,23 +92,31 @@ class _AddAddressScreenState
   Future<void> _loadRegions() async {
     try {
       final data = await PsgcApi.getRegions();
-
       if (!mounted) return;
 
       setState(() {
         regions = data;
         loadingRegions = false;
       });
+
+      // Pre-select if editing
+      final init = widget.initialAddress;
+      if (init != null && init['region'] != null) {
+        final regName = init['region'].toString().toLowerCase();
+        final match = regions.firstWhere(
+          (r) => r.name.toLowerCase() == regName ||
+                 r.code == init['region'] ||
+                 (regName.contains('ncr') && r.code == '130000000'),
+          orElse: () => regions.first,
+        );
+        await _onRegionChanged(match, preselectProvince: init['province']?.toString(), preselectCity: init['municipality']?.toString(), preselectBrgy: init['barangay']?.toString());
+      }
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         loadingRegions = false;
       });
-
-      _showError(
-        'Failed to load regions.\n$e',
-      );
+      _showError('Failed to load regions.\n$e');
     }
   }
 
@@ -115,46 +125,84 @@ class _AddAddressScreenState
   // ==========================================================
 
   Future<void> _onRegionChanged(
-    PsgcRegion? region,
-  ) async {
+    PsgcRegion? region, {
+    String? preselectProvince,
+    String? preselectCity,
+    String? preselectBrgy,
+  }) async {
     setState(() {
       selectedRegion = region;
-
       selectedProvince = null;
       selectedMunicipality = null;
       selectedBarangay = null;
-
       provinces = [];
       municipalities = [];
       barangays = [];
-
       loadingProvinces = region != null;
     });
 
     if (region == null) return;
 
-    try {
-      final data =
-          await PsgcApi.getProvincesByRegion(
-        region.code,
-      );
+    final isNcr = region.code == '130000000' || region.name.toUpperCase().contains('NCR');
 
+    if (isNcr) {
+      final ncrProvince = PsgcProvince(code: '130000000', name: 'Metro Manila');
+      setState(() {
+        provinces = [ncrProvince];
+        selectedProvince = ncrProvince;
+        loadingProvinces = false;
+        loadingMunicipalities = true;
+      });
+
+      try {
+        final cities = await PsgcApi.getMunicipalities('130000000', isNcrRegion: true);
+        if (!mounted) return;
+        setState(() {
+          municipalities = cities;
+          loadingMunicipalities = false;
+        });
+
+        if (preselectCity != null) {
+          final cityMatch = municipalities.where(
+            (c) => c.name.toLowerCase() == preselectCity.toLowerCase(),
+          ).firstOrNull;
+          if (cityMatch != null) {
+            await _onMunicipalityChanged(cityMatch, preselectBrgy: preselectBrgy);
+          }
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          loadingMunicipalities = false;
+        });
+        _showError('Failed to load Metro Manila cities.\n$e');
+      }
+      return;
+    }
+
+    try {
+      final data = await PsgcApi.getProvincesByRegion(region.code);
       if (!mounted) return;
 
       setState(() {
         provinces = data;
         loadingProvinces = false;
       });
+
+      if (preselectProvince != null) {
+        final provMatch = provinces.where(
+          (p) => p.name.toLowerCase() == preselectProvince.toLowerCase(),
+        ).firstOrNull;
+        if (provMatch != null) {
+          await _onProvinceChanged(provMatch, preselectCity: preselectCity, preselectBrgy: preselectBrgy);
+        }
+      }
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         loadingProvinces = false;
       });
-
-      _showError(
-        'Failed to load provinces.\n$e',
-      );
+      _showError('Failed to load provinces.\n$e');
     }
   }
 
@@ -163,45 +211,46 @@ class _AddAddressScreenState
   // ==========================================================
 
   Future<void> _onProvinceChanged(
-    PsgcProvince? province,
-  ) async {
+    PsgcProvince? province, {
+    String? preselectCity,
+    String? preselectBrgy,
+  }) async {
     setState(() {
       selectedProvince = province;
-
       selectedMunicipality = null;
       selectedBarangay = null;
-
       municipalities = [];
       barangays = [];
-
-      loadingMunicipalities =
-          province != null;
+      loadingMunicipalities = province != null;
     });
 
     if (province == null) return;
 
-    try {
-      final data =
-          await PsgcApi.getMunicipalities(
-        province.code,
-      );
+    final isNcr = selectedRegion?.code == '130000000' || province.code == '130000000';
 
+    try {
+      final data = await PsgcApi.getMunicipalities(province.code, isNcrRegion: isNcr);
       if (!mounted) return;
 
       setState(() {
         municipalities = data;
         loadingMunicipalities = false;
       });
+
+      if (preselectCity != null) {
+        final cityMatch = municipalities.where(
+          (c) => c.name.toLowerCase() == preselectCity.toLowerCase(),
+        ).firstOrNull;
+        if (cityMatch != null) {
+          await _onMunicipalityChanged(cityMatch, preselectBrgy: preselectBrgy);
+        }
+      }
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         loadingMunicipalities = false;
       });
-
-      _showError(
-        'Failed to load cities/municipalities.\n$e',
-      );
+      _showError('Failed to load cities/municipalities.\n$e');
     }
   }
 
@@ -210,43 +259,43 @@ class _AddAddressScreenState
   // ==========================================================
 
   Future<void> _onMunicipalityChanged(
-    PsgcCityMunicipality? municipality,
-  ) async {
+    PsgcCityMunicipality? municipality, {
+    String? preselectBrgy,
+  }) async {
     setState(() {
       selectedMunicipality = municipality;
-
       selectedBarangay = null;
-
       barangays = [];
-
-      loadingBarangays =
-          municipality != null;
+      loadingBarangays = municipality != null;
     });
 
     if (municipality == null) return;
 
     try {
-      final data =
-          await PsgcApi.getBarangays(
-        municipality.code,
-      );
-
+      final data = await PsgcApi.getBarangays(municipality.code);
       if (!mounted) return;
 
       setState(() {
         barangays = data;
         loadingBarangays = false;
       });
+
+      if (preselectBrgy != null) {
+        final brgyMatch = barangays.where(
+          (b) => b.name.toLowerCase() == preselectBrgy.toLowerCase(),
+        ).firstOrNull;
+        if (brgyMatch != null) {
+          setState(() {
+            selectedBarangay = brgyMatch;
+          });
+        }
+      }
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         loadingBarangays = false;
       });
-
-      _showError(
-        'Failed to load barangays.\n$e',
-      );
+      _showError('Failed to load barangays.\n$e');
     }
   }
 
@@ -260,37 +309,31 @@ class _AddAddressScreenState
     }
 
     if (selectedRegion == null) {
-      _showError(
-        'Please select a region.',
-      );
+      _showError('Please select a region.');
       return;
     }
 
     if (selectedProvince == null) {
-      _showError(
-        'Please select a province.',
-      );
+      _showError('Please select a province.');
       return;
     }
 
     if (selectedMunicipality == null) {
-      _showError(
-        'Please select a city/municipality.',
-      );
+      _showError('Please select a city/municipality.');
       return;
     }
 
     if (selectedBarangay == null) {
-      _showError(
-        'Please select a barangay.',
-      );
+      _showError('Please select a barangay.');
       return;
     }
 
-    if (widget.userId <= 0) {
-      _showError(
-        'Invalid user account. Please log in again.',
-      );
+    final currentUid = widget.userId > 0
+        ? widget.userId
+        : (int.tryParse(AuthService.currentUser?['id']?.toString() ?? '') ?? 0);
+
+    if (currentUid <= 0 && !AuthService.isAuthenticated) {
+      _showError('Please log in to save your address.');
       return;
     }
 
@@ -299,739 +342,373 @@ class _AddAddressScreenState
     });
 
     try {
+      final house = houseNumberController.text.trim();
+      final street = streetController.text.trim();
+      final line1 = [house, street].where((s) => s.isNotEmpty).join(', ');
+
       final newAddress = {
         'label': selectedLabel,
         'name': nameController.text.trim(),
         'phone': phoneController.text.trim(),
-        'region': selectedRegion?.name ?? 'National Capital Region (NCR)',
-        'house_number': houseNumberController.text.trim(),
-        'street': streetController.text.trim(),
-        'province': selectedProvince?.name ?? 'Metro Manila',
-        'municipality': selectedMunicipality?.name ?? 'Pasig City',
-        'barangay': selectedBarangay?.name ?? 'San Antonio',
+        'region': selectedRegion?.name ?? '',
+        'house_number': house,
+        'street': line1.isNotEmpty ? line1 : street,
+        'province': selectedProvince?.name ?? '',
+        'municipality': selectedMunicipality?.name ?? '',
+        'barangay': selectedBarangay?.name ?? '',
         'postal_code': postalController.text.trim(),
         'is_default': isDefault,
       };
 
-      // Saved to the same address book the website uses.
-      await ApiService.addAddress(newAddress);
+      if (widget.initialAddress != null && widget.initialAddress!['id'] != null) {
+        await ApiService.updateAddress(widget.initialAddress!['id'] as int, newAddress);
+      } else {
+        await ApiService.addAddress(newAddress);
+      }
 
       if (!mounted) return;
-
       setState(() {
         isSaving = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Address saved successfully.'),
+        SnackBar(
+          content: Text(widget.initialAddress != null
+              ? 'Address updated successfully.'
+              : 'Address saved successfully.'),
+          backgroundColor: const Color(0xFF2E7D32),
         ),
       );
 
       widget.onSaved?.call();
-
       widget.onBack();
     } catch (e) {
       if (!mounted) return;
-
       setState(() {
         isSaving = false;
       });
-
-      _showError(
-        e is ApiException ? e.message : 'Failed to save address.\n$e',
-      );
+      _showError(e is ApiException ? e.message : 'Failed to save address.\n$e');
     }
   }
 
-  // ==========================================================
-  // ERROR
-  // ==========================================================
-
-  void _showError(
-    String message,
-  ) {
+  void _showError(String message) {
     if (!mounted) return;
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor:
-            CartzyColors.error,
+        backgroundColor: CartzyColors.error,
       ),
     );
   }
 
-  // ==========================================================
-  // INPUT DECORATION
-  // ==========================================================
-
-  InputDecoration _inputDecoration(
-    String label, {
-    String? hint,
-  }) {
+  InputDecoration _inputDecoration(String label, {String? hint}) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
       filled: true,
-      fillColor:
-          CartzyColors.surface,
+      fillColor: CartzyColors.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(
-          color:
-              CartzyColors.border,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: CartzyColors.border),
       ),
-      enabledBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(
-          color:
-              CartzyColors.border,
-        ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: CartzyColors.border),
       ),
-      focusedBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(
-          color:
-              CartzyColors.navy,
-          width: 1.5,
-        ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: CartzyColors.navy, width: 1.5),
       ),
     );
   }
 
-  InputDecoration _dropdownDecoration(
-    String label,
-  ) {
+  InputDecoration _dropdownDecoration(String label) {
     return InputDecoration(
       labelText: label,
       filled: true,
-      fillColor:
-          CartzyColors.surface,
+      fillColor: CartzyColors.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(
-          color:
-              CartzyColors.border,
-        ),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: CartzyColors.border),
       ),
-      enabledBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(
-          color:
-              CartzyColors.border,
-        ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: CartzyColors.border),
       ),
-      focusedBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(12),
-        borderSide:
-            const BorderSide(
-          color:
-              CartzyColors.navy,
-          width: 1.5,
-        ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: CartzyColors.navy, width: 1.5),
       ),
     );
   }
 
-  // ==========================================================
-  // LABEL BUTTON
-  // ==========================================================
-
-  Widget _labelButton(
-    String label,
-  ) {
-    final selected =
-        selectedLabel == label;
-
+  Widget _labelButton(String label, IconData icon) {
+    final selected = selectedLabel == label;
     return Expanded(
       child: GestureDetector(
-        onTap: isSaving
-            ? null
-            : () {
-                setState(() {
-                  selectedLabel =
-                      label;
-                });
-              },
+        onTap: isSaving ? null : () => setState(() => selectedLabel = label),
         child: Container(
           height: 44,
-          alignment:
-              Alignment.center,
-          decoration:
-              BoxDecoration(
-            color: selected
-                ? CartzyColors.navy
-                : CartzyColors.surface,
-            borderRadius:
-                BorderRadius.circular(
-              12,
-            ),
-            border:
-                Border.all(
-              color: selected
-                  ? CartzyColors.navy
-                  : CartzyColors.border,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? CartzyColors.navy : CartzyColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? CartzyColors.navy : CartzyColors.border,
             ),
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight:
-                  FontWeight.w600,
-              color: selected
-                  ? Colors.white
-                  : CartzyColors.text,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: selected ? Colors.white : CartzyColors.navy),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : CartzyColors.text,
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // ==========================================================
-  // BUILD
-  // ==========================================================
-
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return Scaffold(
-      backgroundColor:
-          CartzyColors.background,
+  Widget build(BuildContext context) {
+    final isEditing = widget.initialAddress != null;
 
-      appBar: AppBar(
-        backgroundColor:
-            CartzyColors.background,
-        elevation: 0,
-        leading: IconButton(
-          onPressed:
-              isSaving
-                  ? null
-                  : widget.onBack,
-          icon:
-              const Icon(
-            Icons.arrow_back,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        widget.onBack();
+      },
+      child: Scaffold(
+        backgroundColor: CartzyColors.background,
+        appBar: AppBar(
+          backgroundColor: CartzyColors.background,
+          elevation: 0,
+          leading: IconButton(
+            onPressed: isSaving ? null : widget.onBack,
+            icon: const Icon(Icons.arrow_back),
+            color: CartzyColors.text,
           ),
-          color:
-              CartzyColors.text,
-        ),
-        title:
-            const Text(
-          'Add Address',
-          style: TextStyle(
-            fontWeight:
-                FontWeight.w700,
-            color:
-                CartzyColors.text,
+          title: Text(
+            isEditing ? 'Edit Delivery Address' : 'Add Delivery Address',
+            style: const TextStyle(fontWeight: FontWeight.w700, color: CartzyColors.text),
           ),
         ),
-      ),
-
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding:
-                const EdgeInsets.all(
-              20,
-            ),
-            children: [
-              const Text(
-                'Address Label',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight:
-                      FontWeight.w700,
-                  color:
-                      CartzyColors.text,
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                const Text(
+                  'Address Label',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.text),
                 ),
-              ),
-
-              const SizedBox(
-                height: 10,
-              ),
-
-              Row(
-                children: [
-                  _labelButton(
-                    'Home',
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  _labelButton(
-                    'Work',
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  _labelButton(
-                    'Other',
-                  ),
-                ],
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              const Text(
-                'Contact Information',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight:
-                      FontWeight.w700,
-                  color:
-                      CartzyColors.text,
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _labelButton('Home', Icons.home_outlined),
+                    const SizedBox(width: 8),
+                    _labelButton('Work', Icons.work_outline),
+                    const SizedBox(width: 8),
+                    _labelButton('School', Icons.school_outlined),
+                    const SizedBox(width: 8),
+                    _labelButton('Other', Icons.location_on_outlined),
+                  ],
                 ),
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              TextFormField(
-                controller:
-                    nameController,
-                decoration:
-                    _inputDecoration(
-                  'Full Name',
+                const SizedBox(height: 24),
+                const Text(
+                  'Recipient Information',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.text),
                 ),
-                textInputAction:
-                    TextInputAction.next,
-                inputFormatters:
-                    InputRules.fullNameFormatters,
-                validator: InputRules.fullName,
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              TextFormField(
-                controller:
-                    phoneController,
-                keyboardType:
-                    TextInputType.phone,
-                decoration:
-                    _inputDecoration(
-                  'Phone Number',
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: nameController,
+                  decoration: _inputDecoration('Full Name', hint: 'e.g. Juan Dela Cruz'),
+                  textInputAction: TextInputAction.next,
+                  inputFormatters: InputRules.fullNameFormatters,
+                  validator: InputRules.fullName,
                 ),
-                textInputAction:
-                    TextInputAction.next,
-                inputFormatters:
-                    InputRules.phoneFormatters,
-                validator: InputRules.phone,
-              ),
-
-              const SizedBox(
-                height: 24,
-              ),
-
-              const Text(
-                'Address',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight:
-                      FontWeight.w700,
-                  color:
-                      CartzyColors.text,
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: _inputDecoration('Contact Number', hint: '09171234567'),
+                  textInputAction: TextInputAction.next,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                  ],
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return 'Please enter contact number';
+                    if (val.trim().length < 10) return 'Please enter a valid 11-digit phone number';
+                    return null;
+                  },
                 ),
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              TextFormField(
-                controller:
-                    houseNumberController,
-                decoration:
-                    _inputDecoration(
-                  'House / Unit Number',
-                  hint: 'e.g. 123',
+                const SizedBox(height: 24),
+                const Text(
+                  'Address Details (PSGC API)',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.text),
                 ),
-                textInputAction:
-                    TextInputAction.next,
-              ),
+                const SizedBox(height: 12),
 
-              const SizedBox(
-                height: 12,
-              ),
-
-              TextFormField(
-                controller:
-                    streetController,
-                decoration:
-                    _inputDecoration(
-                  'Street',
-                  hint: 'e.g. Main Street',
-                ),
-                textInputAction:
-                    TextInputAction.next,
-                validator:
-                    (value) {
-                  if (value == null ||
-                      value
-                          .trim()
-                          .isEmpty) {
-                    return 'Please enter your street';
-                  }
-
-                  return null;
-                },
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              // REGION
-              DropdownButtonFormField<
-                  PsgcRegion>(
-                initialValue:
-                    selectedRegion,
-                decoration:
-                    _dropdownDecoration(
-                  'Region',
-                ),
-                isExpanded: true,
-                hint: Text(
-                  loadingRegions
-                      ? 'Loading regions...'
-                      : 'Select region',
-                ),
-                items:
-                    regions.map(
-                  (
-                    region,
-                  ) {
-                    return DropdownMenuItem<
-                        PsgcRegion>(
+                // REGION
+                DropdownButtonFormField<PsgcRegion>(
+                  initialValue: selectedRegion,
+                  decoration: _dropdownDecoration('Region'),
+                  isExpanded: true,
+                  hint: Text(loadingRegions ? 'Loading regions...' : 'Select region'),
+                  items: regions.map((region) {
+                    return DropdownMenuItem<PsgcRegion>(
                       value: region,
-                      child: Text(
-                        region.name,
-                        overflow:
-                            TextOverflow.ellipsis,
-                      ),
+                      child: Text(region.displayName, overflow: TextOverflow.ellipsis),
                     );
-                  },
-                ).toList(),
-                onChanged:
-                    loadingRegions ||
-                            isSaving
-                        ? null
-                        : _onRegionChanged,
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              // PROVINCE
-              DropdownButtonFormField<
-                  PsgcProvince>(
-                initialValue:
-                    selectedProvince,
-                decoration:
-                    _dropdownDecoration(
-                  'Province',
+                  }).toList(),
+                  onChanged: loadingRegions || isSaving ? null : (r) => _onRegionChanged(r),
                 ),
-                isExpanded: true,
-                hint: Text(
-                  loadingProvinces
-                      ? 'Loading provinces...'
-                      : 'Select province',
-                ),
-                items:
-                    provinces.map(
-                  (
-                    province,
-                  ) {
-                    return DropdownMenuItem<
-                        PsgcProvince>(
+                const SizedBox(height: 12),
+
+                // PROVINCE
+                DropdownButtonFormField<PsgcProvince>(
+                  initialValue: selectedProvince,
+                  decoration: _dropdownDecoration('Province'),
+                  isExpanded: true,
+                  hint: Text(loadingProvinces ? 'Loading provinces...' : 'Select province'),
+                  items: provinces.map((province) {
+                    return DropdownMenuItem<PsgcProvince>(
                       value: province,
-                      child: Text(
-                        province.name,
-                        overflow:
-                            TextOverflow.ellipsis,
-                      ),
+                      child: Text(province.name, overflow: TextOverflow.ellipsis),
                     );
-                  },
-                ).toList(),
-                onChanged:
-                    selectedRegion ==
-                                null ||
-                            loadingProvinces ||
-                            isSaving
-                        ? null
-                        : _onProvinceChanged,
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              // CITY / MUNICIPALITY
-              DropdownButtonFormField<
-                  PsgcCityMunicipality>(
-                initialValue:
-                    selectedMunicipality,
-                decoration:
-                    _dropdownDecoration(
-                  'City / Municipality',
+                  }).toList(),
+                  onChanged: selectedRegion == null || loadingProvinces || isSaving
+                      ? null
+                      : (p) => _onProvinceChanged(p),
                 ),
-                isExpanded: true,
-                hint: Text(
-                  loadingMunicipalities
-                      ? 'Loading cities...'
-                      : 'Select city/municipality',
-                ),
-                items:
-                    municipalities.map(
-                  (
-                    municipality,
-                  ) {
-                    return DropdownMenuItem<
-                        PsgcCityMunicipality>(
-                      value:
-                          municipality,
-                      child: Text(
-                        municipality.name,
-                        overflow:
-                            TextOverflow.ellipsis,
-                      ),
+                const SizedBox(height: 12),
+
+                // CITY / MUNICIPALITY
+                DropdownButtonFormField<PsgcCityMunicipality>(
+                  initialValue: selectedMunicipality,
+                  decoration: _dropdownDecoration('City / Municipality'),
+                  isExpanded: true,
+                  hint: Text(loadingMunicipalities ? 'Loading cities...' : 'Select city/municipality'),
+                  items: municipalities.map((municipality) {
+                    return DropdownMenuItem<PsgcCityMunicipality>(
+                      value: municipality,
+                      child: Text(municipality.name, overflow: TextOverflow.ellipsis),
                     );
-                  },
-                ).toList(),
-                onChanged:
-                    selectedProvince ==
-                                null ||
-                            loadingMunicipalities ||
-                            isSaving
-                        ? null
-                        : _onMunicipalityChanged,
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              // BARANGAY
-              DropdownButtonFormField<
-                  PsgcBarangay>(
-                initialValue:
-                    selectedBarangay,
-                decoration:
-                    _dropdownDecoration(
-                  'Barangay',
+                  }).toList(),
+                  onChanged: selectedProvince == null || loadingMunicipalities || isSaving
+                      ? null
+                      : (m) => _onMunicipalityChanged(m),
                 ),
-                isExpanded: true,
-                hint: Text(
-                  loadingBarangays
-                      ? 'Loading barangays...'
-                      : 'Select barangay',
-                ),
-                items:
-                    barangays.map(
-                  (
-                    barangay,
-                  ) {
-                    return DropdownMenuItem<
-                        PsgcBarangay>(
+                const SizedBox(height: 12),
+
+                // BARANGAY
+                DropdownButtonFormField<PsgcBarangay>(
+                  initialValue: selectedBarangay,
+                  decoration: _dropdownDecoration('Barangay'),
+                  isExpanded: true,
+                  hint: Text(loadingBarangays ? 'Loading barangays...' : 'Select barangay'),
+                  items: barangays.map((barangay) {
+                    return DropdownMenuItem<PsgcBarangay>(
                       value: barangay,
-                      child: Text(
-                        barangay.name,
-                        overflow:
-                            TextOverflow.ellipsis,
-                      ),
+                      child: Text(barangay.name, overflow: TextOverflow.ellipsis),
                     );
+                  }).toList(),
+                  onChanged: selectedMunicipality == null || loadingBarangays || isSaving
+                      ? null
+                      : (b) => setState(() => selectedBarangay = b),
+                ),
+                const SizedBox(height: 12),
+
+                // POSTAL CODE
+                TextFormField(
+                  controller: postalController,
+                  keyboardType: TextInputType.number,
+                  decoration: _inputDecoration('Postal Code', hint: 'e.g. 1600'),
+                  textInputAction: TextInputAction.next,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(4),
+                  ],
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) return 'Please enter postal code';
+                    if (val.trim().length != 4) return 'Postal code must be 4 digits';
+                    return null;
                   },
-                ).toList(),
-                onChanged:
-                    selectedMunicipality ==
-                                null ||
-                            loadingBarangays ||
-                            isSaving
-                        ? null
-                        : (
-                            value,
-                          ) {
-                            setState(
-                              () {
-                                selectedBarangay =
-                                    value;
-                              },
-                            );
-                          },
-              ),
-
-              const SizedBox(
-                height: 12,
-              ),
-
-              // POSTAL CODE
-              TextFormField(
-                controller:
-                    postalController,
-                keyboardType:
-                    TextInputType.number,
-                decoration:
-                    _inputDecoration(
-                  'Postal Code',
                 ),
-                textInputAction:
-                    TextInputAction.done,
-                validator:
-                    (value) {
-                  if (value == null ||
-                      value
-                          .trim()
-                          .isEmpty) {
-                    return 'Please enter your postal code';
-                  }
+                const SizedBox(height: 12),
 
-                  return null;
-                },
-              ),
-
-              const SizedBox(
-                height: 20,
-              ),
-
-              // DEFAULT
-              Container(
-                decoration:
-                    BoxDecoration(
-                  color:
-                      CartzyColors.surface,
-                  borderRadius:
-                      BorderRadius.circular(
-                    14,
-                  ),
-                  border:
-                      Border.all(
-                    color:
-                        CartzyColors.border,
-                  ),
+                // HOUSE / UNIT NUMBER
+                TextFormField(
+                  controller: houseNumberController,
+                  decoration: _inputDecoration('House / Unit / Building Number (Optional)', hint: 'e.g. Unit 802, Blk 12 Lot 4'),
+                  textInputAction: TextInputAction.next,
                 ),
-                child:
-                    SwitchListTile(
+                const SizedBox(height: 12),
+
+                // STREET
+                TextFormField(
+                  controller: streetController,
+                  decoration: _inputDecoration('Street Name', hint: 'e.g. Dahlia St., San Antonio'),
+                  textInputAction: TextInputAction.done,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter your street name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // SET AS DEFAULT CHECKBOX
+                CheckboxListTile(
                   value: isDefault,
-                  onChanged:
-                      isSaving
-                          ? null
-                          : (
-                              value,
-                            ) {
-                              setState(
-                                () {
-                                  isDefault =
-                                      value;
-                                },
-                              );
-                            },
-                  title:
-                      const Text(
-                    'Set as default address',
-                    style:
-                        TextStyle(
-                      fontWeight:
-                          FontWeight.w600,
-                      color:
-                          CartzyColors.text,
-                    ),
-                  ),
-                  subtitle:
-                      const Text(
-                    'Use this address automatically during checkout.',
-                  ),
-                  activeThumbColor:
-                      CartzyColors.coral,
+                  onChanged: isSaving ? null : (val) => setState(() => isDefault = val ?? false),
+                  title: const Text('Use as my default delivery address', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  subtitle: const Text('Automatically selected when placing orders during checkout', style: TextStyle(fontSize: 12, color: CartzyColors.gray)),
+                  activeColor: CartzyColors.navy,
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
                 ),
-              ),
+                const SizedBox(height: 24),
 
-              const SizedBox(
-                height: 28,
-              ),
-
-              // SAVE BUTTON
-              SizedBox(
-                height: 52,
-                width: double.infinity,
-                child:
-                    ElevatedButton(
-                  onPressed:
-                      isSaving
-                          ? null
-                          : _saveAddress,
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        CartzyColors.coral,
-                    foregroundColor:
-                        Colors.white,
-                    disabledBackgroundColor:
-                        CartzyColors.border,
-                    shape:
-                        RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(
-                        14,
-                      ),
+                // SAVE BUTTON
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: isSaving ? null : _saveAddress,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: CartzyColors.navy,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: isSaving
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                          )
+                        : Text(
+                            isEditing ? 'Update Delivery Address' : 'Save Delivery Address',
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
                   ),
-                  child: isSaving
-                      ? const SizedBox(
-                          height: 22,
-                          width: 22,
-                          child:
-                              CircularProgressIndicator(
-                            strokeWidth:
-                                2.5,
-                            valueColor:
-                                AlwaysStoppedAnimation<
-                                    Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : const Text(
-                          'Save Address',
-                          style:
-                              TextStyle(
-                            fontSize:
-                                16,
-                            fontWeight:
-                                FontWeight.w700,
-                          ),
-                        ),
                 ),
-              ),
-
-              const SizedBox(
-                height: 30,
-              ),
-            ],
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
