@@ -17,6 +17,17 @@
     $countLabels = ['orders' => 'orders in progress', 'messages' => 'unread messages', 'cart' => 'items in cart', 'wishlist' => 'saved products', 'notifications' => 'unread notifications'];
 @endphp
 <nav class="buyer-top-nav" aria-label="Dashboard navigation" @if(Auth::check() && Auth::user()->isBuyer()) data-counts-url="{{ route('buyer.navigation-counts') }}" @endif>
+    {{-- Opens the Cozy chat (and brings Cozy back if she was discarded); handled in buddy.js. --}}
+    <button type="button" class="buyer-top-link buyer-top-cozy" data-buyer-nav="cozy" data-open-cozy title="Chat with Cozy" aria-label="Chat with Cozy">
+        <span class="buyer-top-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="6" cy="6.5" r="2.6"/><circle cx="18" cy="6.5" r="2.6"/>
+                <circle cx="12" cy="13" r="8" fill="#fff"/>
+                <circle cx="9.2" cy="11.6" r=".7" fill="currentColor" stroke="none"/><circle cx="14.8" cy="11.6" r=".7" fill="currentColor" stroke="none"/>
+                <ellipse cx="12" cy="16" rx="3.1" ry="2.3"/><path d="M11.3 15.4h1.4"/>
+            </svg>
+        </span>
+    </button>
     @foreach($navItems as [$key, $label, $icon])
         @if($key === 'orders')
             <div class="buyer-orders-dropdown-wrap" id="header-orders-dropdown-wrap">
@@ -70,6 +81,7 @@
 .buyer-top-link { display:flex; position:relative; align-items:center; justify-content:center; width:36px; min-width:36px; min-height:40px; padding:7px; border-radius:12px; color:#756b80; text-decoration:none; transition:background .15s,color .15s; }
 .buyer-top-link:hover,.buyer-top-link:active,.buyer-top-link[aria-current="page"] { background:transparent; box-shadow:none; color:#564B68; }
 .buyer-top-link { -webkit-tap-highlight-color:transparent; }
+.buyer-top-cozy { border:0; background:transparent; font:inherit; cursor:pointer; }
 .buyer-top-link:focus-visible { outline:2px solid #6F6382; outline-offset:2px; }
 .buyer-top-icon { position:relative; display:flex; }
 .buyer-top-badge { position:absolute; top:-7px; right:-10px; min-width:16px; height:16px; padding:0 3px; border-radius:20px; background:#8C5A50; color:white; font-size:9px; line-height:16px; text-align:center; box-shadow:0 0 0 2px white; }

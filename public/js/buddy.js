@@ -421,16 +421,27 @@
     launcher.addEventListener('pointercancel', onPointerUp);
 
     // Bring a discarded Cozy back to her usual corner.
-    restoreBtn.addEventListener('click', () => {
+    const bringBack = () => {
         sessionStorage.removeItem(discardedKey);
         sessionStorage.removeItem(posKey);
         ['left', 'top', 'right', 'bottom', 'transform', 'opacity'].forEach((prop) => { launcher.style[prop] = ''; });
         restoreBtn.hidden = true;
         launcher.hidden = false;
+    };
+    restoreBtn.addEventListener('click', () => {
+        bringBack();
         launcher.focus();
         setMood('love', 1800);
         playClass('is-waving', 2200);
         hearts(launcher, 5);
+    });
+
+    // The Cozy icon in the header opens the chat, even after Cozy was discarded.
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('[data-open-cozy]')) return;
+        event.preventDefault();
+        if (launcher.hidden) bringBack();
+        openPanel();
     });
 
     $('buddyClose').addEventListener('click', closePanel);

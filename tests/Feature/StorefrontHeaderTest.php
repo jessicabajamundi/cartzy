@@ -10,11 +10,11 @@ class StorefrontHeaderTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guests_only_see_cart_and_wishlist_header_icons(): void
+    public function test_guests_only_see_cozy_cart_and_wishlist_header_icons(): void
     {
         $response = $this->get(route('home'))->assertOk();
 
-        foreach (['cart', 'wishlist'] as $icon) {
+        foreach (['cozy', 'cart', 'wishlist'] as $icon) {
             $response->assertSee('data-buyer-nav="'.$icon.'"', false);
         }
         foreach (['orders', 'messages', 'notifications'] as $icon) {
@@ -34,7 +34,7 @@ class StorefrontHeaderTest extends TestCase
             $this->actingAs($user);
             foreach ([route('home'), route('sale'), route('category.show', 'shoes'), route('products.show', $product->id), route('cart.index')] as $url) {
                 $response = $this->get($url)->assertOk();
-                foreach (['orders', 'messages', 'cart', 'wishlist', 'notifications'] as $icon) {
+                foreach (['cozy', 'orders', 'messages', 'cart', 'wishlist', 'notifications'] as $icon) {
                     $response->assertSee('data-buyer-nav="'.$icon.'"', false);
                 }
                 $response->assertDontSee('aria-label="Account shortcuts"', false);
