@@ -12,14 +12,10 @@ class ActivityController extends Controller
     /** The signed-in user's own account activity, newest first. */
     public function index(Request $request)
     {
-        $data = $request->validate(['group' => ['nullable', Rule::in(['security', 'account', 'orders'])]]);
+        $data = $request->validate(['group' => ['nullable', Rule::in(ActivityLog::GROUPS)]]);
 
-        $query = ActivityLog::where('user_id', $request->user()->id);
-        if (!empty($data['group'])) {
-            $events = array_keys(array_filter(ActivityLog::EVENTS, fn ($e) => $e[1] === $data['group']));
-            $query->whereIn('event', $events);
-        }
-        $logs = $query->latest('created_at')->latest('id')->paginate(20);
+        $logs = ActivityLog::where('user_id', $request->user()->id)->inGroup($data['group'] ?? null)
+            ->latest('created_at')->latest('id')->paginate(ActivityLog::PER_PAGE);
 
         return response()->json([
             'activity' => $logs->getCollection()->map->toFeedArray()->values(),

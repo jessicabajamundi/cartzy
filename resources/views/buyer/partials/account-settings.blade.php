@@ -266,7 +266,8 @@
                     <p class="acct-lead">Sign-ins, account changes and orders from the website and the Cartzy app. Don't recognise something? Change your password right away.</p>
                 </div>
             </header>
-            @if($acctActivityDays->isEmpty())
+            @php($acctGroup = $activityGroup ?? 'all')
+            @if($acctActivityDays->isEmpty() && $acctGroup === 'all')
                 <div class="acct-soon">
                     <span class="acct-soon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $acctSections['activity'][1] }}"/></svg></span>
                     <h3>No activity yet</h3>
@@ -275,12 +276,12 @@
             @else
                 <div class="acct-filters" role="group" aria-label="Filter activity">
                     @foreach(['all' => 'All', 'security' => 'Sign-ins & security', 'account' => 'Account changes', 'orders' => 'Orders'] as $filter => $filterLabel)
-                        <button type="button" class="acct-chip" data-acct-activity-filter="{{ $filter }}" aria-pressed="{{ $filter === 'all' ? 'true' : 'false' }}">{{ $filterLabel }}</button>
+                        <a class="acct-chip" href="{{ route('buyer.dashboard', array_filter(['tab' => 'settings', 'section' => 'activity', 'activity_group' => $filter === 'all' ? null : $filter])) }}" @if($acctGroup === $filter) aria-current="true" @endif>{{ $filterLabel }}</a>
                     @endforeach
                 </div>
                 @foreach($acctActivityDays as $day => $dayLogs)
                     @php($dayDate = \Carbon\Carbon::parse($day))
-                    <div class="acct-day" data-acct-day>
+                    <div class="acct-day">
                         <h3 class="acct-day-label">{{ $dayDate->isToday() ? 'Today' : ($dayDate->isYesterday() ? 'Yesterday' : $dayDate->format('F j, Y')) }}</h3>
                         <ol class="acct-log-list">
                             @foreach($dayLogs as $log)
@@ -298,8 +299,29 @@
                         </ol>
                     </div>
                 @endforeach
-                <p class="acct-hint" data-acct-activity-empty hidden>No activity of this kind yet.</p>
-                <p class="acct-hint">Showing your latest {{ ($activityLogs ?? collect())->count() }} entries.</p>
+                @if($activityLogs->isEmpty())
+                    <p class="acct-hint">No activity of this kind yet.</p>
+                @else
+                    {{-- 10 entries per page --}}
+                    <nav class="acct-pager" aria-label="Activity pages">
+                        <span class="acct-pager-summary">Showing {{ $activityLogs->firstItem() }}–{{ $activityLogs->lastItem() }} of {{ $activityLogs->total() }}</span>
+                        @if($activityLogs->hasPages())
+                            <div class="acct-pager-controls">
+                                @if($activityLogs->onFirstPage())
+                                    <span class="acct-btn acct-btn-outline is-disabled" aria-disabled="true">&larr; Previous</span>
+                                @else
+                                    <a class="acct-btn acct-btn-outline" href="{{ $activityLogs->previousPageUrl() }}" rel="prev">&larr; Previous</a>
+                                @endif
+                                <span class="acct-pager-page">Page {{ $activityLogs->currentPage() }} of {{ $activityLogs->lastPage() }}</span>
+                                @if($activityLogs->hasMorePages())
+                                    <a class="acct-btn acct-btn-outline" href="{{ $activityLogs->nextPageUrl() }}" rel="next">Next &rarr;</a>
+                                @else
+                                    <span class="acct-btn acct-btn-outline is-disabled" aria-disabled="true">Next &rarr;</span>
+                                @endif
+                            </div>
+                        @endif
+                    </nav>
+                @endif
             @endif
         </section>
 
@@ -356,25 +378,6 @@
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); label.click(); }
         });
     });
-
-    // Activity filters hide entries (and empty days) outside the chosen group.
-    const chips = [...root.querySelectorAll('[data-acct-activity-filter]')];
-    chips.forEach((chip) => chip.addEventListener('click', () => {
-        const group = chip.dataset.acctActivityFilter;
-        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
-        let shown = 0;
-        root.querySelectorAll('[data-acct-day]').forEach((day) => {
-            let dayShown = 0;
-            day.querySelectorAll('[data-group]').forEach((item) => {
-                item.hidden = group !== 'all' && item.dataset.group !== group;
-                if (!item.hidden) dayShown++;
-            });
-            day.hidden = dayShown === 0;
-            shown += dayShown;
-        });
-        const empty = root.querySelector('[data-acct-activity-empty]');
-        if (empty) empty.hidden = shown > 0;
-    }));
 
     // Keep "Current age" in step with the birthday field.
     const birthday = document.getElementById('acct-birthday');

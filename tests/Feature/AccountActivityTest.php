@@ -61,6 +61,27 @@ class AccountActivityTest extends TestCase
         $this->getJson('/api/account/activity?group=nope')->assertStatus(422);
     }
 
+    public function test_activity_is_paged_ten_at_a_time_on_web_and_mobile(): void
+    {
+        $user = User::factory()->create(['role' => 'buyer']);
+        foreach (range(1, 23) as $i) {
+            ActivityLog::create(['user_id' => $user->id, 'event' => 'login', 'channel' => 'web', 'description' => "Entry {$i}", 'created_at' => now()->subMinutes(30 - $i)]);
+        }
+
+        $this->actingAs($user)->get('/dashboard?tab=settings&section=activity')->assertOk()
+            ->assertSee('Showing 1–10 of 23')->assertSee('Page 1 of 3')->assertSee('Entry 23')->assertDontSee('Entry 13')
+            ->assertSee('activity_page=2', false);
+        $this->get('/dashboard?tab=settings&section=activity&activity_page=3')->assertOk()
+            ->assertSee('Showing 21–23 of 23')->assertSee('Entry 1')->assertDontSee('Entry 4<', false);
+        $this->get('/dashboard?tab=settings&section=activity&activity_group=orders')->assertOk()
+            ->assertSee('No activity of this kind yet.');
+
+        Sanctum::actingAs($user);
+        $this->getJson('/api/account/activity')->assertJsonCount(10, 'activity')->assertJsonPath('next_page', 2);
+        $this->getJson('/api/account/activity?page=2')->assertJsonCount(10, 'activity')->assertJsonPath('next_page', 3);
+        $this->getJson('/api/account/activity?page=3')->assertJsonCount(3, 'activity')->assertJsonPath('has_more', false);
+    }
+
     public function test_activity_requires_sign_in(): void
     {
         $this->getJson('/api/account/activity')->assertUnauthorized();

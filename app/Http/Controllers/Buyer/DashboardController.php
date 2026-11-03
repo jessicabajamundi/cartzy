@@ -86,7 +86,12 @@ class DashboardController extends Controller
             'stats'         => $stats,
             'addresses'     => $this->addresses($user),
             'savedAddresses' => \App\Models\Address::where('user_id', $user->id)->orderByDesc('is_default')->orderBy('id')->get(),
-            'activityLogs'  => \App\Models\ActivityLog::where('user_id', $user->id)->latest('created_at')->latest('id')->limit(100)->get(),
+            'activityGroup' => $activityGroup = in_array($request->query('activity_group'), \App\Models\ActivityLog::GROUPS, true) ? $request->query('activity_group') : 'all',
+            // 10 per page; page links keep the settings tab, the activity section and the chosen filter.
+            'activityLogs'  => \App\Models\ActivityLog::where('user_id', $user->id)->inGroup($activityGroup)
+                ->latest('created_at')->latest('id')
+                ->paginate(\App\Models\ActivityLog::PER_PAGE, ['*'], 'activity_page')
+                ->appends(['tab' => 'settings', 'section' => 'activity', 'activity_group' => $activityGroup === 'all' ? null : $activityGroup]),
             'tracking'      => $this->tracking($sellerOrders, $request->query('track')),
             // Tracking lives inside the Orders tab; it opens from a card's "Track order" button or an old Track Order link.
             'showTracking'  => $request->filled('track') || $request->query('tab') === 'track',

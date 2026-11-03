@@ -73,6 +73,19 @@ class ActivityLog extends Model
         if ($user) static::record($event, request(), $user, ['description' => $description]);
     }
 
+    /** Groups a filter can choose; anything else means "all". */
+    public const GROUPS = ['security', 'account', 'orders'];
+
+    public const PER_PAGE = 10;
+
+    /** Limit to one group's events (security, account or orders). */
+    public function scopeInGroup($query, ?string $group)
+    {
+        if (!in_array($group, self::GROUPS, true)) return $query;
+
+        return $query->whereIn('event', array_keys(array_filter(self::EVENTS, fn ($e) => $e[1] === $group)));
+    }
+
     public function title(): string
     {
         return self::EVENTS[$this->event][0] ?? ucfirst(str_replace('_', ' ', $this->event));

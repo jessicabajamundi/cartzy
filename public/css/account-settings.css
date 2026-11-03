@@ -184,9 +184,9 @@
 
 /* Account activity */
 .acct-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
-.acct-chip { min-height: 38px; padding: 8px 16px; border: 1.5px solid var(--acct-line); border-radius: 999px; background: #fff; color: #4E465A; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: transform .2s cubic-bezier(.34, 1.56, .64, 1), background .2s ease, border-color .2s ease, color .2s ease; }
+.acct-chip { display: inline-flex; align-items: center; text-decoration: none; min-height: 38px; padding: 8px 16px; border: 1.5px solid var(--acct-line); border-radius: 999px; background: #fff; color: #4E465A; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: transform .2s cubic-bezier(.34, 1.56, .64, 1), background .2s ease, border-color .2s ease, color .2s ease; }
 .acct-chip:hover { border-color: var(--acct-rose-soft); color: var(--acct-rose-ink); transform: translateY(-2px); }
-.acct-chip[aria-pressed="true"] { border-color: transparent; background: var(--acct-gradient); color: #fff; box-shadow: 0 8px 16px -10px rgba(86, 75, 104, .8); }
+.acct-chip[aria-current="true"] { border-color: transparent; background: var(--acct-gradient); color: #fff; box-shadow: 0 8px 16px -10px rgba(86, 75, 104, .8); }
 .acct-chip:active { transform: scale(.95); }
 .acct-chip:focus-visible { outline: 3px solid rgba(192, 139, 127, .55); outline-offset: 2px; }
 .acct-day + .acct-day { margin-top: 26px; }
@@ -209,6 +209,13 @@
 .acct-log-body small { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 6px; color: var(--acct-muted); font-size: 12.5px; }
 .acct-log-channel { padding: 1px 8px; border-radius: 999px; background: var(--acct-lilac); color: var(--acct-violet); font-weight: 700; }
 .acct-log time { flex-shrink: 0; color: var(--acct-muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+.acct-pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.acct-pager-summary { color: var(--acct-muted); font-size: 13.5px; font-weight: 700; }
+.acct-pager-controls { display: flex; align-items: center; gap: 10px; }
+.acct-pager-page { color: var(--acct-ink); font-size: 13.5px; font-weight: 700; white-space: nowrap; }
+.acct-pager .acct-btn { min-height: 40px; padding: 8px 16px; font-size: 14px; }
+.acct-btn.is-disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
 
 /* Coming soon */
 .acct-soon { display: grid; justify-items: center; gap: 12px; padding: 48px 20px 20px; text-align: center; }
