@@ -69,11 +69,6 @@
 .acct-nav-item[aria-selected="true"]::before { transform: scaleY(1); }
 .acct-nav-item:focus-visible { outline: 2px solid var(--acct-rose); outline-offset: 2px; }
 .acct-soon-tag { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: var(--acct-blush); color: var(--acct-rose-ink); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
-.acct-side-footer { padding: 10px; border-top: 1px solid var(--acct-line); }
-.acct-signout { color: #A14848; }
-.acct-signout svg { color: #A14848; }
-.acct-signout:hover { background: #FFF3F3; color: #8C3535; }
-.acct-signout:hover svg { color: #8C3535; }
 
 /* Main card */
 .acct-card {
@@ -224,7 +219,6 @@
     .acct-nav-item[aria-selected="true"]::before { transform: scaleX(1); }
     .acct-nav-item:hover { transform: none; }
     .acct-soon-tag { display: none; }
-    .acct-side-footer { padding: 6px 10px 10px; border-top: 0; }
 }
 @media (max-width: 640px) {
     .acct-card { padding: 24px 18px; border-radius: 20px; }

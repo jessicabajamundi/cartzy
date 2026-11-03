@@ -75,7 +75,7 @@ class LogisticsAccountTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => 'buyer', 'status' => 'active']));
         $this->get(route('account.index'))->assertRedirect(route('buyer.dashboard', ['tab' => 'settings']));
         $this->view('layouts.partials.profile-menu')->assertSee(route('buyer.dashboard', ['tab' => 'settings']), false)
-            ->assertSee('Account settings')->assertDontSee('My Vouchers')->assertDontSee('Logistics Workspace');
+            ->assertSee('Account settings')->assertSee('profile-signout-divider', false)->assertSee('Sign out')->assertDontSee('My Vouchers')->assertDontSee('Logistics Workspace');
     }
 
     public function test_updates_registration_details_and_documents_and_syncs_owned_provider(): void

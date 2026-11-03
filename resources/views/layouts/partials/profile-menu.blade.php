@@ -27,13 +27,23 @@
 
 {{-- Buyers go straight to their account settings; other roles keep the menu for their workspace links. --}}
 @if($profileUser->isBuyer())
-<a href="{{ route('buyer.dashboard', ['tab' => 'settings']) }}" class="profile-menu-trigger overflow-hidden" aria-label="Account settings" title="Account settings">
-    @if($profileUser->avatar_url)
-        <img src="{{ $profileUser->avatar_url }}" alt="" class="w-full h-full object-cover rounded-full">
-    @else
-        {{ $profileInitial }}
-    @endif
-</a>
+<div class="profile-buyer-actions">
+    <a href="{{ route('buyer.dashboard', ['tab' => 'settings']) }}" class="profile-menu-trigger overflow-hidden" aria-label="Account settings" title="Account settings">
+        @if($profileUser->avatar_url)
+            <img src="{{ $profileUser->avatar_url }}" alt="" class="w-full h-full object-cover rounded-full">
+        @else
+            {{ $profileInitial }}
+        @endif
+    </a>
+    <span class="profile-signout-divider" aria-hidden="true"></span>
+    <form action="{{ route('logout') }}" method="POST">
+        @csrf
+        <button type="submit" class="profile-signout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9"/></svg>
+            <span>Sign out</span>
+        </button>
+    </form>
+</div>
 @else
 <details class="profile-menu" id="header-profile-menu">
     <summary class="profile-menu-trigger overflow-hidden" aria-label="Account options" aria-controls="header-profile-panel" title="Account options">
@@ -90,6 +100,24 @@
         transition: background 150ms, box-shadow 150ms;
     }
     .profile-menu-trigger::-webkit-details-marker { display: none; }
+    .profile-buyer-actions { display: flex; align-items: center; gap: 12px; }
+    .profile-signout-divider { width: 1px; height: 24px; background: #E1DDE7; }
+    .profile-signout {
+        display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px;
+        border: 0; border-radius: 999px; background: transparent; color: #A14848;
+        font: 700 14px 'Lato', 'Segoe UI', sans-serif; white-space: nowrap; cursor: pointer;
+        transition: background 150ms, color 150ms, transform 150ms;
+    }
+    .profile-signout svg { width: 18px; height: 18px; flex-shrink: 0; transition: transform 200ms; }
+    .profile-signout:hover { background: #FFF3F3; color: #8C3535; }
+    .profile-signout:hover svg { transform: translateX(2px); }
+    .profile-signout:active { transform: scale(.96); }
+    .profile-signout:focus-visible { outline: 2px solid #91879E; outline-offset: 2px; }
+    @media (max-width: 480px) {
+        .profile-buyer-actions { gap: 6px; }
+        .profile-signout span { display: none; }
+        .profile-signout { padding: 6px 8px; }
+    }
     .profile-menu-trigger:hover, .profile-menu[open] > summary { background: #564B68; box-shadow: 0 0 0 3px #F1EFF5; }
     .profile-menu-panel {
         position: absolute; right: 0; top: calc(100% + 12px); z-index: 60;
