@@ -943,11 +943,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                       setState(() => _currentImageIndex = idx);
                     },
                     itemBuilder: (context, index) {
+                      // Contain shows the whole photo instead of cropping it to the square.
                       return CartzyProductImage(
                         imageUrl: _galleryImages[index],
                         width: double.infinity,
                         height: double.infinity,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         fallbackIcon: Icons.shopping_bag_outlined,
                       );
                     },
