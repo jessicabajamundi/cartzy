@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.6' || version == 'v1.2.6') {
+      return const [
+        'Startup Stability Fix: Resolved white screen on startup for signed-in buyers.',
+        'Profile Contrast Polish: Darkened profile text and card styling for clear readability.',
+        'Avatar Privacy Update: Google profile photos are no longer applied by default without user selection.',
+        'Cozy Bear Companion via Menu: Tapping Cozy in the hamburger drawer summons Cozy in her cute interactive bear form on screen.',
+      ];
+    }
     if (version == '1.2.5' || version == 'v1.2.5') {
       return const [
         'Cozy Bear Companion in Menu: Tapping Cozy in the hamburger drawer now brings out Cozy in her cute interactive bear form on screen instead of jumping directly into the text chat.',
