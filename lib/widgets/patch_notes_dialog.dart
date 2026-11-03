@@ -76,6 +76,15 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.1' || version == 'v1.2.1') {
+      return const [
+        'Cozy Chatbot Upgrade: Enhanced AI shopping assistant with quick conversation starters, order status inquiries, and live product suggestions.',
+        'Interactive Drag-to-Discard: Freely drag Cozy anywhere on screen or drop into the bottom "X" target to dismiss with haptic feedback.',
+        'High-Contrast Send Button: Deep burgundy action button with drop shadow so the send icon is always crystal clear.',
+        'New Bottom Nav Inbox: Dedicated Inbox tab (Home, Cart, Sale, Inbox, Profile) for seller messaging and followed stores.',
+        'Direct My Orders Filtering: Tapping To ship, Shipped, Delivered, or Cancelled navigates directly to that order stage.',
+      ];
+    }
     if (version == '1.2.0' || version == 'v1.2.0') {
       return const [
         'New Bottom Nav Inbox: Dedicated Inbox tab (Home, Cart, Sale, Inbox, Profile) for seller chats and followed stores.',
