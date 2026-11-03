@@ -31,7 +31,6 @@
     top: 120px;
     display: flex;
     flex-direction: column;
-    max-height: calc(100dvh - 140px);
     overflow: hidden;
     border: 1px solid var(--acct-line);
     border-radius: 20px;
@@ -44,11 +43,7 @@
 .acct-who-text { min-width: 0; }
 .acct-who-name { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
 .acct-who-email { margin: 2px 0 0; overflow: hidden; color: var(--acct-muted); font-size: 12px; white-space: nowrap; text-overflow: ellipsis; }
-/* The section list scrolls on its own so the sidebar stays compact. */
-.acct-nav { display: flex; flex-direction: column; gap: 2px; min-height: 0; max-height: min(296px, calc(100dvh - 260px)); padding: 8px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--acct-blush-line) transparent; }
-.acct-nav::-webkit-scrollbar { width: 6px; }
-.acct-nav::-webkit-scrollbar-thumb { border-radius: 6px; background: var(--acct-blush-line); }
-.acct-nav::-webkit-scrollbar-thumb:hover { background: var(--acct-rose-soft); }
+.acct-nav { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
 .acct-nav-item {
     position: relative;
     display: flex;
@@ -219,8 +214,8 @@
 
 @media (max-width: 1024px) {
     .acct { grid-template-columns: 1fr; gap: 18px; }
-    .acct-side { position: static; max-height: none; }
-    .acct-nav { flex-direction: row; gap: 6px; max-height: none; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+    .acct-side { position: static; }
+    .acct-nav { flex-direction: row; gap: 6px; overflow-x: auto; scrollbar-width: none; }
     .acct-nav::-webkit-scrollbar { display: none; }
     .acct-nav-item { flex: none; width: auto; min-height: 44px; padding: 9px 14px; font-size: 14px; white-space: nowrap; }
     .acct-nav-item::before { left: 14px; right: 14px; top: auto; bottom: 4px; width: auto; height: 3px; transform: scaleX(0); }
