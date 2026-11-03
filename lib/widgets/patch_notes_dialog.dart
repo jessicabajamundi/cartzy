@@ -76,6 +76,16 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.0' || version == 'v1.2.0') {
+      return const [
+        'New Bottom Nav Inbox: Dedicated Inbox tab (Home, Cart, Sale, Inbox, Profile) for seller chats and followed stores.',
+        'Followed Stores Tab: Track, visit, and chat with all your followed sellers in one place.',
+        'Draggable Cozy & Discard: Freely drag Cozy anywhere on screen or drag down to the "X" discard zone to dismiss.',
+        'Vibrant Chat Send Button: Rich burgundy gradient button with shadow for maximum send icon visibility.',
+        'My Orders Stage Filtering: Tapping To ship, Shipped, Delivered, or Cancelled navigates directly to that order stage.',
+        'Profile Photo Cropper & Angle Editor: Rotate, scale, crop, and adjust your profile picture with real-time preview.',
+      ];
+    }
     if (version == '1.1.9' || version == 'v1.1.9') {
       return const [
         'Custom Profile Picture: Upload or snap a photo directly from your account header or profile settings.',
