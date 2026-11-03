@@ -41,12 +41,9 @@ header .header-main.storefront-header-main {
 .header-primary-links a[aria-current="page"]::after { transform: scaleX(1); }
 .header-primary-links .header-primary-sale { color: #9E5863; }
 .header-primary-links a:focus-visible { outline: 2px solid #B76E79; outline-offset: 4px; border-radius: 3px; }
-header .storefront-header-main .header-search { min-width: 140px; margin: 0; max-width: 420px; }
+/* The search fills whatever the links and icons leave, so it narrows on its own when an icon (like Cozy) appears. */
+header .storefront-header-main .header-search { flex: 1 1 auto; min-width: 140px; max-width: none; margin: 0; }
 header .storefront-header-main #header-search-form { min-height: 48px; }
-/* Guests have fewer header icons, so the search takes the freed space. */
-@media (min-width: 701px) {
-    header.is-guest .storefront-header-main .header-search { max-width: 640px; }
-}
 header .storefront-header-main #header-search-input { min-width: 0; font-size: 15px; }
 
 header .storefront-header-main .header-auth-links > a {
@@ -60,10 +57,7 @@ header .storefront-header-main .header-auth-links > a svg { width: 18px; height:
 header .storefront-header-main .buyer-top-link { width: 40px; min-width: 40px; min-height: 44px; }
 header .storefront-header-main .buyer-top-icon > svg { width: 24px; height: 24px; }
 #pick-trending-title { scroll-margin-top: 140px; }
-header .storefront-header-main .header-actions { margin-right: 48px; }
-@media (max-width: 1250px) {
-    header .storefront-header-main .header-actions { margin-right: 0; }
-}
+header .storefront-header-main .header-actions { margin-left: auto; }
 @media (max-width: 1250px) {
     header .header-main.storefront-header-main { flex-wrap: wrap; gap: 8px 20px; }
     .header-primary-links { flex: 1; }
