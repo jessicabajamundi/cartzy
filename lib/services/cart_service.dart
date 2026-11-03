@@ -204,6 +204,13 @@ class CartService extends ChangeNotifier {
     }
   }
 
+  /// Puts a removed item back at its old position (used by "Undo").
+  void insertItem(int index, CartItem item) {
+    if (_items.any((existing) => existing.id == item.id)) return;
+    _items.insert(index.clamp(0, _items.length), item);
+    notifyListeners();
+  }
+
   void removeItemById(String id) {
     _items.removeWhere((item) => item.id == id);
     notifyListeners();

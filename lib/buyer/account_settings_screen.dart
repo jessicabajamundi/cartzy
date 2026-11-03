@@ -599,7 +599,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     return raw.substring(0, raw.length >= 2 ? 2 : 1).toUpperCase();
   }
 
-  void _navigateToOrders() {
+  void _navigateToOrders([String filter = 'all']) {
     if (!widget.isLoggedIn) {
       widget.onLogin?.call();
       return;
@@ -607,6 +607,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MyOrdersScreen(
+          initialFilter: filter,
           onBack: () => Navigator.of(context).pop(),
           // "Start shopping" / "Buy again" go back to the shop.
           onStartShopping: () => Navigator.of(context).popUntil((route) => route.isFirst),
@@ -1262,7 +1263,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: _navigateToOrders,
+                    onTap: () => _navigateToOrders('all'),
                     child: Row(
                       children: [
                         Text(
@@ -1305,22 +1306,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     _buildOrderAction(
                       icon: Icons.inventory_2_outlined,
                       label: 'To ship',
-                      onTap: _navigateToOrders,
+                      onTap: () => _navigateToOrders('to_ship'),
                     ),
                     _buildOrderAction(
                       icon: Icons.local_shipping_outlined,
                       label: 'Shipped',
-                      onTap: _navigateToOrders,
+                      onTap: () => _navigateToOrders('to_receive'),
                     ),
                     _buildOrderAction(
                       icon: Icons.check_circle_outline_rounded,
                       label: 'Delivered',
-                      onTap: _navigateToOrders,
+                      onTap: () => _navigateToOrders('completed'),
                     ),
                     _buildOrderAction(
                       icon: Icons.cancel_outlined,
                       label: 'Cancelled',
-                      onTap: _navigateToOrders,
+                      onTap: () => _navigateToOrders('cancelled'),
                     ),
                   ],
                 ),

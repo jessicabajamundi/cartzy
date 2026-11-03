@@ -45,6 +45,21 @@ IconData _statusIcon(String status) => switch (status) {
       _ => Icons.cancel_outlined,
     };
 
+bool _matchesStatus(String orderStatus, String filter) {
+  if (filter == 'all') return true;
+  final oNorm = orderStatus.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_');
+  final fNorm = filter.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_');
+  if (oNorm == fNorm) return true;
+
+  if (fNorm == 'to_ship' && (oNorm == 'to_ship' || oNorm == 'toship' || oNorm == 'pending' || oNorm == 'processing')) return true;
+  if (fNorm == 'to_receive' && (oNorm == 'to_receive' || oNorm == 'toreceive' || oNorm == 'shipped' || oNorm == 'in_transit' || oNorm == 'dispatched')) return true;
+  if (fNorm == 'completed' && (oNorm == 'completed' || oNorm == 'delivered' || oNorm == 'complete' || oNorm == 'received')) return true;
+  if (fNorm == 'cancelled' && (oNorm == 'cancelled' || oNorm == 'canceled' || oNorm == 'cancel')) return true;
+  if (fNorm == 'to_pay' && (oNorm == 'to_pay' || oNorm == 'topay' || oNorm == 'unpaid')) return true;
+
+  return false;
+}
+
 String _errorText(Object error) => error is ApiException
     ? error.message
     : "Couldn't reach the Cartzy server. Check your connection and try again.";
@@ -78,6 +93,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   late String _filter;
   late String _search;
   late final TextEditingController _searchController;
+  late final ScrollController _filterScrollController;
 
   List<BuyerOrder> get _orders => _data?.orders ?? const [];
 
@@ -87,12 +103,49 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     _filter = widget.initialFilter ?? 'all';
     _search = widget.initialSearch ?? '';
     _searchController = TextEditingController(text: _search);
+    _filterScrollController = ScrollController();
     _load();
+
+    if (_filter != 'all') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToActiveFilter();
+      });
+    }
+  }
+
+  void _scrollToActiveFilter() {
+    if (!_filterScrollController.hasClients) return;
+    double targetOffset = 0.0;
+    switch (_filter) {
+      case 'to_pay':
+        targetOffset = 60.0;
+        break;
+      case 'to_ship':
+        targetOffset = 150.0;
+        break;
+      case 'to_receive':
+        targetOffset = 260.0;
+        break;
+      case 'completed':
+        targetOffset = 380.0;
+        break;
+      case 'cancelled':
+        targetOffset = _filterScrollController.position.maxScrollExtent;
+        break;
+      default:
+        targetOffset = 0.0;
+    }
+    _filterScrollController.animateTo(
+      targetOffset.clamp(0.0, _filterScrollController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _filterScrollController.dispose();
     super.dispose();
   }
 
@@ -122,7 +175,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   List<BuyerOrder> get _visibleOrders {
     final term = _search.trim().toLowerCase();
     return _orders.where((o) {
-      if (_filter != 'all' && o.status != _filter) return false;
+      if (_filter != 'all' && !_matchesStatus(o.status, _filter)) return false;
       if (term.isEmpty) return true;
       return o.reference.toLowerCase().contains(term) ||
           o.store.toLowerCase().contains(term) ||
@@ -321,6 +374,11 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   // ── Filters & search ────────────────────────────────────────
   Widget _buildFilters() {
     final counts = _data?.counts ?? const {};
+    int countFor(String key) {
+      if (counts.containsKey(key)) return counts[key] ?? 0;
+      return _orders.where((o) => _matchesStatus(o.status, key)).length;
+    }
+
     Widget chip(String key, String label, int count) {
       final active = _filter == key;
       return Padding(
@@ -389,16 +447,17 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     return SizedBox(
       height: 40,
       child: ListView(
+        controller: _filterScrollController,
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           chip('all', 'All', _orders.length),
           group('In progress'),
           for (final key in ['to_pay', 'to_ship', 'to_receive'])
-            chip(key, BuyerOrder.statuses[key]!, counts[key] ?? 0),
+            chip(key, BuyerOrder.statuses[key]!, countFor(key)),
           group('Past'),
           for (final key in ['completed', 'cancelled'])
-            chip(key, BuyerOrder.statuses[key]!, counts[key] ?? 0),
+            chip(key, BuyerOrder.statuses[key]!, countFor(key)),
         ],
       ),
     );
