@@ -333,12 +333,7 @@
         if (key === 'profile' || key === 'addresses') {
             const wasAddresses = (key === 'addresses');
             key = 'settings';
-            if (wasAddresses) {
-                setTimeout(() => {
-                    const el = document.getElementById('saved-addresses-card') || document.querySelector('.settings-add');
-                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 120);
-            }
+            if (wasAddresses) window.showAccountSection?.('addresses');
         }
         if (key === 'history') {
             // Order History now lives inside Orders as the "Past" filters.

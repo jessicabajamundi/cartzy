@@ -23,7 +23,8 @@ class AccountSettingsTest extends TestCase
     {
         $user = User::factory()->create(['email_verified_at' => null]);
         $this->actingAs($user)->get('/dashboard?tab=settings')->assertOk()
-            ->assertSee('Profile information')->assertSee('Not verified')->assertSee('Other devices')
+            ->assertSee('Personal details')->assertSee('Not verified')->assertSee('Other devices')
+            ->assertSee('Shops you follow')->assertSee('Coming soon')
             ->assertSee('No saved addresses yet.');
         $this->get('/user/account')->assertRedirect(route('buyer.dashboard', ['tab' => 'settings']));
         $this->get('/user/account/profile')->assertRedirect(route('buyer.dashboard', ['tab' => 'settings']));
@@ -32,6 +33,27 @@ class AccountSettingsTest extends TestCase
             ->assertSee('Identity Verification')->assertSee('name="sex"', false)->assertSee('name="birthday"', false)
             ->assertSee('name="id_photo"', false)->assertDontSee('data-panel="profile"', false)
             ->assertDontSee('data-nav="profile"', false);
+    }
+
+    public function test_settings_open_the_section_named_in_the_url(): void
+    {
+        $user = User::factory()->create();
+        $response = $this->actingAs($user)->get('/dashboard?tab=settings&section=password')->assertOk();
+        $response->assertSee('id="acct-tab-password" data-acct-tab="password" aria-controls="acct-password" aria-selected="true"', false);
+        $response->assertSee('id="acct-tab-personal" data-acct-tab="personal" aria-controls="acct-personal" aria-selected="false"', false);
+    }
+
+    public function test_uploaded_profile_photo_can_be_removed(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::disk('public')->put('avatars/me.png', 'image');
+        $user = User::factory()->create(['avatar' => 'avatars/me.png']);
+
+        $this->actingAs($user)->from('/dashboard?tab=settings')->delete(route('account.avatar.remove'))
+            ->assertRedirect('/dashboard?tab=settings')->assertSessionHas('success');
+
+        $this->assertNull($user->fresh()->avatar);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing('avatars/me.png');
     }
 
     public function test_addresses_can_be_added_edited_and_selected_without_changing_profile_contact(): void

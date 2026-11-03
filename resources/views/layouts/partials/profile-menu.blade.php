@@ -16,19 +16,25 @@
             ? ['logistics.account', 'Account Management', 'user']
             : ['buyer.dashboard', 'Account Settings', 'user', 'settings'],
     ]);
-    if ($profileUser->isBuyer()) {
-        $profileLinks[] = ['buyer.dashboard', 'My Vouchers', 'ticket', 'vouchers'];
-    }
     $profileIcons = [
         'grid' => 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
         'store' => 'M3 10h18L19 3H5L3 10Z M5 10v11h14V10 M9 21v-7h6v7',
         'box' => 'm12 3 9 5-9 5-9-5 9-5Z M3 8v9l9 5 9-5V8 M12 13v9 M7.5 5.5l9 5',
         'user' => 'M19 21v-2a7 7 0 0 0-14 0v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
         'bag' => 'M5 7h14l1 14H4L5 7Z M9 7V5a3 3 0 0 1 6 0v2',
-        'ticket' => 'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4z M9 9l6 6',
     ];
 @endphp
 
+{{-- Buyers go straight to their account settings; other roles keep the menu for their workspace links. --}}
+@if($profileUser->isBuyer())
+<a href="{{ route('buyer.dashboard', ['tab' => 'settings']) }}" class="profile-menu-trigger overflow-hidden" aria-label="Account settings" title="Account settings">
+    @if($profileUser->avatar_url)
+        <img src="{{ $profileUser->avatar_url }}" alt="" class="w-full h-full object-cover rounded-full">
+    @else
+        {{ $profileInitial }}
+    @endif
+</a>
+@else
 <details class="profile-menu" id="header-profile-menu">
     <summary class="profile-menu-trigger overflow-hidden" aria-label="Account options" aria-controls="header-profile-panel" title="Account options">
         @if($profileUser->avatar_url)
@@ -72,6 +78,7 @@
         </div>
     </div>
 </details>
+@endif
 
 @once
 <style>
@@ -79,7 +86,7 @@
     .profile-menu-trigger {
         display: flex; align-items: center; justify-content: center;
         width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
-        list-style: none; background: #6F6382; color: #fff; font-size: 12px; font-weight: 700;
+        list-style: none; background: #6F6382; color: #fff; font-size: 12px; font-weight: 700; text-decoration: none;
         transition: background 150ms, box-shadow 150ms;
     }
     .profile-menu-trigger::-webkit-details-marker { display: none; }
@@ -124,6 +131,7 @@
 <script>
     (() => {
         const menu = document.getElementById('header-profile-menu');
+        if (!menu) return;
         document.addEventListener('click', event => {
             if (!menu.contains(event.target)) menu.open = false;
         });

@@ -185,6 +185,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/account/profile', [AccountController::class, 'profile'])->name('profile');
         Route::post('/account/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
         Route::post('/account/avatar', [AccountController::class, 'updateAvatar'])->name('avatar.update');
+        Route::delete('/account/avatar', [AccountController::class, 'removeAvatar'])->name('avatar.remove');
         Route::post('/account/verify-id', [AccountController::class, 'submitIdVerification'])->name('id.submit');
         Route::post('/account/password', [AccountController::class, 'updatePassword'])->name('password.update');
         Route::post('/account/address', [AccountController::class, 'updateAddress'])->name('address.update');

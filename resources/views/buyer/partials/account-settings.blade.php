@@ -1,151 +1,326 @@
 @include('buyer.partials.settings-style')
-<div class="account-settings">
-<header class="settings-page-heading">
-    <div>
-        <p class="settings-eyebrow">YOUR ACCOUNT, YOUR WAY</p>
-        <h2>Account Settings<span>.</span></h2>
-        <p>A few personal touches. A smoother shopping experience.</p>
-    </div>
-    <span class="settings-heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z M8.5 12l2.5 2.5 4.5-5"/></svg></span>
-</header>
-<nav class="settings-shortcuts" aria-label="Account settings sections">
-    <button type="button" onclick="document.getElementById('settings-profile').scrollIntoView({behavior:'smooth',block:'start'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Personal details<span>01</span></button>
-    <button type="button" onclick="document.getElementById('settings-security').scrollIntoView({behavior:'smooth',block:'start'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>Security<span>02</span></button>
-    <button type="button" onclick="document.getElementById('saved-addresses-card').scrollIntoView({behavior:'smooth',block:'start'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>Delivery addresses<span>03</span></button>
-</nav>
-<div class="settings-card settings-split-card" id="settings-profile">
-    <div class="settings-section-heading"><span class="settings-section-number">01 / PROFILE</span><h3>Profile information</h3><p>Make yourself at home. Keep your name and contact details up to date.</p></div>
-    <div class="settings-section-content">
-    <form action="{{ route('account.avatar.update') }}" method="POST" enctype="multipart/form-data" class="settings-photo-form">
-        @csrf
-        <div class="settings-photo-avatar">
-            @if($user->avatar_url)
-                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-full w-full object-cover">
-            @else
-                {{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}
-            @endif
+<link rel="stylesheet" href="{{ asset('css/account-settings.css') }}?v={{ filemtime(public_path('css/account-settings.css')) }}">
+@php
+    $acctSections = [
+        'personal'   => ['Personal details', 'M19 21v-2a7 7 0 0 0-14 0v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z'],
+        'addresses'  => ['Delivery addresses', 'M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z M12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z'],
+        'id'         => ['ID verification', 'M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z M9 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z M5.5 17a3.5 3.5 0 0 1 7 0 M15 10h3 M15 14h3'],
+        'follows'    => ['Shops you follow', 'M3 10h18L19 3H5L3 10Z M5 10v11h14V10 M9 21v-7h6v7'],
+        'complaints' => ['My complaints', 'M5 21V4 M5 4h11l-2 4 2 4H5'],
+        'help'       => ['Help & support', 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z M5.6 5.6l3.9 3.9 M14.5 14.5l3.9 3.9 M18.4 5.6l-3.9 3.9 M9.5 14.5l-3.9 3.9'],
+        'password'   => ['Password', 'M6 11h12v10H6Z M8.5 11V8a3.5 3.5 0 0 1 7 0v3 M12 15v2'],
+        'activity'   => ['Account activity', 'M3 12a9 9 0 1 0 3-6.7L3 8 M3 3v5h5 M12 7v5l3 2'],
+    ];
+    // Sections that are still being built show a friendly placeholder.
+    $acctComingSoon = [
+        'follows'    => 'Keep track of the shops you love and see their newest drops in one place.',
+        'complaints' => 'Follow up on problems you reported about your orders.',
+        'help'       => 'Find answers to common questions or get in touch with the Cartzy team.',
+        'activity'   => 'Review recent sign-ins and changes made to your account.',
+    ];
+    // Open the section a failed form came from, otherwise the one in the URL.
+    $acctOpen = match (true) {
+        $errors->addressBook->any() => 'addresses',
+        $errors->devices->any() || $errors->hasAny(['current_password', 'password']) => 'password',
+        $errors->hasAny(['id_type', 'id_number', 'id_photo']) => 'id',
+        default => request('section', 'personal'),
+    };
+    if (!isset($acctSections[$acctOpen])) $acctOpen = 'personal';
+    $acctInitial = mb_strtoupper(mb_substr($user->name ?? 'U', 0, 1));
+    $acctIdVerified = method_exists($user, 'isIdVerified') && $user->isIdVerified();
+    $acctIdPending = ($user->id_status ?? '') === 'pending';
+    $acctAge = $user->birthday ? \Carbon\Carbon::parse($user->birthday)->age : null;
+@endphp
+
+<div class="acct" data-acct>
+    <aside class="acct-side">
+        <div class="acct-who">
+            <span class="acct-who-avatar">
+                @if($user->avatar_url)<img src="{{ $user->avatar_url }}" alt="">@else{{ $acctInitial }}@endif
+            </span>
+            <div class="acct-who-text">
+                <p class="acct-who-name">{{ $user->name }}</p>
+                <p class="acct-who-email" title="{{ $user->email }}">{{ $user->email }}</p>
+            </div>
         </div>
-        <div class="settings-photo-details">
-            <label class="settings-label" for="settings-avatar">Profile photo</label>
-            <input id="settings-avatar" class="settings-file-input" type="file" name="avatar" accept="image/jpeg,image/png,image/jpg" required aria-describedby="settings-photo-help">
-            <p id="settings-photo-help" class="mt-2 text-xs text-gray-500">JPG or PNG, up to 2 MB.</p>
+        <nav class="acct-nav" role="tablist" aria-label="Account settings" aria-orientation="vertical">
+            @foreach($acctSections as $key => [$label, $icon])
+                <button type="button" class="acct-nav-item" role="tab" id="acct-tab-{{ $key }}" data-acct-tab="{{ $key }}" aria-controls="acct-{{ $key }}" aria-selected="{{ $acctOpen === $key ? 'true' : 'false' }}" tabindex="{{ $acctOpen === $key ? '0' : '-1' }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $icon }}"/></svg>
+                    <span>{{ $label }}</span>
+                    @isset($acctComingSoon[$key])<span class="acct-soon-tag">Soon</span>@endisset
+                </button>
+            @endforeach
+        </nav>
+        <div class="acct-side-footer">
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="acct-nav-item acct-signout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9"/></svg>
+                    <span>Sign out</span>
+                </button>
+            </form>
         </div>
-        <button class="settings-button settings-button-secondary" type="submit">Upload photo</button>
-    </form>
-    <form action="{{ route('account.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
-        @csrf
-        <div class="grid gap-4 sm:grid-cols-2">
-            <label><span class="settings-label">Full name</span><input class="settings-input" name="name" autocomplete="name" maxlength="255" required value="{{ old('name', $user->name) }}"></label>
-            <label><span class="settings-label">Phone number</span><input class="settings-input" type="tel" name="phone" autocomplete="tel" maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" value="{{ old('phone', $user->phone) }}"></label>
-            <label class="sm:col-span-2"><span class="settings-label">Email address</span><input class="settings-input" type="email" readonly value="{{ $user->email }}"><span class="mt-1 block text-xs text-gray-500">{{ $user->google_id ? 'Connected to your Google account.' : 'Your sign-in email address.' }}</span></label>
-            <label><span class="settings-label">Sex</span>
-                <select name="sex" class="settings-input">
-                    <option value="">Select</option>
-                    @foreach(['Male', 'Female', 'Prefer not to say', 'Other'] as $sex)
-                        <option value="{{ $sex }}" @selected(old('sex', $user->sex) === $sex)>{{ $sex }}</option>
-                    @endforeach
-                </select>
-            </label>
-            <label>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="settings-label">Birthday</span>
-                    <span id="settings-birthday-age" class="text-xs font-semibold text-emerald-600"></span>
+    </aside>
+
+    <div class="acct-main">
+        {{-- Personal details --}}
+        <section class="acct-card" id="acct-personal" role="tabpanel" aria-labelledby="acct-tab-personal" data-acct-section="personal" @if($acctOpen !== 'personal') hidden @endif>
+            <header class="acct-head">
+                <div>
+                    <p class="acct-eyebrow">Account</p>
+                    <h2 class="acct-title">Personal details</h2>
                 </div>
-                <input class="settings-input" type="date" id="settings-birthday" name="birthday" autocomplete="bday" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}">
-                <span class="mt-1 block text-xs text-gray-500">You must be at least 18 years old.</span>
-            </label>
-            <script>
-            (function() {
-                function initSettingsBirthday() {
-                    const input = document.getElementById('settings-birthday');
-                    const ageEl = document.getElementById('settings-birthday-age');
-                    if (!input) return;
+                @if($acctIdVerified)
+                    <span class="acct-badge acct-badge-verified"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.7 7.7-5.5 5.5a1 1 0 0 1-1.4 0l-2.5-2.5a1 1 0 1 1 1.4-1.4l1.8 1.8 4.8-4.8a1 1 0 1 1 1.4 1.4Z"/></svg>Verified Buyer</span>
+                @elseif($acctIdPending)
+                    <span class="acct-badge acct-badge-pending">Verification pending</span>
+                @else
+                    <span class="acct-badge acct-badge-unverified">Unverified buyer</span>
+                @endif
+            </header>
 
-                    function calcSettingsAge() {
-                        let val = input.value;
-                        if (!val) {
-                            if (ageEl) ageEl.textContent = '';
-                            return;
-                        }
-                        if (input.max && val > input.max) {
-                            val = input.max;
-                            input.value = val;
-                        }
-                        const birth = new Date(val + 'T00:00:00');
-                        if (isNaN(birth.getTime())) {
-                            if (ageEl) ageEl.textContent = '';
-                            return;
-                        }
-                        const today = new Date();
-                        let age = today.getFullYear() - birth.getFullYear();
-                        const m = today.getMonth() - birth.getMonth();
-                        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+            <div class="acct-photo">
+                <span class="acct-photo-avatar">
+                    @if($user->avatar_url)<img src="{{ $user->avatar_url }}" alt="{{ $user->name }}">@else{{ $acctInitial }}@endif
+                </span>
+                <div class="acct-photo-body">
+                    <div class="acct-photo-actions">
+                        <form action="{{ route('account.avatar.update') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <input type="file" name="avatar" id="acct-avatar-input" class="acct-file" accept="image/jpeg,image/png" data-acct-autosubmit>
+                            <label for="acct-avatar-input" class="acct-btn acct-btn-primary" role="button" tabindex="0" data-acct-file-trigger>
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.4 4a2 2 0 0 0-1.7.9L6.9 6H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3h-1.9l-.8-1.1a2 2 0 0 0-1.7-.9H9.4ZM12 9a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg>
+                                Change photo
+                            </label>
+                        </form>
+                        @if($user->avatar)
+                            <form action="{{ route('account.avatar.remove') }}" method="POST" onsubmit="return confirm('Remove your profile photo?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="acct-btn acct-btn-outline">Remove</button>
+                            </form>
+                        @endif
+                    </div>
+                    <p class="acct-photo-hint">JPG or PNG, up to 2 MB.</p>
+                </div>
+            </div>
 
-                        if (ageEl) {
-                            if (age >= 18) {
-                                ageEl.textContent = `Age: ${age} years old`;
-                                ageEl.className = 'text-xs font-semibold text-emerald-600';
-                            } else if (age >= 0) {
-                                ageEl.textContent = `Age: ${age} (Under 18)`;
-                                ageEl.className = 'text-xs font-semibold text-red-600';
-                            }
-                        }
-                    }
+            <form action="{{ route('account.profile.update') }}" method="POST">
+                @csrf
+                <div class="acct-grid">
+                    <label>
+                        <span class="acct-label">Full name</span>
+                        <input class="acct-input" name="name" autocomplete="name" maxlength="255" required value="{{ old('name', $user->name) }}">
+                    </label>
+                    <label>
+                        <span class="acct-label">Mobile number</span>
+                        <input class="acct-input" type="tel" name="phone" autocomplete="tel" maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" placeholder="09XXXXXXXXX" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" value="{{ old('phone', $user->phone) }}">
+                    </label>
+                    <label class="acct-field-wide">
+                        <span class="acct-label">Email address</span>
+                        <input class="acct-input" type="email" readonly value="{{ $user->email }}">
+                        <span class="acct-hint">{{ $user->google_id ? 'Managed by your connected Google account.' : 'Your sign-in email address.' }}</span>
+                    </label>
+                    <label>
+                        <span class="acct-label">Birthday</span>
+                        <input class="acct-input" type="date" id="acct-birthday" name="birthday" autocomplete="bday" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}">
+                        <span class="acct-hint">Your birthday is used to keep your age accurate. You must be at least 18.</span>
+                    </label>
+                    <label>
+                        <span class="acct-label">Current age</span>
+                        <input class="acct-input" type="text" id="acct-age" readonly placeholder="Add your birthday" value="{{ $acctAge !== null ? $acctAge . ' years old' : '' }}">
+                        <span class="acct-hint">Calculated automatically.</span>
+                    </label>
+                    <label>
+                        <span class="acct-label">Sex</span>
+                        <select name="sex" class="acct-input">
+                            <option value="">Select</option>
+                            @foreach(['Male', 'Female', 'Prefer not to say', 'Other'] as $sex)
+                                <option value="{{ $sex }}" @selected(old('sex', $user->sex) === $sex)>{{ $sex }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                </div>
+                <div class="acct-footer">
+                    <span>Keep your details up to date for easy deliveries.</span>
+                    <button class="acct-btn acct-btn-primary" type="submit">Save changes <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"/></svg></button>
+                </div>
+            </form>
+        </section>
 
-                    input.addEventListener('input', calcSettingsAge);
-                    input.addEventListener('change', calcSettingsAge);
-                    input.addEventListener('focus', function() {
-                        if (!this.value && this.max) {
-                            this.value = this.max;
-                            calcSettingsAge();
-                        }
-                    });
-                    if (input.value) calcSettingsAge();
-                }
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initSettingsBirthday);
-                } else {
-                    initSettingsBirthday();
-                }
-            })();
-            </script>
-        </div>
-        @include('buyer.partials.identity-verification')
-        <div class="settings-form-footer"><span>Keep your details up to date for easy deliveries.</span><button class="settings-button" type="submit">Save changes <span aria-hidden="true">&rarr;</span></button></div>
-    </form>
+        {{-- Delivery addresses --}}
+        <section class="acct-card" id="acct-addresses" role="tabpanel" aria-labelledby="acct-tab-addresses" data-acct-section="addresses" @if($acctOpen !== 'addresses') hidden @endif>
+            <header class="acct-head">
+                <div>
+                    <p class="acct-eyebrow">Shipping</p>
+                    <h2 class="acct-title">Delivery addresses</h2>
+                    <p class="acct-lead">Add delivery locations and choose the one to use by default.</p>
+                </div>
+            </header>
+            @include('buyer.partials.address-book')
+        </section>
+
+        {{-- ID verification --}}
+        <section class="acct-card" id="acct-id" role="tabpanel" aria-labelledby="acct-tab-id" data-acct-section="id" @if($acctOpen !== 'id') hidden @endif>
+            <header class="acct-head">
+                <div>
+                    <p class="acct-eyebrow">Trust &amp; safety</p>
+                    <h2 class="acct-title">ID verification</h2>
+                    <p class="acct-lead">A verified ID unlocks full checkout and buyer protection.</p>
+                </div>
+                @if($acctIdVerified)
+                    <span class="acct-badge acct-badge-verified">Verified</span>
+                @elseif($acctIdPending)
+                    <span class="acct-badge acct-badge-pending">Pending review</span>
+                @else
+                    <span class="acct-badge acct-badge-unverified">Not submitted</span>
+                @endif
+            </header>
+            <form action="{{ route('account.id.submit') }}" method="POST" enctype="multipart/form-data" class="acct-id">
+                @csrf
+                @include('buyer.partials.identity-verification')
+                @unless($acctIdVerified || $acctIdPending)
+                    <div class="acct-footer">
+                        <span>Your ID is only used to verify your account.</span>
+                        <button class="acct-btn acct-btn-primary" type="submit">Submit for review</button>
+                    </div>
+                @endunless
+            </form>
+        </section>
+
+        {{-- Password & security --}}
+        <section class="acct-card" id="acct-password" role="tabpanel" aria-labelledby="acct-tab-password" data-acct-section="password" @if($acctOpen !== 'password') hidden @endif>
+            <header class="acct-head">
+                <div>
+                    <p class="acct-eyebrow">Security</p>
+                    <h2 class="acct-title">Password</h2>
+                    <p class="acct-lead">For your security, never share your password with anyone.</p>
+                </div>
+            </header>
+            <div class="acct-row">
+                <div><strong>Email verification</strong><span>{{ $user->email }}</span></div>
+                <span class="acct-badge {{ $user->email_verified_at ? 'acct-badge-verified' : 'acct-badge-unverified' }}">{{ $user->email_verified_at ? 'Verified' : 'Not verified' }}</span>
+            </div>
+            @if($user->google_id)
+                <p class="acct-lead">You can sign in with Google. If you have not set a password, sign out and choose Forgot password on the login screen to set one first.</p>
+            @endif
+            <div class="acct-divider"></div>
+            <h3 class="acct-subhead">Change password</h3>
+            <form action="{{ route('account.password.update') }}" method="POST">
+                @csrf
+                <div class="acct-grid">
+                    <label class="acct-field-wide">
+                        <span class="acct-label">Current password</span>
+                        <input class="acct-input" type="password" name="current_password" autocomplete="current-password" required>
+                        @error('current_password')<span class="acct-hint acct-hint-error">{{ $message }}</span>@enderror
+                    </label>
+                    <label>
+                        <span class="acct-label">New password</span>
+                        <input class="acct-input" type="password" name="password" autocomplete="new-password" minlength="8" required>
+                        @error('password')<span class="acct-hint acct-hint-error">{{ $message }}</span>@else<span class="acct-hint">Use at least 8 characters.</span>@enderror
+                    </label>
+                    <label>
+                        <span class="acct-label">Confirm new password</span>
+                        <input class="acct-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required>
+                    </label>
+                </div>
+                <div class="acct-footer">
+                    <span>You will stay signed in on this device.</span>
+                    <button class="acct-btn acct-btn-primary" type="submit">Update password</button>
+                </div>
+            </form>
+            <div class="acct-divider"></div>
+            <h3 class="acct-subhead">Other devices</h3>
+            <p class="acct-lead">Sign out of your other sessions. You will stay signed in on this device.</p>
+            @if($errors->devices->any())<p class="acct-hint acct-hint-error" role="alert">{{ $errors->devices->first() }}</p>@endif
+            <form method="POST" action="{{ route('account.devices.logout') }}" class="acct-grid" style="margin-top: 18px; align-items: end;">
+                @csrf
+                <label>
+                    <span class="acct-label">Confirm your password</span>
+                    <input class="acct-input" type="password" name="device_password" autocomplete="current-password" required>
+                </label>
+                <div><button class="acct-btn acct-btn-danger" type="submit">Sign out other devices</button></div>
+            </form>
+        </section>
+
+        {{-- Coming soon --}}
+        @foreach($acctComingSoon as $key => $blurb)
+            <section class="acct-card" id="acct-{{ $key }}" role="tabpanel" aria-labelledby="acct-tab-{{ $key }}" data-acct-section="{{ $key }}" @if($acctOpen !== $key) hidden @endif>
+                <header class="acct-head">
+                    <div>
+                        <p class="acct-eyebrow">Account</p>
+                        <h2 class="acct-title">{{ $acctSections[$key][0] }}</h2>
+                    </div>
+                </header>
+                <div class="acct-soon">
+                    <span class="acct-soon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $acctSections[$key][1] }}"/></svg></span>
+                    <h3>Coming soon</h3>
+                    <p>{{ $blurb }} We're still building this part of Cartzy.</p>
+                </div>
+            </section>
+        @endforeach
     </div>
 </div>
-<div class="settings-card settings-split-card" id="settings-security">
-    <div class="settings-section-heading"><span class="settings-section-number">02 / SECURITY</span><h3>Security</h3><p>A little peace of mind. Manage your password, verification, and signed-in devices.</p></div>
-    <div class="settings-section-content">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 rounded-xl bg-[#FAF9FC] p-4">
-        <div><p class="text-sm font-semibold text-gray-800">Email verification</p><p class="text-xs text-gray-500 break-all">{{ $user->email }}</p></div>
-        <span class="settings-status {{ $user->email_verified_at ? '!bg-emerald-50 !text-emerald-700 ring-1 ring-emerald-200/80' : '!bg-amber-50 !text-amber-700 ring-1 ring-amber-200/80' }}">{{ $user->email_verified_at ? 'Verified' : 'Not verified' }}</span>
-    </div>
-    @if($user->google_id)
-        <p class="mb-5 text-sm text-gray-600">You can sign in with Google. If you have not set a password, sign out and choose Forgot password on the login screen to set one before using these controls.</p>
-    @endif
-    <form action="{{ route('account.password.update') }}" method="POST" class="space-y-4">
-        @csrf
-        <h4 class="text-sm font-bold text-gray-800" style="font-family: inherit;">Change password</h4>
-        <label class="block"><span class="settings-label">Current password</span><input class="settings-input" type="password" name="current_password" autocomplete="current-password" required></label>
-        <div class="grid gap-4 sm:grid-cols-2">
-            <label><span class="settings-label">New password</span><input class="settings-input" type="password" name="password" autocomplete="new-password" minlength="8" required><span class="mt-1 block text-xs text-gray-500">Use at least 8 characters.</span></label>
-            <label><span class="settings-label">Confirm new password</span><input class="settings-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required></label>
-        </div>
-        <button class="settings-button" type="submit">Update password</button>
-    </form>
-    <div class="mt-6 border-t border-gray-100 pt-6">
-        <h4 class="text-sm font-bold text-gray-800" style="font-family: inherit;">Other devices</h4>
-        <p class="mt-1 mb-4 text-sm text-gray-500">Sign out of your other sessions. You will stay signed in on this device.</p>
-        @if($errors->devices->any())<div class="settings-error" role="alert">{{ $errors->devices->first() }}</div>@endif
-        <form method="POST" action="{{ route('account.devices.logout') }}" class="space-y-4">
-            @csrf
-            <label class="block"><span class="settings-label">Confirm your password</span><input class="settings-input" type="password" name="device_password" autocomplete="current-password" required></label>
-            <button class="settings-button" type="submit">Sign out other devices</button>
-        </form>
-    </div>
-    </div>
-</div>
-@include('buyer.partials.address-book')
-</div>
+
+<script>
+(() => {
+    const root = document.querySelector('[data-acct]');
+    if (!root) return;
+    const tabs = [...root.querySelectorAll('[data-acct-tab]')];
+    const sections = [...root.querySelectorAll('[data-acct-section]')];
+
+    const showSection = (key, focusTab = false) => {
+        if (!sections.some((s) => s.dataset.acctSection === key)) key = 'personal';
+        tabs.forEach((tab) => {
+            const on = tab.dataset.acctTab === key;
+            tab.setAttribute('aria-selected', String(on));
+            tab.tabIndex = on ? 0 : -1;
+            if (on && focusTab) tab.focus();
+            if (on) tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        });
+        sections.forEach((s) => { s.hidden = s.dataset.acctSection !== key; });
+        const url = new URL(location.href);
+        url.searchParams.set('section', key);
+        history.replaceState(null, '', url);
+    };
+    window.showAccountSection = showSection;
+
+    tabs.forEach((tab, i) => {
+        tab.addEventListener('click', () => {
+            showSection(tab.dataset.acctTab);
+            if (matchMedia('(max-width: 1024px)').matches) root.querySelector('.acct-main').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        // Arrow keys move between tabs.
+        tab.addEventListener('keydown', (event) => {
+            const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+            if (!step) return;
+            event.preventDefault();
+            showSection(tabs[(i + step + tabs.length) % tabs.length].dataset.acctTab, true);
+        });
+    });
+
+    // "Change photo" uploads as soon as a file is picked.
+    root.querySelectorAll('[data-acct-autosubmit]').forEach((input) => {
+        input.addEventListener('change', () => { if (input.files.length) input.form.submit(); });
+    });
+    root.querySelectorAll('[data-acct-file-trigger]').forEach((label) => {
+        label.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); label.click(); }
+        });
+    });
+
+    // Keep "Current age" in step with the birthday field.
+    const birthday = document.getElementById('acct-birthday');
+    const age = document.getElementById('acct-age');
+    birthday?.addEventListener('input', () => {
+        const born = new Date(`${birthday.value}T00:00:00`);
+        if (!birthday.value || Number.isNaN(born.getTime())) { age.value = ''; return; }
+        const today = new Date();
+        let years = today.getFullYear() - born.getFullYear();
+        const m = today.getMonth() - born.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < born.getDate())) years--;
+        age.value = years >= 0 ? `${years} years old` : '';
+    });
+})();
+</script>

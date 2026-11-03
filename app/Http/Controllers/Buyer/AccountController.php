@@ -182,6 +182,26 @@ class AccountController extends Controller
     }
 
     /**
+     * Remove Profile Photo
+     */
+    public function removeAvatar()
+    {
+        $user = Auth::user();
+        if ($user && $user->avatar) {
+            // Google avatars are remote URLs; only uploaded photos live on our disk.
+            if (!str_starts_with($user->avatar, 'http://') && !str_starts_with($user->avatar, 'https://')) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = null;
+            $user->save();
+
+            \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+        }
+
+        return back()->with('success', 'Profile photo removed.');
+    }
+
+    /**
      * Submit Government ID for Verification
      */
     public function submitIdVerification(Request $request)
@@ -226,7 +246,7 @@ class AccountController extends Controller
             }
         }
 
-        return redirect()->route('buyer.dashboard', ['tab' => 'settings'])
+        return redirect()->route('buyer.dashboard', ['tab' => 'settings', 'section' => 'id'])
             ->with('success', 'Your ID has been submitted successfully and is now under review! You will be notified once approved.');
     }
 
