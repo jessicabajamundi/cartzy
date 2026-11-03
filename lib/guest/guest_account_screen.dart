@@ -54,6 +54,13 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
   Timer? _scrollStopTimer;
 
   bool _onScrollNotification(ScrollNotification notification) {
+    // Only the page's own up/down scrolling by the user moves the nav, not
+    // the auto-sliding hero banner or other sideways carousels inside it.
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+
     if (notification.metrics.pixels <= 20) {
       if (!_isNavVisible) {
         setState(() => _isNavVisible = true);

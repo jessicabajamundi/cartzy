@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.4' || version == 'v1.2.4') {
+      return const [
+        'Live Inventory & Stock Verification: Real-time database stock checks automatically adjust quantities and notify if items sell out.',
+        'Recently Viewed Products: Seamlessly re-discover products you previously viewed from your profile.',
+        'Interactive Navigation Drawer: Quick-access hamburger menu for fast browsing across guest and buyer accounts.',
+        'Direct Shop Chat & Popup Cozy: Instant 1-on-1 seller messaging and modal Cozy shopping assistant.',
+      ];
+    }
     if (version == '1.2.3' || version == 'v1.2.3') {
       return const [
         'Direct Shop Chat: Tapping the Chat button beside any seller immediately opens that specific shop chat with zero selection list needed.',

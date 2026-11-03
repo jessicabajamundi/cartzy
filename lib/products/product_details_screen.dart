@@ -17,6 +17,7 @@ import 'package:cartzy/widgets/write_review_dialog.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
 import 'package:cartzy/utils/product_images.dart';
 import 'package:cartzy/services/wishlist_service.dart';
+import 'package:cartzy/services/recently_viewed_service.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final int? productId;
@@ -99,8 +100,34 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
 
   // Quantity & Stock
   int _quantity = 1;
-  int _stock = 99;
+  int _stock = 0;
   bool _inStock = true;
+
+  /// True once the real stock has been loaded from the database.
+  bool _stockKnown = false;
+
+  int? get _selectedVariantId => (_selectedVariant?['id'] as num?)?.toInt();
+
+  /// How many of the selected option are already in the cart.
+  int get _inCart => CartService.instance.quantityInCart(
+        productId: widget.productId,
+        variantId: _selectedVariantId,
+        name: _name,
+        variation: _variationDescription,
+      );
+
+  /// Most that can still be added without going over the stock.
+  int get _maxAddable =>
+      _stockKnown ? (_stock - _inCart).clamp(0, _stock) : 99;
+
+  bool get _canAdd => _inStock && _maxAddable > 0;
+
+  void _onCartChanged() {
+    if (!mounted) return;
+    setState(() {
+      if (_quantity > _maxAddable) _quantity = _maxAddable < 1 ? 1 : _maxAddable;
+    });
+  }
 
   // Reviews & Rating breakdown
   Map<int, int> _starCounts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
@@ -124,12 +151,28 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     _rating = widget.rating ?? 4.8;
     _soldCount = widget.soldCount ?? '0 sold';
 
+    RecentlyViewedService.record(RecentlyViewedProduct(
+      productId: widget.productId,
+      name: widget.name,
+      category: widget.category,
+      price: widget.price,
+      originalPrice: widget.originalPrice,
+      imageUrl: widget.imageUrl,
+      sellerName: widget.sellerName,
+      badge: widget.badge,
+      rating: widget.rating,
+      soldCount: widget.soldCount,
+      viewedAt: DateTime.now(),
+    ));
+
     final initialImg = (widget.imageUrl != null && widget.imageUrl!.isNotEmpty)
         ? widget.imageUrl!
         : CartzyProductImages.getImage(widget.name, widget.category);
     _images = [initialImg];
     final initialRef = widget.productId != null ? widget.productId.toString() : widget.name;
     _isWishlisted = WishlistService.isWishlisted(initialRef);
+
+    CartService.instance.addListener(_onCartChanged);
 
     if (widget.productId != null) {
       _loadProductDetails(widget.productId!);
@@ -138,6 +181,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
 
   @override
   void dispose() {
+    CartService.instance.removeListener(_onCartChanged);
     _cartBounce.dispose();
     _justAddedTimer?.cancel();
     _pageController.dispose();
@@ -203,7 +247,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   Future<void> _loadProductDetails(int id) async {
     setState(() => _isLoading = true);
     try {
-      final data = await CatalogService.fetchProductDetails(id);
+      // Always fresh, so the stock shown is the database's current stock.
+      final data = await CatalogService.fetchProductDetails(id, fresh: true);
       if (data != null && mounted) {
         setState(() {
           _name = data['name']?.toString() ?? _name;
@@ -277,8 +322,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
 
             // Default variant selection
             if (_variants.isNotEmpty) {
+              _stockKnown = true;
               _selectVariant(_variants.first, updatePage: false);
             }
+          }
+          if (_variants.isEmpty) {
+            // No active option: nothing can be bought.
+            _stockKnown = true;
+            _stock = 0;
+            _inStock = false;
           }
 
           // Star counts breakdown
@@ -321,11 +373,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     final st = (variant['stock'] as num?)?.toInt() ?? 0;
     _stock = st;
     _inStock = st > 0;
-    if (_quantity > _stock && _stock > 0) {
-      _quantity = _stock;
-    } else if (_stock == 0) {
-      _quantity = 1;
-    }
+    // Never more than what's left after what's already in the cart.
+    final max = _maxAddable;
+    if (_quantity > max) _quantity = max < 1 ? 1 : max;
 
     // A tapped option shows only its own photo; options without one bring back the full gallery.
     if (updatePage) {
@@ -430,7 +480,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
         ? _galleryImages[_currentImageIndex.clamp(0, _galleryImages.length - 1)]
         : CartzyProductImages.getImage(_name, _category);
 
-    CartService.instance.addItem(
+    final result = CartService.instance.addItem(
       name: _name,
       price: _price,
       originalPrice: _originalPrice,
@@ -438,13 +488,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
       category: _category,
       variation: _variationDescription,
       quantity: _quantity,
+      productId: widget.productId,
+      variantId: _selectedVariantId,
+      stock: _stockKnown ? _stock : null,
     );
-    _playAddToCartAnimation(effectiveImage);
+    if (result.added > 0) _playAddToCartAnimation(effectiveImage);
+    setState(() => _quantity = 1);
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$_name ($_variationDescription) added to cart!'),
+        content: Text(result.limited
+            ? result.message('$_name ($_variationDescription)')
+            : '$_name ($_variationDescription) added to cart!'),
         backgroundColor: CartzyColors.navy,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -1248,7 +1304,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               ),
               const SizedBox(width: 6),
               Text(
-                _inStock ? 'In Stock ($_stock available)' : 'Currently Out of Stock',
+                !_inStock
+                    ? 'Currently Out of Stock'
+                    : !_stockKnown
+                        ? 'Checking stock...'
+                        : _inCart > 0
+                            ? 'In Stock ($_stock available · $_inCart in your cart)'
+                            : 'In Stock ($_stock available)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -1497,7 +1559,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 icon: const Icon(Icons.add),
                 color: CartzyColors.navy,
-                onPressed: (_inStock && _quantity < _stock)
+                onPressed: (_canAdd && _quantity < _maxAddable)
                     ? () => setState(() => _quantity++)
                     : null,
               ),
@@ -2084,7 +2146,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             child: SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: _inStock ? _handleAddToCart : null,
+                onPressed: _canAdd ? _handleAddToCart : null,
                 icon: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
                   transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
@@ -2095,9 +2157,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   ),
                 ),
                 label: Text(
-                  _inStock
-                      ? (_justAdded ? 'Added!' : (_quantity > 1 ? 'Add to Cart ($_quantity)' : 'Add to Cart'))
-                      : 'Sold Out',
+                  !_inStock
+                      ? 'Sold Out'
+                      : _justAdded
+                          ? 'Added!'
+                          : _maxAddable <= 0
+                              ? 'Max stock in cart'
+                              : (_quantity > 1 ? 'Add to Cart ($_quantity)' : 'Add to Cart'),
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,

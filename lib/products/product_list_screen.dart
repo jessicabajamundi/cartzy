@@ -89,6 +89,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Timer? _scrollStopTimer;
 
   bool _onScrollNotification(ScrollNotification notification) {
+    // Only the page's own up/down scrolling by the user moves the nav, not
+    // the auto-sliding hero banner or other sideways carousels inside it.
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+
     if (notification.metrics.axis != Axis.vertical) return false;
     if (notification.metrics.pixels <= 20) {
       if (!_isNavVisible) {
@@ -526,19 +533,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                     GuestCartScreen.open(context);
                                     return;
                                   }
-                                  CartService.instance.addItem(
+                                  final result = CartService.instance.addItem(
                                     name: product.name,
                                     price: product.price,
                                     originalPrice: product.originalPrice,
                                     category: product.category,
                                     image: product.effectiveImageUrl,
+                                    productId: product.id,
                                   );
                                   ScaffoldMessenger.of(context)
                                       .hideCurrentSnackBar();
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          '${product.name} added to cart!'),
+                                          result.message(product.name)),
                                       backgroundColor: CartzyColors.navy,
                                       duration: const Duration(seconds: 3),
                                       action: SnackBarAction(

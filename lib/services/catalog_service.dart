@@ -115,7 +115,10 @@ class CatalogService {
     return defaultHeroSlides;
   }
 
-  static Future<Map<String, dynamic>?> fetchProductDetails(int id) async {
+  /// [fresh] skips the short cache so stock comes straight from the database.
+  static Future<Map<String, dynamic>?> fetchProductDetails(int id,
+      {bool fresh = false}) async {
+    if (fresh) _cache.remove('/products/$id');
     try {
       final response = await _get('/products/$id');
       if (response['product'] is Map) {

@@ -12,7 +12,6 @@ import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/services/message_service.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
-import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
@@ -25,6 +24,7 @@ import 'package:cartzy/buyer/inbox_screen.dart';
 import 'package:cartzy/buyer/account_activity_screen.dart';
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
+import 'package:cartzy/buyer/terms_policies_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -73,6 +73,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Timer? _scrollStopTimer;
 
   bool _onScrollNotification(ScrollNotification notification) {
+    // Only the page's own up/down scrolling by the user moves the nav, not
+    // the auto-sliding hero banner or other sideways carousels inside it.
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+
     if (notification.metrics.pixels <= 20) {
       if (!_isNavVisible) {
         setState(() => _isNavVisible = true);
@@ -881,59 +888,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   // TERMS & POLICIES MODAL
   // ==========================================
   void _openTermsModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Terms & Policies',
-                  style: GoogleFonts.dmSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF231F20)),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
-                  onPressed: () => Navigator.pop(ctx),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Text(
-                  'Welcome to Cartzy Philippines.\n\n'
-                  '1. Account Security\n'
-                  'You are responsible for safeguarding your login credentials. Notify Cartzy immediately upon any unauthorized access.\n\n'
-                  '2. Orders and Payments\n'
-                  'All transactions are processed securely. Prices are quoted in Philippine Pesos (₱) and include applicable taxes.\n\n'
-                  '3. Return and Refund Policy\n'
-                  'Items are covered by our 7-day return guarantee if defective or differing significantly from seller description.\n\n'
-                  '4. Privacy and Data Protection\n'
-                  'Your personal details and delivery addresses are encrypted and kept strictly confidential in accordance with the Data Privacy Act of 2012.',
-                  style: GoogleFonts.dmSans(
-                      fontSize: 13,
-                      height: 1.6,
-                      color: const Color(0xFF554B4F)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TermsPoliciesScreen()),
     );
   }
 
@@ -1220,21 +1176,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 width: double.infinity,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                // Same soft cream-to-blush look as the Cozy card.
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        CartzyColors.burgundy,
-                        CartzyColors.burgundyDeep
-                      ]),
+                    colors: [
+                      Color(0xFFFFF7F2),
+                      Color(0xFFFDECEE),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(22),
-                  border:
-                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                  border: Border.all(color: CartzyColors.rose200, width: 1.2),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.025),
-                      blurRadius: 12,
+                      color: CartzyColors.burgundy.withValues(alpha: 0.05),
+                      blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -1255,7 +1212,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   style: GoogleFonts.playfairDisplay(
                                     fontSize: 23,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: CartzyColors.navy,
                                   ),
                                 ),
                                 const SizedBox(height: 3),
@@ -1263,7 +1220,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   email,
                                   style: GoogleFonts.dmSans(
                                     fontSize: 12.5,
-                                    color: CartzyColors.cream,
+                                    color: CartzyColors.gray,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -1550,20 +1507,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       icon: Icons.description_outlined,
                       label: 'Terms & policies',
                       onTap: _openTermsModal,
-                    ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
-
-                    // Patch notes & What's new
-                    _buildMenuTile(
-                      icon: Icons.auto_awesome_rounded,
-                      label: "What's new (Patch notes)",
-                      onTap: () {
-                        AppUpdateService.checkLocalPatchNotes(context, forceShow: true);
-                      },
                     ),
                   ],
                 ),
@@ -1949,7 +1892,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         Row(children: [
           const CircleAvatar(
             radius: 22,
-            backgroundColor: CartzyColors.cream,
+            backgroundColor: Colors.white,
             child: Icon(Icons.person_outline_rounded,
                 color: CartzyColors.burgundy, size: 24),
           ),
@@ -1959,15 +1902,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white))),
+                      color: CartzyColors.navy))),
         ]),
         const SizedBox(height: 12),
         Wrap(spacing: 12, runSpacing: 8, children: [
           FilledButton(
             onPressed: widget.onLogin,
             style: FilledButton.styleFrom(
-              backgroundColor: CartzyColors.cream,
-              foregroundColor: CartzyColors.burgundy,
+              backgroundColor: CartzyColors.burgundy,
+              foregroundColor: Colors.white,
               minimumSize: const Size(104, 40),
             ),
             child: const Text('Log in'),
@@ -1975,7 +1918,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           OutlinedButton(
             onPressed: widget.onSignUp,
             style: OutlinedButton.styleFrom(
-              backgroundColor: CartzyColors.cream,
+              backgroundColor: Colors.white,
               foregroundColor: CartzyColors.burgundy,
               side: const BorderSide(color: CartzyColors.pinkBorder),
               minimumSize: const Size(104, 40),

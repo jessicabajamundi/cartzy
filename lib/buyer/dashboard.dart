@@ -22,6 +22,13 @@ import 'package:cartzy/search/search_screen.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/services/message_service.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buyer/my_orders_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
+import 'package:cartzy/widgets/cartzy_menu_drawer.dart';
+import 'package:cartzy/buyer/vouchers_screen.dart';
+import 'package:cartzy/buyer/recently_viewed_screen.dart';
+import 'package:cartzy/services/app_update_service.dart';
+import 'package:cartzy/services/recently_viewed_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
@@ -30,6 +37,9 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback? onInboxClick;
   final VoidCallback? onVouchersClick;
   final VoidCallback? onLogout;
+
+  /// Signs the buyer out and opens the login screen set to Rider.
+  final VoidCallback? onLoginAsRider;
   final String? userName;
 
   const DashboardScreen({
@@ -40,6 +50,7 @@ class DashboardScreen extends StatefulWidget {
     this.onInboxClick,
     this.onVouchersClick,
     this.onLogout,
+    this.onLoginAsRider,
     this.userName,
   });
 
@@ -55,6 +66,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<DailyDiscoverSectionState> _discoverKey =
       GlobalKey<DailyDiscoverSectionState>();
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   bool _isNavVisible = true;
   Timer? _scrollStopTimer;
 
@@ -64,9 +77,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     NotificationService.fetchUnreadCount();
     WishlistService.fetchWishlistRefs();
     MessageService.fetchUnreadCount();
+    RecentlyViewedService.load();
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
+    // Only the page's own up/down scrolling by the user moves the nav, not
+    // the auto-sliding hero banner or other sideways carousels inside it.
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+
     if (notification.metrics.pixels <= 20) {
       if (!_isNavVisible) {
         setState(() => _isNavVisible = true);
@@ -162,6 +183,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ).then((_) => MessageService.fetchUnreadCount());
   }
 
+  void _openFlashDeals() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const ProductListScreen(
+          initialCategory: 'Flash Deals',
+          title: 'Flash Deals',
+        ),
+      ),
+    );
+  }
+
+  void _openMyOrders() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyOrdersScreen(
+          onBack: () => Navigator.of(context).pop(),
+          onStartShopping: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  void _openVouchers() {
+    if (widget.onVouchersClick != null) {
+      widget.onVouchersClick!();
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VouchersScreen(
+          onBack: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  void _openRecentlyViewed() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RecentlyViewedScreen(
+          onBack: () => Navigator.of(context).pop(),
+          onViewCart: () {
+            Navigator.of(context).pop();
+            _openCart(context);
+          },
+        ),
+      ),
+    );
+  }
+
   void _openWishlist() {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => WishlistScreen(
@@ -174,7 +245,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: CartzyColors.background,
+      drawerEdgeDragWidth: 24,
+      drawer: CartzyMenuDrawer(
+        userName: widget.userName,
+        unreadMessages: MessageService.unreadCountNotifier,
+        onMessages: _openMessages,
+        onFlashDeals: _openFlashDeals,
+        onMyOrders: _openMyOrders,
+        onVouchers: _openVouchers,
+        onRecentlyViewed: _openRecentlyViewed,
+        onWhatsNew: () =>
+            AppUpdateService.checkLocalPatchNotes(context, forceShow: true),
+        onCozy: () => BuddyChatScreen.showPopup(context),
+        onLoginAsRider: () => widget.onLoginAsRider?.call(),
+        onLogout: () => widget.onLogout?.call(),
+      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -210,13 +297,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               padding: const EdgeInsets.fromLTRB(10, 10, 6, 12),
                               child: Row(
                                 children: [
-                                  // MESSAGE ICON BUTTON (Live Database unread counter)
+                                  // HAMBURGER MENU (dot = unread messages)
                                   ValueListenableBuilder<int>(
                                     valueListenable: MessageService.unreadCountNotifier,
                                     builder: (context, msgCount, _) {
                                       return IconButton(
-                                        tooltip: 'Messages',
-                                        onPressed: _openMessages,
+                                        tooltip: 'Menu',
+                                        onPressed: () =>
+                                            _scaffoldKey.currentState?.openDrawer(),
                                         style: IconButton.styleFrom(
                                           backgroundColor: Colors.transparent,
                                           foregroundColor: CartzyColors.burgundy,
@@ -225,35 +313,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         icon: Stack(
                                           clipBehavior: Clip.none,
                                           children: [
-                                            const BannerActionIcon(
-                                                Icons.chat_bubble_outline_rounded),
+                                            const BannerActionIcon(Icons.menu_rounded),
                                             if (msgCount > 0)
                                               Positioned(
-                                                right: 4,
-                                                top: 4,
+                                                right: 0,
+                                                top: 1,
                                                 child: Container(
-                                                  padding: const EdgeInsets.symmetric(
-                                                      horizontal: 4, vertical: 2),
-                                                  decoration: const BoxDecoration(
-                                                    color: Color(0xFFEF4444),
+                                                  width: 9,
+                                                  height: 9,
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFEF4444),
                                                     shape: BoxShape.circle,
-                                                  ),
-                                                  constraints: const BoxConstraints(
-                                                    minWidth: 14,
-                                                    minHeight: 14,
-                                                  ),
-                                                  child: Center(
-                                                    child: Text(
-                                                      msgCount > 99
-                                                          ? '99+'
-                                                          : '$msgCount',
-                                                      style: const TextStyle(
+                                                    border: Border.all(
                                                         color: Colors.white,
-                                                        fontSize: 8.5,
-                                                        fontWeight: FontWeight.bold,
-                                                        height: 1,
-                                                      ),
-                                                    ),
+                                                        width: 1.5),
                                                   ),
                                                 ),
                                               ),
@@ -343,27 +416,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 Icons.favorite_border_rounded),
                                             if (wishCount > 0)
                                               Positioned(
-                                                right: 4,
-                                                top: 4,
+                                                // Sits on the heart's top-right corner.
+                                                right: -5,
+                                                top: -4,
                                                 child: Container(
-                                                  padding: const EdgeInsets.all(4),
-                                                  decoration: const BoxDecoration(
-                                                    color: Color(0xFFD1495B),
-                                                    shape: BoxShape.circle,
-                                                  ),
+                                                  height: 14,
                                                   constraints: const BoxConstraints(
-                                                    minWidth: 14,
-                                                    minHeight: 14,
-                                                  ),
-                                                  child: Center(
-                                                    child: Text(
-                                                      wishCount > 99 ? '99+' : '$wishCount',
-                                                      style: const TextStyle(
+                                                      minWidth: 14),
+                                                  padding: const EdgeInsets.symmetric(
+                                                      horizontal: 3),
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFD1495B),
+                                                    borderRadius:
+                                                        BorderRadius.circular(7),
+                                                    border: Border.all(
                                                         color: Colors.white,
-                                                        fontSize: 8.5,
-                                                        fontWeight: FontWeight.bold,
-                                                        height: 1,
-                                                      ),
+                                                        width: 1.2),
+                                                  ),
+                                                  child: Text(
+                                                    wishCount > 99 ? '99+' : '$wishCount',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 7.5,
+                                                      fontWeight: FontWeight.w800,
+                                                      height: 1,
                                                     ),
                                                   ),
                                                 ),
@@ -559,16 +636,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         );
                       },
                       onAddToCart: (p) {
-                        CartService.instance.addItem(
+                        final result = CartService.instance.addItem(
                           name: p.name,
                           price: p.price,
                           category: p.category,
                           image: p.effectiveImageUrl,
+                          productId: p.id,
                         );
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${p.name} added to cart!'),
+                            content: Text(result.message(p.name)),
                             backgroundColor: CartzyColors.navy,
                             duration: const Duration(seconds: 3),
                             action: SnackBarAction(

@@ -85,6 +85,13 @@ class _CartScreenState extends State<CartScreen>
   static bool _swipeHintShown = false;
 
   bool _onScrollNotification(ScrollNotification notification) {
+    // Only the page's own up/down scrolling by the user moves the nav, not
+    // the auto-sliding hero banner or other sideways carousels inside it.
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical) {
+      return false;
+    }
+
     if (notification.metrics.pixels <= 20) {
       if (!_isNavVisible) {
         setState(() => _isNavVisible = true);
@@ -123,6 +130,20 @@ class _CartScreenState extends State<CartScreen>
     super.initState();
     CartService.instance.addListener(_onCartChanged);
     _entrance.forward();
+    _checkStock();
+  }
+
+  /// Gets the live stock of every item from the database and tells the
+  /// buyer if anything had to change.
+  Future<void> _checkStock() async {
+    final notes = await CartService.instance.refreshStock();
+    if (!mounted || notes.isEmpty) return;
+    _showSnack(
+      icon: Icons.inventory_2_outlined,
+      message: notes.length == 1
+          ? notes.first
+          : '${notes.length} items changed because of stock updates.',
+    );
   }
 
   @override
@@ -600,13 +621,21 @@ class _CartScreenState extends State<CartScreen>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _BlendCheckbox(
-            value: item.selected,
-            onTap: () => CartService.instance
-                .toggleItemSelection(index, !item.selected),
+            value: item.selected && !item.isOutOfStock,
+            onTap: () {
+              if (item.isOutOfStock) {
+                _showSnack(
+                  icon: Icons.inventory_2_outlined,
+                  message: '${item.safeName} is out of stock.',
+                );
+                return;
+              }
+              CartService.instance.toggleItemSelection(index, !item.selected);
+            },
           ),
           AnimatedOpacity(
             duration: const Duration(milliseconds: 220),
-            opacity: item.selected ? 1 : 0.6,
+            opacity: item.isOutOfStock ? 0.4 : (item.selected ? 1 : 0.6),
             child: _buildProductThumbnail(item),
           ),
           const SizedBox(width: 12),
@@ -689,17 +718,37 @@ class _CartScreenState extends State<CartScreen>
                               color: _CartPalette.muted,
                             ),
                           ),
+                          if (!item.isOutOfStock &&
+                              item.stock != null &&
+                              (item.atStockLimit || item.stock! <= 5))
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: _StockChip(
+                                label: item.atStockLimit
+                                    ? 'Max stock reached (${item.stock})'
+                                    : 'Only ${item.stock} left',
+                              ),
+                            ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 8),
-                    _QuantityStepper(
-                      quantity: item.quantity,
-                      onDecrease: () =>
-                          CartService.instance.decreaseQuantity(index),
-                      onIncrease: () =>
-                          CartService.instance.increaseQuantity(index),
-                    ),
+                    if (item.isOutOfStock)
+                      const _StockChip(label: 'Out of stock', strong: true)
+                    else
+                      _QuantityStepper(
+                        quantity: item.quantity,
+                        canIncrease: !item.atStockLimit,
+                        onIncreaseBlocked: () => _showSnack(
+                          icon: Icons.inventory_2_outlined,
+                          message:
+                              'Only ${item.stock} available for ${item.safeName}.',
+                        ),
+                        onDecrease: () =>
+                            CartService.instance.decreaseQuantity(index),
+                        onIncrease: () =>
+                            CartService.instance.increaseQuantity(index),
+                      ),
                   ],
                 ),
               ],
@@ -745,139 +794,78 @@ class _CartScreenState extends State<CartScreen>
     final totalAmount = hasSelection ? (_selectedTotal + shipping) : 0.0;
 
     return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: _CartPalette.line),
         boxShadow: [
           BoxShadow(
             color: _CartPalette.lavender.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(height: 4, decoration: const BoxDecoration(gradient: _CartPalette.blend)),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Order Summary',
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: _CartPalette.ink,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 3),
-                      decoration: BoxDecoration(
-                        gradient: _CartPalette.softBlend,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '$_selectedCount selected',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _CartPalette.lavender,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSummaryLine('Subtotal', _selectedTotal),
-                const SizedBox(height: 10),
-                _buildSummaryLine('Shipping Fee', shipping),
-                const SizedBox(height: 16),
-                const _DashedDivider(),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          _buildSummaryLine(
+            'Subtotal ($_selectedCount item${_selectedCount == 1 ? '' : 's'})',
+            _selectedTotal,
+          ),
+          const SizedBox(height: 6),
+          _buildSummaryLine('Shipping', shipping),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, thickness: 1, color: _CartPalette.line),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       'Total',
                       style: GoogleFonts.dmSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: _CartPalette.ink,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: _CartPalette.muted,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: ShaderMask(
-                            shaderCallback: (rect) =>
-                                _CartPalette.blend.createShader(rect),
-                            child: _AnimatedAmount(
-                              value: totalAmount,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: ShaderMask(
+                        shaderCallback: (rect) =>
+                            _CartPalette.blend.createShader(rect),
+                        child: _AnimatedAmount(
+                          value: totalAmount,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
-                _BlendButton(
-                  label: 'Proceed to Checkout',
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 150,
+                child: _BlendButton(
+                  label: 'Checkout',
                   icon: Icons.arrow_forward_rounded,
+                  height: 46,
                   enabled: hasSelection,
                   onTap: _checkout,
                 ),
-                const SizedBox(height: 12),
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.verified_user_outlined,
-                          size: 13, color: _CartPalette.muted),
-                      const SizedBox(width: 5),
-                      Flexible(
-                        child: Text(
-                          'Secure checkout · 100% Buyer Protection',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.dmSans(
-                            fontSize: 11,
-                            color: _CartPalette.muted,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Center(
-                  child: Text(
-                    'Only selected items will be checked out.',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      color: _CartPalette.muted,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -890,12 +878,12 @@ class _CartScreenState extends State<CartScreen>
       children: [
         Text(
           title,
-          style: GoogleFonts.dmSans(fontSize: 13, color: _CartPalette.muted),
+          style: GoogleFonts.dmSans(fontSize: 12.5, color: _CartPalette.muted),
         ),
         _AnimatedAmount(
           value: amount,
           style: GoogleFonts.dmSans(
-            fontSize: 13.5,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: _CartPalette.ink,
           ),
@@ -987,16 +975,17 @@ class _CartScreenState extends State<CartScreen>
           duration: const Duration(milliseconds: 200),
           child: Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            decoration: ShapeDecoration(
-              color: Colors.white,
-              shape: const StadiumBorder(
-                side: BorderSide(color: _CartPalette.line),
+            // Same bar style as the Home / Sale / Profile screens.
+            decoration: const ShapeDecoration(
+              color: CartzyColors.surface,
+              shape: StadiumBorder(
+                side: BorderSide(color: CartzyColors.border),
               ),
               shadows: [
                 BoxShadow(
-                  color: _CartPalette.lavender.withValues(alpha: 0.12),
-                  blurRadius: 18,
-                  offset: const Offset(0, 6),
+                  color: Color(0x148B3A3A),
+                  blurRadius: 16,
+                  offset: Offset(0, 4),
                 ),
               ],
             ),
@@ -1447,15 +1436,48 @@ class _BlendCheckbox extends StatelessWidget {
   }
 }
 
+class _StockChip extends StatelessWidget {
+  final String label;
+  final bool strong;
+
+  const _StockChip({required this.label, this.strong = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: strong ? _CartPalette.roseGoldDeep : CartzyColors.rose50Warm,
+        borderRadius: BorderRadius.circular(8),
+        border: strong ? null : Border.all(color: CartzyColors.rose200),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.dmSans(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          color: strong ? Colors.white : _CartPalette.roseGoldDeep,
+        ),
+      ),
+    );
+  }
+}
+
 class _QuantityStepper extends StatelessWidget {
   final int quantity;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
+  final bool canIncrease;
+  final VoidCallback? onIncreaseBlocked;
 
   const _QuantityStepper({
     required this.quantity,
     required this.onDecrease,
     required this.onIncrease,
+    this.canIncrease = true,
+    this.onIncreaseBlocked,
   });
 
   @override
@@ -1499,8 +1521,9 @@ class _QuantityStepper extends StatelessWidget {
           _StepperButton(
             icon: Icons.add_rounded,
             filled: true,
-            enabled: true,
+            enabled: canIncrease,
             onTap: onIncrease,
+            onDisabledTap: onIncreaseBlocked,
           ),
         ],
       ),
@@ -1519,7 +1542,10 @@ class _StepperButton extends StatelessWidget {
     required this.filled,
     required this.enabled,
     required this.onTap,
+    this.onDisabledTap,
   });
+
+  final VoidCallback? onDisabledTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1529,7 +1555,7 @@ class _StepperButton extends StatelessWidget {
               HapticFeedback.selectionClick();
               onTap();
             }
-          : null,
+          : onDisabledTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 180),
@@ -1774,31 +1800,6 @@ class _AnimatedAmount extends StatelessWidget {
   }
 }
 
-class _DashedDivider extends StatelessWidget {
-  const _DashedDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const dash = 5.0, gap = 4.0;
-        final count = (constraints.maxWidth / (dash + gap)).floor();
-        return Row(
-          children: List.generate(
-            count,
-            (_) => Container(
-              width: dash,
-              height: 1.2,
-              margin: const EdgeInsets.only(right: gap),
-              color: CartzyColors.brand200,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
 // ──────────────────────────────────────────────────────────────
 // CART BOTTOM NAV ITEM
 // ──────────────────────────────────────────────────────────────
@@ -1819,16 +1820,9 @@ class _CartBottomNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Same colors as the nav on every other screen.
     final highlighted = selected || isSale;
-    final color = highlighted ? _CartPalette.roseGold : CartzyColors.gray;
-
-    Widget iconWidget = Icon(icon, color: color, size: 22);
-    if (highlighted) {
-      iconWidget = ShaderMask(
-        shaderCallback: (rect) => _CartPalette.blend.createShader(rect),
-        child: Icon(icon, color: Colors.white, size: 22),
-      );
-    }
+    final color = highlighted ? CartzyColors.burgundy : CartzyColors.gray;
 
     return Expanded(
       child: InkWell(
@@ -1839,14 +1833,14 @@ class _CartBottomNavItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              iconWidget,
+              Icon(icon, color: color, size: 22),
               const SizedBox(height: 3),
               Text(
                 label,
                 style: GoogleFonts.dmSans(
                   fontSize: 11,
-                  color: highlighted ? _CartPalette.lavender : color,
-                  fontWeight: highlighted ? FontWeight.w700 : FontWeight.w400,
+                  color: color,
+                  fontWeight: highlighted ? FontWeight.w600 : FontWeight.w400,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1854,11 +1848,11 @@ class _CartBottomNavItem extends StatelessWidget {
               const SizedBox(height: 2),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                height: 3,
-                width: selected ? 18 : 0,
+                height: 2,
+                width: selected ? 16 : 0,
                 decoration: BoxDecoration(
-                  gradient: _CartPalette.blend,
-                  borderRadius: BorderRadius.circular(2),
+                  color: CartzyColors.burgundy,
+                  borderRadius: BorderRadius.circular(1),
                 ),
               ),
             ],

@@ -120,18 +120,21 @@ class _WishlistScreenState extends State<WishlistScreen> {
   }
 
   void _addToCart(WishlistItem item) {
-    CartService.instance.addItem(
+    final result = CartService.instance.addItem(
       name: item.name,
       price: item.price,
       image: item.image,
       variation: item.variation != 'Standard' ? item.variation : '',
       quantity: 1,
+      productId: item.productId,
     );
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Added "${item.name}" to your cart'),
+        content: Text(result.limited
+            ? result.message(item.name)
+            : 'Added "${item.name}" to your cart'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         action: SnackBarAction(

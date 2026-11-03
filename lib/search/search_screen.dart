@@ -312,17 +312,18 @@ class _SearchScreenState extends State<SearchScreen> {
       GuestCartScreen.open(context);
       return;
     }
-    CartService.instance.addItem(
+    final result = CartService.instance.addItem(
       name: product.name,
       price: product.price,
       originalPrice: product.originalPrice,
       category: product.category,
       image: product.effectiveImageUrl,
+      productId: product.id,
     );
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${product.name} added to cart!'),
+        content: Text(result.message(product.name)),
         backgroundColor: CartzyColors.navy,
         duration: const Duration(seconds: 3),
         action: SnackBarAction(
