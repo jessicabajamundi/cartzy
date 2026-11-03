@@ -24,7 +24,7 @@
 .pick-lane__slide { flex: 0 0 100%; width: 100%; min-width: 0; }
 .pick-lane__product { display: flex; flex-direction: column; height: 100%; color: inherit; text-decoration: none; }
 .pick-lane__media { margin: 0 12px; aspect-ratio: 4 / 3; max-height: 260px; border-radius: 14px; background: #f5f1ed; overflow: hidden; }
-.pick-lane__media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 650ms ease; }
+.pick-lane__media img { display: block; width: 100%; height: 100%; object-fit: contain; transition: transform 650ms ease; }
 .pick-lane__media--contain { background: #f9f7f4; }
 .pick-lane__media--contain img { object-fit: contain; padding: 16px; }
 .pick-lane__copy { display: flex; flex-direction: column; flex: 1; padding: 19px 20px 12px; }

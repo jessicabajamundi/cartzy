@@ -85,7 +85,7 @@
                      data-brand="{{ strtolower($sellerName) }}">
                     <div class="discovery-media relative aspect-square overflow-hidden bg-gray-50">
                         <a href="{{ route('products.show', $product->id) }}" class="block w-full h-full">
-                            <img src="{{ $coverImg }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 {{ $isOutOfStock ? 'opacity-75' : '' }}">
+                            <img src="{{ $coverImg }}" alt="{{ $product->name }}" loading="lazy" decoding="async" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 {{ $isOutOfStock ? 'opacity-75' : '' }}">
                         </a>
                         @if($badge)
                             <div class="absolute top-2 left-2 flex flex-col gap-1">

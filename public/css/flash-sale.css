@@ -19,7 +19,7 @@
 .flash-product-link:focus-visible::after { outline: 3px solid #574362; outline-offset: -3px; }
 .flash-cart-form { position: relative; z-index: 2; }
 .flash-card-image { position: relative; aspect-ratio: 1 / 1; background: #f2eef5; overflow: hidden; margin: 9px 9px 0; border-radius: 8px; }
-.flash-card-image img { width: 100%; height: 100%; object-fit: cover; transform-origin: center; transition: transform .65s cubic-bezier(.22, 1, .36, 1); }
+.flash-card-image img { width: 100%; height: 100%; object-fit: contain; transform-origin: center; transition: transform .65s cubic-bezier(.22, 1, .36, 1); }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
     .flash-card:hover { transform: translateY(-7px); box-shadow: 0 18px 34px -12px rgb(111 99 130 / 28%), 0 6px 14px rgb(183 110 121 / 10%); }
     .flash-card:hover .flash-card-image img { transform: translateY(-3px) scale(1.075) rotate(-1deg); }
