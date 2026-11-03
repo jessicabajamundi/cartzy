@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
 import 'package:cartzy/guest/guest_wishlist_screen.dart';
@@ -439,8 +438,6 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
               ),
             ),
           ),
-
-            BuddyLauncher(aboveNav: _isNavVisible),
 
             // ─────────────────────────────────────────────────
             // BOTTOM NAV BAR (Home, Cart, Sale, Profile)

@@ -22,6 +22,8 @@ import 'package:cartzy/address/add_address_screen.dart';
 
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
+import 'package:cartzy/widgets/buddy_bear.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -970,6 +972,33 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             const SizedBox(height: 12),
             ListTile(
               contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF3ECEE),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: BuddyBear(size: 30, mood: BuddyMood.happy),
+                ),
+              ),
+              title: const Text('Chat with Cozy (AI Buddy)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              subtitle: const Text('Instant answers about orders, items & tips',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14, color: Color(0xFF7A6E72)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
+                );
+              },
+            ),
+            const Divider(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: const CircleAvatar(
                   backgroundColor: Color(0xFFF3ECEE),
                   child: Icon(Icons.email_outlined, color: CartzyColors.navy)),
@@ -1530,7 +1559,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               const SizedBox(height: 24),
 
               // ==========================================
-              // 5. HELP SECTION (Help & support, Complaints)
+              // 5. HELP SECTION (Cozy AI, Help & support, Complaints)
               // ==========================================
               Text(
                 'HELP',
@@ -1542,6 +1571,151 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
               ),
               const SizedBox(height: 10),
+
+              // Featured Cozy AI Shopping Buddy Card
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const BuddyChatScreen(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(22),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFFF7F2),
+                        Color(0xFFFDECEE),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: CartzyColors.rose200, width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: CartzyColors.burgundy.withValues(alpha: 0.05),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Cozy bear avatar
+                      Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: CartzyColors.pinkBorder, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: BuddyBear(
+                            size: 42,
+                            mood: BuddyMood.wink,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'Cozy',
+                                  style: GoogleFonts.playfairDisplay(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: CartzyColors.navy,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: CartzyColors.rose50Warm,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: CartzyColors.rose200, width: 0.8),
+                                  ),
+                                  child: Text(
+                                    'AI Buddy',
+                                    style: GoogleFonts.dmSans(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: CartzyColors.burgundy,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'Need shopping advice, order tracking, or recommendations?',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 11.5,
+                                color: CartzyColors.brandDeep,
+                                height: 1.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const BuddyChatScreen(),
+                            ),
+                          );
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: CartzyColors.burgundy,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.chat_bubble_outline_rounded, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Chat',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
 
               Container(
                 decoration: BoxDecoration(
@@ -1559,6 +1733,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
                 child: Column(
                   children: [
+                    _buildMenuTile(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      label: 'Chat with Cozy AI',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const BuddyChatScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
                     _buildMenuTile(
                       icon: Icons.support_agent_rounded,
                       label: 'Help & support',
@@ -1628,7 +1818,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 50),
             ],
           ),
         ),
