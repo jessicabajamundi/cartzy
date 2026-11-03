@@ -38,6 +38,16 @@
 @endphp
 
 <div class="acct" data-acct>
+    <header class="acct-banner">
+        <span class="acct-banner-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.3 0-7 1.7-7 4.2V20h9.3a6 6 0 0 1-.3-5.9c-.6-.1-1.3-.1-2-.1Z"/><path d="M18 13.5a.75.75 0 0 1 .74.63l.1.62c.3.1.57.25.82.43l.58-.22a.75.75 0 0 1 .91.33l.5.86a.75.75 0 0 1-.17.95l-.48.4a3 3 0 0 1 0 .94l.48.4c.28.23.35.63.17.95l-.5.86a.75.75 0 0 1-.91.33l-.58-.22c-.25.18-.52.33-.82.43l-.1.62a.75.75 0 0 1-.74.63h-1a.75.75 0 0 1-.74-.63l-.1-.62a3.2 3.2 0 0 1-.82-.43l-.58.22a.75.75 0 0 1-.91-.33l-.5-.86a.75.75 0 0 1 .17-.95l.48-.4a3 3 0 0 1 0-.94l-.48-.4a.75.75 0 0 1-.17-.95l.5-.86a.75.75 0 0 1 .91-.33l.58.22c.25-.18.52-.33.82-.43l.1-.62A.75.75 0 0 1 17 13.5h1Zm-.5 3a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Z"/></svg>
+        </span>
+        <div>
+            <h1 class="acct-banner-title">Account Settings</h1>
+            <p class="acct-banner-lead">Keep your personal details, password, and delivery addresses up to date.</p>
+        </div>
+    </header>
+
     <aside class="acct-side">
         <div class="acct-who">
             <span class="acct-who-avatar">

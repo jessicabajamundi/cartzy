@@ -25,6 +25,26 @@
 }
 .acct *, .acct *::before, .acct *::after { box-sizing: border-box; }
 
+/* Page banner: deep violet blending into rose gold, the two Cartzy palettes in one sweep. */
+.acct-banner {
+    position: relative;
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px 28px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(115deg, #2F2839 0%, #4A3F5C 38%, #6F5468 68%, #A9766B 100%);
+    color: #fff;
+    box-shadow: 0 16px 36px -24px rgba(40, 33, 51, .7);
+}
+.acct-banner::after { content: ''; position: absolute; right: -60px; top: -90px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(245, 207, 199, .35), transparent 70%); pointer-events: none; }
+.acct-banner-icon { display: grid; place-items: center; flex: 0 0 52px; height: 52px; border-radius: 16px; background: rgba(255, 255, 255, .12); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); color: #F5CFC7; }
+.acct-banner-icon svg { width: 28px; height: 28px; }
+.acct-banner-title { margin: 0; color: #fff; font: 700 clamp(26px, 2.6vw, 34px)/1.1 'Cormorant Garamond', Georgia, serif; letter-spacing: -.01em; }
+.acct-banner-lead { margin: 6px 0 0; color: rgba(255, 255, 255, .78); font-size: 13.5px; line-height: 1.5; }
+
 /* Sidebar */
 .acct-side {
     position: sticky;
@@ -270,6 +290,9 @@
 }
 @media (max-width: 640px) {
     .acct-card { padding: 20px 16px; border-radius: 18px; }
+    .acct-banner { gap: 14px; padding: 18px 16px; border-radius: 18px; }
+    .acct-banner-icon { flex-basis: 44px; height: 44px; border-radius: 13px; }
+    .acct-banner-icon svg { width: 24px; height: 24px; }
     .acct-head { flex-direction: column; gap: 10px; margin-bottom: 16px; }
     .acct-grid { grid-template-columns: 1fr; }
     .acct-photo { gap: 14px; }
