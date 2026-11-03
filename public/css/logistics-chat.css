@@ -1,6 +1,6 @@
 .hub-chat-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; color:#302b38; }
 .hub-chat-eyebrow { color:#947065; font-size:10px; letter-spacing:.14em; font-weight:900; }
-.hub-chat-heading h2 { font:900 25px/1.3 'Lato',sans-serif; letter-spacing:-.03em; margin:6px 0; }
+.hub-chat-heading h2 { font:900 25px/1.3 'Inter',sans-serif; letter-spacing:-.03em; margin:6px 0; }
 .hub-chat-heading p { font-size:13px; color:#756f7c; }
 .hub-chat-label { padding:9px 14px; border:1px solid #e6d4cf; border-radius:20px; color:#895d53; background:#f8ede9; font-size:12px; white-space:nowrap; }
 .hub-chat { --chat-plum:#6f6382; --chat-rose:#c08b7f; display:grid; grid-template-columns:320px minmax(0,1fr); height:calc(100dvh - 245px); min-height:550px; max-height:880px; background:white; border:1px solid #e5dfe7; border-radius:16px; overflow:hidden; box-shadow:0 5px 22px #48345008; color:#302b38; }
@@ -9,7 +9,7 @@
 .hub-chat [hidden] { display:none !important; }
 .hub-chat-sidebar { display:flex; flex-direction:column; min-height:0; border-right:1px solid #e9e1e6; background:#fff; }
 .hub-chat-sidebar-head { padding:22px 18px 14px; }
-.hub-chat-sidebar h2 { font:900 16px 'Lato',sans-serif; display:flex; justify-content:space-between; align-items:center; margin-bottom:17px; }
+.hub-chat-sidebar h2 { font:900 16px 'Inter',sans-serif; display:flex; justify-content:space-between; align-items:center; margin-bottom:17px; }
 .hub-chat-sidebar h2 span { font-size:11px; padding:4px 7px; background:#f0eaf4; color:#6f6382; border-radius:6px; }
 .hub-chat-search { display:flex; gap:9px; align-items:center; border:1px solid #e8e1e7; border-radius:8px; background:#faf8fb; padding:9px 12px; }
 .hub-chat-search>span { font-size:23px; line-height:1; color:#84778e; }
@@ -38,7 +38,7 @@
 .hub-chat-thread { display:flex; flex-direction:column; min-height:0; min-width:0; }
 .hub-chat-thread-head { display:flex; align-items:center; gap:12px; padding:18px 24px; border-bottom:1px solid #e9e1e6; }
 .hub-chat-thread-head>div { min-width:0; }
-.hub-chat-thread-head h2 { font:900 14px 'Lato',sans-serif; overflow-wrap:anywhere; }
+.hub-chat-thread-head h2 { font:900 14px 'Inter',sans-serif; overflow-wrap:anywhere; }
 .hub-chat-thread-head p { font-size:11px; color:#867989; margin-top:5px; }
 .hub-chat-thread-head p span { margin:0 5px; color:#c08b7f; }
 .hub-chat-refresh { margin-left:auto; display:flex; gap:6px; align-items:center; color:#6f6382; font-size:12px; padding:8px; border-radius:6px; }

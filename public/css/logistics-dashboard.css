@@ -33,7 +33,7 @@
 .operations-kicker { display:flex; align-items:center; gap:8px; color:#efc7ba; letter-spacing:.16em; font-size:10px; }
 .operations-kicker > span { width:6px; height:6px; background:#e5b4a5; border-radius:50%; }
 .logistics-portal .logistics-content .operations-heading h2 {
-    font-family:'Lato',sans-serif; font-size:clamp(27px, 2.7vw, 40px);
+    font-family:'Inter',sans-serif; font-size:clamp(27px, 2.7vw, 40px);
     line-height:1.2; letter-spacing:-.035em; color:#fff; font-weight:900;
 }
 .operations-location { color:#e0d6e6; font-size:12px; margin-top:12px; }

@@ -1,5 +1,5 @@
-.pickup-workspace { max-width:1400px; margin:4px auto 28px; font-family:'Lato',sans-serif; color:var(--hub-ink); }
-.logistics-portal .pickup-workspace :is(h2,h3,h4) { font-family:'Lato',sans-serif; }
+.pickup-workspace { max-width:1400px; margin:4px auto 28px; font-family:'Inter',sans-serif; color:var(--hub-ink); }
+.logistics-portal .pickup-workspace :is(h2,h3,h4) { font-family:'Inter',sans-serif; }
 .pickup-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:25px; }
 .pickup-heading .pickup-kicker { margin:0 0 9px; font-size:10px; font-weight:800; letter-spacing:.14em; color:#95695f; }
 .pickup-heading h2 { margin:0; font-size:30px; font-weight:900; letter-spacing:-.035em; color:var(--hub-plum-dark); }
@@ -36,7 +36,7 @@
 .pickup-tabs a[aria-current=page] span { background:#ffffff26; color:white; }
 .pickup-search { display:flex; align-items:center; gap:9px; min-width:0; width:365px; padding-left:12px; border:1px solid #ded5e6; border-radius:8px; background:#faf8fc; }
 .pickup-search > span { color:var(--hub-plum); }
-.logistics-portal .pickup-search input[type=search] { width:100%; min-width:0; height:40px; border:0; background:transparent; font:400 12px 'Lato',sans-serif; color:var(--hub-ink); padding:6px 0; outline:none; }
+.logistics-portal .pickup-search input[type=search] { width:100%; min-width:0; height:40px; border:0; background:transparent; font:400 12px 'Inter',sans-serif; color:var(--hub-ink); padding:6px 0; outline:none; }
 .pickup-search button { align-self:stretch; padding:0 14px; border-left:1px solid #ded5e6; color:var(--hub-plum-dark); font-size:11px; font-weight:700; background:transparent; cursor:pointer; }
 .pickup-search button:hover { background:#f0eaf5; }
 .pickup-results { display:flex; flex-wrap:wrap; gap:8px 18px; justify-content:space-between; margin:17px 2px 12px; font-size:11px; color:var(--hub-muted); }
@@ -152,7 +152,7 @@
 
 .modal-filter-bar { margin-bottom:18px; display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
 .modal-search-label { font-size:11px; font-weight:700; color:#5e4b6b; }
-.modal-rider-search { width:100%; height:44px; border:1px solid #ded5e6; border-radius:10px; padding:0 14px; font:400 12px 'Lato',sans-serif; background:white; outline:none; }
+.modal-rider-search { width:100%; height:44px; border:1px solid #ded5e6; border-radius:10px; padding:0 14px; font:400 12px 'Inter',sans-serif; background:white; outline:none; }
 .modal-rider-search:focus { border-color:var(--hub-plum); background:white; }
 .modal-filter-hint { font-size:10.5px; color:var(--hub-muted); }
 

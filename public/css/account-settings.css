@@ -21,7 +21,7 @@
     max-width: 1240px;
     margin: 0 auto;
     color: var(--acct-ink);
-    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 .acct *, .acct *::before, .acct *::after { box-sizing: border-box; }
 

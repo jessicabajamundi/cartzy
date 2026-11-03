@@ -10,7 +10,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -20,7 +20,7 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Lato', sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             background-color: #ffffff !important;
             background-image: none !important;
             min-height: 100vh;
@@ -178,7 +178,7 @@
             background: #ffffff !important;
             outline: none !important;
             transition: border-color 0.18s, box-shadow 0.18s;
-            font-family: 'Lato', sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             box-shadow: none !important;
         }
         .auth-input::placeholder { color: #9ca3af !important; font-size: 0.95rem; font-weight: 500; }
@@ -234,7 +234,7 @@
             letter-spacing: 0.3px;
             box-shadow: 0 4px 14px rgba(111, 99, 130, 0.35) !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Lato', sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             text-align: center;
         }
         .btn-primary:hover  {
@@ -264,7 +264,7 @@
             border: 1px solid #e5e7eb !important; border-radius: 9999px !important; background: #fff !important;
             font-size: 0.85rem !important; font-weight: 600 !important; color: #374151 !important; cursor: pointer;
             transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-            font-family: 'Lato', sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
         }
         .btn-social:hover {
             border-color: #d1d5db !important; background: #f9fafb !important;
@@ -288,7 +288,7 @@
             text-decoration: none !important;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'Lato', sans-serif !important;
+            font-family: 'Inter', sans-serif !important;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
             user-select: none;

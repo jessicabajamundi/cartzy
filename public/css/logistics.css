@@ -1,6 +1,6 @@
 /* Cartzy logistics: plum foundations and rose-gold accents. */
 .logistics-portal { background:#F6F4F8; color:#3E354C; }
-.logistics-portal :is(h1,h2,h3,h4,.font-heading) { font-family:'Lato',sans-serif; letter-spacing:-.025em; }
+.logistics-portal :is(h1,h2,h3,h4,.font-heading) { font-family:'Inter',sans-serif; letter-spacing:-.025em; }
 .logistics-portal ::selection { background:#A8A0B2; color:white; }
 .logistics-portal ::-webkit-scrollbar-track { background:#F6F4F8; }
 .logistics-portal ::-webkit-scrollbar-thumb { background:#D4CADC; }

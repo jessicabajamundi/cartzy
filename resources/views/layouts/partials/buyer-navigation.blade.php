@@ -99,7 +99,7 @@
     width:260px; max-width:calc(100vw - 24px); padding:6px;
     border-radius:16px; border:1px solid #E8E5ED; background:#fff;
     box-shadow:0 16px 40px -10px rgba(40,33,51,0.18), 0 4px 12px rgba(40,33,51,0.04);
-    font-family:'Lato','Segoe UI',sans-serif; text-align:left;
+    font-family:'Inter','Segoe UI',sans-serif; text-align:left;
     animation:buyerOrdersFadeIn .16s ease-out;
 }
 @keyframes buyerOrdersFadeIn {

@@ -154,7 +154,7 @@ html.pd-viewer-open { overflow: hidden; }
 .pd-section-links span { color: #75687d; font-size: 11px; font-weight: 400; }
 .pd-panel { margin-top: 16px; padding: 28px 32px; background: white; border: 1px solid #e5dfe8; border-radius: 16px; scroll-margin-top: calc(var(--pd-header-offset, 0px) + 72px); }
 .pd-panel h2 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 16px; }
-.pd-count { font: 13px Lato, sans-serif; background: #f1edf5; color: #665173; padding: 4px 9px; border-radius: 20px; vertical-align: middle; }
+.pd-count { font: 13px Inter, sans-serif; background: #f1edf5; color: #665173; padding: 4px 9px; border-radius: 20px; vertical-align: middle; }
 .pd-empty { padding: 14px 16px; border-radius: 10px; background: #f7f5f9; color: #75687d; font-size: 13.5px; line-height: 1.6; margin: 12px 0; }
 
 /* Specifications + description in one card */
@@ -162,11 +162,11 @@ html.pd-viewer-open { overflow: hidden; }
 .pd-info-block { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; padding: 16px 0; scroll-margin-top: calc(var(--pd-header-offset, 0px) + 80px); }
 .pd-info-block > :not(.pd-info-title) { grid-column: 1; }
 .pd-info-block + .pd-info-block { border-top: 1px solid #efeaf2; }
-.pd-panel.pd-info .pd-info-title { display: block; margin: 0; font-family: Lato, sans-serif; font-size: 16px; font-weight: 700; line-height: 1.5; }
+.pd-panel.pd-info .pd-info-title { display: block; margin: 0; font-family: Inter, sans-serif; font-size: 16px; font-weight: 700; line-height: 1.5; }
 .pd-panel.pd-info .pd-info-title::before { display: none; }
 .pd-panel .pd-info-title { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; font-size: 22px; font-weight: 600; }
 .pd-panel .pd-info-title::before { content: ""; width: 4px; height: 20px; border-radius: 2px; background: #964c65; }
-.pd-specs { display: grid; margin: 0; font-family: Lato, sans-serif; font-size: 14px; }
+.pd-specs { display: grid; margin: 0; font-family: Inter, sans-serif; font-size: 14px; }
 .pd-specs > div { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; align-items: baseline; }
 .pd-specs > div + div { border-top: 1px solid #efeaf2; }
 .pd-specs dt { padding: 8px 0; color: #75687d; }

@@ -1,5 +1,5 @@
 /* Cozy the teddy bear: floating shopping buddy. Sits bottom-right, above the seller chat bubble where a page has one. */
-.buddy { --buddy-ink: #3E354C; --buddy-deep: #6F6382; --buddy-lav: #A8A0B2; --buddy-line: #E1DDE7; --buddy-soft: #FAF9FB; --buddy-rose: #D4A69A; --buddy-rose-deep: #B76E79; --buddy-blush: #FFF5F3; font-family: 'Lato', sans-serif; }
+.buddy { --buddy-ink: #3E354C; --buddy-deep: #6F6382; --buddy-lav: #A8A0B2; --buddy-line: #E1DDE7; --buddy-soft: #FAF9FB; --buddy-rose: #D4A69A; --buddy-rose-deep: #B76E79; --buddy-blush: #FFF5F3; font-family: 'Inter', sans-serif; }
 .buddy *, .buddy *::before, .buddy *::after { box-sizing: border-box; }
 .buddy [hidden] { display: none !important; }
 

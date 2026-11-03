@@ -3,7 +3,7 @@
    component family (headings, metric boxes, panels, buttons, tabs, badges, tables, fields) to its
    admin equivalent. Rules are prefixed with body.logistics-admin so they win without !important. */
 
-/* The logistics styles were written for Lato and use weights 800-900, which Segoe UI draws as Black.
+/* The logistics styles were written for Inter and use weights 800-900, which Segoe UI draws as Black.
    Admin never goes past bold, so those weights use Segoe UI Semibold here. */
 @font-face { font-family: "Segoe UI"; font-weight: 800 900; src: local("Segoe UI Semibold"), local("SegoeUI-Semibold"); }
 

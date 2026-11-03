@@ -1,4 +1,4 @@
-.delivery-monitor { font-family:'Lato',Arial,sans-serif; color:#302b38; font-size:13px; max-width:1600px; margin:auto; }
+.delivery-monitor { font-family:'Inter',Arial,sans-serif; color:#302b38; font-size:13px; max-width:1600px; margin:auto; }
 .delivery-monitor :is(h2,h3,button,input) { font-family:inherit; }
 .monitor-heading { display:flex; justify-content:space-between; align-items:center; gap:22px; margin-bottom:24px; }
 .monitor-eyebrow { color:#98695e; letter-spacing:.14em; font-size:10px; font-weight:900; }

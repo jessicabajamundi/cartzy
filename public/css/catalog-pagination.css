@@ -18,7 +18,7 @@
     line-height: 1.5;
     letter-spacing: .01em;
     text-align: right;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-variant-numeric: tabular-nums;
 }
 :is(#daily-discover-section, .flash-page) :is(.discovery-page-controls, .flash-page-controls) {
@@ -45,7 +45,7 @@
     border-radius: 8px;
     background: transparent;
     color: #65596f;
-    font: 700 12px 'Lato', sans-serif;
+    font: 700 12px 'Inter', sans-serif;
     box-shadow: none;
     text-decoration: none;
     transition: background .18s, color .18s, box-shadow .18s;

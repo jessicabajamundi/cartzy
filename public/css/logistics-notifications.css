@@ -1,10 +1,10 @@
-.hub-notifications { max-width:1120px; margin:8px auto 32px; font-family:'Lato',sans-serif; color:var(--hub-ink); }
-.logistics-portal .hub-notifications :is(h2,h3) { font-family:'Lato',sans-serif; }
+.hub-notifications { max-width:1120px; margin:8px auto 32px; font-family:'Inter',sans-serif; color:var(--hub-ink); }
+.logistics-portal .hub-notifications :is(h2,h3) { font-family:'Inter',sans-serif; }
 .notice-heading { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:26px; }
 .hub-notifications .notice-eyebrow { margin:0 0 9px; color:#94685e; font-size:10px; font-weight:800; letter-spacing:.15em; }
 .notice-heading h2 { margin:0; font-size:32px; line-height:1.2; font-weight:900; letter-spacing:-.035em; color:var(--hub-plum-dark); }
 .notice-subtitle { margin:10px 0 0; font-size:13px; color:var(--hub-muted); line-height:1.6; }
-.notice-button { display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:12px 17px; border:1px solid var(--hub-plum); border-radius:9px; background:var(--hub-plum); color:white; font:700 12px 'Lato',sans-serif; white-space:nowrap; cursor:pointer; transition:background .15s; }
+.notice-button { display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:12px 17px; border:1px solid var(--hub-plum); border-radius:9px; background:var(--hub-plum); color:white; font:700 12px 'Inter',sans-serif; white-space:nowrap; cursor:pointer; transition:background .15s; }
 .notice-button:hover:not(:disabled) { background:var(--hub-plum-dark); }
 .notice-button:disabled { background:#eee9f2; border-color:#e1d9e8; color:#80728e; cursor:default; }
 .notice-summary { display:flex; align-items:center; gap:16px; padding:22px 25px; margin-bottom:26px; border:1px solid #e5dce7; border-radius:13px; background:linear-gradient(110deg,#f0eaf5 0%,#faf5f4 70%,#f4e6e0 100%); }

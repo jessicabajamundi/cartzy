@@ -158,7 +158,6 @@
 @endpush
 
 @push('styles')
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="{{ asset('css/daily-discover.css') }}?v={{ filemtime(public_path('css/daily-discover.css')) }}">
 <link rel="stylesheet" href="{{ asset('css/storefront-cards.css') }}?v={{ filemtime(public_path('css/storefront-cards.css')) }}">
 @endpush

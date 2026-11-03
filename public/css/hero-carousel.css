@@ -16,7 +16,7 @@
     background: var(--hero-soft);
     box-shadow: none;
     color: var(--hero-ink);
-    font-family: 'Lato', sans-serif;
+    font-family: 'Inter', sans-serif;
     touch-action: pan-y pinch-zoom;
 }
 .market-hero__slides { display: grid; }

@@ -413,7 +413,7 @@
     border-radius:14px;
     color:#302b38;
     box-shadow:0 24px 80px #302b3833;
-    font-family:'Lato',sans-serif
+    font-family:'Inter',sans-serif
 }
 .rider-action-dialog { background:#fff; }
 .rider-action-icon { display:grid; place-items:center; width:48px; height:48px; margin-bottom:18px; border-radius:14px; background:#f7e9e3; color:#9b5148; }

@@ -95,7 +95,7 @@ body.auth-split-page {
 }
 .auth-visual__copy h2 {
     margin: 0;
-    font-family: 'Lato', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: clamp(26px, 2.5vw, 40px);
     font-weight: 900;
     line-height: 1.15;

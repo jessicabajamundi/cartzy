@@ -26,7 +26,7 @@
 .category-filter-banner #category-banner-name { margin: 0; font-size: 28px; font-weight: 600; line-height: 1.15; color: #faf5fa; overflow-wrap: anywhere; }
 .category-filter-banner__count { display: inline-flex; align-items: center; gap: 9px; padding: 5px 9px 5px 12px; border-radius: 100px; background: rgb(200 145 154 / 14%); color: #ebdbe9; font-size: 11px; line-height: 1.5; }
 .category-filter-banner__count strong { min-width: 23px; padding: 2px 6px; border-radius: 50px; background: #e7b7bf; color: #3e354c; text-align: center; font-size: 11px; font-variant-numeric: tabular-nums; }
-.category-filter-banner__clear { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; min-height: 42px; padding: 10px 17px; border: 1px solid #d9a7b0; border-radius: 100px; background: #f7e9ec; color: #584053; font: 700 12px/1.4 'Lato', sans-serif; cursor: pointer; transition: background .2s, box-shadow .2s; }
+.category-filter-banner__clear { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; min-height: 42px; padding: 10px 17px; border: 1px solid #d9a7b0; border-radius: 100px; background: #f7e9ec; color: #584053; font: 700 12px/1.4 'Inter', sans-serif; cursor: pointer; transition: background .2s, box-shadow .2s; }
 .category-filter-banner__button-note { font-weight: 400; }
 .category-filter-banner__clear:hover { background: #edcbd2; box-shadow: 0 3px 12px rgb(40 25 43 / 12%); }
 .category-filter-banner__clear:focus-visible { outline: 2px solid #edbdc5; outline-offset: 4px; }

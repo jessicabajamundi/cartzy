@@ -105,7 +105,7 @@
     .profile-signout {
         display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 6px 12px;
         border: 0; border-radius: 999px; background: transparent; color: #A14848;
-        font: 700 14px 'Lato', 'Segoe UI', sans-serif; white-space: nowrap; cursor: pointer;
+        font: 700 14px 'Inter', 'Segoe UI', sans-serif; white-space: nowrap; cursor: pointer;
         transition: background 150ms, color 150ms, transform 150ms;
     }
     .profile-signout svg { width: 18px; height: 18px; flex-shrink: 0; transition: transform 200ms; }
@@ -124,7 +124,7 @@
         width: 280px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 90px); overflow-y: auto;
         padding: 0; border: 1px solid #E8E5ED; border-radius: 16px;
         background: #fff; color: #282133; text-align: left;
-        font-family: 'Lato', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5;
+        font-family: 'Inter', 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.5;
         box-shadow: 0 16px 48px -12px rgba(40,33,51,.22), 0 4px 12px rgba(40,33,51,.04);
     }
     .profile-menu-header { display: flex; align-items: center; gap: 12px; padding: 20px; border-bottom: 1px solid #F0EDF3; }

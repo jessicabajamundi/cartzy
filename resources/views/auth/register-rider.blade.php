@@ -637,7 +637,7 @@
     /* ═══════════════════════════════════════════════════════════════════
        Cartzy Design System: Rider Registration Styles
        Palette: #564B68, #6F6382, #91879E, #A8A0B2, #C08B7F
-       Typography: Lato & Cormorant Garamond
+       Typography: Inter & Cormorant Garamond
        ═══════════════════════════════════════════════════════════════════ */
     .rider-registration-container {
         width: 100%;
@@ -785,7 +785,7 @@
     }
 
     .rider-section-heading {
-        font-family: 'Lato', sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 1.02rem;
         font-weight: 700;
         color: #111827;

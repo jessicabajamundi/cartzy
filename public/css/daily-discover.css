@@ -5,7 +5,7 @@
     --discovery-muted: var(--brand-deep, #6F6382);
     --discovery-border: var(--accent-primary, #D4A69A);
     --discovery-rose: var(--accent-dark, #8C5A50);
-    font-family: 'Lato', sans-serif;
+    font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     scroll-margin-top: 150px;
     padding: 16px 0 0;
@@ -266,7 +266,7 @@
     border-radius: 8px;
     background: #fff;
     color: var(--brand-dark, #564B68);
-    font: 700 13px 'Lato', sans-serif;
+    font: 700 13px 'Inter', sans-serif;
     cursor: pointer;
     transition: background .18s, border-color .18s;
 }

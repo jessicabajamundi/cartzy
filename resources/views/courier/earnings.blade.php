@@ -237,7 +237,7 @@
                     legend: {
                         position: 'top',
                         labels: {
-                            font: { family: "'Lato', sans-serif", weight: 'bold', size: 11 }
+                            font: { family: "'Inter', sans-serif", weight: 'bold', size: 11 }
                         }
                     }
                 },
