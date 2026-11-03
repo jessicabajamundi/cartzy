@@ -232,6 +232,7 @@ class OrderPlacement
                 "Your order {$order->reference} was successfully placed.",
                 route('buyer.dashboard', ['tab' => 'orders'])
             );
+            \App\Models\ActivityLog::forUser($buyer, 'order_placed', $order->reference);
 
             return $order;
         });

@@ -102,6 +102,8 @@ class ProblemReportController extends Controller
                 "We received your report for order {$reference} (case #{$dispute->id}). We'll update you here once it's reviewed.",
                 route('buyer.dashboard', ['tab' => 'orders']));
 
+            \App\Models\ActivityLog::forUser($request->user(), 'problem_reported', "{$reference} · case #{$dispute->id}");
+
             return $dispute;
         });
     }

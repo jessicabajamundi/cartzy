@@ -86,6 +86,7 @@ class DashboardController extends Controller
             'stats'         => $stats,
             'addresses'     => $this->addresses($user),
             'savedAddresses' => \App\Models\Address::where('user_id', $user->id)->orderByDesc('is_default')->orderBy('id')->get(),
+            'activityLogs'  => \App\Models\ActivityLog::where('user_id', $user->id)->latest('created_at')->latest('id')->limit(100)->get(),
             'tracking'      => $this->tracking($sellerOrders, $request->query('track')),
             // Tracking lives inside the Orders tab; it opens from a card's "Track order" button or an old Track Order link.
             'showTracking'  => $request->filled('track') || $request->query('tab') === 'track',

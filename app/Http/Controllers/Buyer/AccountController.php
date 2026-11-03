@@ -156,6 +156,8 @@ class AccountController extends Controller
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
         }
 
+        \App\Models\ActivityLog::forUser(Auth::user(), 'profile_updated');
+        if ($request->hasFile('id_photo')) \App\Models\ActivityLog::forUser(Auth::user(), 'id_submitted', $request->input('id_type'));
         $idMsg = $request->hasFile('id_photo') ? ' Your ID document was also submitted for verification!' : '';
         return back()->with('success', 'Your profile has been updated successfully!' . $idMsg);
     }
@@ -174,6 +176,7 @@ class AccountController extends Controller
             $path = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $path;
             $user->save();
+            \App\Models\ActivityLog::forUser($user, 'avatar_updated');
 
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
         }
@@ -194,6 +197,7 @@ class AccountController extends Controller
             }
             $user->avatar = null;
             $user->save();
+            \App\Models\ActivityLog::forUser($user, 'avatar_removed');
 
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
         }
@@ -228,6 +232,7 @@ class AccountController extends Controller
                 $user->id_status           = 'pending';
                 $user->id_rejection_reason = null;
                 $user->save();
+                \App\Models\ActivityLog::forUser($user, 'id_submitted', $validated['id_type']);
 
                 if ($user->isBuyer()) {
                     \App\Models\Buyer::updateOrCreate(
@@ -270,6 +275,7 @@ class AccountController extends Controller
 
             $user->password = Hash::make($request->input('password'));
             $user->save();
+            \App\Models\ActivityLog::forUser($user, 'password_changed');
 
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
         }

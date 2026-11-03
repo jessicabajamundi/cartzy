@@ -222,7 +222,8 @@ class AuthController extends Controller
             // Fallback if DB connection fails
         }
 
-        ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, null, [
+        // Tie the attempt to the account when the email exists, so its owner can see it in Account activity.
+        ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, User::where('email', $credentials['email'])->first(), [
             'email' => $credentials['email'], 'method' => 'password', 'description' => 'Invalid credentials',
         ]);
 

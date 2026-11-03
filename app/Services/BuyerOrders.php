@@ -96,6 +96,7 @@ class BuyerOrders
             if ($order->payment_status !== 'paid') {
                 $order->update(['payment_status' => 'paid']);
                 $order->payments()->update(['status' => 'paid']);
+                \App\Models\ActivityLog::forUser($buyerId, 'order_paid', $order->reference);
                 NotificationService::notify(
                     $buyerId,
                     'payment',
@@ -146,6 +147,7 @@ class BuyerOrders
                 "The buyer requested cancellation of {$order->reference}. Reason: {$reason}",
                 route('seller.orders', ['status' => 'cancellation_requested'])
             );
+            \App\Models\ActivityLog::forUser($buyerId, 'order_cancelled', "{$order->reference} · {$reason}");
             return 'Cancellation request sent. Your order will only be cancelled after seller approval.';
         });
 

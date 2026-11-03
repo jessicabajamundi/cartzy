@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -93,6 +94,8 @@ class AddressController extends Controller
             return $address->fresh();
         });
 
+        ActivityLog::forUser($request->user(), 'address_added', $address->label.' · '.$address->line1.', '.$address->city);
+
         return response()->json(['address' => self::addressJson($address)], 201);
     }
 
@@ -104,6 +107,7 @@ class AddressController extends Controller
             $address->update(collect($fields)->except('is_default')->all());
             if ($fields['is_default']) $this->makeDefault($address);
         });
+        ActivityLog::forUser($request->user(), 'address_updated', $address->label.' · '.$address->line1.', '.$address->city);
 
         return response()->json(['address' => self::addressJson($address->fresh())]);
     }
@@ -112,6 +116,7 @@ class AddressController extends Controller
     {
         $address = $this->own($request, $id);
         DB::transaction(fn () => $this->makeDefault($address));
+        ActivityLog::forUser($request->user(), 'address_default', $address->label);
 
         return response()->json(['address' => self::addressJson($address->fresh())]);
     }
@@ -126,6 +131,8 @@ class AddressController extends Controller
                 $this->makeDefault($next);
             }
         });
+
+        ActivityLog::forUser($request->user(), 'address_deleted', $address->label);
 
         return response()->json(['ok' => true]);
     }

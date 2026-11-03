@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CatalogController;
@@ -38,6 +39,7 @@ Route::post('/buddy/chat', [BuddyController::class, 'chat'])->middleware('thrott
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::get('/account/activity', [ActivityController::class, 'index']);
 
     Route::middleware('api.role:buyer')->group(function () {
         Route::get('/addresses', [AddressController::class, 'index']);

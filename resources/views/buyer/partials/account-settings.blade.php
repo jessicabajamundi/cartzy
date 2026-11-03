@@ -16,8 +16,13 @@
         'follows'    => 'Keep track of the shops you love and see their newest drops in one place.',
         'complaints' => 'Follow up on problems you reported about your orders.',
         'help'       => 'Find answers to common questions or get in touch with the Cartzy team.',
-        'activity'   => 'Review recent sign-ins and changes made to your account.',
     ];
+    $acctGroupIcons = [
+        'security' => 'M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6l-8-3Z',
+        'account'  => 'M19 21v-2a7 7 0 0 0-14 0v2 M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
+        'orders'   => 'M5 7h14l1 14H4L5 7Z M9 7V5a3 3 0 0 1 6 0v2',
+    ];
+    $acctActivityDays = ($activityLogs ?? collect())->groupBy(fn ($log) => $log->created_at->toDateString());
     // Open the section a failed form came from, otherwise the one in the URL.
     $acctOpen = match (true) {
         $errors->addressBook->any() => 'addresses',
@@ -244,6 +249,52 @@
             </form>
         </section>
 
+        {{-- Account activity --}}
+        <section class="acct-card" id="acct-activity" role="tabpanel" aria-labelledby="acct-tab-activity" data-acct-section="activity" @if($acctOpen !== 'activity') hidden @endif>
+            <header class="acct-head">
+                <div>
+                    <p class="acct-eyebrow">Security</p>
+                    <h2 class="acct-title">Account activity</h2>
+                    <p class="acct-lead">Sign-ins, account changes and orders from the website and the Cartzy app. Don't recognise something? Change your password right away.</p>
+                </div>
+            </header>
+            @if($acctActivityDays->isEmpty())
+                <div class="acct-soon">
+                    <span class="acct-soon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $acctSections['activity'][1] }}"/></svg></span>
+                    <h3>No activity yet</h3>
+                    <p>Your sign-ins and account changes will show up here.</p>
+                </div>
+            @else
+                <div class="acct-filters" role="group" aria-label="Filter activity">
+                    @foreach(['all' => 'All', 'security' => 'Sign-ins & security', 'account' => 'Account changes', 'orders' => 'Orders'] as $filter => $filterLabel)
+                        <button type="button" class="acct-chip" data-acct-activity-filter="{{ $filter }}" aria-pressed="{{ $filter === 'all' ? 'true' : 'false' }}">{{ $filterLabel }}</button>
+                    @endforeach
+                </div>
+                @foreach($acctActivityDays as $day => $dayLogs)
+                    @php($dayDate = \Carbon\Carbon::parse($day))
+                    <div class="acct-day" data-acct-day>
+                        <h3 class="acct-day-label">{{ $dayDate->isToday() ? 'Today' : ($dayDate->isYesterday() ? 'Yesterday' : $dayDate->format('F j, Y')) }}</h3>
+                        <ol class="acct-log-list">
+                            @foreach($dayLogs as $log)
+                                @php($entry = $log->toFeedArray())
+                                <li class="acct-log {{ $log->event === 'failed_login' ? 'acct-log-alert' : '' }}" data-group="{{ $entry['group'] }}">
+                                    <span class="acct-log-icon acct-log-{{ $entry['group'] }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $acctGroupIcons[$entry['group']] }}"/></svg></span>
+                                    <div class="acct-log-body">
+                                        <strong>{{ $entry['title'] }}</strong>
+                                        @if($entry['description'])<p>{{ $entry['description'] }}</p>@endif
+                                        <small><span class="acct-log-channel">{{ $entry['channel'] === 'mobile' ? 'Mobile app' : 'Website' }}</span> {{ $entry['device'] }}@if($entry['ip_address']) · IP {{ $entry['ip_address'] }}@endif</small>
+                                    </div>
+                                    <time datetime="{{ $entry['created_at'] }}" title="{{ $log->created_at->format('F j, Y g:i A') }}">{{ $log->created_at->format('g:i A') }}</time>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </div>
+                @endforeach
+                <p class="acct-hint" data-acct-activity-empty hidden>No activity of this kind yet.</p>
+                <p class="acct-hint">Showing your latest {{ ($activityLogs ?? collect())->count() }} entries.</p>
+            @endif
+        </section>
+
         {{-- Coming soon --}}
         @foreach($acctComingSoon as $key => $blurb)
             <section class="acct-card" id="acct-{{ $key }}" role="tabpanel" aria-labelledby="acct-tab-{{ $key }}" data-acct-section="{{ $key }}" @if($acctOpen !== $key) hidden @endif>
@@ -309,6 +360,25 @@
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); label.click(); }
         });
     });
+
+    // Activity filters hide entries (and empty days) outside the chosen group.
+    const chips = [...root.querySelectorAll('[data-acct-activity-filter]')];
+    chips.forEach((chip) => chip.addEventListener('click', () => {
+        const group = chip.dataset.acctActivityFilter;
+        chips.forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        let shown = 0;
+        root.querySelectorAll('[data-acct-day]').forEach((day) => {
+            let dayShown = 0;
+            day.querySelectorAll('[data-group]').forEach((item) => {
+                item.hidden = group !== 'all' && item.dataset.group !== group;
+                if (!item.hidden) dayShown++;
+            });
+            day.hidden = dayShown === 0;
+            shown += dayShown;
+        });
+        const empty = root.querySelector('[data-acct-activity-empty]');
+        if (empty) empty.hidden = shown > 0;
+    }));
 
     // Keep "Current age" in step with the birthday field.
     const birthday = document.getElementById('acct-birthday');

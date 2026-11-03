@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Buyer;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Address;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -32,6 +33,7 @@ class SettingsController extends Controller
             'postal_code.regex' => 'Postal code must contain exactly 4 digits.',
         ]);
 
+        $isNew = empty($data['address_id']);
         DB::transaction(function () use ($request, $data) {
             $user = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $address = !empty($data['address_id'])
@@ -71,6 +73,8 @@ class SettingsController extends Controller
             }
         });
 
+        ActivityLog::forUser($request->user(), $isNew ? 'address_added' : 'address_updated', $data['label'].' · '.$data['line1'].', '.$data['city']);
+
         return back()->with('success', 'Delivery address saved.');
     }
 
@@ -104,6 +108,8 @@ class SettingsController extends Controller
             }
         });
 
+        ActivityLog::forUser($request->user(), 'address_deleted');
+
         return back()->with('success', 'Address deleted successfully.');
     }
 
@@ -119,6 +125,8 @@ class SettingsController extends Controller
                 \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
             }
         });
+
+        ActivityLog::forUser($request->user(), 'address_default');
 
         return back()->with('success', 'Default delivery address updated.');
     }
@@ -147,6 +155,8 @@ class SettingsController extends Controller
                 ->where('user_id', $request->user()->id)
                 ->where('id', '!=', $request->session()->getId())->delete();
         }
+
+        ActivityLog::forUser($request->user(), 'devices_signed_out');
 
         return back()->with('success', 'Other devices have been signed out. This session remains active.');
     }

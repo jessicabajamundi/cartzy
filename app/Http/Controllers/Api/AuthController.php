@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -48,6 +49,7 @@ class AuthController extends Controller
 
         $user = User::where('email', strtolower(trim($data['email'])))->first();
         if (!$user || !Hash::check($data['password'], $user->password)) {
+            ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['email' => $data['email'], 'method' => 'password', 'description' => 'Invalid credentials']);
             return response()->json(['message' => 'The provided credentials do not match our records.'], 422);
         }
 
@@ -68,6 +70,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken($data['device_name'] ?? 'cartzy-mobile')->plainTextToken;
+        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'password']);
 
         return response()->json(['token' => $token, 'user' => self::userJson($user)]);
     }
@@ -289,6 +292,8 @@ class AuthController extends Controller
         });
         Cache::forget('otp_'.$email);
 
+        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'registration']);
+
         return response()->json(['token' => $user->createToken('cartzy-mobile')->plainTextToken, 'user' => self::userJson($user)], 201);
     }
 
@@ -399,6 +404,7 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        ActivityLog::record(ActivityLog::LOGOUT, $request, $request->user());
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json(['ok' => true]);
@@ -484,6 +490,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken($data['device_name'] ?? 'cartzy-mobile')->plainTextToken;
+        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google']);
 
         return response()->json([
             'token' => $token,
