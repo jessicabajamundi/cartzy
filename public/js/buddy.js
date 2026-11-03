@@ -6,17 +6,39 @@
     const $ = (id) => document.getElementById(id);
     const panel = $('buddyPanel'), launcher = $('buddyLauncher'), log = $('buddyLog'), chips = $('buddyChips');
     const form = $('buddyForm'), input = $('buddyInput'), send = $('buddySend'), status = $('buddyStatus'), greeting = $('buddyGreeting');
+    const discard = $('buddyDiscard'), discardLabel = $('buddyDiscardLabel');
     const art = $('buddy-bear-art');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const name = root.dataset.userName;
     // Per account, so a chat about someone's orders doesn't reappear after they sign out.
     const storeKey = `cartzy-buddy-chat-${root.dataset.userId || 'guest'}`;
+    const discardedKey = `cartzy-buddy-discarded-${root.dataset.userId || 'guest'}`;
+    const posKey = `cartzy-buddy-pos-${root.dataset.userId || 'guest'}`;
     const peso = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: Number.isInteger(amount) ? 0 : 2 }).format(amount);
     const productMatch = location.pathname.match(/^\/products\/(\d+)/);
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const bears = [...root.querySelectorAll('[data-bear]')];
     bears.forEach((slot) => slot.appendChild(art.content.cloneNode(true)));
+
+    // Check if Cozy was discarded in this session or restore custom position
+    if (sessionStorage.getItem(discardedKey) === '1') {
+        launcher.hidden = true;
+    } else {
+        try {
+            const savedPos = JSON.parse(sessionStorage.getItem(posKey) || 'null');
+            if (savedPos && typeof savedPos.left === 'number' && typeof savedPos.top === 'number') {
+                const maxX = Math.max(10, window.innerWidth - 100);
+                const maxY = Math.max(10, window.innerHeight - 100);
+                const x = Math.max(10, Math.min(maxX, savedPos.left));
+                const y = Math.max(10, Math.min(maxY, savedPos.top));
+                launcher.style.left = `${x}px`;
+                launcher.style.top = `${y}px`;
+                launcher.style.right = 'auto';
+                launcher.style.bottom = 'auto';
+            }
+        } catch {}
+    }
 
     let history = [];   // {role, content} sent to the server
     let transcript = []; // {role, text, products} shown on screen
@@ -273,7 +295,129 @@
         if (matchMedia('(min-width: 481px)').matches) input.focus();
     }
 
-    launcher.addEventListener('click', openPanel);
+    let isPointerDown = false;
+    let isDragging = false;
+    let hasMoved = false;
+    let startX = 0, startY = 0;
+    let initialLeft = 0, initialTop = 0;
+    let launcherWidth = 92, launcherHeight = 92;
+
+    const onPointerDown = (e) => {
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+        isPointerDown = true;
+        hasMoved = false;
+        isDragging = false;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        const rect = launcher.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialTop = rect.top;
+        launcherWidth = rect.width || 92;
+        launcherHeight = rect.height || 92;
+
+        try { launcher.setPointerCapture(e.pointerId); } catch {}
+    };
+
+    const onPointerMove = (e) => {
+        if (!isPointerDown) return;
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        if (!hasMoved && Math.hypot(deltaX, deltaY) > 6) {
+            hasMoved = true;
+            isDragging = true;
+            launcher.classList.add('is-dragging');
+            if (greeting) greeting.hidden = true;
+            if (discard) {
+                discard.hidden = false;
+                void discard.offsetWidth;
+                discard.classList.add('is-visible');
+            }
+        }
+
+        if (isDragging) {
+            let newLeft = initialLeft + deltaX;
+            let newTop = initialTop + deltaY;
+
+            const maxLeft = Math.max(10, window.innerWidth - launcherWidth - 10);
+            const maxTop = Math.max(10, window.innerHeight - launcherHeight - 10);
+            newLeft = Math.max(10, Math.min(maxLeft, newLeft));
+            newTop = Math.max(10, Math.min(maxTop, newTop));
+
+            launcher.style.left = `${newLeft}px`;
+            launcher.style.top = `${newTop}px`;
+            launcher.style.right = 'auto';
+            launcher.style.bottom = 'auto';
+
+            if (discard) {
+                const discardRect = discard.getBoundingClientRect();
+                const discardCenterX = discardRect.left + discardRect.width / 2;
+                const discardCenterY = discardRect.top + discardRect.height / 2;
+                const bearCenterX = newLeft + launcherWidth / 2;
+                const bearCenterY = newTop + launcherHeight / 2;
+                const dist = Math.hypot(bearCenterX - discardCenterX, bearCenterY - discardCenterY);
+
+                const isNear = dist < 75;
+                if (isNear) {
+                    discard.classList.add('is-active');
+                    if (discardLabel) discardLabel.textContent = 'Release to discard';
+                    setMood('sad');
+                    launcher.style.transform = 'scale(0.75)';
+                    launcher.style.opacity = '0.75';
+                } else {
+                    discard.classList.remove('is-active');
+                    if (discardLabel) discardLabel.textContent = 'Drag here to discard';
+                    setMood('happy');
+                    launcher.style.transform = '';
+                    launcher.style.opacity = '';
+                }
+            }
+        }
+    };
+
+    const onPointerUp = (e) => {
+        if (!isPointerDown) return;
+        isPointerDown = false;
+        try { launcher.releasePointerCapture(e.pointerId); } catch {}
+
+        if (discard) {
+            const wasActive = discard.classList.contains('is-active');
+            discard.classList.remove('is-visible');
+            discard.classList.remove('is-active');
+            setTimeout(() => {
+                if (!isDragging) discard.hidden = true;
+            }, 240);
+
+            if (wasActive) {
+                launcher.classList.add('is-discarding');
+                sessionStorage.setItem(discardedKey, '1');
+                setTimeout(() => {
+                    launcher.hidden = true;
+                    launcher.classList.remove('is-discarding');
+                    launcher.classList.remove('is-dragging');
+                }, 240);
+                return;
+            }
+        }
+
+        if (isDragging) {
+            launcher.classList.remove('is-dragging');
+            launcher.style.transform = '';
+            launcher.style.opacity = '';
+            setMood('happy');
+            const rect = launcher.getBoundingClientRect();
+            sessionStorage.setItem(posKey, JSON.stringify({ left: rect.left, top: rect.top }));
+        } else {
+            openPanel();
+        }
+    };
+
+    launcher.addEventListener('pointerdown', onPointerDown);
+    launcher.addEventListener('pointermove', onPointerMove);
+    launcher.addEventListener('pointerup', onPointerUp);
+    launcher.addEventListener('pointercancel', onPointerUp);
+
     $('buddyClose').addEventListener('click', closePanel);
     $('buddyReset').addEventListener('click', () => {
         if (busy) return;

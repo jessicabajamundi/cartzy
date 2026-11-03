@@ -5,12 +5,22 @@
 
 /* Launcher */
 body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
-.buddy-launcher { position: fixed; right: 18px; bottom: 16px; z-index: 58; width: 92px; height: 92px; padding: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 8px 14px rgba(40, 33, 51, .28)); transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
-.buddy-launcher:hover { transform: translateY(-5px) scale(1.06); }
+.buddy-launcher { position: fixed; right: 18px; bottom: 16px; z-index: 58; width: 92px; height: 92px; padding: 0; border: 0; background: transparent; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; filter: drop-shadow(0 8px 14px rgba(40, 33, 51, .28)); transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
+.buddy-launcher:hover:not(.is-dragging) { transform: translateY(-5px) scale(1.06); }
+.buddy-launcher.is-dragging { cursor: grabbing !important; transition: none !important; z-index: 60 !important; }
+.buddy-launcher.is-discarding { transform: scale(0) !important; opacity: 0 !important; transition: transform .22s cubic-bezier(.4, 0, 1, 1), opacity .22s ease !important; }
 .buddy-launcher:focus-visible { outline: 3px solid var(--buddy-rose-deep); outline-offset: 2px; border-radius: 24px; }
 .buddy-launcher-bear { display: block; width: 100%; height: 100%; animation: buddy-pop-in .7s cubic-bezier(.34, 1.56, .64, 1) both; }
-.buddy-greeting { position: absolute; right: 88px; bottom: 54px; width: max-content; max-width: 210px; padding: 10px 14px; border: 1.500px solid var(--buddy-rose); border-radius: 16px 16px 4px 16px; background: white; color: var(--buddy-ink); font-size: 13.500px; font-weight: 700; line-height: 1.3; text-align: left; box-shadow: 0 8px 20px rgba(40, 33, 51, .14); animation: buddy-bubble-in .4s cubic-bezier(.34, 1.56, .64, 1) both; }
+.buddy-greeting { position: absolute; right: 88px; bottom: 54px; width: max-content; max-width: 210px; padding: 10px 14px; border: 1.500px solid var(--buddy-rose); border-radius: 16px 16px 4px 16px; background: white; color: var(--buddy-ink); font-size: 13.500px; font-weight: 700; line-height: 1.3; text-align: left; box-shadow: 0 8px 20px rgba(40, 33, 51, .14); animation: buddy-bubble-in .4s cubic-bezier(.34, 1.56, .64, 1) both; pointer-events: none; }
 .buddy.is-open .buddy-launcher { visibility: hidden; }
+
+/* Discard target zone */
+.buddy-discard-target { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(110px); z-index: 59; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; opacity: 0; transition: transform .25s cubic-bezier(.34, 1.4, .64, 1), opacity .2s ease; }
+.buddy-discard-target.is-visible { transform: translateX(-50%) translateY(0); opacity: 1; }
+.buddy-discard-circle { display: inline-grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: rgba(42, 27, 40, .92); border: 1.5px solid rgba(255, 255, 255, .4); color: white; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), background .18s ease, border-color .18s ease, box-shadow .18s ease; }
+.buddy-discard-label { padding: 3px 10px; border-radius: 12px; background: rgba(26, 16, 24, .85); color: white; font-size: 11px; font-weight: 600; letter-spacing: .2px; white-space: nowrap; transition: background .18s ease; }
+.buddy-discard-target.is-active .buddy-discard-circle { transform: scale(1.22); background: #D32F2F; border-color: white; border-width: 2.5px; box-shadow: 0 0 28px rgba(211, 47, 47, .65), 0 8px 20px rgba(0, 0, 0, .4); }
+.buddy-discard-target.is-active .buddy-discard-label { background: #D32F2F; }
 
 /* Bear art and moods */
 .buddy-bear { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -82,7 +92,7 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-compose { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--buddy-line); background: white; }
 .buddy-compose textarea { flex: 1; min-width: 0; min-height: 42px; max-height: 110px; padding: 10px 14px; border: 1.500px solid var(--buddy-line); border-radius: 21px; color: var(--buddy-ink); background: var(--buddy-soft); font: inherit; font-size: 16px; line-height: 1.3; resize: none; }
 .buddy-compose textarea:focus { outline: none; border-color: var(--buddy-rose-deep); background: white; }
-.buddy-compose button { display: inline-grid; place-items: center; flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%; color: white; background: linear-gradient(135deg, #C08B7F, #B76E79); cursor: pointer; transition: transform .15s; }
+.buddy-compose button { display: inline-grid; place-items: center; flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%; color: white; background: linear-gradient(135deg, #8B3A3A, #8B2635); box-shadow: 0 4px 12px rgba(139, 58, 58, .35); cursor: pointer; transition: transform .15s, box-shadow .15s; }
 .buddy-compose button:hover:not(:disabled) { transform: scale(1.08) rotate(-6deg); }
 .buddy-compose button:focus-visible { outline: 2px solid var(--buddy-deep); outline-offset: 2px; }
 .buddy-compose button:disabled { background: #C9C3D3; cursor: default; }

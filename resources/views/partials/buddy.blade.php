@@ -48,6 +48,13 @@
         <span class="buddy-greeting" id="buddyGreeting" hidden></span>
     </button>
 
+    <div class="buddy-discard-target" id="buddyDiscard" hidden aria-hidden="true">
+        <div class="buddy-discard-circle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </div>
+        <span class="buddy-discard-label" id="buddyDiscardLabel">Drag here to discard</span>
+    </div>
+
     <section class="buddy-panel" id="buddyPanel" role="dialog" aria-label="Chat with Cozy" hidden>
         <header class="buddy-head">
             <span class="buddy-head-bear" data-bear data-mood="happy"></span>
