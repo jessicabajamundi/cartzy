@@ -22,14 +22,6 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-discard-target.is-active .buddy-discard-circle { transform: scale(1.22); background: #D32F2F; border-color: white; border-width: 2.5px; box-shadow: 0 0 28px rgba(211, 47, 47, .65), 0 8px 20px rgba(0, 0, 0, .4); }
 .buddy-discard-target.is-active .buddy-discard-label { background: #D32F2F; }
 
-/* Restore tab: peeks from the right edge after Cozy is discarded, slides out on hover or focus. */
-body:has(.chat-bubble-form) .buddy-restore { bottom: 92px; }
-.buddy-restore { position: fixed; right: 0; bottom: 24px; z-index: 58; display: flex; align-items: center; gap: 6px; height: 50px; padding: 3px 14px 3px 4px; border: 1.500px solid var(--buddy-rose); border-right: 0; border-radius: 25px 0 0 25px; background: white; color: var(--buddy-ink); font: inherit; font-size: 13px; font-weight: 700; white-space: nowrap; cursor: pointer; box-shadow: 0 6px 18px rgba(40, 33, 51, .18); transform: translateX(calc(100% - 50px)); transition: transform .25s cubic-bezier(.34, 1.4, .64, 1); animation: buddy-restore-in .4s cubic-bezier(.34, 1.4, .64, 1) both; -webkit-tap-highlight-color: transparent; }
-.buddy-restore:hover, .buddy-restore:focus-visible { transform: none; }
-.buddy-restore:focus-visible { outline: 3px solid var(--buddy-rose-deep); outline-offset: 2px; }
-.buddy-restore-bear { flex: none; width: 42px; height: 42px; }
-@media (hover: none) { .buddy-restore { transform: none; } }
-
 /* Bear art and moods */
 .buddy-bear { display: block; width: 100%; height: 100%; overflow: visible; }
 .buddy-bear-body, .buddy-bear-head { transform-box: view-box; }
@@ -112,9 +104,6 @@ body:has(.chat-bubble-form) .buddy-restore { bottom: 92px; }
 @media (max-width: 480px) {
     .buddy-launcher { right: 10px; bottom: 12px; width: 76px; height: 76px; }
     body:has(.chat-bubble-form) .buddy-launcher { bottom: 78px; }
-    .buddy-restore { bottom: 16px; height: 44px; font-size: 12.500px; }
-    body:has(.chat-bubble-form) .buddy-restore { bottom: 84px; }
-    .buddy-restore-bear { width: 36px; height: 36px; }
     .buddy-greeting { right: 72px; bottom: 44px; max-width: 170px; font-size: 12.500px; }
     .buddy-panel { left: 0; right: 0; bottom: 0; width: 100%; height: 88dvh; border-width: 1.500px 0 0; border-radius: 24px 24px 0 0; transform-origin: bottom center; }
 }
@@ -130,7 +119,6 @@ body:has(.chat-bubble-form) .buddy-restore { bottom: 92px; }
 @keyframes buddy-wave { 0%, 100% { transform: rotate(-150deg); } 50% { transform: rotate(-115deg); } }
 @keyframes buddy-giggle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-7deg) scale(1.05); } 45% { transform: rotate(7deg) scale(.96); } 70% { transform: rotate(-4deg); } }
 @keyframes buddy-pop-in { 0% { transform: translateY(40px) scale(.4); opacity: 0; } 100% { transform: none; opacity: 1; } }
-@keyframes buddy-restore-in { 0% { opacity: 0; translate: 100% 0; } 100% { opacity: 1; translate: 0 0; } }
 @keyframes buddy-bubble-in { 0% { transform: scale(.5); opacity: 0; transform-origin: bottom right; } 100% { transform: none; opacity: 1; } }
 @keyframes buddy-panel-in { 0% { transform: scale(.7) translateY(30px); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @keyframes buddy-msg-in { 0% { transform: translateY(8px) scale(.97); opacity: 0; } 100% { transform: none; opacity: 1; } }

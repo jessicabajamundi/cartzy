@@ -55,11 +55,6 @@
         <span class="buddy-discard-label" id="buddyDiscardLabel">Drag here to discard</span>
     </div>
 
-    {{-- Shown after Cozy is discarded, so shoppers can bring her back. --}}
-    <button type="button" class="buddy-restore" id="buddyRestore" hidden aria-label="Bring back Cozy" title="Bring back Cozy">
-        <span class="buddy-restore-bear" data-bear data-mood="happy"></span>
-        <span class="buddy-restore-label">Bring back Cozy</span>
-    </button>
 
     <section class="buddy-panel" id="buddyPanel" role="dialog" aria-label="Chat with Cozy" hidden>
         <header class="buddy-head">

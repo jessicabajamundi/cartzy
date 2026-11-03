@@ -6,7 +6,10 @@
     const $ = (id) => document.getElementById(id);
     const panel = $('buddyPanel'), launcher = $('buddyLauncher'), log = $('buddyLog'), chips = $('buddyChips');
     const form = $('buddyForm'), input = $('buddyInput'), send = $('buddySend'), status = $('buddyStatus'), greeting = $('buddyGreeting');
-    const discard = $('buddyDiscard'), discardLabel = $('buddyDiscardLabel'), restoreBtn = $('buddyRestore');
+    const discard = $('buddyDiscard'), discardLabel = $('buddyDiscardLabel');
+    // Header icons that bring Cozy back; they only show while she is discarded.
+    const cozyIcons = [...document.querySelectorAll('[data-open-cozy]')];
+    const showCozyIcons = (show) => cozyIcons.forEach((icon) => { icon.hidden = !show; });
     const art = $('buddy-bear-art');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const name = root.dataset.userName;
@@ -24,7 +27,7 @@
     // Check if Cozy was discarded in this session or restore custom position
     if (sessionStorage.getItem(discardedKey) === '1') {
         launcher.hidden = true;
-        restoreBtn.hidden = false;
+        showCozyIcons(true);
     } else {
         try {
             const savedPos = JSON.parse(sessionStorage.getItem(posKey) || 'null');
@@ -397,7 +400,7 @@
                     launcher.hidden = true;
                     launcher.classList.remove('is-discarding');
                     launcher.classList.remove('is-dragging');
-                    restoreBtn.hidden = false;
+                    showCozyIcons(true);
                 }, 240);
                 return;
             }
@@ -425,24 +428,14 @@
         sessionStorage.removeItem(discardedKey);
         sessionStorage.removeItem(posKey);
         ['left', 'top', 'right', 'bottom', 'transform', 'opacity'].forEach((prop) => { launcher.style[prop] = ''; });
-        restoreBtn.hidden = true;
+        showCozyIcons(false);
         launcher.hidden = false;
-    };
-    restoreBtn.addEventListener('click', () => {
-        bringBack();
         launcher.focus();
         setMood('love', 1800);
         playClass('is-waving', 2200);
         hearts(launcher, 5);
-    });
-
-    // The Cozy icon in the header opens the chat, even after Cozy was discarded.
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('[data-open-cozy]')) return;
-        event.preventDefault();
-        if (launcher.hidden) bringBack();
-        openPanel();
-    });
+    };
+    cozyIcons.forEach((icon) => icon.addEventListener('click', bringBack));
 
     $('buddyClose').addEventListener('click', closePanel);
     $('buddyReset').addEventListener('click', () => {
