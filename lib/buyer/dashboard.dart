@@ -22,11 +22,13 @@ import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/search/search_screen.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/services/message_service.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final VoidCallback? onCartClick;
   final VoidCallback? onProfileClick;
   final VoidCallback? onSaleClick;
+  final VoidCallback? onInboxClick;
   final VoidCallback? onVouchersClick;
   final VoidCallback? onLogout;
   final String? userName;
@@ -36,6 +38,7 @@ class DashboardScreen extends StatefulWidget {
     this.onCartClick,
     this.onProfileClick,
     this.onSaleClick,
+    this.onInboxClick,
     this.onVouchersClick,
     this.onLogout,
     this.userName,
@@ -646,6 +649,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 initialCategory: 'Flash Deals',
                                 title: 'Sale & Flash Deals',
                               ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    _BottomNavigationItem(
+                      icon: Icons.mail_outline_rounded,
+                      label: 'Inbox',
+                      selected: false,
+                      onClick: () {
+                        if (widget.onInboxClick != null) {
+                          widget.onInboxClick!();
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const InboxScreen(),
                             ),
                           );
                         }

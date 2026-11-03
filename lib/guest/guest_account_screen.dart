@@ -5,6 +5,7 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/cartzy_button_styles.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 
 class GuestAccountScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -12,6 +13,7 @@ class GuestAccountScreen extends StatefulWidget {
   final VoidCallback? onHome;
   final VoidCallback? onCart;
   final VoidCallback? onSale;
+  final VoidCallback? onInbox;
 
   const GuestAccountScreen({
     super.key,
@@ -20,6 +22,7 @@ class GuestAccountScreen extends StatefulWidget {
     this.onHome,
     this.onCart,
     this.onSale,
+    this.onInbox,
   });
 
   static void open(
@@ -310,6 +313,29 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                               title: 'Sale & Flash Deals',
                               onBack: widget.onHome,
                               onHomeClick: widget.onHome,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  _BottomNavItem(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Inbox',
+                    selected: false,
+                    onClick: () {
+                      if (widget.onInbox != null) {
+                        widget.onInbox!();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => InboxScreen(
+                              isGuest: true,
+                              onBack: widget.onHome ?? () => Navigator.of(context).pop(),
+                              onHomeClick: widget.onHome ?? () => Navigator.of(context).pop(),
+                              onCartClick: widget.onCart,
+                              onSaleClick: widget.onSale,
+                              onProfileClick: () => Navigator.of(context).pop(),
                             ),
                           ),
                         );

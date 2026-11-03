@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/cart_service.dart';
@@ -49,6 +50,7 @@ class CartScreen extends StatefulWidget {
   final VoidCallback onCheckout;
   final VoidCallback? onProfileClick;
   final VoidCallback? onSaleClick;
+  final VoidCallback? onInboxClick;
   final VoidCallback? onHomeClick;
   final VoidCallback? onLogout;
 
@@ -58,6 +60,7 @@ class CartScreen extends StatefulWidget {
     required this.onCheckout,
     this.onProfileClick,
     this.onSaleClick,
+    this.onInboxClick,
     this.onHomeClick,
     this.onLogout,
   });
@@ -1030,6 +1033,28 @@ class _CartScreenState extends State<CartScreen>
                             onHomeClick: widget.onHomeClick ?? widget.onBack,
                             onCartClick: () => Navigator.of(context).pop(),
                             onSaleClick: () {},
+                            onProfileClick: widget.onProfileClick,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                _CartBottomNavItem(
+                  icon: Icons.mail_outline_rounded,
+                  label: 'Inbox',
+                  selected: false,
+                  onClick: () {
+                    if (widget.onInboxClick != null) {
+                      widget.onInboxClick!();
+                    } else {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => InboxScreen(
+                            onBack: widget.onHomeClick ?? widget.onBack,
+                            onHomeClick: widget.onHomeClick ?? widget.onBack,
+                            onCartClick: () => Navigator.of(context).pop(),
+                            onSaleClick: widget.onSaleClick,
                             onProfileClick: widget.onProfileClick,
                           ),
                         ),

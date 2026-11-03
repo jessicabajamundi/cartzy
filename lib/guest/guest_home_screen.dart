@@ -15,12 +15,14 @@ import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/products/product_details_screen.dart';
 import 'package:cartzy/products/all_categories_screen.dart';
 import 'package:cartzy/search/search_screen.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 
 class GuestHomeScreen extends StatefulWidget {
   final VoidCallback onLogin;
   final VoidCallback onSignUp;
   final VoidCallback? onCartClick;
   final VoidCallback? onSaleClick;
+  final VoidCallback? onInboxClick;
   final VoidCallback? onProfileClick;
 
   const GuestHomeScreen({
@@ -29,6 +31,7 @@ class GuestHomeScreen extends StatefulWidget {
     required this.onSignUp,
     this.onCartClick,
     this.onSaleClick,
+    this.onInboxClick,
     this.onProfileClick,
   });
 
@@ -498,6 +501,29 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                               builder: (_) => const ProductListScreen(
                                 initialCategory: 'Flash Deals',
                                 title: 'Sale & Flash Deals',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    _BottomNavItem(
+                      icon: Icons.mail_outline_rounded,
+                      label: 'Inbox',
+                      selected: false,
+                      onClick: () {
+                        if (widget.onInboxClick != null) {
+                          widget.onInboxClick!();
+                        } else {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => InboxScreen(
+                                isGuest: true,
+                                onBack: () => Navigator.of(context).pop(),
+                                onHomeClick: () => Navigator.of(context).pop(),
+                                onCartClick: widget.onCartClick,
+                                onSaleClick: widget.onSaleClick,
+                                onProfileClick: widget.onProfileClick,
                               ),
                             ),
                           );

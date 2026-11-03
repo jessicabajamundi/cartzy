@@ -21,6 +21,7 @@ import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 
 import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -34,6 +35,7 @@ class AccountSettingsScreen extends StatefulWidget {
   final VoidCallback? onHomeClick;
   final VoidCallback? onCartClick;
   final VoidCallback? onSaleClick;
+  final VoidCallback? onInboxClick;
   final VoidCallback? onAddressesClick;
   final VoidCallback onLogout;
   final ValueChanged<Map<String, dynamic>>? onProfileUpdated;
@@ -51,6 +53,7 @@ class AccountSettingsScreen extends StatefulWidget {
     this.onHomeClick,
     this.onCartClick,
     this.onSaleClick,
+    this.onInboxClick,
     this.onAddressesClick,
     required this.onLogout,
     this.onProfileUpdated,
@@ -1714,6 +1717,28 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           title: 'Sale & Flash Deals',
                           onHomeClick: widget.onHomeClick ?? widget.onBack,
                           onBack: widget.onHomeClick ?? widget.onBack,
+                          onCartClick: widget.onCartClick,
+                          onSaleClick: widget.onSaleClick,
+                          onProfileClick: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+              _ProfileBottomNavItem(
+                icon: Icons.mail_outline_rounded,
+                label: 'Inbox',
+                selected: false,
+                onClick: () {
+                  if (widget.onInboxClick != null) {
+                    widget.onInboxClick!();
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => InboxScreen(
+                          onBack: widget.onHomeClick ?? widget.onBack,
+                          onHomeClick: widget.onHomeClick ?? widget.onBack,
                           onCartClick: widget.onCartClick,
                           onSaleClick: widget.onSaleClick,
                           onProfileClick: () => Navigator.of(context).pop(),

@@ -11,6 +11,7 @@ import 'package:cartzy/services/catalog_service.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 import 'product_details_screen.dart';
 
 class ProductItem {
@@ -60,6 +61,7 @@ class ProductListScreen extends StatefulWidget {
   final VoidCallback? onHomeClick;
   final VoidCallback? onCartClick;
   final VoidCallback? onSaleClick;
+  final VoidCallback? onInboxClick;
   final VoidCallback? onProfileClick;
   final bool randomize;
 
@@ -72,6 +74,7 @@ class ProductListScreen extends StatefulWidget {
     this.onHomeClick,
     this.onCartClick,
     this.onSaleClick,
+    this.onInboxClick,
     this.onProfileClick,
     this.randomize = false,
   });
@@ -619,6 +622,29 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       } else if (_selectedCategory != 'Flash Deals') {
                         setState(() => _selectedCategory = 'Flash Deals');
                         _loadProducts();
+                      }
+                    },
+                  ),
+                  _ProductBottomNavItem(
+                    icon: Icons.mail_outline_rounded,
+                    label: 'Inbox',
+                    selected: false,
+                    onClick: () {
+                      if (widget.onInboxClick != null) {
+                        widget.onInboxClick!();
+                      } else {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (_) => InboxScreen(
+                              onBack: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).pop(),
+                              onHomeClick: widget.onHomeClick ?? widget.onBack,
+                              onCartClick: widget.onCartClick,
+                              onSaleClick: widget.onSaleClick,
+                              onProfileClick: widget.onProfileClick,
+                              isGuest: !AuthService.isAuthenticated,
+                            ),
+                          ),
+                        );
                       }
                     },
                   ),

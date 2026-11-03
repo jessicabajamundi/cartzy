@@ -10,6 +10,7 @@ import 'package:cartzy/widgets/product_card.dart';
 import 'package:cartzy/products/product_details_screen.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
+import 'package:cartzy/services/follow_store_service.dart';
 
 /// Official Store / Seller Storefront Screen matching Cartzy's store web page.
 class OfficialStoreScreen extends StatefulWidget {
@@ -148,7 +149,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         _vouchers = rawVouchers;
         _products = rawProducts;
         _reviews = rawReviews;
-        _isFollowing = response['is_following'] == true;
+        _isFollowing = response['is_following'] == true || FollowStoreService.instance.isFollowing(_identifier);
         _followersCount = (statsData['followers'] as num?)?.toInt() ?? 0;
         _isLoading = false;
       });
@@ -252,6 +253,22 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
       _followersCount += newFollowState ? 1 : -1;
       if (_followersCount < 0) _followersCount = 0;
     });
+
+    if (newFollowState) {
+      FollowStoreService.instance.followStore(FollowedStore(
+        id: _identifier,
+        name: _effectiveSellerName,
+        slug: _identifier,
+        logo: widget.sellerLogoUrl,
+        isOfficial: true,
+        rating: (_stats['rating'] as num?)?.toDouble() ?? 4.8,
+        followersCount: _followersCount,
+        productsCount: (_stats['products'] as num?)?.toInt() ?? 0,
+        followedAt: DateTime.now(),
+      ));
+    } else {
+      FollowStoreService.instance.unfollowStore(_identifier);
+    }
 
     try {
       final res = await ApiService.post(

@@ -13,6 +13,7 @@ import 'package:cartzy/buyer/dashboard.dart';
 import 'package:cartzy/rider/rider_dashboard.dart';
 import 'package:cartzy/buyer/account_menu_screen.dart';
 import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
 import 'package:cartzy/buyer/edit_buyer_profile_screen.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
@@ -351,6 +352,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onSignUp: () => goTo('buyerRegistration'),
           onCartClick: () => goTo('guestCart'),
           onSaleClick: () => goTo('sale'),
+          onInboxClick: () => goTo('guestInbox'),
           onProfileClick: () => goTo('guestAccount'),
         );
 
@@ -360,6 +362,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onLogin: () => goTo('login'),
           onSignUp: () => goTo('buyerRegistration'),
           onSale: () => goTo('sale'),
+          onInbox: () => goTo('guestInbox'),
           onProfile: () => goTo('guestAccount'),
           onWishlist: () {},
         );
@@ -371,6 +374,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onHome: () => goTo('guest'),
           onCart: () => goTo('guestCart'),
           onSale: () => goTo('sale'),
+          onInbox: () => goTo('guestInbox'),
         );
 
       // ========================================================
@@ -478,6 +482,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           userName: loggedInUser?['name']?.toString() ?? '',
           onCartClick: () => goTo('cart'),
           onSaleClick: () => goTo('sale'),
+          onInboxClick: () => goTo('inbox'),
           onProfileClick: () => goTo('accountSettings'),
           onVouchersClick: () => goTo('vouchers'),
           onLogout: performLogout,
@@ -506,6 +511,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onBack: () => goTo('dashboard'),
           onHomeClick: () => goTo('dashboard'),
           onSaleClick: () => goTo('sale'),
+          onInboxClick: () => goTo('inbox'),
           onProfileClick: () => goTo('accountSettings'),
           onCheckout: () => goTo('checkout'),
           onLogout: performLogout,
@@ -523,6 +529,8 @@ class _CartzyHomeState extends State<CartzyHome> {
           onBack: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
           onHomeClick: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
           onCartClick: () => goTo(loggedInUser != null ? 'cart' : 'guestCart'),
+          onSaleClick: () {},
+          onInboxClick: () => goTo(loggedInUser != null ? 'inbox' : 'guestInbox'),
           onProfileClick: () => goTo(loggedInUser != null ? 'accountSettings' : 'guestAccount'),
         );
 
@@ -623,6 +631,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onHomeClick: () => goTo(loggedInUser != null ? 'dashboard' : 'guest'),
           onCartClick: () => goTo(loggedInUser != null ? 'cart' : 'guestCart'),
           onSaleClick: () => goTo('sale'),
+          onInboxClick: () => goTo('inbox'),
           onAddressesClick: () => goTo('addresses'),
           onLogout: performLogout,
           onProfileUpdated: (updatedUser) {
@@ -714,6 +723,30 @@ class _CartzyHomeState extends State<CartzyHome> {
         );
 
       // ========================================================
+      // INBOX & FOLLOWED STORES
+      // ========================================================
+
+      case 'inbox':
+        return InboxScreen(
+          onBack: () => goTo('dashboard'),
+          onHomeClick: () => goTo('dashboard'),
+          onCartClick: () => goTo('cart'),
+          onSaleClick: () => goTo('sale'),
+          onProfileClick: () => goTo('accountSettings'),
+          isGuest: false,
+        );
+
+      case 'guestInbox':
+        return InboxScreen(
+          onBack: () => goTo('guest'),
+          onHomeClick: () => goTo('guest'),
+          onCartClick: () => goTo('guestCart'),
+          onSaleClick: () => goTo('sale'),
+          onProfileClick: () => goTo('guestAccount'),
+          isGuest: true,
+        );
+
+      // ========================================================
       // DEFAULT
       // ========================================================
 
@@ -752,6 +785,8 @@ class _CartzyHomeState extends State<CartzyHome> {
         if (currentRoute == 'cart' ||
             currentRoute == 'vouchers' ||
             currentRoute == 'sale' ||
+            currentRoute == 'inbox' ||
+            currentRoute == 'guestInbox' ||
             currentRoute == 'guestCart' ||
             currentRoute == 'guestAccount' ||
             currentRoute == 'accountSettings') {
