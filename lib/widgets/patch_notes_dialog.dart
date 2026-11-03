@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.1.9' || version == 'v1.1.9') {
+      return const [
+        'Custom Profile Picture: Upload or snap a photo directly from your account header or profile settings.',
+        'Live Address Book & PSGC API: Real-time region, province, city, and barangay cascading matching the web platform.',
+        'Independent Section Flow: Smooth direct tab returns and bug-free navigation between Profile, Sale, and Home.',
+        'Enhanced Stability: Seamless session persistence and camera integration across all devices.',
+      ];
+    }
     if (version == '1.1.8' || version == 'v1.1.8') {
       return const [
         'Independent Section Navigation: Seamlessly jump between Home, Cart, Sale, and Profile without nested stacking.',
