@@ -110,6 +110,33 @@
 .acct-photo-hint { flex-basis: 100%; margin: 12px 0 0; color: var(--acct-muted); font-size: 14px; }
 .acct-photo-body { min-width: 0; }
 
+/* Photo editor dialog */
+.acct-editor { width: min(440px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: auto; padding: 0; border: 0; border-radius: 22px; background: #fff; color: var(--acct-ink); box-shadow: 0 30px 70px -20px rgba(40, 33, 51, .45); }
+.acct-editor::backdrop { background: rgba(40, 33, 51, .55); backdrop-filter: blur(3px); }
+.acct-editor-panel { display: grid; gap: 16px; padding: 22px; }
+.acct-editor-head { display: flex; align-items: center; justify-content: space-between; }
+.acct-editor-head h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.acct-editor-close { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--acct-lilac); color: var(--acct-violet); cursor: pointer; }
+.acct-editor-close:hover { background: var(--acct-blush); color: var(--acct-rose-ink); }
+.acct-editor-close svg { width: 18px; height: 18px; }
+.acct-editor-stage { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 16px; background: repeating-conic-gradient(#F1EFF5 0% 25%, #fff 0% 50%) 0 0 / 20px 20px; }
+.acct-editor-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.acct-editor-stage canvas:active { cursor: grabbing; }
+/* Dim everything outside the circle the avatar will show. */
+.acct-editor-ring { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 999px rgba(40, 33, 51, .5), inset 0 0 0 2px rgba(255, 255, 255, .9); pointer-events: none; }
+.acct-editor-status { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 24px; background: rgba(255, 255, 255, .9); color: var(--acct-muted); font-size: 14px; text-align: center; }
+.acct-editor-tip { margin: -6px 0 0; color: var(--acct-muted); font-size: 13px; text-align: center; }
+.acct-editor-controls { display: flex; align-items: flex-end; gap: 14px; }
+.acct-editor-zoom { flex: 1; min-width: 0; }
+.acct-editor-zoom .acct-label { margin-bottom: 6px; font-size: 13px; }
+.acct-editor-zoom input { width: 100%; accent-color: var(--acct-lavender); }
+.acct-editor-tools { display: flex; gap: 6px; }
+.acct-editor-tool { display: grid; place-items: center; width: 40px; height: 40px; border: 1.5px solid #C9C3D3; border-radius: 10px; background: #fff; color: var(--acct-violet); cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+.acct-editor-tool:hover { background: var(--acct-blush); border-color: var(--acct-rose-soft); color: var(--acct-rose-ink); }
+.acct-editor-tool:focus-visible, .acct-editor-close:focus-visible { outline: 3px solid rgba(192, 139, 127, .55); outline-offset: 2px; }
+.acct-editor-tool svg { width: 19px; height: 19px; }
+.acct-editor-foot { display: flex; justify-content: flex-end; gap: 10px; }
+
 /* Fields */
 .acct-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 20px; }
 .acct-field-wide { grid-column: 1 / -1; }
@@ -245,6 +272,11 @@
     .acct-photo { gap: 18px; }
     .acct-photo-avatar { flex-basis: 84px; height: 84px; }
     .acct-footer .acct-btn { width: 100%; }
+    .acct-editor-panel { padding: 18px; }
+    .acct-editor-controls { flex-wrap: wrap; }
+    .acct-editor-tools { width: 100%; justify-content: space-between; }
+    .acct-editor-tool { flex: 1; }
+    .acct-editor-foot .acct-btn { flex: 1; }
     .acct-who { padding: 18px; }
     .acct-log { flex-wrap: wrap; padding: 14px; }
     .acct-log time { order: -1; flex-basis: 100%; padding-left: 52px; margin-bottom: -6px; font-size: 12px; }

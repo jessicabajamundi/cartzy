@@ -185,6 +185,29 @@ class AccountController extends Controller
     }
 
     /**
+     * Serve the current photo from our own origin so the photo editor can draw it on a canvas
+     */
+    public function avatarSource()
+    {
+        $user = Auth::user();
+        abort_unless($user && $user->avatar, 404);
+
+        if (str_starts_with($user->avatar, 'http://') || str_starts_with($user->avatar, 'https://')) {
+            $response = \Illuminate\Support\Facades\Http::timeout(10)->get($user->avatar);
+            abort_unless($response->successful(), 404);
+
+            return response($response->body(), 200, ['Content-Type' => $response->header('Content-Type') ?: 'image/jpeg', 'Cache-Control' => 'private, no-store']);
+        }
+
+        abort_unless(Storage::disk('public')->exists($user->avatar), 404);
+
+        return response(Storage::disk('public')->get($user->avatar), 200, [
+            'Content-Type' => Storage::disk('public')->mimeType($user->avatar) ?: 'image/jpeg',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    /**
      * Remove Profile Photo
      */
     public function removeAvatar()

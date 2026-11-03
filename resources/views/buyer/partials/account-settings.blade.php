@@ -84,13 +84,17 @@
                     <div class="acct-photo-actions">
                         <form action="{{ route('account.avatar.update') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            <input type="file" name="avatar" id="acct-avatar-input" class="acct-file" accept="image/jpeg,image/png" data-acct-autosubmit>
+                            <input type="file" name="avatar" id="acct-avatar-input" class="acct-file" accept="image/jpeg,image/png" data-acct-photo-input>
                             <label for="acct-avatar-input" class="acct-btn acct-btn-primary" role="button" tabindex="0" data-acct-file-trigger>
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.4 4a2 2 0 0 0-1.7.9L6.9 6H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V9a3 3 0 0 0-3-3h-1.9l-.8-1.1a2 2 0 0 0-1.7-.9H9.4ZM12 9a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/></svg>
                                 Change photo
                             </label>
                         </form>
                         @if($user->avatar)
+                            <button type="button" class="acct-btn acct-btn-outline" data-acct-photo-edit="{{ route('account.avatar.source') }}">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.9 3.3a2.5 2.5 0 0 1 3.5 0l.3.3a2.5 2.5 0 0 1 0 3.5L9.4 18.4a2 2 0 0 1-.9.5l-4.2 1.2a1 1 0 0 1-1.2-1.2l1.2-4.2a2 2 0 0 1 .5-.9L16.9 3.3Z"/></svg>
+                                Edit
+                            </button>
                             <form action="{{ route('account.avatar.remove') }}" method="POST" onsubmit="return confirm('Remove your profile photo?');">
                                 @csrf
                                 @method('DELETE')
@@ -98,9 +102,51 @@
                             </form>
                         @endif
                     </div>
-                    <p class="acct-photo-hint">JPG or PNG, up to 2 MB.</p>
+                    <p class="acct-photo-hint">JPG or PNG. You can crop, zoom, and rotate it before saving.</p>
                 </div>
             </div>
+
+            {{-- Photo editor: drag to position, zoom, rotate, then save as a square JPEG. --}}
+            <dialog class="acct-editor" id="acct-photo-editor" aria-labelledby="acct-editor-title">
+                <div class="acct-editor-panel">
+                    <header class="acct-editor-head">
+                        <h3 id="acct-editor-title">Edit photo</h3>
+                        <button type="button" class="acct-editor-close" data-acct-editor-cancel aria-label="Close">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                        </button>
+                    </header>
+                    <div class="acct-editor-stage" data-acct-editor-stage>
+                        <canvas width="640" height="640" data-acct-editor-canvas aria-label="Photo preview. Drag to reposition."></canvas>
+                        <span class="acct-editor-ring" aria-hidden="true"></span>
+                        <p class="acct-editor-status" data-acct-editor-status hidden>Loading photo…</p>
+                    </div>
+                    <p class="acct-editor-tip">Drag the photo to position it inside the circle.</p>
+                    <div class="acct-editor-controls">
+                        <label class="acct-editor-zoom">
+                            <span class="acct-label">Zoom</span>
+                            <input type="range" min="1" max="4" step="0.01" value="1" data-acct-editor-zoom>
+                        </label>
+                        <div class="acct-editor-tools">
+                            <button type="button" class="acct-editor-tool" data-acct-editor-rotate="-90" aria-label="Rotate left" title="Rotate left">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2.1-9.4L3 10"/></svg>
+                            </button>
+                            <button type="button" class="acct-editor-tool" data-acct-editor-rotate="90" aria-label="Rotate right" title="Rotate right">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 4v6h-6"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L21 10"/></svg>
+                            </button>
+                            <button type="button" class="acct-editor-tool" data-acct-editor-flip aria-label="Flip horizontally" title="Flip">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v18"/><path d="M8 7 3 17h5V7Z"/><path d="m16 7 5 10h-5V7Z"/></svg>
+                            </button>
+                            <button type="button" class="acct-editor-tool" data-acct-editor-reset aria-label="Reset" title="Reset">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <footer class="acct-editor-foot">
+                        <button type="button" class="acct-btn acct-btn-outline" data-acct-editor-cancel>Cancel</button>
+                        <button type="button" class="acct-btn acct-btn-primary" data-acct-editor-save>Save photo</button>
+                    </footer>
+                </div>
+            </dialog>
 
             <form action="{{ route('account.profile.update') }}" method="POST">
                 @csrf
@@ -369,10 +415,148 @@
     const opened = @json($acctOpen);
     if (opened !== 'personal') setTimeout(() => showSection(opened, false), 350);
 
-    // "Change photo" uploads as soon as a file is picked.
-    root.querySelectorAll('[data-acct-autosubmit]').forEach((input) => {
-        input.addEventListener('change', () => { if (input.files.length) input.form.submit(); });
-    });
+    // Photo editor: a picked file (or the current photo, via "Edit") opens in the editor, and "Save photo"
+    // uploads the circle's contents as a 640px square JPEG through the same avatar form.
+    const editor = document.getElementById('acct-photo-editor');
+    const photoInput = root.querySelector('[data-acct-photo-input]');
+    if (editor && photoInput) {
+        const canvas = editor.querySelector('[data-acct-editor-canvas]');
+        const ctx = canvas.getContext('2d');
+        const zoomInput = editor.querySelector('[data-acct-editor-zoom]');
+        const status = editor.querySelector('[data-acct-editor-status]');
+        const saveButton = editor.querySelector('[data-acct-editor-save]');
+        const size = canvas.width;
+        let image = null;
+        let state = { zoom: 1, rotation: 0, flip: 1, x: 0, y: 0 };
+
+        // Size of the image on the canvas at zoom 1: just large enough to cover the whole square.
+        const baseScale = () => {
+            const turned = state.rotation % 180 !== 0;
+            const w = turned ? image.height : image.width;
+            const h = turned ? image.width : image.height;
+            return size / Math.min(w, h);
+        };
+        // Keep the photo covering the square so no empty corners show.
+        const clampOffset = () => {
+            const turned = state.rotation % 180 !== 0;
+            const scale = baseScale() * state.zoom;
+            const w = (turned ? image.height : image.width) * scale;
+            const h = (turned ? image.width : image.height) * scale;
+            const maxX = Math.max(0, (w - size) / 2);
+            const maxY = Math.max(0, (h - size) / 2);
+            state.x = Math.min(maxX, Math.max(-maxX, state.x));
+            state.y = Math.min(maxY, Math.max(-maxY, state.y));
+        };
+        const draw = () => {
+            ctx.clearRect(0, 0, size, size);
+            if (!image) return;
+            clampOffset();
+            const scale = baseScale() * state.zoom;
+            ctx.save();
+            ctx.translate(size / 2 + state.x, size / 2 + state.y);
+            ctx.rotate((state.rotation * Math.PI) / 180);
+            ctx.scale(scale * state.flip, scale);
+            ctx.drawImage(image, -image.width / 2, -image.height / 2);
+            ctx.restore();
+        };
+        const reset = () => {
+            state = { zoom: 1, rotation: 0, flip: 1, x: 0, y: 0 };
+            zoomInput.value = 1;
+            draw();
+        };
+        const setStatus = (text) => {
+            status.hidden = !text;
+            status.textContent = text || '';
+            saveButton.disabled = Boolean(text);
+        };
+        const open = (src, revoke) => {
+            image = null;
+            draw();
+            setStatus('Loading photo…');
+            if (!editor.open) editor.showModal();
+            const img = new Image();
+            img.onload = () => {
+                if (revoke) URL.revokeObjectURL(src);
+                image = img;
+                setStatus('');
+                reset();
+            };
+            img.onerror = () => setStatus('This photo could not be opened. Try another JPG or PNG.');
+            img.src = src;
+        };
+        const close = () => {
+            photoInput.value = '';
+            editor.close();
+        };
+
+        photoInput.addEventListener('change', () => {
+            const file = photoInput.files[0];
+            if (file) open(URL.createObjectURL(file), true);
+        });
+        root.querySelector('[data-acct-photo-edit]')?.addEventListener('click', (event) => {
+            open(event.currentTarget.dataset.acctPhotoEdit, false);
+        });
+
+        zoomInput.addEventListener('input', () => {
+            state.zoom = Number(zoomInput.value);
+            draw();
+        });
+        editor.querySelectorAll('[data-acct-editor-rotate]').forEach((button) => button.addEventListener('click', () => {
+            state.rotation = (state.rotation + Number(button.dataset.acctEditorRotate) + 360) % 360;
+            draw();
+        }));
+        editor.querySelector('[data-acct-editor-flip]').addEventListener('click', () => {
+            state.flip *= -1;
+            draw();
+        });
+        editor.querySelector('[data-acct-editor-reset]').addEventListener('click', reset);
+        editor.querySelectorAll('[data-acct-editor-cancel]').forEach((button) => button.addEventListener('click', close));
+        editor.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+
+        // Drag (mouse or touch) to move the photo, and scroll to zoom.
+        let drag = null;
+        canvas.addEventListener('pointerdown', (event) => {
+            if (!image) return;
+            drag = { id: event.pointerId, x: event.clientX, y: event.clientY };
+            canvas.setPointerCapture(event.pointerId);
+        });
+        canvas.addEventListener('pointermove', (event) => {
+            if (!drag || drag.id !== event.pointerId) return;
+            const ratio = size / canvas.getBoundingClientRect().width;
+            state.x += (event.clientX - drag.x) * ratio;
+            state.y += (event.clientY - drag.y) * ratio;
+            drag.x = event.clientX;
+            drag.y = event.clientY;
+            draw();
+        });
+        ['pointerup', 'pointercancel'].forEach((type) => canvas.addEventListener(type, () => { drag = null; }));
+        canvas.addEventListener('wheel', (event) => {
+            if (!image) return;
+            event.preventDefault();
+            state.zoom = Math.min(4, Math.max(1, state.zoom - event.deltaY * 0.002));
+            zoomInput.value = state.zoom;
+            draw();
+        }, { passive: false });
+
+        saveButton.addEventListener('click', () => {
+            if (!image) return;
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving…';
+            // JPEG has no transparency, so paint white behind the photo first.
+            const out = document.createElement('canvas');
+            out.width = out.height = size;
+            const outCtx = out.getContext('2d');
+            outCtx.fillStyle = '#fff';
+            outCtx.fillRect(0, 0, size, size);
+            outCtx.drawImage(canvas, 0, 0);
+            out.toBlob((blob) => {
+                const files = new DataTransfer();
+                files.items.add(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
+                photoInput.files = files.files;
+                photoInput.form.submit();
+            }, 'image/jpeg', 0.9);
+        });
+    }
     root.querySelectorAll('[data-acct-file-trigger]').forEach((label) => {
         label.addEventListener('keydown', (event) => {
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); label.click(); }
