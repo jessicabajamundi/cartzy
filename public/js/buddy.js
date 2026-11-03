@@ -6,7 +6,7 @@
     const $ = (id) => document.getElementById(id);
     const panel = $('buddyPanel'), launcher = $('buddyLauncher'), log = $('buddyLog'), chips = $('buddyChips');
     const form = $('buddyForm'), input = $('buddyInput'), send = $('buddySend'), status = $('buddyStatus'), greeting = $('buddyGreeting');
-    const discard = $('buddyDiscard'), discardLabel = $('buddyDiscardLabel');
+    const discard = $('buddyDiscard'), discardLabel = $('buddyDiscardLabel'), restoreBtn = $('buddyRestore');
     const art = $('buddy-bear-art');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const name = root.dataset.userName;
@@ -24,6 +24,7 @@
     // Check if Cozy was discarded in this session or restore custom position
     if (sessionStorage.getItem(discardedKey) === '1') {
         launcher.hidden = true;
+        restoreBtn.hidden = false;
     } else {
         try {
             const savedPos = JSON.parse(sessionStorage.getItem(posKey) || 'null');
@@ -396,6 +397,7 @@
                     launcher.hidden = true;
                     launcher.classList.remove('is-discarding');
                     launcher.classList.remove('is-dragging');
+                    restoreBtn.hidden = false;
                 }, 240);
                 return;
             }
@@ -417,6 +419,19 @@
     launcher.addEventListener('pointermove', onPointerMove);
     launcher.addEventListener('pointerup', onPointerUp);
     launcher.addEventListener('pointercancel', onPointerUp);
+
+    // Bring a discarded Cozy back to her usual corner.
+    restoreBtn.addEventListener('click', () => {
+        sessionStorage.removeItem(discardedKey);
+        sessionStorage.removeItem(posKey);
+        ['left', 'top', 'right', 'bottom', 'transform', 'opacity'].forEach((prop) => { launcher.style[prop] = ''; });
+        restoreBtn.hidden = true;
+        launcher.hidden = false;
+        launcher.focus();
+        setMood('love', 1800);
+        playClass('is-waving', 2200);
+        hearts(launcher, 5);
+    });
 
     $('buddyClose').addEventListener('click', closePanel);
     $('buddyReset').addEventListener('click', () => {
