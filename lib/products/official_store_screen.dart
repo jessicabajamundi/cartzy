@@ -315,11 +315,21 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
       return;
     }
 
+    final rawSellerId = _seller['id'];
+    int? sellerId;
+    if (rawSellerId is int) {
+      sellerId = rawSellerId;
+    } else if (rawSellerId != null) {
+      sellerId = int.tryParse(rawSellerId.toString());
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MessagesScreen(
           onBack: () => Navigator.of(context).pop(),
+          initialSellerId: sellerId,
           initialStoreName: _effectiveSellerName,
+          initialStoreAvatar: _seller['logo_url']?.toString() ?? widget.sellerLogoUrl,
         ),
       ),
     );

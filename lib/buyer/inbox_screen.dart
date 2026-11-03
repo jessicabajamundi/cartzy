@@ -154,11 +154,14 @@ class _InboxScreenState extends State<InboxScreen>
   }
 
   void _openStoreChat(FollowedStore store) {
+    final sellerId = int.tryParse(store.id);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MessagesScreen(
           onBack: () => Navigator.of(context).pop(),
+          initialSellerId: sellerId,
           initialStoreName: store.name,
+          initialStoreAvatar: store.logo,
         ),
       ),
     );

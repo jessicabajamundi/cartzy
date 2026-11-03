@@ -13,7 +13,11 @@ class MessagesScreen extends StatefulWidget {
   final int? initialThreadId;
   final String? initialThreadType;
   final int? initialProductId;
+  final String? initialProductName;
+  final String? initialProductImage;
+  final int? initialSellerId;
   final String? initialStoreName;
+  final String? initialStoreAvatar;
 
   const MessagesScreen({
     super.key,
@@ -21,7 +25,11 @@ class MessagesScreen extends StatefulWidget {
     this.initialThreadId,
     this.initialThreadType,
     this.initialProductId,
+    this.initialProductName,
+    this.initialProductImage,
+    this.initialSellerId,
     this.initialStoreName,
+    this.initialStoreAvatar,
   });
 
   @override
@@ -75,6 +83,31 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
+
+    final targetStore = widget.initialStoreName?.trim();
+    final hasTarget = (targetStore != null && targetStore.isNotEmpty) ||
+        widget.initialSellerId != null ||
+        widget.initialProductId != null ||
+        widget.initialThreadId != null;
+
+    if (hasTarget) {
+      // Immediately open into the shop's chat panel so user never sees "choose a shop"
+      _selectedThread = ConversationThread(
+        id: widget.initialThreadId ?? 0,
+        type: widget.initialThreadType ?? 'inquiry',
+        key: 'inquiry-${widget.initialThreadId ?? targetStore ?? widget.initialSellerId ?? widget.initialProductId}',
+        store: (targetStore != null && targetStore.isNotEmpty) ? targetStore : 'Official Store',
+        avatar: widget.initialStoreAvatar,
+        productId: widget.initialProductId,
+        productName: widget.initialProductName,
+        productImage: widget.initialProductImage,
+        lastMessage: '',
+        time: 'Just now',
+        unreadCount: 0,
+      );
+      _isLoadingMessages = true;
+    }
+
     _loadConversations();
     _startPolling();
   }
@@ -118,22 +151,61 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Future<void> _checkInitialTarget() async {
-    if (widget.initialProductId != null) {
-      // Inquire about product
+    final targetStore = widget.initialStoreName?.trim().toLowerCase();
+
+    // 1. Try to find existing conversation in the loaded list
+    ConversationThread? matched;
+    if (widget.initialThreadId != null) {
+      for (final c in _conversations) {
+        if (c.id == widget.initialThreadId &&
+            c.type == (widget.initialThreadType ?? c.type)) {
+          matched = c;
+          break;
+        }
+      }
+    }
+
+    if (matched == null && targetStore != null && targetStore.isNotEmpty) {
+      for (final c in _conversations) {
+        if (c.store.trim().toLowerCase() == targetStore) {
+          matched = c;
+          break;
+        }
+      }
+      if (matched == null) {
+        for (final c in _conversations) {
+          final storeLower = c.store.toLowerCase();
+          if (storeLower.contains(targetStore) || targetStore.contains(storeLower)) {
+            matched = c;
+            break;
+          }
+        }
+      }
+    }
+
+    if (matched != null) {
+      await _selectThread(matched);
+      return;
+    }
+
+    // 2. If no existing thread in list, call backend inquire
+    if (widget.initialProductId != null || widget.initialSellerId != null) {
       setState(() => _isLoadingMessages = true);
-      final res =
-          await MessageService.inquire(productId: widget.initialProductId);
+      final res = await MessageService.inquire(
+        productId: widget.initialProductId,
+        sellerId: widget.initialSellerId,
+      );
       if (mounted && res != null && res['thread'] != null) {
         final t = res['thread'] as Map<String, dynamic>;
         final thread = ConversationThread(
           id: t['id'] as int? ?? 0,
           type: t['type']?.toString() ?? 'inquiry',
           key: 'inquiry-${t['id']}',
-          store: t['store']?.toString() ?? widget.initialStoreName ?? 'Store',
+          store: t['store']?.toString() ?? widget.initialStoreName ?? 'Official Store',
           productId: widget.initialProductId,
-          productName: t['product_name']?.toString(),
-          productImage: t['product_image']?.toString(),
-          avatar: t['avatar']?.toString(),
+          productName: t['product_name']?.toString() ?? widget.initialProductName,
+          productImage: t['product_image']?.toString() ?? widget.initialProductImage,
+          avatar: t['avatar']?.toString() ?? widget.initialStoreAvatar,
           lastMessage: '',
           time: 'Just now',
           unreadCount: 0,
@@ -144,27 +216,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
           _isLoadingMessages = false;
         });
         _scrollToBottom();
-      } else if (mounted) {
-        setState(() => _isLoadingMessages = false);
+        return;
       }
-    } else if (widget.initialThreadId != null) {
-      final match = _conversations.firstWhere(
-        (c) =>
-            c.id == widget.initialThreadId &&
-            c.type == (widget.initialThreadType ?? c.type),
-        orElse: () => _conversations.isNotEmpty
-            ? _conversations.first
-            : ConversationThread(
-                id: widget.initialThreadId!,
-                type: widget.initialThreadType ?? 'inquiry',
-                key: '${widget.initialThreadType}-${widget.initialThreadId}',
-                store: 'Store',
-                lastMessage: '',
-                time: '',
-                unreadCount: 0,
-              ),
-      );
-      _selectThread(match);
+    }
+
+    // 3. Fallback: Keep the shop thread open and ready for messaging
+    if (mounted && _selectedThread != null) {
+      setState(() => _isLoadingMessages = false);
     }
   }
 
@@ -255,11 +313,45 @@ class _MessagesScreenState extends State<MessagesScreen> {
     });
     _scrollToBottom();
 
-    final sent = await MessageService.sendMessage(
-      type: _selectedThread!.type,
-      id: _selectedThread!.id,
-      message: text,
-    );
+    ChatMessage? sent;
+    if (_selectedThread!.id == 0) {
+      final res = await MessageService.inquire(
+        productId: _selectedThread!.productId,
+        sellerId: widget.initialSellerId,
+        message: text,
+      );
+      if (res != null) {
+        if (res['thread'] != null) {
+          final t = res['thread'] as Map<String, dynamic>;
+          final newId = t['id'] as int? ?? 0;
+          if (newId > 0 && mounted) {
+            _selectedThread = ConversationThread(
+              id: newId,
+              type: t['type']?.toString() ?? 'inquiry',
+              key: 'inquiry-$newId',
+              store: _selectedThread!.store,
+              avatar: _selectedThread!.avatar,
+              productId: _selectedThread!.productId,
+              productName: _selectedThread!.productName,
+              productImage: _selectedThread!.productImage,
+              lastMessage: text,
+              time: 'Just now',
+              unreadCount: 0,
+            );
+          }
+        }
+        final rawMsgs = (res['messages'] as List<ChatMessage>?) ?? [];
+        if (rawMsgs.isNotEmpty) {
+          sent = rawMsgs.last;
+        }
+      }
+    } else {
+      sent = await MessageService.sendMessage(
+        type: _selectedThread!.type,
+        id: _selectedThread!.id,
+        message: text,
+      );
+    }
 
     if (mounted) {
       setState(() {
@@ -268,6 +360,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
           final idx = _messages.indexWhere((m) => m.id == tempMsg.id);
           if (idx != -1) {
             _messages[idx] = sent;
+          }
+        } else {
+          final idx = _messages.indexWhere((m) => m.id == tempMsg.id);
+          if (idx != -1) {
+            _messages[idx] = ChatMessage(
+              id: tempMsg.id,
+              body: tempMsg.body,
+              senderId: tempMsg.senderId,
+              senderName: tempMsg.senderName,
+              isMe: true,
+              time: tempMsg.time,
+              date: tempMsg.date,
+              status: 'sent',
+            );
           }
         }
       });
@@ -294,20 +400,33 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     final isWide = MediaQuery.of(context).size.width > 700;
+    final isChatOpen = _selectedThread != null;
+    final isDirectShopChat = widget.initialStoreName != null ||
+        widget.initialProductId != null ||
+        widget.initialThreadId != null;
 
-    return Scaffold(
-      backgroundColor: CartzyColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Page Header
-            _buildPageHeader(),
+    return PopScope(
+      canPop: !isChatOpen || isDirectShopChat,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (isChatOpen) {
+          setState(() => _selectedThread = null);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: CartzyColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Page Header
+              _buildPageHeader(),
 
-            // Body
-            Expanded(
-              child: isWide ? _buildWideLayout() : _buildMobileLayout(),
-            ),
-          ],
+              // Body
+              Expanded(
+                child: isWide ? _buildWideLayout() : _buildMobileLayout(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -318,6 +437,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
   // ────────────────────────────────────────────────────────────
   Widget _buildPageHeader() {
     final isChatOpen = _selectedThread != null;
+    final isDirectShopChat = widget.initialStoreName != null ||
+        widget.initialProductId != null ||
+        widget.initialThreadId != null;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -339,7 +461,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           // Back button
           GestureDetector(
             onTap: () {
-              if (isChatOpen) {
+              if (isChatOpen && !isDirectShopChat) {
                 setState(() => _selectedThread = null);
               } else {
                 widget.onBack();

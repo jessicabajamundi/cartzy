@@ -518,7 +518,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
         builder: (_) => MessagesScreen(
           onBack: () => Navigator.of(context).pop(),
           initialProductId: widget.productId,
+          initialProductName: _name,
+          initialProductImage: _images.isNotEmpty ? _images.first : widget.imageUrl,
+          initialSellerId: _sellerId,
           initialStoreName: _sellerName,
+          initialStoreAvatar: _sellerLogoUrl,
         ),
       ),
     );
