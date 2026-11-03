@@ -258,7 +258,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onRecentlyViewed: _openRecentlyViewed,
         onWhatsNew: () =>
             AppUpdateService.checkLocalPatchNotes(context, forceShow: true),
-        onCozy: () => BuddyChatScreen.showPopup(context),
+        onCozy: () {
+          BuddyLauncher.summon();
+        },
         onLoginAsRider: () => widget.onLoginAsRider?.call(),
         onLogout: () => widget.onLogout?.call(),
       ),
@@ -779,6 +781,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
+
+            // ── Cozy Bear Floating Companion ──
+            ValueListenableBuilder<int>(
+              valueListenable: BuddyLauncher.summonTrigger,
+              builder: (context, _, __) {
+                return BuddyLauncher(aboveNav: _isNavVisible);
+              },
+            ),
       ],
         ),
       ),

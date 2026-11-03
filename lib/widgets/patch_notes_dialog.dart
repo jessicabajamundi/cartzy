@@ -76,6 +76,13 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.5' || version == 'v1.2.5') {
+      return const [
+        'Cozy Bear Companion in Menu: Tapping Cozy in the hamburger drawer now brings out Cozy in her cute interactive bear form on screen instead of jumping directly into the text chat.',
+        'Interactive Bear Features: Cozy waves and greets you with an on-screen speech bubble, can be dragged freely, and opens chat only when tapped.',
+        'Clean Home Browsing: Cozy is completely hidden until summoned, with no distracting side tabs.',
+      ];
+    }
     if (version == '1.2.4' || version == 'v1.2.4') {
       return const [
         'Live Inventory & Stock Verification: Real-time database stock checks automatically adjust quantities and notify if items sell out.',

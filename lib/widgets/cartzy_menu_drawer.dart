@@ -8,6 +8,7 @@ import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/recently_viewed_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/widgets/buddy_bear.dart';
 
 /// Lavender and rose gold, the same blend used on the cart screen.
 class _MenuPalette {
@@ -127,7 +128,19 @@ class CartzyMenuDrawer extends StatelessWidget {
                   ),
                 ),
                 _MenuTile(
-                  icon: Icons.auto_awesome_rounded,
+                  leading: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: _MenuPalette.softBlend,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: CartzyColors.rose200),
+                    ),
+                    alignment: Alignment.center,
+                    child: const IgnorePointer(
+                      child: BuddyBear(size: 30, mood: BuddyMood.happy),
+                    ),
+                  ),
                   label: 'Cozy',
                   subtitle: 'Your shopping assistant',
                   onTap: () => _run(context, onCozy),
@@ -432,14 +445,16 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _MenuTile extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leading;
   final String label;
   final String subtitle;
   final Widget? trailing;
   final VoidCallback onTap;
 
   const _MenuTile({
-    required this.icon,
+    this.icon,
+    this.leading,
     required this.label,
     required this.subtitle,
     required this.onTap,
@@ -465,15 +480,16 @@ class _MenuTile extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
             child: Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    gradient: _MenuPalette.blend,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, size: 20, color: Colors.white),
-                ),
+                leading ??
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        gradient: _MenuPalette.blend,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon ?? Icons.circle, size: 20, color: Colors.white),
+                    ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

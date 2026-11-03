@@ -802,7 +802,17 @@ class BuddyLauncher extends StatefulWidget {
   final bool aboveNav;
 
   /// Global session state indicating whether Cozy was discarded by the user.
-  static bool isDismissed = false;
+  /// Starts as true so Cozy does not clutter the home screen until summoned.
+  static bool isDismissed = true;
+
+  /// Notifier for summoning Cozy onto the home screen in bear form.
+  static final ValueNotifier<int> summonTrigger = ValueNotifier<int>(0);
+
+  /// Summon Cozy onto the home screen in bear form.
+  static void summon() {
+    isDismissed = false;
+    summonTrigger.value++;
+  }
 
   /// Restore Cozy if previously dismissed.
   static void restore() {
@@ -832,10 +842,15 @@ class _BuddyLauncherState extends State<BuddyLauncher>
   Animation<Offset>? _snapAnimation;
   Timer? _waveTimer;
   Timer? _discardTimer;
+  Timer? _greetingTimer;
+  int _lastSummonCount = 0;
+  bool _showGreetingBubble = false;
 
   @override
   void initState() {
     super.initState();
+    _lastSummonCount = BuddyLauncher.summonTrigger.value;
+    BuddyLauncher.summonTrigger.addListener(_onSummon);
     _snapController.addListener(() {
       if (_snapAnimation != null && mounted) {
         setState(() {
@@ -849,8 +864,35 @@ class _BuddyLauncherState extends State<BuddyLauncher>
     });
   }
 
+  void _onSummon() {
+    if (!mounted) return;
+    if (BuddyLauncher.summonTrigger.value != _lastSummonCount) {
+      _lastSummonCount = BuddyLauncher.summonTrigger.value;
+      setState(() {
+        BuddyLauncher.isDismissed = false;
+        _dragPosition = null;
+        _isDragging = false;
+        _isDismissing = false;
+      });
+      _triggerGreeting();
+    }
+  }
+
+  void _triggerGreeting() {
+    _greetingTimer?.cancel();
+    setState(() => _showGreetingBubble = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _bearKey.currentState?.wave();
+    });
+    _greetingTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _showGreetingBubble = false);
+    });
+  }
+
   @override
   void dispose() {
+    BuddyLauncher.summonTrigger.removeListener(_onSummon);
+    _greetingTimer?.cancel();
     _waveTimer?.cancel();
     _discardTimer?.cancel();
     _snapController.dispose();
@@ -862,7 +904,7 @@ class _BuddyLauncherState extends State<BuddyLauncher>
   }
 
   double _getRestingY(double screenHeight) {
-    final bottomOffset = widget.aboveNav ? 82.0 : 14.0;
+    final bottomOffset = widget.aboveNav ? 90.0 : 20.0;
     return screenHeight - bottomOffset - 78.0;
   }
 
@@ -970,9 +1012,7 @@ class _BuddyLauncherState extends State<BuddyLauncher>
   @override
   Widget build(BuildContext context) {
     if (BuddyLauncher.isDismissed) {
-      return Positioned.fill(
-        child: Stack(clipBehavior: Clip.none, children: [_buildRestoreTab()]),
-      );
+      return const SizedBox.shrink();
     }
 
     final media = MediaQuery.of(context);
@@ -992,6 +1032,44 @@ class _BuddyLauncherState extends State<BuddyLauncher>
       child: Stack(
         clipBehavior: Clip.none,
         children: [
+          // ── Speech bubble when summoned ──
+          if (_showGreetingBubble)
+            Positioned(
+              left: (currentX - 170).clamp(12.0, screenWidth - 190.0),
+              top: (currentY - 44).clamp(media.padding.top + 10.0, screenHeight - 120.0),
+              child: GestureDetector(
+                onTap: () {
+                  BuddyChatScreen.showPopup(context);
+                },
+                child: Material(
+                  color: Colors.white,
+                  elevation: 6,
+                  shadowColor: CartzyColors.brandDark.withValues(alpha: .25),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: CartzyColors.rose200, width: 1.5),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('👋 ', style: TextStyle(fontSize: 14)),
+                        Text(
+                          'Tap me to chat with Cozy! 💖',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: CartzyColors.brand900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
           // ── Bottom Center Discard Zone ("X" circle) ──
           Positioned(
             left: 0,

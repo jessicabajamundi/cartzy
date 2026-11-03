@@ -125,6 +125,8 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
+    BuddyLauncher.summon();
+
     await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
         body: Stack(
@@ -146,12 +148,12 @@ void main() {
 
     expect(BuddyLauncher.isDismissed, isTrue);
 
-    // The restore tab brings Cozy back.
-    await tester.tap(find.byKey(const ValueKey('buddy-restore')));
+    // Summon brings Cozy back.
+    BuddyLauncher.summon();
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(BuddyLauncher.isDismissed, isFalse);
-    expect(find.text('Bring back Cozy'), findsNothing);
+    expect(find.byType(BuddyBear), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 3));
