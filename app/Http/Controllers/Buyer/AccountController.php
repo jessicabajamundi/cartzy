@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class AccountController extends Controller
@@ -87,17 +86,33 @@ class AccountController extends Controller
     {
         $user = Auth::user();
 
+        // Accept 09XXXXXXXXX or +639XXXXXXXXX (spaces and dashes allowed) and store the 09 form,
+        // so both spellings of one number count as the same number.
+        if (is_string($request->input('phone'))) {
+            $phone = preg_replace('/[\s\-]/', '', $request->input('phone'));
+            if (preg_match('/\A\+639[0-9]{9}\z/', $phone)) {
+                $phone = '0' . substr($phone, 3);
+            }
+            $request->merge(['phone' => $phone]);
+        }
+        $unusedNumber = function ($attribute, $value, $fail) use ($user) {
+            $variants = [$value, '+63' . substr($value, 1), '63' . substr($value, 1)];
+            if (User::where('id', '<>', $user?->id)->whereIn('phone', $variants)->exists()) {
+                $fail('This mobile number is already in use.');
+            }
+        };
+
         $validated = $request->validate([
             'name'           => ['required', 'string', 'max:255', 'regex:/\A(?:\p{L}\p{M}*|[ .\'\-])+\z/u'],
             'middle_initial' => ['nullable', 'string', 'max:5'],
-            'phone'          => ['nullable', 'string', 'regex:/\A[0-9]+\z/', 'max:11', Rule::unique('users', 'phone')->ignore($user?->id)],
+            'phone'          => ['nullable', 'bail', 'string', 'regex:/\A09[0-9]{9}\z/', $unusedNumber],
             'sex'            => ['nullable', 'string', 'in:Male,Female,Prefer not to say,Other'],
             'birthday'       => ['nullable', 'bail', 'date_format:Y-m-d', 'before_or_equal:' . now()->subYearsNoOverflow(18)->toDateString()],
             'id_type'        => ['nullable', 'string', 'max:100'],
             'id_number'      => ['nullable', 'string', 'max:100'],
             'id_photo'       => ['nullable', 'file', 'mimes:jpeg,png,jpg,pdf', 'max:5120'],
         ], [
-            'phone.unique'         => 'This mobile number is already in use.',
+            'phone.regex'          => 'Enter a valid mobile number: 09 followed by 9 digits, or +639 followed by 9 digits.',
             'name.regex'           => 'Special characters and numbers are not allowed.',
             'birthday.date_format' => 'Please enter a valid birthday.',
             'birthday.before_or_equal' => 'You must be at least 18 years old.',

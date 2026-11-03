@@ -157,7 +157,8 @@
                     </label>
                     <label>
                         <span class="acct-label">Mobile number</span>
-                        <input class="acct-input" type="tel" name="phone" autocomplete="tel" maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" placeholder="09XXXXXXXXX" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" value="{{ old('phone', $user->phone) }}">
+                        <input class="acct-input" type="tel" name="phone" autocomplete="tel" maxlength="13" inputmode="tel" pattern="09[0-9]{9}|\+639[0-9]{9}" title="09 followed by 9 digits, or +639 followed by 9 digits" placeholder="09XXXXXXXXX or +639XXXXXXXXX" oninput="this.value = this.value.replace(/(?!^\+)[^\d]/g, '').slice(0, this.value.startsWith('+') ? 13 : 11)" value="{{ old('phone', $user->phone) }}">
+                        @error('phone')<span class="acct-hint acct-hint-error">{{ $message }}</span>@enderror
                     </label>
                     <label class="acct-field-wide">
                         <span class="acct-label">Email address</span>
