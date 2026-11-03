@@ -48,20 +48,20 @@
                 <p class="acct-who-email" title="{{ $user->email }}">{{ $user->email }}</p>
             </div>
         </div>
-        <nav class="acct-nav" role="tablist" aria-label="Account settings" aria-orientation="vertical">
+        <nav class="acct-nav" aria-label="Account settings">
             @foreach($acctSections as $key => [$label, $icon])
-                <button type="button" class="acct-nav-item" role="tab" id="acct-tab-{{ $key }}" data-acct-tab="{{ $key }}" aria-controls="acct-{{ $key }}" aria-selected="{{ $acctOpen === $key ? 'true' : 'false' }}" tabindex="{{ $acctOpen === $key ? '0' : '-1' }}">
+                <a href="#acct-{{ $key }}" class="acct-nav-item" id="acct-tab-{{ $key }}" data-acct-tab="{{ $key }}" @if($acctOpen === $key) aria-current="true" @endif>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $icon }}"/></svg>
                     <span>{{ $label }}</span>
                     @isset($acctComingSoon[$key])<span class="acct-soon-tag">Soon</span>@endisset
-                </button>
+                </a>
             @endforeach
         </nav>
     </aside>
 
     <div class="acct-main">
         {{-- Personal details --}}
-        <section class="acct-card" id="acct-personal" role="tabpanel" aria-labelledby="acct-tab-personal" data-acct-section="personal" @if($acctOpen !== 'personal') hidden @endif>
+        <section class="acct-card" id="acct-personal" data-acct-section="personal">
             <header class="acct-head">
                 <div>
                     <p class="acct-eyebrow">Account</p>
@@ -146,7 +146,7 @@
         </section>
 
         {{-- Delivery addresses --}}
-        <section class="acct-card" id="acct-addresses" role="tabpanel" aria-labelledby="acct-tab-addresses" data-acct-section="addresses" @if($acctOpen !== 'addresses') hidden @endif>
+        <section class="acct-card" id="acct-addresses" data-acct-section="addresses">
             <header class="acct-head">
                 <div>
                     <p class="acct-eyebrow">Shipping</p>
@@ -158,7 +158,7 @@
         </section>
 
         {{-- ID verification --}}
-        <section class="acct-card" id="acct-id" role="tabpanel" aria-labelledby="acct-tab-id" data-acct-section="id" @if($acctOpen !== 'id') hidden @endif>
+        <section class="acct-card" id="acct-id" data-acct-section="id">
             <header class="acct-head">
                 <div>
                     <p class="acct-eyebrow">Trust &amp; safety</p>
@@ -185,8 +185,25 @@
             </form>
         </section>
 
+        {{-- Coming soon --}}
+        @foreach($acctComingSoon as $key => $blurb)
+            <section class="acct-card acct-card-soon" id="acct-{{ $key }}" data-acct-section="{{ $key }}">
+                <header class="acct-head">
+                    <div>
+                        <p class="acct-eyebrow">Account</p>
+                        <h2 class="acct-title">{{ $acctSections[$key][0] }}</h2>
+                    </div>
+                </header>
+                <div class="acct-soon">
+                    <span class="acct-soon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $acctSections[$key][1] }}"/></svg></span>
+                    <h3>Coming soon</h3>
+                    <p>{{ $blurb }} We're still building this part of Cartzy.</p>
+                </div>
+            </section>
+        @endforeach
+
         {{-- Password & security --}}
-        <section class="acct-card" id="acct-password" role="tabpanel" aria-labelledby="acct-tab-password" data-acct-section="password" @if($acctOpen !== 'password') hidden @endif>
+        <section class="acct-card" id="acct-password" data-acct-section="password">
             <header class="acct-head">
                 <div>
                     <p class="acct-eyebrow">Security</p>
@@ -241,7 +258,7 @@
         </section>
 
         {{-- Account activity --}}
-        <section class="acct-card" id="acct-activity" role="tabpanel" aria-labelledby="acct-tab-activity" data-acct-section="activity" @if($acctOpen !== 'activity') hidden @endif>
+        <section class="acct-card" id="acct-activity" data-acct-section="activity">
             <header class="acct-head">
                 <div>
                     <p class="acct-eyebrow">Security</p>
@@ -286,22 +303,6 @@
             @endif
         </section>
 
-        {{-- Coming soon --}}
-        @foreach($acctComingSoon as $key => $blurb)
-            <section class="acct-card" id="acct-{{ $key }}" role="tabpanel" aria-labelledby="acct-tab-{{ $key }}" data-acct-section="{{ $key }}" @if($acctOpen !== $key) hidden @endif>
-                <header class="acct-head">
-                    <div>
-                        <p class="acct-eyebrow">Account</p>
-                        <h2 class="acct-title">{{ $acctSections[$key][0] }}</h2>
-                    </div>
-                </header>
-                <div class="acct-soon">
-                    <span class="acct-soon-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $acctSections[$key][1] }}"/></svg></span>
-                    <h3>Coming soon</h3>
-                    <p>{{ $blurb }} We're still building this part of Cartzy.</p>
-                </div>
-            </section>
-        @endforeach
     </div>
 </div>
 
@@ -312,35 +313,39 @@
     const tabs = [...root.querySelectorAll('[data-acct-tab]')];
     const sections = [...root.querySelectorAll('[data-acct-section]')];
 
-    const showSection = (key, focusTab = false) => {
-        if (!sections.some((s) => s.dataset.acctSection === key)) key = 'personal';
-        tabs.forEach((tab) => {
-            const on = tab.dataset.acctTab === key;
-            tab.setAttribute('aria-selected', String(on));
-            tab.tabIndex = on ? 0 : -1;
-            if (on && focusTab) tab.focus();
-            if (on) tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        });
-        sections.forEach((s) => { s.hidden = s.dataset.acctSection !== key; });
+    // All sections live on one page: the sidebar scrolls to a section and follows along as you scroll.
+    const setActive = (key) => tabs.forEach((tab) => {
+        if (tab.dataset.acctTab === key) tab.setAttribute('aria-current', 'true');
+        else tab.removeAttribute('aria-current');
+    });
+    const showSection = (key, smooth = true) => {
+        const section = sections.find((s) => s.dataset.acctSection === key);
+        if (!section) return;
+        setActive(key);
+        section.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
         const url = new URL(location.href);
         url.searchParams.set('section', key);
         history.replaceState(null, '', url);
     };
     window.showAccountSection = showSection;
 
-    tabs.forEach((tab, i) => {
-        tab.addEventListener('click', () => {
-            showSection(tab.dataset.acctTab);
-            if (matchMedia('(max-width: 1024px)').matches) root.querySelector('.acct-main').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-        // Arrow keys move between tabs.
-        tab.addEventListener('keydown', (event) => {
-            const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
-            if (!step) return;
-            event.preventDefault();
-            showSection(tabs[(i + step + tabs.length) % tabs.length].dataset.acctTab, true);
-        });
-    });
+    tabs.forEach((tab) => tab.addEventListener('click', (event) => {
+        event.preventDefault();
+        showSection(tab.dataset.acctTab);
+    }));
+
+    // Highlight the section nearest the top of the screen.
+    const visible = new Map();
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => visible.set(entry.target, entry.isIntersecting));
+        const current = sections.find((s) => visible.get(s));
+        if (current) setActive(current.dataset.acctSection);
+    }, { rootMargin: '-140px 0px -55% 0px' });
+    sections.forEach((s) => observer.observe(s));
+
+    // Jump to the section named in the URL (or the one a failed form came from) once the dashboard has settled.
+    const opened = @json($acctOpen);
+    if (opened !== 'personal') setTimeout(() => showSection(opened, false), 350);
 
     // "Change photo" uploads as soon as a file is picked.
     root.querySelectorAll('[data-acct-autosubmit]').forEach((input) => {

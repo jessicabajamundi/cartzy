@@ -46,6 +46,7 @@
 .acct-nav { display: flex; flex-direction: column; gap: 2px; padding: 8px; }
 .acct-nav-item {
     position: relative;
+    text-decoration: none;
     display: flex;
     align-items: center;
     flex-shrink: 0;
@@ -67,9 +68,9 @@
 .acct-nav-item::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--acct-gradient); transform: scaleY(0); transition: transform .25s ease; }
 .acct-nav-item:hover { background: var(--acct-soft); color: var(--acct-violet); transform: translateX(3px); }
 .acct-nav-item:hover svg { color: var(--acct-rose); transform: scale(1.12); }
-.acct-nav-item[aria-selected="true"] { background: linear-gradient(90deg, var(--acct-lilac), var(--acct-blush)); color: var(--acct-ink); font-weight: 700; }
-.acct-nav-item[aria-selected="true"] svg { color: var(--acct-rose-ink); }
-.acct-nav-item[aria-selected="true"]::before { transform: scaleY(1); }
+.acct-nav-item[aria-current="true"] { background: linear-gradient(90deg, var(--acct-lilac), var(--acct-blush)); color: var(--acct-ink); font-weight: 700; }
+.acct-nav-item[aria-current="true"] svg { color: var(--acct-rose-ink); }
+.acct-nav-item[aria-current="true"]::before { transform: scaleY(1); }
 .acct-nav-item:focus-visible { outline: 2px solid var(--acct-rose); outline-offset: 2px; }
 .acct-soon-tag { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: var(--acct-blush); color: var(--acct-rose-ink); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
 
@@ -83,7 +84,14 @@
     box-shadow: 0 14px 40px -28px rgba(40, 33, 51, .4);
     animation: acct-in .35s ease both;
 }
-.acct-card[hidden] { display: none; }
+.acct-main { display: grid; gap: 24px; min-width: 0; }
+.acct-card { scroll-margin-top: 130px; }
+/* Unfinished sections stay small on the one-page layout. */
+.acct-card-soon .acct-head { margin-bottom: 4px; }
+.acct-card-soon .acct-soon { grid-template-columns: auto 1fr; justify-items: start; align-items: center; gap: 4px 16px; padding: 12px 0 0; text-align: left; }
+.acct-card-soon .acct-soon-icon { grid-row: span 2; width: 56px; height: 56px; border-radius: 18px; }
+.acct-card-soon .acct-soon-icon svg { width: 26px; height: 26px; }
+.acct-card-soon .acct-soon h3 { margin: 0; font-size: 22px; }
 .acct-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 30px; }
 .acct-eyebrow { margin: 0 0 8px; color: var(--acct-rose-ink); font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
 .acct-title { margin: 0; color: var(--acct-ink); font: 700 clamp(30px, 3.2vw, 40px)/1.1 'Cormorant Garamond', Georgia, serif; letter-spacing: -.01em; }
@@ -219,7 +227,7 @@
     .acct-nav::-webkit-scrollbar { display: none; }
     .acct-nav-item { flex: none; width: auto; min-height: 44px; padding: 9px 14px; font-size: 14px; white-space: nowrap; }
     .acct-nav-item::before { left: 14px; right: 14px; top: auto; bottom: 4px; width: auto; height: 3px; transform: scaleX(0); }
-    .acct-nav-item[aria-selected="true"]::before { transform: scaleX(1); }
+    .acct-nav-item[aria-current="true"]::before { transform: scaleX(1); }
     .acct-nav-item:hover { transform: none; }
     .acct-soon-tag { display: none; }
 }

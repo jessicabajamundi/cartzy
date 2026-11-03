@@ -35,12 +35,16 @@ class AccountSettingsTest extends TestCase
             ->assertDontSee('data-nav="profile"', false);
     }
 
-    public function test_settings_open_the_section_named_in_the_url(): void
+    public function test_settings_show_every_section_and_highlight_the_one_in_the_url(): void
     {
         $user = User::factory()->create();
         $response = $this->actingAs($user)->get('/dashboard?tab=settings&section=password')->assertOk();
-        $response->assertSee('id="acct-tab-password" data-acct-tab="password" aria-controls="acct-password" aria-selected="true"', false);
-        $response->assertSee('id="acct-tab-personal" data-acct-tab="personal" aria-controls="acct-personal" aria-selected="false"', false);
+        $response->assertSee('id="acct-tab-password" data-acct-tab="password"  aria-current="true"', false);
+        $response->assertDontSee('id="acct-tab-personal" data-acct-tab="personal"  aria-current="true"', false);
+        // Every section is on the one page.
+        foreach (['personal', 'addresses', 'id', 'follows', 'complaints', 'help', 'password', 'activity'] as $section) {
+            $response->assertSee('id="acct-'.$section.'"', false);
+        }
     }
 
     public function test_uploaded_profile_photo_can_be_removed(): void
