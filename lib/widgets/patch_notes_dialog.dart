@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.2' || version == 'v1.2.2') {
+      return const [
+        'Cozy in Profile Help: Cozy the AI shopping buddy is now integrated directly into your Profile HELP section with an interactive featured card.',
+        'Clean Home Experience: Floating screen launcher removed so your home dashboard browsing is completely unobstructed.',
+        'Safe Navigation Spacing: Generous layout clearance guaranteeing Cozy and all Help options stay comfortably above the bottom navigation bar.',
+        'Direct Support Access: Instant one-tap access to chat with Cozy directly from Help & Support modal options.',
+      ];
+    }
     if (version == '1.2.1' || version == 'v1.2.1') {
       return const [
         'Cozy Chatbot Upgrade: Enhanced AI shopping assistant with quick conversation starters, order status inquiries, and live product suggestions.',
