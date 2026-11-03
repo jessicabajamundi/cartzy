@@ -43,6 +43,10 @@ header .header-main.storefront-header-main {
 .header-primary-links a:focus-visible { outline: 2px solid #B76E79; outline-offset: 4px; border-radius: 3px; }
 header .storefront-header-main .header-search { min-width: 140px; margin: 0; max-width: 420px; }
 header .storefront-header-main #header-search-form { min-height: 48px; }
+/* Guests have fewer header icons, so the search takes the freed space. */
+@media (min-width: 701px) {
+    header.is-guest .storefront-header-main .header-search { max-width: 640px; }
+}
 header .storefront-header-main #header-search-input { min-width: 0; font-size: 15px; }
 
 header .storefront-header-main .header-auth-links > a {

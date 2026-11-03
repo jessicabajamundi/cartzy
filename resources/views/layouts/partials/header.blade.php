@@ -2,7 +2,7 @@
     $buyerHeader = request()->routeIs('home', 'sale', 'category.show', 'products.show', 'cart.*', 'checkout', 'checkout.*')
         || (Auth::check() && Auth::user()->isBuyer());
 @endphp
-<header class="{{ $buyerHeader ? 'buyer-header' : (Auth::check() ? 'account-header' : '') }} sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
+<header class="{{ $buyerHeader ? 'buyer-header' : (Auth::check() ? 'account-header' : '') }} {{ Auth::check() ? '' : 'is-guest' }} sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
     <!-- Main Navigation & Search Bar -->
     <div class="w-full px-4 sm:px-6 lg:px-10 py-4 sm:py-6">
         <div class="header-main storefront-header-main flex items-center justify-between gap-4 lg:gap-8">
