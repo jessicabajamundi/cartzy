@@ -109,6 +109,13 @@ void main() {
 
     expect(BuddyLauncher.isDismissed, isTrue);
 
+    // The restore tab brings Cozy back.
+    await tester.tap(find.byKey(const ValueKey('buddy-restore')));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(BuddyLauncher.isDismissed, isFalse);
+    expect(find.text('Bring back Cozy'), findsNothing);
+
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 3));
   });

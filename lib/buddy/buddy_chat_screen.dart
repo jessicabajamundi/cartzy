@@ -826,10 +826,64 @@ class _BuddyLauncherState extends State<BuddyLauncher>
     });
   }
 
+  void _bringBack() {
+    HapticFeedback.lightImpact();
+    setState(BuddyLauncher.restore);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _bearKey.currentState?.wave();
+    });
+  }
+
+  /// A small tab on the right edge that brings a discarded Cozy back.
+  Widget _buildRestoreTab() {
+    return Positioned(
+      right: 0,
+      bottom: widget.aboveNav ? 92.0 : 24.0,
+      child: Semantics(
+        button: true,
+        label: 'Bring back Cozy',
+        child: Material(
+          color: Colors.white,
+          elevation: 6,
+          shadowColor: CartzyColors.brandDark.withValues(alpha: .35),
+          shape: const RoundedRectangleBorder(
+            side: BorderSide(color: CartzyColors.rose400, width: 1.5),
+            borderRadius: BorderRadius.horizontal(left: Radius.circular(24)),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: const ValueKey('buddy-restore'),
+            onTap: _bringBack,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 3, 14, 3),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const IgnorePointer(child: BuddyBear(size: 40, mood: BuddyMood.happy)),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Bring back Cozy',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w700,
+                      color: CartzyColors.brandDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (BuddyLauncher.isDismissed) {
-      return const SizedBox.shrink();
+      return Positioned.fill(
+        child: Stack(clipBehavior: Clip.none, children: [_buildRestoreTab()]),
+      );
     }
 
     final media = MediaQuery.of(context);
