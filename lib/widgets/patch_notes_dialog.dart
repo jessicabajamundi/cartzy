@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.3' || version == 'v1.2.3') {
+      return const [
+        'Direct Shop Chat: Tapping the Chat button beside any seller immediately opens that specific shop chat with zero selection list needed.',
+        'Popup Cozy Chatbot: Cozy now opens as a sleek interactive popup bottom sheet without leaving your current screen.',
+        'Store & Product Context: Seller chat automatically displays store name, logo, and product preview when inquiring from listings.',
+        'Profile Clean-up: Streamlined Help section with direct Cozy card access and clean navigation clearance.',
+      ];
+    }
     if (version == '1.2.2' || version == 'v1.2.2') {
       return const [
         'Cozy in Profile Help: Cozy the AI shopping buddy is now integrated directly into your Profile HELP section with an interactive featured card.',
