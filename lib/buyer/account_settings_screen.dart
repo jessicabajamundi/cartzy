@@ -22,6 +22,7 @@ import 'package:cartzy/address/add_address_screen.dart';
 
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buyer/account_activity_screen.dart';
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
 
@@ -1525,6 +1526,20 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       icon: Icons.lock_outline_rounded,
                       label: 'Change password',
                       onTap: _openChangePasswordModal,
+                    ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+
+                    // Account activity
+                    _buildMenuTile(
+                      icon: Icons.history_rounded,
+                      label: 'Account activity',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const AccountActivityScreen()),
+                      ),
                     ),
                     const Divider(
                         height: 1,
