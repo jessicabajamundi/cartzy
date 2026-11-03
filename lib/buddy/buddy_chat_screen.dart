@@ -13,9 +13,23 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 
-/// Full-screen chat with Cozy the teddy bear.
+/// Interactive chat with Cozy the teddy bear (supports full-screen and popup modal bottom sheet).
 class BuddyChatScreen extends StatefulWidget {
-  const BuddyChatScreen({super.key});
+  final bool isPopup;
+
+  const BuddyChatScreen({super.key, this.isPopup = false});
+
+  /// Opens the Cozy chatbot as a sleek modal popup bottom sheet.
+  static Future<void> showPopup(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      useSafeArea: true,
+      builder: (ctx) => const BuddyChatScreen(isPopup: true),
+    );
+  }
 
   @override
   State<BuddyChatScreen> createState() => _BuddyChatScreenState();
@@ -214,6 +228,9 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
   }
 
   void _openProduct(BuddyProduct product) {
+    if (widget.isPopup) {
+      Navigator.of(context).pop();
+    }
     Navigator.of(context).push(MaterialPageRoute(
       builder: (routeContext) => ProductDetailsScreen(
         productId: product.id,
@@ -238,32 +255,66 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
   @override
   Widget build(BuildContext context) {
     final messages = BuddyService.messages;
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final content = Column(
+      children: [
+        _buildHeader(),
+        Expanded(
+          child: ListView(
+            controller: _scroll,
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 12),
+            children: [
+              _Bubble(fromUser: false, text: _welcome),
+              for (final m in messages) ...[
+                _Bubble(fromUser: m.fromUser, text: m.text),
+                if (m.products.isNotEmpty)
+                  _ProductRow(products: m.products, onOpen: _openProduct, peso: _peso),
+              ],
+              if (_errorNote != null && _speaking == null) _Bubble(fromUser: false, text: _errorNote!),
+              if (_speaking != null) _Bubble(fromUser: false, text: _speaking!),
+              if (_busy && _speaking == null) const _TypingBubble(),
+            ],
+          ),
+        ),
+        if (_suggestions.isNotEmpty && !_busy) _buildSuggestions(),
+        _buildComposer(),
+      ],
+    );
+
+    if (widget.isPopup) {
+      final availableHeight = screenHeight - keyboardHeight;
+      final sheetHeight = keyboardHeight > 0
+          ? math.min(screenHeight * 0.85, math.max(300.0, availableHeight - 20))
+          : screenHeight * 0.85;
+
+      return AnimatedPadding(
+        padding: EdgeInsets.only(bottom: keyboardHeight),
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: Container(
+          height: sheetHeight,
+          decoration: const BoxDecoration(
+            color: CartzyColors.brand50,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 20,
+                offset: Offset(0, -4),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: content,
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: CartzyColors.brand50,
-      body: Column(
-        children: [
-          _buildHeader(),
-          Expanded(
-            child: ListView(
-              controller: _scroll,
-              padding: const EdgeInsets.fromLTRB(14, 16, 14, 12),
-              children: [
-                _Bubble(fromUser: false, text: _welcome),
-                for (final m in messages) ...[
-                  _Bubble(fromUser: m.fromUser, text: m.text),
-                  if (m.products.isNotEmpty)
-                    _ProductRow(products: m.products, onOpen: _openProduct, peso: _peso),
-                ],
-                if (_errorNote != null && _speaking == null) _Bubble(fromUser: false, text: _errorNote!),
-                if (_speaking != null) _Bubble(fromUser: false, text: _speaking!),
-                if (_busy && _speaking == null) const _TypingBubble(),
-              ],
-            ),
-          ),
-          if (_suggestions.isNotEmpty && !_busy) _buildSuggestions(),
-          _buildComposer(),
-        ],
-      ),
+      body: content,
     );
   }
 
@@ -278,56 +329,94 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
         ),
       ),
       child: SafeArea(
+        top: !widget.isPopup,
         bottom: false,
-        child: SizedBox(
-          height: 112,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: Row(
-                  children: [
-                    IconButton(
-                      tooltip: 'Back',
-                      icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                      onPressed: () => Navigator.of(context).maybePop(),
-                    ),
-                    BuddyBear(key: _bearKey, size: 92, mood: _mood, onTap: _patBear),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Cozy',
-                            style: GoogleFonts.cormorantGaramond(
-                              color: Colors.white,
-                              fontSize: 30,
-                              height: 1,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _busy ? 'Cozy is thinking...' : 'Your Cartzy shopping buddy',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white, fontSize: 13),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Start a new chat',
-                      icon: const Icon(Icons.refresh_rounded, color: Colors.white),
-                      onPressed: _reset,
-                    ),
-                  ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (widget.isPopup) ...[
+              const SizedBox(height: 8),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              ..._hearts,
+              const SizedBox(height: 4),
             ],
-          ),
+            SizedBox(
+              height: widget.isPopup ? 80 : 112,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Row(
+                      children: [
+                        if (!widget.isPopup)
+                          IconButton(
+                            tooltip: 'Back',
+                            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                            onPressed: () => Navigator.of(context).maybePop(),
+                          )
+                        else
+                          const SizedBox(width: 14),
+                        BuddyBear(
+                          key: _bearKey,
+                          size: widget.isPopup ? 64 : 92,
+                          mood: _mood,
+                          onTap: _patBear,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Cozy',
+                                style: GoogleFonts.cormorantGaramond(
+                                  color: Colors.white,
+                                  fontSize: widget.isPopup ? 24 : 30,
+                                  height: 1,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _busy ? 'Cozy is thinking...' : 'Your Cartzy shopping buddy',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.95),
+                                  fontSize: widget.isPopup ? 12 : 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Start a new chat',
+                          icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                          onPressed: _reset,
+                        ),
+                        if (widget.isPopup)
+                          IconButton(
+                            tooltip: 'Close',
+                            icon: const Icon(Icons.close_rounded, color: Colors.white),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        const SizedBox(width: 4),
+                      ],
+                    ),
+                  ),
+                  ..._hearts,
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -995,9 +1084,7 @@ class _BuddyLauncherState extends State<BuddyLauncher>
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
-                );
+                BuddyChatScreen.showPopup(context);
               },
               onPanStart: (details) {
                 _totalDragDelta = Offset.zero;
@@ -1027,9 +1114,7 @@ class _BuddyLauncherState extends State<BuddyLauncher>
                 if (_totalDragDelta.distance < 6.0) {
                   _dragPosition = null;
                   _isDragging = false;
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
-                  );
+                  BuddyChatScreen.showPopup(context);
                   return;
                 }
                 if (_isOverDiscard) {

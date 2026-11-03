@@ -83,6 +83,43 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
   });
 
+  testWidgets('BuddyChatScreen pops up as modal bottom sheet and can be closed', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    AuthService.setSession(user: {'id': 7, 'name': 'Rey Santos'}, token: 'token');
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Builder(
+          builder: (ctx) => ElevatedButton(
+            onPressed: () => BuddyChatScreen.showPopup(ctx),
+            child: const Text('Open Cozy'),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.tap(find.text('Open Cozy'));
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(find.textContaining('Hi Rey!'), findsOneWidget);
+    expect(find.byTooltip('Close'), findsOneWidget);
+
+    // Tap Close to dismiss popup
+    await tester.tap(find.byTooltip('Close'));
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(find.textContaining('Hi Rey!'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 2));
+  });
+
   testWidgets('BuddyLauncher displays and can be dragged to discard on X target', (tester) async {
     tester.view.physicalSize = const Size(360, 640);
     tester.view.devicePixelRatio = 1;

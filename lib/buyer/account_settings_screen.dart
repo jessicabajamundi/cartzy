@@ -992,9 +992,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   size: 14, color: Color(0xFF7A6E72)),
               onTap: () {
                 Navigator.pop(ctx);
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
-                );
+                BuddyChatScreen.showPopup(context);
               },
             ),
             const Divider(height: 16),
@@ -1589,13 +1587,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               // Featured Cozy AI Shopping Buddy Card
               InkWell(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const BuddyChatScreen(),
-                    ),
-                  );
-                },
+                onTap: () => BuddyChatScreen.showPopup(context),
                 borderRadius: BorderRadius.circular(22),
                 child: Container(
                   width: double.infinity,
@@ -1692,13 +1684,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ),
                       const SizedBox(width: 8),
                       FilledButton(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const BuddyChatScreen(),
-                            ),
-                          );
-                        },
+                        onPressed: () => BuddyChatScreen.showPopup(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: CartzyColors.burgundy,
                           foregroundColor: Colors.white,
@@ -1748,22 +1734,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
                 child: Column(
                   children: [
-                    _buildMenuTile(
-                      icon: Icons.chat_bubble_outline_rounded,
-                      label: 'Chat with Cozy AI',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const BuddyChatScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
                     _buildMenuTile(
                       icon: Icons.support_agent_rounded,
                       label: 'Help & support',
