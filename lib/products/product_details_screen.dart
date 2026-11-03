@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
@@ -51,12 +54,23 @@ class ProductDetailsScreen extends StatefulWidget {
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
-class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> with TickerProviderStateMixin {
   late PageController _pageController;
   int _currentImageIndex = 0;
 
   // Gallery images list
   List<String> _images = [];
+
+  /// Photo of the option the shopper tapped; while set, it is the only picture shown.
+  String? _optionImage;
+  List<String> get _galleryImages => _optionImage != null ? [_optionImage!] : _images;
+
+  // Add-to-cart animation: the photo flies from the gallery to the cart icon, which then bounces.
+  final _galleryKey = GlobalKey();
+  final _cartIconKey = GlobalKey();
+  late final AnimationController _cartBounce = AnimationController(vsync: this, duration: const Duration(milliseconds: 450));
+  bool _justAdded = false;
+  Timer? _justAddedTimer;
 
   // Live state values
   late String _name;
@@ -124,6 +138,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   void dispose() {
+    _cartBounce.dispose();
+    _justAddedTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -143,7 +159,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
     final ref = widget.productId != null ? widget.productId.toString() : widget.name;
     final cleanPrice = CartService.parsePrice(_price);
-    final effectiveImg = _images.isNotEmpty ? _images.first : (widget.imageUrl ?? '');
+    final effectiveImg = _galleryImages.isNotEmpty ? _galleryImages.first : (widget.imageUrl ?? '');
     final nextState = !_isWishlisted;
 
     setState(() => _isWishlisted = nextState);
@@ -311,16 +327,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       _quantity = 1;
     }
 
-    final variantImg = variant['image']?.toString();
-    if (variantImg != null && variantImg.isNotEmpty && updatePage) {
-      final idx = _images.indexOf(variantImg);
-      if (idx >= 0 && _pageController.hasClients) {
-        _pageController.animateToPage(
-          idx,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
+    // A tapped option shows only its own photo; options without one bring back the full gallery.
+    if (updatePage) {
+      final variantImg = variant['image']?.toString().trim();
+      _optionImage = (variantImg != null && variantImg.isNotEmpty) ? variantImg : null;
+      _currentImageIndex = 0;
+      if (_pageController.hasClients) _pageController.jumpToPage(0);
     }
   }
 
@@ -414,8 +426,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       return;
     }
 
-    final effectiveImage = _images.isNotEmpty
-        ? _images[_currentImageIndex.clamp(0, _images.length - 1)]
+    final effectiveImage = _galleryImages.isNotEmpty
+        ? _galleryImages[_currentImageIndex.clamp(0, _galleryImages.length - 1)]
         : CartzyProductImages.getImage(_name, _category);
 
     CartService.instance.addItem(
@@ -427,6 +439,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       variation: _variationDescription,
       quantity: _quantity,
     );
+    _playAddToCartAnimation(effectiveImage);
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -442,6 +455,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
       ),
     );
+  }
+
+  /// Flies a copy of the product photo into the cart icon, then bounces the icon.
+  void _playAddToCartAnimation(String image) {
+    HapticFeedback.lightImpact();
+    setState(() => _justAdded = true);
+    _justAddedTimer?.cancel();
+    _justAddedTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => _justAdded = false);
+    });
+
+    final overlay = Overlay.maybeOf(context);
+    final from = _galleryKey.currentContext?.findRenderObject() as RenderBox?;
+    final to = _cartIconKey.currentContext?.findRenderObject() as RenderBox?;
+    if (overlay == null || from == null || to == null || MediaQuery.of(context).disableAnimations) {
+      _cartBounce.forward(from: 0);
+      return;
+    }
+
+    final start = from.localToGlobal(from.size.center(Offset.zero));
+    final end = to.localToGlobal(to.size.center(Offset.zero));
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => _FlyingCartImage(
+        image: image,
+        start: start,
+        end: end,
+        onDone: () {
+          entry.remove();
+          if (mounted) _cartBounce.forward(from: 0);
+        },
+      ),
+    );
+    overlay.insert(entry);
   }
 
   void _openStoreScreen() {
@@ -533,7 +580,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              '${viewerIndex + 1} / ${_images.length}',
+                              '${viewerIndex + 1} / ${_galleryImages.length}',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -570,7 +617,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             clipBehavior: Clip.none,
                             child: Center(
                               child: CartzyProductImage(
-                                imageUrl: _images[viewerIndex],
+                                imageUrl: _galleryImages[viewerIndex],
                                 width: double.infinity,
                                 height: double.infinity,
                                 fit: BoxFit.contain,
@@ -580,7 +627,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
 
                           // Left Arrow
-                          if (_images.length > 1 && viewerIndex > 0)
+                          if (_galleryImages.length > 1 && viewerIndex > 0)
                             Positioned(
                               left: 8,
                               child: IconButton(
@@ -597,7 +644,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             ),
 
                           // Right Arrow
-                          if (_images.length > 1 && viewerIndex < _images.length - 1)
+                          if (_galleryImages.length > 1 && viewerIndex < _galleryImages.length - 1)
                             Positioned(
                               right: 8,
                               child: IconButton(
@@ -629,7 +676,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
 
                     // Bottom Thumbnails
-                    if (_images.length > 1)
+                    if (_galleryImages.length > 1)
                       Container(
                         height: 64,
                         padding: const EdgeInsets.only(bottom: 12),
@@ -638,7 +685,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
-                              children: List.generate(_images.length, (idx) {
+                              children: List.generate(_galleryImages.length, (idx) {
                                 final isSelected = idx == viewerIndex;
                                 return GestureDetector(
                                   onTap: () {
@@ -659,7 +706,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     ),
                                     clipBehavior: Clip.antiAlias,
                                     child: CartzyProductImage(
-                                      imageUrl: _images[idx],
+                                      imageUrl: _galleryImages[idx],
                                       fit: BoxFit.cover,
                                     ),
                                   ),
@@ -714,7 +761,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             listenable: CartService.instance,
             builder: (context, _) {
               final count = CartService.instance.totalItemCount;
-              return Stack(
+              return ScaleTransition(
+                key: _cartIconKey,
+                scale: TweenSequence<double>([
+                  TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.35).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
+                  TweenSequenceItem(tween: Tween(begin: 1.35, end: 1.0).chain(CurveTween(curve: Curves.elasticOut)), weight: 65),
+                ]).animate(_cartBounce),
+                child: Stack(
                 alignment: Alignment.center,
                 children: [
                   IconButton(
@@ -745,6 +798,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
                 ],
+              ),
               );
             },
           ),
@@ -872,6 +926,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         children: [
           // Main 1:1 Aspect ratio photo stage
           AspectRatio(
+            key: _galleryKey,
             aspectRatio: 1.0,
             child: Stack(
               children: [
@@ -879,13 +934,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   onTap: () => _openFullscreenViewer(_currentImageIndex),
                   child: PageView.builder(
                     controller: _pageController,
-                    itemCount: _images.length,
+                    itemCount: _galleryImages.length,
                     onPageChanged: (idx) {
                       setState(() => _currentImageIndex = idx);
                     },
                     itemBuilder: (context, index) {
                       return CartzyProductImage(
-                        imageUrl: _images[index],
+                        imageUrl: _galleryImages[index],
                         width: double.infinity,
                         height: double.infinity,
                         fit: BoxFit.cover,
@@ -949,7 +1004,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 ),
 
                 // Photo index counter pill (e.g. 1 / 4)
-                if (_images.length > 1)
+                if (_galleryImages.length > 1)
                   Positioned(
                     bottom: 14,
                     right: 14,
@@ -960,7 +1015,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '${_currentImageIndex + 1} / ${_images.length}',
+                        '${_currentImageIndex + 1} / ${_galleryImages.length}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -974,14 +1029,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           ),
 
           // Horizontal Thumbnail Strip (like the website!)
-          if (_images.length > 1)
+          if (_galleryImages.length > 1)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               color: const Color(0xFFFBFBFB),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: List.generate(_images.length, (idx) {
+                  children: List.generate(_galleryImages.length, (idx) {
                     final isSelected = idx == _currentImageIndex;
                     return GestureDetector(
                       onTap: () {
@@ -1015,7 +1070,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: CartzyProductImage(
-                          imageUrl: _images[idx],
+                          imageUrl: _galleryImages[idx],
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -2025,10 +2080,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               height: 48,
               child: ElevatedButton.icon(
                 onPressed: _inStock ? _handleAddToCart : null,
-                icon: const Icon(Icons.shopping_cart_outlined, size: 20),
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                  child: Icon(
+                    _justAdded ? Icons.check_circle_rounded : Icons.shopping_cart_outlined,
+                    key: ValueKey(_justAdded),
+                    size: 20,
+                  ),
+                ),
                 label: Text(
                   _inStock
-                      ? (_quantity > 1 ? 'Add to Cart ($_quantity)' : 'Add to Cart')
+                      ? (_justAdded ? 'Added!' : (_quantity > 1 ? 'Add to Cart ($_quantity)' : 'Add to Cart'))
                       : 'Sold Out',
                   style: const TextStyle(
                     fontSize: 15,
@@ -2049,6 +2112,85 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The product photo arcing from the gallery into the cart icon.
+class _FlyingCartImage extends StatefulWidget {
+  final String image;
+  final Offset start;
+  final Offset end;
+  final VoidCallback onDone;
+
+  const _FlyingCartImage({required this.image, required this.start, required this.end, required this.onDone});
+
+  @override
+  State<_FlyingCartImage> createState() => _FlyingCartImageState();
+}
+
+class _FlyingCartImageState extends State<_FlyingCartImage> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 750))..forward().whenComplete(widget.onDone);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // The curve's control point sits above both ends so the photo travels in an arc.
+    final control = Offset(
+      (widget.start.dx + widget.end.dx) / 2,
+      (widget.start.dy < widget.end.dy ? widget.start.dy : widget.end.dy) - 120,
+    );
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final t = Curves.easeInOutCubic.transform(_controller.value);
+          final u = 1 - t;
+          final point = widget.start * (u * u) + control * (2 * u * t) + widget.end * (t * t);
+          final size = 120 - 96 * t;
+          final opacity = t < .85 ? 1.0 : (1 - t) / .15;
+          return Stack(
+            children: [
+              Positioned(
+                left: point.dx - size / 2,
+                top: point.dy - size / 2,
+                width: size,
+                height: size,
+                child: Opacity(
+                  opacity: opacity.clamp(0.0, 1.0),
+                  child: Transform.rotate(
+                    angle: -0.35 * t,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                        boxShadow: [
+                          BoxShadow(color: CartzyColors.brandDark.withValues(alpha: .35), blurRadius: 16, offset: const Offset(0, 6)),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: CartzyProductImage(
+                          imageUrl: widget.image,
+                          width: size,
+                          height: size,
+                          fit: BoxFit.cover,
+                          fallbackIcon: Icons.shopping_bag_outlined,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
