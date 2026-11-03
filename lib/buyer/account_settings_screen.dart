@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/widgets/profile_photo_editor_screen.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:cartzy/services/notification_service.dart';
@@ -193,14 +194,26 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       final picker = ImagePicker();
       final picked = await picker.pickImage(
         source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 95,
       );
       if (picked == null) return;
+      if (!mounted) return;
+
+      // Navigate to interactive crop/angle editor
+      final croppedPath = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (_) => ProfilePhotoEditorScreen(
+            imageFile: File(picked.path),
+          ),
+        ),
+      );
+
+      if (croppedPath == null || !mounted) return;
 
       setState(() {
-        _profileImagePath = picked.path;
+        _profileImagePath = croppedPath;
       });
 
       final email = widget.userEmail.isNotEmpty
@@ -209,12 +222,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       if (email.isNotEmpty) {
         try {
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('cartzy_avatar_$email', picked.path);
+          await prefs.setString('cartzy_avatar_$email', croppedPath);
         } catch (_) {}
       }
 
       final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
-      updated['avatar'] = picked.path;
+      updated['avatar'] = croppedPath;
       AuthService.setSession(user: updated, token: AuthService.token);
       widget.onProfileUpdated?.call(updated);
 
@@ -225,6 +238,48 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       if (mounted) {
         showCartzyFlash(context, 'Failed to update profile picture: $e');
       }
+    }
+  }
+
+  Future<void> _editCurrentProfileImage() async {
+    if (_profileImagePath == null || _profileImagePath!.isEmpty) return;
+    final file = File(_profileImagePath!);
+    if (!file.existsSync()) {
+      showCartzyFlash(context, 'Image file not found on device.');
+      return;
+    }
+
+    final croppedPath = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => ProfilePhotoEditorScreen(
+          imageFile: file,
+        ),
+      ),
+    );
+
+    if (croppedPath == null || !mounted) return;
+
+    setState(() {
+      _profileImagePath = croppedPath;
+    });
+
+    final email = widget.userEmail.isNotEmpty
+        ? widget.userEmail
+        : (AuthService.currentUser?['email']?.toString() ?? '');
+    if (email.isNotEmpty) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('cartzy_avatar_$email', croppedPath);
+      } catch (_) {}
+    }
+
+    final updated = Map<String, dynamic>.from(AuthService.currentUser ?? {});
+    updated['avatar'] = croppedPath;
+    AuthService.setSession(user: updated, token: AuthService.token);
+    widget.onProfileUpdated?.call(updated);
+
+    if (mounted) {
+      showCartzyFlash(context, 'Profile picture updated successfully');
     }
   }
 
@@ -345,6 +400,34 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               },
             ),
             if (_profileImagePath != null && _profileImagePath!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: CartzyColors.cream,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.crop_rotate_rounded, color: CartzyColors.burgundy, size: 22),
+                ),
+                title: Text(
+                  'Crop & adjust current photo',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF231F20),
+                  ),
+                ),
+                subtitle: Text(
+                  'Reposition, rotate, or zoom existing photo',
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _editCurrentProfileImage();
+                },
+              ),
               const Divider(height: 20),
               ListTile(
                 contentPadding: EdgeInsets.zero,
