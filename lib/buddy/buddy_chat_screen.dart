@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/products/product_details_screen.dart';
@@ -10,6 +11,7 @@ import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/buddy_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
+import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 
 /// Full-screen chat with Cozy the teddy bear.
 class BuddyChatScreen extends StatefulWidget {
@@ -404,20 +406,41 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
                 button: true,
                 label: 'Send message',
                 excludeSemantics: true,
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: _busy ? null : () => _send(_input.text),
-                  child: Ink(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: _busy
-                          ? null
-                          : const LinearGradient(colors: [CartzyColors.rose500, Color(0xFFB76E79)]),
-                      color: _busy ? const Color(0xFFC9C3D3) : null,
+                child: Material(
+                  color: Colors.transparent,
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: _busy ? null : () => _send(_input.text),
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: _busy
+                            ? null
+                            : const LinearGradient(
+                                colors: [CartzyColors.burgundy, Color(0xFF8B2635)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                        color: _busy ? const Color(0xFF9E8F9D) : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: CartzyColors.burgundy.withValues(alpha: 0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 21,
+                        ),
+                      ),
                     ),
-                    child: const Icon(Icons.send_rounded, color: Colors.white, size: 21),
                   ),
                 ),
               ),
@@ -684,9 +707,18 @@ class _FloatingHeartState extends State<_FloatingHeart> with SingleTickerProvide
 }
 
 /// The bear that floats over the home screens and opens the chat.
+/// Supports dragging to move, and dragging down to the "X" discard zone to dismiss.
 class BuddyLauncher extends StatefulWidget {
   /// Whether the bottom nav bar is showing, so the bear sits above it.
   final bool aboveNav;
+
+  /// Global session state indicating whether Cozy was discarded by the user.
+  static bool isDismissed = false;
+
+  /// Restore Cozy if previously dismissed.
+  static void restore() {
+    isDismissed = false;
+  }
 
   const BuddyLauncher({super.key, required this.aboveNav});
 
@@ -694,42 +726,309 @@ class BuddyLauncher extends StatefulWidget {
   State<BuddyLauncher> createState() => _BuddyLauncherState();
 }
 
-class _BuddyLauncherState extends State<BuddyLauncher> {
+class _BuddyLauncherState extends State<BuddyLauncher>
+    with SingleTickerProviderStateMixin {
   final _bearKey = GlobalKey<BuddyBearState>();
+
+  Offset? _dragPosition;
+  bool _isDragging = false;
+  bool _isOverDiscard = false;
+  bool _isDismissing = false;
+  Offset _totalDragDelta = Offset.zero;
+
+  late final AnimationController _snapController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+  );
+  Animation<Offset>? _snapAnimation;
+  Timer? _waveTimer;
+  Timer? _discardTimer;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 900), () {
+    _snapController.addListener(() {
+      if (_snapAnimation != null && mounted) {
+        setState(() {
+          _dragPosition = _snapAnimation!.value;
+        });
+      }
+    });
+
+    _waveTimer = Timer(const Duration(milliseconds: 900), () {
       if (mounted) _bearKey.currentState?.wave();
     });
   }
 
   @override
+  void dispose() {
+    _waveTimer?.cancel();
+    _discardTimer?.cancel();
+    _snapController.dispose();
+    super.dispose();
+  }
+
+  double _getRestingX(double screenWidth) {
+    return screenWidth - 78.0 - 10.0;
+  }
+
+  double _getRestingY(double screenHeight) {
+    final bottomOffset = widget.aboveNav ? 82.0 : 14.0;
+    return screenHeight - bottomOffset - 78.0;
+  }
+
+  void _snapBack(Offset target) {
+    if (_dragPosition == null) {
+      if (mounted) setState(() => _isDragging = false);
+      return;
+    }
+    _snapAnimation = Tween<Offset>(
+      begin: _dragPosition!,
+      end: target,
+    ).animate(CurvedAnimation(
+      parent: _snapController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _snapController.reset();
+    _snapController.forward().then((_) {
+      if (mounted) {
+        setState(() {
+          _dragPosition = null;
+          _isDragging = false;
+          _isOverDiscard = false;
+        });
+      }
+    });
+  }
+
+  void _performDiscard(Offset discardCenter) {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _isDismissing = true;
+      _dragPosition = Offset(discardCenter.dx - 39.0, discardCenter.dy - 39.0);
+    });
+
+    _discardTimer = Timer(const Duration(milliseconds: 220), () {
+      if (mounted) {
+        setState(() {
+          BuddyLauncher.isDismissed = true;
+          _isDragging = false;
+          _isDismissing = false;
+          _dragPosition = null;
+        });
+        showCartzyFlash(
+          context,
+          'Cozy was discarded from your home screen',
+          icon: Icons.close_rounded,
+        );
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeInOutCubic,
-      right: 10,
-      bottom: widget.aboveNav ? 82 : 14,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: CartzyColors.brandDark.withValues(alpha: .28),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+    if (BuddyLauncher.isDismissed) {
+      return const SizedBox.shrink();
+    }
+
+    final media = MediaQuery.of(context);
+    final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
+
+    final restingX = _getRestingX(screenWidth);
+    final restingY = _getRestingY(screenHeight);
+
+    final currentX = _dragPosition?.dx ?? restingX;
+    final currentY = _dragPosition?.dy ?? restingY;
+
+    final discardBottom = widget.aboveNav ? 88.0 : 32.0;
+    final discardCenter = Offset(screenWidth / 2, screenHeight - discardBottom - 27.0);
+
+    return Positioned.fill(
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // ── Bottom Center Discard Zone ("X" circle) ──
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: widget.aboveNav ? 88.0 : 32.0,
+            child: IgnorePointer(
+              child: AnimatedSlide(
+                offset: _isDragging ? Offset.zero : const Offset(0, 1.4),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                child: AnimatedOpacity(
+                  opacity: _isDragging ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 180),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic,
+                          width: _isOverDiscard ? 72 : 56,
+                          height: _isOverDiscard ? 72 : 56,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _isOverDiscard
+                                ? const Color(0xFFD32F2F)
+                                : const Color(0xE62A1B28),
+                            border: Border.all(
+                              color: _isOverDiscard
+                                  ? Colors.white
+                                  : Colors.white.withValues(alpha: 0.4),
+                              width: _isOverDiscard ? 2.5 : 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _isOverDiscard
+                                    ? const Color(0x80D32F2F)
+                                    : Colors.black.withValues(alpha: 0.35),
+                                blurRadius: _isOverDiscard ? 22 : 12,
+                                spreadRadius: _isOverDiscard ? 4 : 0,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: AnimatedScale(
+                              scale: _isOverDiscard ? 1.25 : 1.0,
+                              duration: const Duration(milliseconds: 150),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _isOverDiscard
+                                ? const Color(0xFFD32F2F)
+                                : const Color(0xCC1A1018),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _isOverDiscard ? 'Release to discard' : 'Drag here to discard',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ],
-        ),
-        child: BuddyBear(
-          key: _bearKey,
-          size: 78,
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
           ),
-        ),
+
+          // ── Draggable Cozy Bear ──
+          Positioned(
+            left: currentX,
+            top: currentY,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
+                );
+              },
+              onPanStart: (details) {
+                _totalDragDelta = Offset.zero;
+                _isDragging = true;
+                _isOverDiscard = false;
+                _dragPosition = Offset(currentX, currentY);
+                setState(() {});
+              },
+              onPanUpdate: (details) {
+                final newPos = (_dragPosition ?? Offset(restingX, restingY)) + details.delta;
+                final clampedX = newPos.dx.clamp(-10.0, screenWidth - 68.0);
+                final clampedY = newPos.dy.clamp(media.padding.top, screenHeight - 60.0);
+                _dragPosition = Offset(clampedX, clampedY);
+                _totalDragDelta += details.delta;
+
+                final bearCenter = _dragPosition! + const Offset(39, 39);
+                final dist = (bearCenter - discardCenter).distance;
+                final wasOver = _isOverDiscard;
+                _isOverDiscard = dist < 72.0;
+
+                if (_isOverDiscard && !wasOver) {
+                  HapticFeedback.selectionClick();
+                }
+                setState(() {});
+              },
+              onPanEnd: (details) {
+                if (_totalDragDelta.distance < 6.0) {
+                  _dragPosition = null;
+                  _isDragging = false;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
+                  );
+                  return;
+                }
+                if (_isOverDiscard) {
+                  _performDiscard(discardCenter);
+                } else {
+                  _snapBack(Offset(restingX, restingY));
+                }
+              },
+              onPanCancel: () {
+                _snapBack(Offset(restingX, restingY));
+              },
+              child: AnimatedScale(
+                scale: _isDismissing
+                    ? 0.0
+                    : _isOverDiscard
+                        ? 0.72
+                        : 1.0,
+                duration: Duration(milliseconds: _isDismissing ? 200 : 150),
+                curve: Curves.easeOutCubic,
+                child: AnimatedOpacity(
+                  opacity: _isDismissing
+                      ? 0.0
+                      : _isOverDiscard
+                          ? 0.7
+                          : 1.0,
+                  duration: Duration(milliseconds: _isDismissing ? 200 : 150),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: CartzyColors.brandDark.withValues(
+                            alpha: _isOverDiscard ? .12 : .28,
+                          ),
+                          blurRadius: _isOverDiscard ? 10 : 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: BuddyBear(
+                      key: _bearKey,
+                      size: 78,
+                      mood: _isOverDiscard ? BuddyMood.sad : BuddyMood.happy,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

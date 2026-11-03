@@ -1050,20 +1050,27 @@ class _MessagesScreenState extends State<MessagesScreen> {
           GestureDetector(
             onTap: _sendMessage,
             child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [CartzyColors.brandDark, CartzyColors.rose700],
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [CartzyColors.burgundy, Color(0xFF8B2635)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: CartzyColors.burgundy.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.send_rounded,
                 color: Colors.white,
-                size: 18,
+                size: 20,
               ),
             ),
           ),

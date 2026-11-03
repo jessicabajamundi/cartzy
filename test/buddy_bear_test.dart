@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
@@ -11,8 +12,11 @@ import 'package:cartzy/widgets/buddy_bear.dart';
 
 void main() {
   setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
     AuthService.clearSession();
     BuddyService.reset();
+    BuddyLauncher.restore();
   });
 
   test('unknown moods fall back to happy', () {
@@ -77,5 +81,35 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('BuddyLauncher displays and can be dragged to discard on X target', (tester) async {
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: Stack(
+          children: [
+            BuddyLauncher(aboveNav: true),
+          ],
+        ),
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(BuddyBear), findsOneWidget);
+
+    // Drag bear toward the discard zone (bottom center)
+    await tester.drag(find.byType(BuddyBear), const Offset(-131, 6));
+    // Release over discard
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(seconds: 3));
+
+    expect(BuddyLauncher.isDismissed, isTrue);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 3));
   });
 }
