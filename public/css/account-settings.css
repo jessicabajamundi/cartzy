@@ -158,7 +158,10 @@
 .acct-input:focus { outline: none; border-color: var(--acct-rose); box-shadow: 0 0 0 4px rgba(192, 139, 127, .18); }
 .acct-input[readonly] { background: var(--acct-soft); color: #4E465A; cursor: default; }
 .acct-hint { display: block; margin-top: 5px; color: var(--acct-muted); font-size: 12px; font-weight: 700; }
-.acct-hint-error { color: #B42318; }
+.acct-hint-error { color: #ef4444; font-size: 13px; font-weight: 400; }
+.acct-hint[hidden] { display: none; }
+.acct-input.is-invalid, .acct-input.is-invalid:hover { border-color: #ef4444; }
+.acct-input.is-invalid:focus { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239, 68, 68, .15); }
 .acct-subhead { margin: 0 0 10px; font: 700 19px/1.2 'Cormorant Garamond', Georgia, serif; color: var(--acct-ink); }
 .acct-divider { height: 1px; margin: 22px 0; background: var(--acct-line); }
 .acct-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px 14px; border-radius: 12px; background: linear-gradient(120deg, var(--acct-soft), var(--acct-blush)); }

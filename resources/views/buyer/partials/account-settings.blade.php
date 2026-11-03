@@ -157,8 +157,8 @@
                     </label>
                     <label>
                         <span class="acct-label">Mobile number</span>
-                        <input class="acct-input" type="tel" name="phone" autocomplete="tel" maxlength="13" inputmode="tel" pattern="09[0-9]{9}|\+639[0-9]{9}" title="09 followed by 9 digits, or +639 followed by 9 digits" placeholder="09XXXXXXXXX or +639XXXXXXXXX" oninput="this.value = this.value.replace(/(?!^\+)[^\d]/g, '').slice(0, this.value.startsWith('+') ? 13 : 11)" value="{{ old('phone', $user->phone) }}">
-                        @error('phone')<span class="acct-hint acct-hint-error">{{ $message }}</span>@enderror
+                        <input class="acct-input @error('phone') is-invalid @enderror" type="tel" name="phone" id="acct-phone" autocomplete="tel" maxlength="13" inputmode="tel" pattern="09[0-9]{9}|\+639[0-9]{9}" placeholder="09XXXXXXXXX or +639XXXXXXXXX" aria-describedby="acct-phone-error" aria-invalid="{{ $errors->has('phone') ? 'true' : 'false' }}" value="{{ old('phone', $user->phone) }}">
+                        <span class="acct-hint acct-hint-error" id="acct-phone-error" role="alert" @unless($errors->has('phone')) hidden @endunless>{{ $errors->first('phone') }}</span>
                     </label>
                     <label class="acct-field-wide">
                         <span class="acct-label">Email address</span>
@@ -563,6 +563,29 @@
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); label.click(); }
         });
     });
+
+    // Mobile number: show the red message under the field (like sign-up) instead of the browser's popup.
+    const phone = document.getElementById('acct-phone');
+    const phoneError = document.getElementById('acct-phone-error');
+    if (phone && phoneError) {
+        const phoneMessage = 'Enter a valid mobile number: 09 followed by 9 digits, or +639 followed by 9 digits.';
+        const showPhoneError = (show) => {
+            phone.classList.toggle('is-invalid', show);
+            phone.setAttribute('aria-invalid', show ? 'true' : 'false');
+            phoneError.hidden = !show;
+            if (show) phoneError.textContent = phoneMessage;
+        };
+        phone.addEventListener('input', () => {
+            phone.value = phone.value.replace(/(?!^\+)[^\d]/g, '').slice(0, phone.value.startsWith('+') ? 13 : 11);
+            if (phone.classList.contains('is-invalid')) showPhoneError(!phone.validity.valid);
+        });
+        phone.addEventListener('blur', () => showPhoneError(phone.value !== '' && !phone.validity.valid));
+        phone.addEventListener('invalid', (event) => {
+            event.preventDefault();
+            showPhoneError(true);
+            phone.focus();
+        });
+    }
 
     // Keep "Current age" in step with the birthday field.
     const birthday = document.getElementById('acct-birthday');
