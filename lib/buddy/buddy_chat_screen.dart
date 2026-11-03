@@ -1012,7 +1012,10 @@ class _BuddyLauncherState extends State<BuddyLauncher>
   @override
   Widget build(BuildContext context) {
     if (BuddyLauncher.isDismissed) {
-      return const SizedBox.shrink();
+      // Must stay a Positioned child: a bare SizedBox is the only
+      // non-positioned child of the dashboard's Stack, which then shrinks the
+      // whole home screen to 0x0 and leaves a blank white page.
+      return const Positioned(left: 0, top: 0, child: SizedBox.shrink());
     }
 
     final media = MediaQuery.of(context);

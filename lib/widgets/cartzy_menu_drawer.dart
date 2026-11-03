@@ -384,7 +384,7 @@ class _Avatar extends StatelessWidget {
   const _Avatar({required this.name});
 
   ImageProvider? _photo() {
-    final path = AuthService.currentUser?['avatar']?.toString() ?? '';
+    final path = AuthService.profilePhoto(AuthService.currentUser) ?? '';
     if (path.isEmpty) return null;
     if (path.startsWith('http')) return NetworkImage(path);
     try {

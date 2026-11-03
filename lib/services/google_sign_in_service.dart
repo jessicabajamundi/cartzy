@@ -31,7 +31,6 @@ class GoogleSignInService {
         email: account.email,
         name: account.displayName,
         googleId: account.id,
-        avatar: account.photoUrl,
       );
     } on PlatformException catch (e) {
       final friendly = getReadableErrorMessage(e);

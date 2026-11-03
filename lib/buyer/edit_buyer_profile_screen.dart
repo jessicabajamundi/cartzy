@@ -73,7 +73,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     _birthdayController = TextEditingController(
       text: rawBirthday.isNotEmpty ? rawBirthday : '2005-09-20',
     );
-    _profileImagePath = widget.initialAvatar ?? user['avatar']?.toString();
+    _profileImagePath = AuthService.profilePhoto({'avatar': widget.initialAvatar}) ??
+        AuthService.profilePhoto(user);
     _loadProfileImage();
   }
 

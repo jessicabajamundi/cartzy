@@ -17,6 +17,14 @@ class AuthService {
   static bool get isAuthenticated => (_token != null && _token!.isNotEmpty) || _currentUser != null;
   static bool get isLoggedIn => isAuthenticated;
 
+  /// The profile photo the buyer picked themselves, or null to show initials.
+  /// A Google account photo saved at sign-in is never used as the default.
+  static String? profilePhoto(Map? user) {
+    final value = user?['avatar']?.toString().trim() ?? '';
+    if (value.isEmpty || value.contains('googleusercontent.com')) return null;
+    return value;
+  }
+
   static void setSession({Map<String, dynamic>? user, String? token}) {
     _currentUser = user != null ? Map<String, dynamic>.from(user) : null;
     if (token != null && token.isNotEmpty) {

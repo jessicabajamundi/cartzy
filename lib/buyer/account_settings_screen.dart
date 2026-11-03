@@ -170,7 +170,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     _nameController = TextEditingController(text: widget.userName);
     _phoneController = TextEditingController(text: widget.userPhone);
     _emailController = TextEditingController(text: widget.userEmail);
-    _profileImagePath = widget.userAvatar;
+    _profileImagePath = AuthService.profilePhoto({'avatar': widget.userAvatar});
     _loadProfileImage();
     _loadUnreadMessagesCount();
     NotificationService.fetchUnreadCount();
@@ -180,7 +180,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     if (_profileImagePath != null && _profileImagePath!.isNotEmpty) {
       return;
     }
-    final currentAvatar = AuthService.currentUser?['avatar']?.toString();
+    final currentAvatar = AuthService.profilePhoto(AuthService.currentUser);
     if (currentAvatar != null && currentAvatar.isNotEmpty) {
       if (mounted) setState(() => _profileImagePath = currentAvatar);
       return;
@@ -1209,18 +1209,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               children: [
                                 Text(
                                   'Hi, $firstName',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.playfairDisplay(
                                     fontSize: 23,
-                                    fontWeight: FontWeight.bold,
-                                    color: CartzyColors.navy,
+                                    fontWeight: FontWeight.w800,
+                                    color: CartzyColors.brand900,
                                   ),
                                 ),
                                 const SizedBox(height: 3),
                                 Text(
                                   email,
                                   style: GoogleFonts.dmSans(
-                                    fontSize: 12.5,
-                                    color: CartzyColors.gray,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: CartzyColors.brandDark,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
