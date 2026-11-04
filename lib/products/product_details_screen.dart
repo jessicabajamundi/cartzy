@@ -1,3 +1,4 @@
+import 'package:cartzy/widgets/inline_quantity_field.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -1516,226 +1517,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   // QUANTITY STEPPER
   // ==========================================
-  Future<void> _showQuantityInputDialog() async {
+  /// Quantity typed straight into the box; limited to what can be added.
+  void _setTypedQuantity(int typed) {
     final maxAllowed = _maxAddable;
     if (maxAllowed <= 0) return;
-
-    final controller = TextEditingController(text: '$_quantity');
-    controller.selection = TextSelection(
-      baseOffset: 0,
-      extentOffset: controller.text.length,
-    );
-
-    final chosen = await showDialog<int>(
-      context: context,
-      builder: (dialogCtx) {
-        int current = _quantity;
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            void updateCurrent(int val) {
-              int clamped = val < 1 ? 1 : val;
-              if (clamped > maxAllowed) clamped = maxAllowed;
-              setModalState(() {
-                current = clamped;
-                controller.text = '$clamped';
-                controller.selection = TextSelection(
-                  baseOffset: 0,
-                  extentOffset: controller.text.length,
-                );
-              });
-            }
-
-            final canDec = current > 1;
-            final canInc = current < maxAllowed;
-
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-              actionsPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              title: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: CartzyColors.rose50,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.edit_note_rounded,
-                      color: CartzyColors.brandDark,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Enter Quantity',
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: CartzyColors.navy,
-                          ),
-                        ),
-                        Text(
-                          'Available to add: $maxAllowed',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: CartzyColors.grayMid,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: CartzyColors.navy,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton.filledTonal(
-                        onPressed:
-                            canDec ? () => updateCurrent(current - 1) : null,
-                        icon: const Icon(Icons.remove),
-                        style: IconButton.styleFrom(
-                          backgroundColor: CartzyColors.rose50,
-                          foregroundColor: CartzyColors.navy,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 90,
-                        child: TextField(
-                          controller: controller,
-                          autofocus: true,
-                          keyboardType: TextInputType.number,
-                          textAlign: TextAlign.center,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(5),
-                          ],
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: CartzyColors.navy,
-                          ),
-                          decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 10,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide:
-                                  const BorderSide(color: CartzyColors.rose200),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: CartzyColors.brandDark,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          onChanged: (val) {
-                            final parsed = int.tryParse(val);
-                            if (parsed != null) {
-                              setModalState(() {
-                                current = parsed;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      IconButton.filledTonal(
-                        onPressed:
-                            canInc ? () => updateCurrent(current + 1) : null,
-                        icon: const Icon(Icons.add),
-                        style: IconButton.styleFrom(
-                          backgroundColor: CartzyColors.rose50,
-                          foregroundColor: CartzyColors.navy,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (current > maxAllowed)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Exceeds available stock ($maxAllowed). Will be set to $maxAllowed.',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.red,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogCtx).pop(),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: CartzyColors.brandDark,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () {
-                    final typed = int.tryParse(controller.text) ?? current;
-                    Navigator.of(dialogCtx).pop(typed);
-                  },
-                  child: const Text('Set Quantity'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-
-    if (!mounted) return;
-    if (chosen != null && chosen > 0) {
-      final clamped = chosen.clamp(1, maxAllowed);
-      setState(() {
-        _quantity = clamped;
-      });
-      if (chosen > maxAllowed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Quantity limited to available stock ($maxAllowed).'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+    setState(() => _quantity = typed.clamp(1, maxAllowed));
+    if (typed > maxAllowed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Quantity limited to available stock ($maxAllowed).'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -1779,33 +1572,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 color: CartzyColors.navy,
                 onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
               ),
-              Tooltip(
-                message: 'Tap to type quantity',
-                child: InkWell(
-                  onTap: _canAdd ? _showQuantityInputDialog : null,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: CartzyColors.rose50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: CartzyColors.rose200,
-                        width: 1,
-                      ),
-                    ),
-                    constraints: const BoxConstraints(minWidth: 36),
-                    child: Text(
-                      '$_quantity',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
-                      ),
-                    ),
+              // Tap the number to type it with the keyboard.
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: InlineQuantityField(
+                  quantity: _quantity,
+                  enabled: _canAdd,
+                  onCommitted: _setTypedQuantity,
+                  minWidth: 36,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: CartzyColors.rose50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: CartzyColors.rose200, width: 1),
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: CartzyColors.navy,
                   ),
                 ),
               ),

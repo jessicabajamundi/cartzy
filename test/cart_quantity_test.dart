@@ -1,4 +1,6 @@
 import 'package:cartzy/services/cart_service.dart';
+import 'package:cartzy/widgets/inline_quantity_field.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -56,6 +58,47 @@ void main() {
     expect(cart.totalItemCount, 2);
     expect(cart.selectedItemCount, 2);
     expect(cart.totalUnits, 75);
+  });
+
+  testWidgets('InlineQuantityField opens keyboard directly without any dialog popup', (tester) async {
+    int committedValue = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: InlineQuantityField(
+              quantity: 5,
+              onCommitted: (val) => committedValue = val,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Initial state: shows "5" in TextField
+    expect(find.text('5'), findsOneWidget);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
+
+    // Tap the quantity field directly
+    await tester.tap(find.byType(InlineQuantityField));
+    await tester.pumpAndSettle();
+
+    // Verify still NO dialog or modal opened
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
+
+    // Enter a new quantity
+    await tester.enterText(find.byType(TextField), '25');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    // Verify committed without modal
+    expect(committedValue, 25);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(Dialog), findsNothing);
   });
 }
 
