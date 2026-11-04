@@ -29,7 +29,9 @@ body, body.seller-overview {
     color: var(--ink);
 }
 h1, .pe-card-head h2 { font-family: 'Cormorant Garamond', Georgia, serif; }
-.seller-overview .seller-welcome h2, .seller-notifications-link .badge { font-family: inherit; }
+.seller-notifications-link .badge { font-family: inherit; }
+/* Overview welcome heading ("Welcome back, …") in the serif title font. */
+.seller-overview .seller-welcome h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; letter-spacing: -.01em; }
 ::selection { background: var(--accent-light); color: var(--ink); }
 input, select, textarea { accent-color: var(--accent); }
 :focus-visible { outline-color: var(--focus); }
