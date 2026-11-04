@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.9' || version == 'v1.2.9') {
+      return const [
+        'Accurate Cart Counter: The cart badge and item counter now strictly count distinct products in your cart rather than multiplying total unit quantities.',
+        'Subtotal & Checkout Alignment: Item counters consistently show the number of products selected across cart, wishlist, and checkout.',
+        'Bulk Shipping Notification: Orders with 100+ items indicate direct seller warehouse delivery.',
+        'Auto-Sliding Category Showcase: Interactive auto-scrolling category carousel on the home feed.',
+      ];
+    }
     if (version == '1.2.8' || version == 'v1.2.8') {
       return const [
         'Bulk Quantity Warehouse Note: Orders with 100+ items now clearly note that bulk quantities ship directly from seller warehouses.',

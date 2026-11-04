@@ -37,5 +37,25 @@ void main() {
     expect(set3, 1);
     expect(cart.items.first.quantity, 1);
   });
+
+  test('cart counter counts number of products, not total quantity', () {
+    final cart = CartService.instance;
+    cart.addItem(
+      name: 'Nike Dunk Low SE',
+      price: 6995,
+      quantity: 65,
+    );
+    cart.addItem(
+      name: 'Air Force 1',
+      price: 5495,
+      quantity: 10,
+    );
+
+    // There are 2 distinct products in the cart, total units is 75
+    expect(cart.items.length, 2);
+    expect(cart.totalItemCount, 2);
+    expect(cart.selectedItemCount, 2);
+    expect(cart.totalUnits, 75);
+  });
 }
 

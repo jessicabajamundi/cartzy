@@ -175,10 +175,18 @@ class CartService extends ChangeNotifier {
   List<CartItem> get selectedItems =>
       _items.where((item) => item.selected && !item.isOutOfStock).toList();
 
-  int get totalItemCount =>
-      items.fold<int>(0, (sum, item) => sum + item.quantity);
+  /// Total number of distinct products in the cart (for badges and counters).
+  int get totalItemCount => _items.length;
 
-  int get selectedItemCount =>
+  /// Total number of selected products in the cart.
+  int get selectedItemCount => selectedItems.length;
+
+  /// Sum of all item quantities in the cart.
+  int get totalUnits =>
+      _items.fold<int>(0, (sum, item) => sum + item.quantity);
+
+  /// Sum of quantities for selected items.
+  int get selectedUnits =>
       selectedItems.fold<int>(0, (sum, item) => sum + item.quantity);
 
   double get selectedTotal =>

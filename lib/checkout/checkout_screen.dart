@@ -181,7 +181,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   int get totalItemCount {
-    return orderItems.fold<int>(0, (sum, item) => sum + _safeNum(item['quantity'], 1.0).toInt());
+    return orderItems.length;
   }
 
   double get subtotal {
