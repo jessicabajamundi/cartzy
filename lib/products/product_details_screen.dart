@@ -15,6 +15,7 @@ import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/widgets/write_review_dialog.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
+import 'package:cartzy/widgets/warehouse_note.dart';
 import 'package:cartzy/utils/product_images.dart';
 import 'package:cartzy/services/wishlist_service.dart';
 import 'package:cartzy/services/recently_viewed_service.dart';
@@ -1742,7 +1743,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildQuantityRow(),
+          // More than 100 pieces: shipped from the seller's warehouse.
+          if (WarehouseShipping.applies(_quantity)) ...[
+            const SizedBox(height: 10),
+            const WarehouseShippingNote(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuantityRow() {
+    return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
@@ -1806,7 +1822,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             ],
           ),
         ],
-      ),
     );
   }
 

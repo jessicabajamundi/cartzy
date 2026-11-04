@@ -12,6 +12,7 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/voucher_service.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/widgets/warehouse_note.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 import 'package:cartzy/services/api_service.dart';
@@ -640,7 +641,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Product Thumbnail
@@ -744,6 +748,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ],
                   ),
+                ],
+              ),
+                  // More than 100 pieces: shipped from the seller's warehouse.
+                  if (WarehouseShipping.applies(qty))
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8),
+                      child: WarehouseShippingNote(compact: true),
+                    ),
                 ],
               ),
             );

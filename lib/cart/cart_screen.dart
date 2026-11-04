@@ -11,6 +11,7 @@ import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/cart_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/widgets/warehouse_note.dart';
 
 // ──────────────────────────────────────────────────────────────
 // CART PALETTE: lavender and rose gold blended together
@@ -993,6 +994,11 @@ class _CartScreenState extends State<CartScreen>
                       ),
                   ],
                 ),
+                if (WarehouseShipping.applies(item.quantity))
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: WarehouseShippingNote(compact: true),
+                  ),
               ],
             ),
           ),
