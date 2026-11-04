@@ -173,7 +173,49 @@ class BuyerOrdersData {
   }
 }
 
+/// What the server answers after an order is saved.
+class PlacedOrder {
+  final String reference;
+  final double total;
+  final String message;
+
+  const PlacedOrder({
+    required this.reference,
+    required this.total,
+    required this.message,
+  });
+}
+
 class OrderService {
+  /// Saves a real order on the server (POST /api/orders). Prices and stock
+  /// are checked there, so the total returned is the amount to pay.
+  ///
+  /// [checkoutKey] identifies one Place Order tap: sending the same key again
+  /// (for example after a timeout) returns the same order, never a second one.
+  static Future<PlacedOrder> placeOrder({
+    required String checkoutKey,
+    required int addressId,
+    required List<Map<String, dynamic>> items,
+    String paymentMethod = 'COD',
+  }) async {
+    final response = await ApiService.post(
+      '/orders',
+      {
+        'checkout_key': checkoutKey,
+        'payment_method': paymentMethod,
+        'address_id': addressId,
+        'items': items,
+      },
+      token: AuthService.token,
+    );
+    final order = Map<String, dynamic>.from(response['order'] as Map? ?? const {});
+    return PlacedOrder(
+      reference: order['reference']?.toString() ?? '',
+      total: double.tryParse(order['total']?.toString() ?? '') ?? 0,
+      message: response['message']?.toString() ?? 'Order placed successfully!',
+    );
+  }
+
   static Future<BuyerOrdersData> fetchOrders() async {
     final response = await ApiService.get('/orders', token: AuthService.token);
     return BuyerOrdersData.fromJson(response);

@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.7' || version == 'v1.2.7') {
+      return const [
+        'Custom Quantity Input: Buyers can now tap the quantity number in the cart and product details to type any desired quantity directly with stock validation.',
+        'Cozy Navigation Clearance: Cozy now floats cleanly above the bottom navigation bar without covering any tabs.',
+        'Simplified Hamburger Drawer: Removed redundant profile information from the menu header in favor of clean Cartzy branding.',
+        'Reliable API Checkout: Streamlined order placement with real-time stock verification and duplicate prevention.',
+      ];
+    }
     if (version == '1.2.6' || version == 'v1.2.6') {
       return const [
         'Startup Stability Fix: Resolved white screen on startup for signed-in buyers.',

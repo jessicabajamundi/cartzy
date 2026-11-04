@@ -1,11 +1,9 @@
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/services/app_update_service.dart';
-import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/recently_viewed_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
@@ -51,7 +49,7 @@ class CartzyMenuDrawer extends StatelessWidget {
 
   const CartzyMenuDrawer({
     super.key,
-    required this.userName,
+    this.userName,
     required this.unreadMessages,
     required this.onMessages,
     required this.onFlashDeals,
@@ -72,37 +70,34 @@ class CartzyMenuDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      width: math.min(MediaQuery.sizeOf(context).width * 0.84, 340),
-      backgroundColor: CartzyColors.brand50Lavender,
+      width: math.min(MediaQuery.sizeOf(context).width * 0.78, 310),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(right: Radius.circular(28)),
+        borderRadius: BorderRadius.horizontal(right: Radius.circular(20)),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           _buildHeader(context),
+          const Divider(height: 1, thickness: 1, color: _MenuPalette.line),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(14, 18, 14, 12),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               children: [
-                const _SectionLabel('SHOP'),
                 _MenuTile(
                   icon: Icons.bolt_rounded,
                   label: 'Flash Deals',
-                  subtitle: 'Limited-time prices',
                   trailing: const _Tag('HOT'),
                   onTap: () => _run(context, onFlashDeals),
                 ),
                 _MenuTile(
                   icon: Icons.inventory_2_outlined,
                   label: 'My Orders',
-                  subtitle: 'Track and manage purchases',
                   onTap: () => _run(context, onMyOrders),
                 ),
                 _MenuTile(
                   icon: Icons.confirmation_number_outlined,
                   label: 'My Vouchers',
-                  subtitle: 'Discounts ready to use',
                   onTap: () => _run(context, onVouchers),
                 ),
                 ValueListenableBuilder<List<RecentlyViewedProduct>>(
@@ -110,61 +105,50 @@ class CartzyMenuDrawer extends StatelessWidget {
                   builder: (context, items, _) => _MenuTile(
                     icon: Icons.history_rounded,
                     label: 'Recently Viewed',
-                    subtitle: 'Products you looked at',
-                    trailing: items.isNotEmpty ? _CountBadge(items.length) : null,
+                    trailing:
+                        items.isNotEmpty ? _CountBadge(items.length) : null,
                     onTap: () => _run(context, onRecentlyViewed),
                   ),
                 ),
-                const SizedBox(height: 10),
-                const _SectionLabel('CHAT & HELP'),
+                const _SectionDivider(),
                 ValueListenableBuilder<int>(
                   valueListenable: unreadMessages,
                   builder: (context, count, _) => _MenuTile(
                     icon: Icons.chat_bubble_outline_rounded,
                     label: 'Messages',
-                    subtitle: 'Chats with shops',
                     trailing: count > 0 ? _CountBadge(count) : null,
                     onTap: () => _run(context, onMessages),
                   ),
                 ),
                 _MenuTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: _MenuPalette.softBlend,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: CartzyColors.rose200),
-                    ),
-                    alignment: Alignment.center,
-                    child: const IgnorePointer(
-                      child: BuddyBear(size: 30, mood: BuddyMood.happy),
-                    ),
+                  leading: const IgnorePointer(
+                    child: BuddyBear(size: 24, mood: BuddyMood.happy),
                   ),
                   label: 'Cozy',
-                  subtitle: 'Your shopping assistant',
                   onTap: () => _run(context, onCozy),
                 ),
-                const SizedBox(height: 10),
-                const _SectionLabel('ACCOUNT'),
+                const _SectionDivider(),
                 _MenuTile(
                   icon: Icons.delivery_dining_outlined,
                   label: 'Login as Rider',
-                  subtitle: 'Switch to your courier account',
                   onTap: () => _confirmRiderSwitch(context),
                 ),
-                const SizedBox(height: 10),
-                const _SectionLabel('APP'),
                 _MenuTile(
                   icon: Icons.new_releases_outlined,
                   label: "What's New",
-                  subtitle: 'Latest features and fixes',
-                  trailing: const _Tag('v${AppUpdateService.currentAppVersion}'),
+                  trailing: Text(
+                    'v${AppUpdateService.currentAppVersion}',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11.5,
+                      color: _MenuPalette.muted,
+                    ),
+                  ),
                   onTap: () => _run(context, onWhatsNew),
                 ),
               ],
             ),
           ),
+          const Divider(height: 1, thickness: 1, color: _MenuPalette.line),
           _buildFooter(context),
         ],
       ),
@@ -174,57 +158,36 @@ class CartzyMenuDrawer extends StatelessWidget {
   // ── Header ───────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
-    final name = (userName ?? '').trim();
-    final displayName = name.isEmpty ? 'Cartzy Shopper' : name;
-    final email = AuthService.currentUser?['email']?.toString() ?? '';
-
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(gradient: _MenuPalette.blend),
+    return Padding(
       padding: EdgeInsets.fromLTRB(
-          20, MediaQuery.paddingOf(context).top + 18, 12, 22),
+          20, MediaQuery.paddingOf(context).top + 12, 8, 12),
       child: Row(
         children: [
-          _Avatar(name: displayName),
-          const SizedBox(width: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/app_icon.png',
+              width: 30,
+              height: 30,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hello,',
-                  style: GoogleFonts.dmSans(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.8),
-                  ),
-                ),
-                Text(
-                  displayName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                if (email.isNotEmpty)
-                  Text(
-                    email,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11.5,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-              ],
+            child: Text(
+              'Cartzy',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: _MenuPalette.ink,
+              ),
             ),
           ),
           IconButton(
             tooltip: 'Close menu',
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close_rounded, color: Colors.white),
+            icon: const Icon(Icons.close_rounded,
+                size: 22, color: _MenuPalette.muted),
           ),
         ],
       ),
@@ -237,36 +200,12 @@ class CartzyMenuDrawer extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-        child: Material(
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: CartzyColors.rose200),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () => _confirmLogout(context),
-            child: SizedBox(
-              height: 52,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.logout_rounded,
-                      size: 19, color: _MenuPalette.roseGoldDeep),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Log out',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: _MenuPalette.roseGoldDeep,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: _MenuTile(
+          icon: Icons.logout_rounded,
+          label: 'Log out',
+          color: _MenuPalette.roseGoldDeep,
+          onTap: () => _confirmLogout(context),
         ),
       ),
     );
@@ -373,157 +312,77 @@ class CartzyMenuDrawer extends StatelessWidget {
   }
 }
 
-
 // ──────────────────────────────────────────────────────────────
 // PIECES
 // ──────────────────────────────────────────────────────────────
 
-class _Avatar extends StatelessWidget {
-  final String name;
-
-  const _Avatar({required this.name});
-
-  ImageProvider? _photo() {
-    final path = AuthService.profilePhoto(AuthService.currentUser) ?? '';
-    if (path.isEmpty) return null;
-    if (path.startsWith('http')) return NetworkImage(path);
-    try {
-      final file = File(path);
-      if (file.existsSync()) return FileImage(file);
-    } catch (_) {}
-    return null;
-  }
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider();
 
   @override
   Widget build(BuildContext context) {
-    final photo = _photo();
-    return Container(
-      width: 58,
-      height: 58,
-      padding: const EdgeInsets.all(2.5),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: 0.35),
-      ),
-      child: CircleAvatar(
-        backgroundColor: Colors.white,
-        foregroundImage: photo,
-        onForegroundImageError: photo == null ? null : (_, __) {},
-        child: Text(
-          name.characters.first.toUpperCase(),
-          style: GoogleFonts.playfairDisplay(
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            color: _MenuPalette.lavender,
-          ),
-        ),
-      ),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Divider(height: 1, thickness: 1, color: _MenuPalette.line),
     );
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  final String text;
-
-  const _SectionLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
-      child: Text(
-        text,
-        style: GoogleFonts.dmSans(
-          fontSize: 10.5,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.4,
-          color: _MenuPalette.muted,
-        ),
-      ),
-    );
-  }
-}
-
+/// One plain row: icon, label, optional badge.
 class _MenuTile extends StatelessWidget {
   final IconData? icon;
   final Widget? leading;
   final String label;
-  final String subtitle;
   final Widget? trailing;
+  final Color color;
   final VoidCallback onTap;
 
   const _MenuTile({
     this.icon,
     this.leading,
     required this.label,
-    required this.subtitle,
     required this.onTap,
     this.trailing,
+    this.color = _MenuPalette.ink,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: _MenuPalette.line),
-        ),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          splashColor: CartzyColors.rose200.withValues(alpha: 0.4),
-          highlightColor: CartzyColors.brand100,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
-            child: Row(
-              children: [
-                leading ??
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        gradient: _MenuPalette.blend,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(icon ?? Icons.circle, size: 20, color: Colors.white),
+    return InkWell(
+      splashColor: CartzyColors.rose200.withValues(alpha: 0.35),
+      highlightColor: CartzyColors.brand100,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Center(
+                child: leading ??
+                    Icon(
+                      icon ?? Icons.circle,
+                      size: 21,
+                      color: color == _MenuPalette.ink
+                          ? CartzyColors.brandDeep
+                          : color,
                     ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _MenuPalette.ink,
-                        ),
-                      ),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.dmSans(
-                          fontSize: 11.5,
-                          color: _MenuPalette.muted,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (trailing != null) ...[
-                  trailing!,
-                  const SizedBox(width: 6),
-                ],
-                const Icon(Icons.chevron_right_rounded,
-                    size: 20, color: CartzyColors.brand400),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.dmSans(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ),
+            if (trailing != null) trailing!,
+          ],
         ),
       ),
     );
@@ -541,7 +400,7 @@ class _CountBadge extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 22),
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        gradient: _MenuPalette.blend,
+        color: _MenuPalette.roseGold,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -565,11 +424,10 @@ class _Tag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: CartzyColors.rose50Warm,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: CartzyColors.rose200),
       ),
       child: Text(
         text,

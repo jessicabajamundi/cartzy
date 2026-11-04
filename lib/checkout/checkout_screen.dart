@@ -1,10 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:cartzy/buyer/my_orders_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/cart_service.dart';
-import 'package:cartzy/services/review_service.dart';
+import 'package:cartzy/services/order_service.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/voucher_service.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
@@ -230,9 +234,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // ── Place Order Action ──
-  void _handlePlaceOrder() {
+
+  /// True while the order is being sent, so a second tap can't send it twice.
+  bool _placing = false;
+
+  /// One id per Place Order attempt. If the network drops after the server
+  /// saved the order, tapping again re-sends the same key and the server
+  /// answers with that order instead of creating a duplicate.
+  String _checkoutKey = _newCheckoutKey();
+
+  static String _newCheckoutKey() {
+    final random = math.Random.secure();
+    return '${DateTime.now().microsecondsSinceEpoch}-'
+        '${random.nextInt(1 << 32).toRadixString(36)}';
+  }
+
+  Future<void> _handlePlaceOrder() async {
+    if (_placing) return;
+    if ((AuthService.token ?? '').isEmpty) {
+      showCartzyFlash(context, 'Please log in to place your order');
+      return;
+    }
     if (_deliveryAddress == null) {
       showCartzyFlash(context, 'Add your delivery address before placing order');
+      return;
+    }
+    final addressId = int.tryParse(_deliveryAddress!['id'] ?? '');
+    if (addressId == null) {
+      showCartzyFlash(context, 'Please choose one of your saved delivery addresses');
       return;
     }
     if (orderItems.isEmpty) {
@@ -240,7 +269,69 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    showDialog(
+    setState(() => _placing = true);
+    try {
+      // Re-check the live stock first. If a quantity had to change, stop so
+      // the buyer sees the new total before paying for it.
+      final cart = CartService.instance;
+      final notes = await cart.refreshStock(only: cart.selectedItems);
+      if (!mounted) return;
+      if (notes.isNotEmpty) {
+        showCartzyFlash(context, '${notes.first} Please review your order.');
+        return;
+      }
+
+      final lines = cart.selectedItems;
+      if (lines.isEmpty) {
+        showCartzyFlash(context, 'The items you selected are out of stock');
+        return;
+      }
+      final unknown = lines.where((i) => i.productId == null && i.variantId == null);
+      if (unknown.isNotEmpty) {
+        showCartzyFlash(context,
+            "${unknown.first.safeName} can't be ordered. Remove it and add it to your cart again.");
+        return;
+      }
+
+      final placed = await OrderService.placeOrder(
+        checkoutKey: _checkoutKey,
+        addressId: addressId,
+        paymentMethod: _selectedPaymentMethod,
+        items: [
+          for (final item in lines)
+            {
+              if (item.productId != null) 'product_id': item.productId,
+              if (item.variantId != null) 'variant_id': item.variantId,
+              if ((item.variation ?? '').isNotEmpty) 'variation': item.variation,
+              'name': item.safeName,
+              'quantity': item.quantity,
+            },
+        ],
+      );
+      if (!mounted) return;
+
+      _checkoutKey = _newCheckoutKey();
+      cart.clearSelected();
+      await _showOrderPlacedDialog(placed);
+    } on ApiException catch (e) {
+      if (mounted) showCartzyFlash(context, e.message);
+    } catch (_) {
+      if (mounted) {
+        showCartzyFlash(
+          context,
+          "We couldn't reach the server. Check your connection and tap Place order again. "
+          "You won't be charged twice.",
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _placing = false);
+    }
+  }
+
+  Future<void> _showOrderPlacedDialog(PlacedOrder placed) async {
+    // Grab the navigator now: closing checkout below unmounts this screen.
+    final navigator = Navigator.of(context, rootNavigator: true);
+    final viewOrders = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
@@ -257,31 +348,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           content: Text(
-            'Your order has been placed successfully via Cash on Delivery.\n\n'
-            'Prepare ₱${_formatCurrency(totalPayment)} for the rider upon delivery.',
+            'Order ${placed.reference} has been placed via Cash on Delivery.\n\n'
+            'Prepare ₱${_formatCurrency(placed.total)} for the rider upon delivery.',
             style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF4A3E47), height: 1.4),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                for (final item in orderItems) {
-                  ReviewService.instance.addOrderFromCheckout(
-                    productName: (item['name'] as String?) ?? 'Product',
-                    price: '₱${_formatCurrency(item['price'])}',
-                    quantity: _safeNum(item['quantity'], 1.0).toInt(),
-                    paymentMethod: _selectedPaymentMethod,
-                    image: (item['image'] as String?) ?? '',
-                  );
-                }
-                CartService.instance.clearSelected();
-                widget.onOrderPlaced();
-              },
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Keep Shopping',
+                style: GoogleFonts.dmSans(
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF7A6E72),
+                ),
+              ),
+            ),
+            _BlendButton(
+              height: 40,
+              radius: 12,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              onTap: () => Navigator.pop(ctx, true),
               child: Text(
                 'View My Orders',
                 style: GoogleFonts.dmSans(
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF5A4452),
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -289,15 +380,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
       },
     );
+
+    widget.onOrderPlaced(); // closes checkout and returns to home
+    if (viewOrders == true) {
+      navigator.push(
+        MaterialPageRoute(
+          builder: (routeContext) => MyOrdersScreen(
+            onBack: () => Navigator.of(routeContext).pop(),
+            onStartShopping: () => Navigator.of(routeContext).pop(),
+          ),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF8F9),
+      backgroundColor: CartzyColors.brand50Lavender,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1120),
@@ -331,7 +434,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       Text(
                         'Checkout',
-                        style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF231F20)),
+                        style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: _CheckoutPalette.ink),
+                      ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: widget.onBack,
+                        child: const _ActionPill('Back to cart', icon: Icons.arrow_back_rounded),
                       ),
                     ],
                   ),
@@ -344,56 +452,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5,
-                      color: const Color(0xFFA6715E),
+                      color: _CheckoutPalette.roseGoldDeep,
                     ),
                   ),
                   const SizedBox(height: 4),
 
-                  // ── Title & Back to Cart Link ──
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Review your order',
-                              style: GoogleFonts.playfairDisplay(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF231F20),
-                                letterSpacing: -0.4,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Check your items, delivery details, and total before placing your order.',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 13,
-                                color: const Color(0xFF7A6E72),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: widget.onBack,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            '← Back to cart',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF231F20),
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  // ── Title ──
+                  Text(
+                    'Review your order',
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w700,
+                      color: _CheckoutPalette.ink,
+                      letterSpacing: -0.4,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Check your items, delivery details, and total before placing your order.',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      color: const Color(0xFF7A6E72),
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -466,15 +546,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       title: 'Delivery details',
       trailingAction: GestureDetector(
         onTap: _openAddressPicker,
-        child: Text(
-          _deliveryAddress == null ? 'Add address' : 'Change address',
-          style: GoogleFonts.dmSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF231F20),
-            decoration: TextDecoration.underline,
-          ),
-        ),
+        child: _ActionPill(_deliveryAddress == null ? 'Add address' : 'Change address'),
       ),
       child: _deliveryAddress == null
           ? Container(
@@ -503,7 +575,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, color: Color(0xFF865561), size: 20),
+                  const Icon(Icons.location_on_outlined, color: _CheckoutPalette.roseGold, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -514,7 +586,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF231F20),
+                            color: _CheckoutPalette.ink,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -545,15 +617,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       titleBadge: '$totalItemCount',
       trailingAction: GestureDetector(
         onTap: widget.onBack,
-        child: Text(
-          'Edit items',
-          style: GoogleFonts.dmSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF231F20),
-            decoration: TextDecoration.underline,
-          ),
-        ),
+        child: const _ActionPill('Edit items'),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -595,13 +659,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Icon(
                               Icons.headset,
-                              color: Color(0xFF865561),
+                              color: _CheckoutPalette.roseGold,
                               size: 26,
                             ),
                           )
                         : const Icon(
                             Icons.headset,
-                            color: Color(0xFF865561),
+                            color: _CheckoutPalette.roseGold,
                             size: 26,
                           ),
                   ),
@@ -617,7 +681,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF231F20),
+                            color: _CheckoutPalette.ink,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -636,7 +700,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF5A4452),
+                            color: _CheckoutPalette.lavender,
                           ),
                         ),
                       ],
@@ -658,7 +722,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF5A4452),
+                            color: _CheckoutPalette.lavender,
                           ),
                         ),
                       ),
@@ -668,7 +732,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20),
+                          color: _CheckoutPalette.ink,
                         ),
                       ),
                       Text(
@@ -708,15 +772,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           );
         },
-        child: Text(
-          'My vouchers',
-          style: GoogleFonts.dmSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF231F20),
-            decoration: TextDecoration.underline,
-          ),
-        ),
+        child: const _ActionPill('My vouchers'),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,7 +790,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF231F20),
+                      color: _CheckoutPalette.ink,
                     ),
                   ),
                   Text(
@@ -750,7 +806,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF231F20),
+                  color: _CheckoutPalette.ink,
                 ),
               ),
             ],
@@ -818,7 +874,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF231F20),
+              color: _CheckoutPalette.ink,
             ),
           ),
           const SizedBox(height: 10),
@@ -837,7 +893,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: _useShippingVoucher && canUseShippingSaver
-                      ? const Color(0xFF5A4452)
+                      ? _CheckoutPalette.lavender
                       : const Color(0xFFE8E0E2),
                   width: _useShippingVoucher && canUseShippingSaver ? 1.5 : 1.0,
                 ),
@@ -849,10 +905,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     width: 76,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: canUseShippingSaver
-                          ? const Color(0xFF2E7D63)
-                          : const Color(0xFFF3ECEE),
-                      borderRadius: BorderRadius.circular(6),
+                      gradient: canUseShippingSaver ? _CheckoutPalette.blend : null,
+                      color: canUseShippingSaver ? null : const Color(0xFFF3ECEE),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -892,7 +947,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF231F20),
+                            color: _CheckoutPalette.ink,
                           ),
                         ),
                         Text(
@@ -924,7 +979,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
                     color: _useShippingVoucher && canUseShippingSaver
-                        ? const Color(0xFF5A4452)
+                        ? _CheckoutPalette.lavender
                         : const Color(0xFFD0C4C8),
                     size: 20,
                   ),
@@ -946,7 +1001,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: !_useShippingVoucher
-                      ? const Color(0xFF5A4452)
+                      ? _CheckoutPalette.lavender
                       : const Color(0xFFE8E0E2),
                   width: !_useShippingVoucher ? 1.5 : 1.0,
                 ),
@@ -960,7 +1015,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: const Color(0xFF231F20),
+                        color: _CheckoutPalette.ink,
                       ),
                     ),
                   ),
@@ -969,7 +1024,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
                     color: !_useShippingVoucher
-                        ? const Color(0xFF5A4452)
+                        ? _CheckoutPalette.lavender
                         : const Color(0xFFD0C4C8),
                     size: 20,
                   ),
@@ -985,7 +1040,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF231F20),
+              color: _CheckoutPalette.ink,
             ),
           ),
           const SizedBox(height: 8),
@@ -1001,7 +1056,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF231F20),
+                      color: _CheckoutPalette.ink,
                     ),
                     decoration: InputDecoration(
                       hintText: 'ENTER CODE, E.G. PASKO100',
@@ -1022,27 +1077,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFF5A4452), width: 1.5),
+                        borderSide: const BorderSide(color: _CheckoutPalette.lavender, width: 1.5),
                       ),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              SizedBox(
+              _BlendButton(
                 height: 42,
-                child: ElevatedButton(
-                  onPressed: _handleApplyVoucherCode,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A4452),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  child: Text(
-                    'Apply',
-                    style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600),
+                radius: 10,
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                onTap: _handleApplyVoucherCode,
+                child: Text(
+                  'Apply',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -1074,7 +1126,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: _selectedPaymentMethod == 'COD'
-                      ? const Color(0xFF5A4452)
+                      ? _CheckoutPalette.lavender
                       : const Color(0xFFE8E0E2),
                   width: _selectedPaymentMethod == 'COD' ? 1.5 : 1.0,
                 ),
@@ -1085,8 +1137,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     width: 38,
                     height: 38,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3ECEE),
-                      borderRadius: BorderRadius.circular(8),
+                      gradient: _CheckoutPalette.softBlend,
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
                       child: Text(
@@ -1094,7 +1146,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF5A4452),
+                          color: _CheckoutPalette.lavender,
                         ),
                       ),
                     ),
@@ -1109,7 +1161,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF231F20),
+                            color: _CheckoutPalette.ink,
                           ),
                         ),
                         Text(
@@ -1127,7 +1179,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
                     color: _selectedPaymentMethod == 'COD'
-                        ? const Color(0xFF5A4452)
+                        ? _CheckoutPalette.lavender
                         : const Color(0xFFD0C4C8),
                     size: 20,
                   ),
@@ -1239,7 +1291,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEFE8EB), width: 1.2),
+        border: Border.all(color: _CheckoutPalette.line, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -1257,7 +1309,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.2,
-              color: const Color(0xFFA6715E),
+              color: _CheckoutPalette.roseGoldDeep,
             ),
           ),
           const SizedBox(height: 4),
@@ -1266,7 +1318,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             style: GoogleFonts.playfairDisplay(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF231F20),
+              color: _CheckoutPalette.ink,
             ),
           ),
           const SizedBox(height: 2),
@@ -1318,7 +1370,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF231F20),
+                      color: _CheckoutPalette.ink,
                     ),
                   ),
                   Text(
@@ -1329,12 +1381,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '₱${_formatCurrency(totalPayment)}',
-                style: GoogleFonts.dmSans(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF231F20),
+              ShaderMask(
+                shaderCallback: (r) => _CheckoutPalette.blend.createShader(r),
+                child: Text(
+                  '₱${_formatCurrency(totalPayment)}',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 23,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -1356,7 +1411,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: _CheckoutPalette.ink,
                 ),
               ),
             ],
@@ -1364,41 +1419,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 20),
 
           // Place order button
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: _deliveryAddress == null ? null : _handlePlaceOrder,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4452),
-                disabledBackgroundColor: const Color(0xFFA89CA3),
-                foregroundColor: Colors.white,
-                disabledForegroundColor: Colors.white70,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Place order',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                    ),
+          _BlendButton(
+            height: 52,
+            onTap: _deliveryAddress == null || _placing ? null : _handlePlaceOrder,
+            child: Row(
+              children: [
+                if (_placing) ...[
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   ),
-                  const Spacer(),
-                  Text(
-                    '₱${_formatCurrency(totalPayment)}',
-                    style: GoogleFonts.dmSans(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.arrow_forward_rounded, size: 16),
+                  const SizedBox(width: 10),
                 ],
-              ),
+                Text(
+                  _placing ? 'Placing order…' : 'Place order',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '₱${_formatCurrency(totalPayment)}',
+                  style: GoogleFonts.dmSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward_rounded, size: 17, color: Colors.white),
+              ],
             ),
           ),
           const SizedBox(height: 8),
@@ -1433,7 +1486,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF5A4452),
+                  color: _CheckoutPalette.lavender,
                   decoration: TextDecoration.underline,
                 ),
               ),
@@ -1460,7 +1513,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           style: GoogleFonts.dmSans(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isAccentGreen ? const Color(0xFF2E7D63) : const Color(0xFF231F20),
+            color: isAccentGreen ? const Color(0xFF2E7D63) : _CheckoutPalette.ink,
           ),
         ),
       ],
@@ -1484,7 +1537,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEFE8EB), width: 1.2),
+        border: Border.all(color: _CheckoutPalette.line, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -1500,55 +1553,186 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3EDF0),
-                  borderRadius: BorderRadius.circular(6),
+                  gradient: _CheckoutPalette.blend,
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   stepNumber,
                   style: GoogleFonts.dmSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF5A4452),
+                    color: Colors.white,
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              Flexible(
-                child: Text(
-                  title,
-                  style: GoogleFonts.dmSans(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF231F20),
-                  ),
+              // Title takes all the room left by the badge and the action pill.
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.dmSans(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w700,
+                          color: _CheckoutPalette.ink,
+                        ),
+                      ),
+                    ),
+                    if (titleBadge != null) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: CartzyColors.rose50Warm,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: CartzyColors.rose200),
+                        ),
+                        child: Text(
+                          titleBadge,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: _CheckoutPalette.roseGoldDeep,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              if (titleBadge != null) ...[
+              if (trailingAction != null) ...[
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3EDF0),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    titleBadge,
-                    style: GoogleFonts.dmSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF5A4452),
-                    ),
-                  ),
-                ),
+                trailingAction,
               ],
-              const Spacer(),
-              if (trailingAction != null) trailingAction,
             ],
           ),
           const SizedBox(height: 14),
           child,
+        ],
+      ),
+    );
+  }
+}
+
+
+// ──────────────────────────────────────────────────────────────
+// LAVENDER × ROSE GOLD PIECES (same blend as the cart)
+// ──────────────────────────────────────────────────────────────
+
+class _CheckoutPalette {
+  static const lavender = CartzyColors.brandDeep;
+  static const roseGold = Color(0xFFB76E79);
+  static const roseGoldDeep = Color(0xFF9C4A5A);
+  static const ink = CartzyColors.brand900;
+  static const line = Color(0xFFEDE6EE);
+
+  static const blend = LinearGradient(
+    colors: [lavender, roseGold],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const softBlend = LinearGradient(
+    colors: [CartzyColors.brand100, CartzyColors.rose50Warm],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
+
+/// Gradient button; fades out when [onTap] is null.
+class _BlendButton extends StatelessWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final double height;
+  final double radius;
+  final EdgeInsetsGeometry padding;
+
+  const _BlendButton({
+    required this.child,
+    required this.onTap,
+    this.height = 48,
+    this.radius = 14,
+    this.padding = const EdgeInsets.symmetric(horizontal: 18),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    final borderRadius = BorderRadius.circular(radius);
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: enabled ? 1 : 0.5,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: _CheckoutPalette.blend,
+          borderRadius: borderRadius,
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: _CheckoutPalette.roseGold.withValues(alpha: 0.30),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            borderRadius: borderRadius,
+            splashColor: Colors.white24,
+            onTap: onTap,
+            child: SizedBox(
+              height: height,
+              child: Padding(
+                padding: padding,
+                child: Center(widthFactor: 1, child: child),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small soft pill used for "Change address", "Edit items" and similar links.
+class _ActionPill extends StatelessWidget {
+  final String label;
+  final IconData? icon;
+
+  const _ActionPill(this.label, {this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: _CheckoutPalette.softBlend,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: CartzyColors.rose200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: _CheckoutPalette.roseGoldDeep),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: GoogleFonts.dmSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: _CheckoutPalette.roseGoldDeep,
+            ),
+          ),
         ],
       ),
     );

@@ -380,6 +380,22 @@ class CartService extends ChangeNotifier {
     }
   }
 
+  /// Sets an explicit quantity, clamped between 1 and available stock (if known).
+  /// Returns the clamped quantity actually applied, or -1 if the index is invalid.
+  int setQuantity(int index, int quantity) {
+    if (index < 0 || index >= _items.length) return -1;
+    final item = _items[index];
+    final maxAllowed =
+        (item.stock != null && item.stock! > 0) ? item.stock! : null;
+    int target = quantity < 1 ? 1 : quantity;
+    if (maxAllowed != null && target > maxAllowed) {
+      target = maxAllowed;
+    }
+    item.quantity = target;
+    notifyListeners();
+    return target;
+  }
+
   void toggleItemSelection(int index, bool? selected) {
     if (index >= 0 && index < _items.length) {
       final item = _items[index];

@@ -256,6 +256,246 @@ class _CartScreenState extends State<CartScreen>
     );
   }
 
+  Future<void> _showQuantityDialog(
+    BuildContext context,
+    int index,
+    CartItem item,
+  ) async {
+    final maxStock =
+        (item.stock != null && item.stock! > 0) ? item.stock! : null;
+    final controller = TextEditingController(text: '${item.quantity}');
+    controller.selection = TextSelection(
+      baseOffset: 0,
+      extentOffset: controller.text.length,
+    );
+
+    final newQty = await showDialog<int>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogCtx) {
+        int current = item.quantity;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            void updateCurrent(int val) {
+              int clamped = val < 1 ? 1 : val;
+              if (maxStock != null && clamped > maxStock) clamped = maxStock;
+              setModalState(() {
+                current = clamped;
+                controller.text = '$clamped';
+                controller.selection = TextSelection(
+                  baseOffset: 0,
+                  extentOffset: controller.text.length,
+                );
+              });
+            }
+
+            final canDec = current > 1;
+            final canInc = maxStock == null || current < maxStock;
+
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: CartzyColors.brand100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.edit_note_rounded,
+                      color: _CartPalette.roseGoldDeep,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Enter Quantity',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: _CartPalette.ink,
+                          ),
+                        ),
+                        if (maxStock != null)
+                          Text(
+                            'Available stock: $maxStock',
+                            style: GoogleFonts.dmSans(
+                              fontSize: 12,
+                              color: _CartPalette.muted,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 8),
+                  Text(
+                    item.safeName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _CartPalette.ink,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton.filledTonal(
+                        onPressed:
+                            canDec ? () => updateCurrent(current - 1) : null,
+                        icon: const Icon(Icons.remove_rounded),
+                        style: IconButton.styleFrom(
+                          backgroundColor: CartzyColors.brand100,
+                          foregroundColor: _CartPalette.ink,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 100,
+                        child: TextField(
+                          controller: controller,
+                          autofocus: true,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(5),
+                          ],
+                          style: GoogleFonts.dmSans(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: _CartPalette.ink,
+                          ),
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 10,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide:
+                                  const BorderSide(color: _CartPalette.line),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(
+                                color: _CartPalette.roseGoldDeep,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          onChanged: (val) {
+                            final parsed = int.tryParse(val);
+                            if (parsed != null) {
+                              setModalState(() {
+                                current = parsed;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton.filledTonal(
+                        onPressed:
+                            canInc ? () => updateCurrent(current + 1) : null,
+                        icon: const Icon(Icons.add_rounded),
+                        style: IconButton.styleFrom(
+                          backgroundColor: CartzyColors.brand100,
+                          foregroundColor: _CartPalette.ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (maxStock != null && current > maxStock)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        'Exceeds stock of $maxStock. Will be set to $maxStock.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.dmSans(
+                          fontSize: 11,
+                          color: Colors.red.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.dmSans(
+                      color: _CartPalette.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _CartPalette.roseGoldDeep,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
+                  onPressed: () {
+                    final typed = int.tryParse(controller.text) ?? current;
+                    Navigator.of(dialogCtx).pop(typed);
+                  },
+                  child: Text(
+                    'Confirm',
+                    style: GoogleFonts.dmSans(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted) return;
+    if (newQty != null && newQty > 0) {
+      final applied = CartService.instance.setQuantity(index, newQty);
+      if (maxStock != null && newQty > maxStock) {
+        _showSnack(
+          icon: Icons.inventory_2_outlined,
+          message: 'Only $maxStock available. Quantity updated to $applied.',
+        );
+      }
+    }
+  }
+
   void _confirmClearCart() {
     showDialog(
       context: context,
@@ -748,6 +988,8 @@ class _CartScreenState extends State<CartScreen>
                             CartService.instance.decreaseQuantity(index),
                         onIncrease: () =>
                             CartService.instance.increaseQuantity(index),
+                        onTapQuantity: () =>
+                            _showQuantityDialog(context, index, item),
                       ),
                   ],
                 ),
@@ -1471,6 +1713,7 @@ class _QuantityStepper extends StatelessWidget {
   final VoidCallback onIncrease;
   final bool canIncrease;
   final VoidCallback? onIncreaseBlocked;
+  final VoidCallback? onTapQuantity;
 
   const _QuantityStepper({
     required this.quantity,
@@ -1478,6 +1721,7 @@ class _QuantityStepper extends StatelessWidget {
     required this.onIncrease,
     this.canIncrease = true,
     this.onIncreaseBlocked,
+    this.onTapQuantity,
   });
 
   @override
@@ -1498,22 +1742,33 @@ class _QuantityStepper extends StatelessWidget {
             enabled: canDecrease,
             onTap: onDecrease,
           ),
-          SizedBox(
-            width: 30,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, anim) => FadeTransition(
-                opacity: anim,
-                child: ScaleTransition(scale: anim, child: child),
-              ),
-              child: Text(
-                '$quantity',
-                key: ValueKey(quantity),
-                textAlign: TextAlign.center,
-                style: GoogleFonts.dmSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: _CartPalette.ink,
+          Tooltip(
+            message: 'Tap to type quantity',
+            child: InkWell(
+              onTap: onTapQuantity,
+              borderRadius: BorderRadius.circular(6),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                constraints: const BoxConstraints(minWidth: 32),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: ScaleTransition(scale: anim, child: child),
+                  ),
+                  child: Text(
+                    '$quantity',
+                    key: ValueKey(quantity),
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: _CartPalette.ink,
+                      decoration: TextDecoration.underline,
+                      decorationStyle: TextDecorationStyle.dotted,
+                      decorationColor: _CartPalette.muted,
+                    ),
+                  ),
                 ),
               ),
             ),
