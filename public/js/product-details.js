@@ -444,13 +444,56 @@
             sync();
             heart.classList.remove('is-popping');
             void heart.offsetWidth; // restart the pop animation
-            if (result.wished) heart.classList.add('is-popping');
+            if (result.wished) {
+                heart.classList.add('is-popping');
+                window.flyToHeader?.('wishlist', heart);
+            }
             window.updateBuyerNavCount?.('wishlist', result.count);
             window.showToast?.(result.wished ? 'Saved to your wishlist.' : 'Removed from your wishlist.', 'success');
         } catch (error) {
             window.showToast?.(error.message, 'error');
         } finally {
             heart.disabled = false;
+        }
+    });
+})();
+
+// Add to cart without leaving the page, so the product photo can fly into the header cart.
+(() => {
+    const form = document.getElementById('pd-cart-form');
+    const button = document.getElementById('pd-add');
+    if (!form || !button || !window.fetch) return;
+
+    form.addEventListener('submit', async event => {
+        if (event.defaultPrevented) return;
+        event.preventDefault();
+        if (button.getAttribute('aria-busy') === 'true') return;
+        button.setAttribute('aria-busy', 'true');
+        button.disabled = true;
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form),
+            });
+            const data = await response.json().catch(() => null);
+            if (response.status === 401) return window.location.assign(data?.redirect || '/register?from=cart');
+            if (response.status === 419) throw new Error('Your session has expired. Refresh the page and try again.');
+            if (response.status === 422) throw new Error(Object.values(data?.errors || {}).flat()[0] || data?.message || 'Please check your selection.');
+            if (!response.ok || !data?.success) throw new Error(data?.message || 'Could not add to cart. Please try again.');
+
+            const photo = document.getElementById('pd-main-image');
+            const photoShown = photo && !photo.hidden && photo.getBoundingClientRect().width > 0;
+            window.flyToHeader?.('cart', photoShown ? photo : button, photoShown ? (photo.currentSrc || photo.src) : null);
+            window.updateCartBadge?.(data.cartCount);
+            window.updateCartPopover?.(data.cart, data.cartCount);
+            window.showToast?.('Added to your cart.', 'success');
+        } catch (error) {
+            window.showToast?.(error.message || 'Something went wrong. Please try again.', 'error');
+        } finally {
+            button.removeAttribute('aria-busy');
+            button.disabled = false;
         }
     });
 })();

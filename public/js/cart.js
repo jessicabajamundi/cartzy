@@ -95,6 +95,8 @@ window.addToCart = function(id, name, price, image, variation) {
         return;
     }
 
+    // Remember which button was pressed so the product photo can fly from its card.
+    const source = window._lastClickTarget;
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     return fetch('/cart/add', {
         method: 'POST',
@@ -116,6 +118,7 @@ window.addToCart = function(id, name, price, image, variation) {
     .then(data => {
         if (!data) return;
         if (data.success) {
+            window.flyToHeader?.('cart', source, image);
             showToast('✓ Added: ' + (name.length > 28 ? name.substring(0, 28) + '…' : name), 'success');
             updateCartBadge(data.cartCount);
             updateCartPopover(data.cart, data.cartCount);
@@ -130,3 +133,100 @@ window.addToCart = function(id, name, price, image, variation) {
         showToast('Something went wrong. Please try again.', 'error');
     });
 };
+
+// ─── Fly-to-header animation (cart & wishlist) ─────────────────────────────
+// A small copy of the product photo (cart) or a heart (wishlist) jumps in an arc
+// from the clicked button into the header icon, which then bounces to say "got it".
+(() => {
+    document.addEventListener('click', e => { window._lastClickTarget = e.target; }, true);
+
+    const style = document.createElement('style');
+    style.textContent = `
+        .fly-to-header { position:fixed; z-index:100000; pointer-events:none; border-radius:9999px; overflow:hidden;
+            background:#fff center/cover no-repeat; border:2px solid #fff; box-shadow:0 10px 28px rgba(40,33,51,.32); will-change:transform,opacity; }
+        .fly-to-header.is-heart { display:grid; place-items:center; color:#b0485f; background:#fff5f7; border-color:#efc9d1; }
+        .fly-to-header.is-heart svg { width:58%; height:58%; fill:currentColor; }
+        .fly-bump { animation:flyBump .6s cubic-bezier(.28,.84,.42,1); }
+        @keyframes flyBump {
+            0%   { transform:translateY(0) scale(1); }
+            25%  { transform:translateY(-9px) scale(1.18,.9); }
+            45%  { transform:translateY(0) scale(.92,1.1); }
+            65%  { transform:translateY(-4px) scale(1.05); }
+            100% { transform:translateY(0) scale(1); }
+        }
+        .fly-bump-wishlist { color:#b0485f !important; }
+        @media (prefers-reduced-motion: reduce) { .fly-bump { animation:none; } }
+    `;
+    document.head.appendChild(style);
+
+    const visible = el => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight; };
+
+    function headerIcon(kind) {
+        const label = kind === 'cart' ? 'Cart' : 'Wishlist';
+        const candidates = [
+            ...document.querySelectorAll(`[data-buyer-nav="${kind}"] .buyer-top-icon`),
+            ...document.querySelectorAll(`header a[aria-label^="${label}"], header a[title^="${label}"]`),
+        ];
+        return candidates.find(visible) || null;
+    }
+
+    // Cart: prefer the product photo near the clicked button. Wishlist: start at the heart itself.
+    function startRect(source, kind) {
+        let node = kind === 'cart' && source instanceof Element ? source : null;
+        for (let depth = 0; node && depth < 7; depth++, node = node.parentElement) {
+            const img = node.tagName === 'IMG' ? node : node.querySelector?.('img');
+            if (img && visible(img)) return img.getBoundingClientRect();
+        }
+        const btn = source instanceof Element ? source.closest('button, a') || source : null;
+        return btn && visible(btn) ? btn.getBoundingClientRect() : null;
+    }
+
+    function bump(target, kind) {
+        const link = target.closest('a, summary') || target;
+        link.classList.remove('fly-bump');
+        void link.offsetWidth; // restart the animation
+        link.classList.add('fly-bump');
+        if (kind === 'wishlist') link.classList.add('fly-bump-wishlist');
+        setTimeout(() => link.classList.remove('fly-bump', 'fly-bump-wishlist'), 650);
+    }
+
+    window.flyToHeader = function (kind, source, imageUrl) {
+        const target = headerIcon(kind);
+        if (!target) return;
+        const from = startRect(source, kind);
+        const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!from || reduceMotion || !Element.prototype.animate) return bump(target, kind);
+
+        const to = target.getBoundingClientRect();
+        const size = Math.max(36, Math.min(72, from.width, from.height));
+        const flyer = document.createElement('div');
+        flyer.className = 'fly-to-header' + (kind === 'wishlist' || !imageUrl ? ' is-heart' : '');
+        if (kind === 'wishlist' || !imageUrl) {
+            flyer.innerHTML = kind === 'wishlist'
+                ? '<svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>'
+                : '<svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13 5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>';
+        } else {
+            flyer.style.backgroundImage = `url("${String(imageUrl).replace(/"/g, '%22')}")`;
+        }
+        Object.assign(flyer.style, { width: size + 'px', height: size + 'px', left: '0px', top: '0px' });
+        document.body.appendChild(flyer);
+
+        // Arc path: hop up above both points, then drop into the icon.
+        const x0 = from.left + from.width / 2 - size / 2, y0 = from.top + from.height / 2 - size / 2;
+        const x1 = to.left + to.width / 2 - size / 2,     y1 = to.top + to.height / 2 - size / 2;
+        const peak = Math.min(y0, y1) - Math.max(70, Math.abs(x1 - x0) * 0.15);
+        const cx = (x0 + x1) / 2, cy = peak;
+        const endScale = 18 / size;
+        const frames = [];
+        for (let i = 0; i <= 24; i++) {
+            const t = i / 24;
+            const x = (1 - t) ** 2 * x0 + 2 * (1 - t) * t * cx + t ** 2 * x1;
+            const y = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t ** 2 * y1;
+            // Quick squash on take-off, then shrink as it lands in the icon.
+            const s = t < 0.12 ? 1 + Math.sin(t / 0.12 * Math.PI) * 0.15 : 1 + (endScale - 1) * ((t - 0.12) / 0.88) ** 1.4;
+            frames.push({ transform: `translate(${x}px, ${y}px) scale(${s}) rotate(${t * (kind === 'wishlist' ? -20 : 25)}deg)`, opacity: t > 0.9 ? 1 - (t - 0.9) * 6 : 1 });
+        }
+        const anim = flyer.animate(frames, { duration: 780, easing: 'cubic-bezier(.45,.05,.4,1)', fill: 'forwards' });
+        anim.onfinish = anim.oncancel = () => { flyer.remove(); bump(target, kind); };
+    };
+})();

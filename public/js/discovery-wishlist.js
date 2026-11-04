@@ -50,6 +50,7 @@
                 if (!response.ok) throw new Error('Wishlist request failed');
                 const result = await response.json();
                 if (!result.success || typeof result.wished !== 'boolean') throw new Error('Invalid wishlist response');
+                if (result.wished) window.flyToHeader?.('wishlist', button);
                 window.updateBuyerNavCount?.('wishlist', result.count);
                 if (section.dataset.wishlistRefs) {
                     const refs = new Set(JSON.parse(section.dataset.wishlistRefs));
