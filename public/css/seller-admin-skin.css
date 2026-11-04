@@ -79,7 +79,6 @@ main { max-width: 1540px; padding: 28px 32px; }
     transition: background .18s, border-color .18s;
 }
 .button:hover, button.primary:hover {
-    background: linear-gradient(115deg, #564B68, #774F53);
     border-color: #7E6578;
     color: #fff;
     box-shadow: none;
@@ -157,3 +156,61 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--focus-ring)
 .empty strong { color: var(--ink); font-size: 14px; font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) { .button, .topbar-icon { transition: none; } }
+
+/* ─── Button animations ───
+   Primary: the admin gradient slowly flows lavender ↔ rose gold; on hover it speeds up,
+   lifts and a soft shine sweeps across. Secondary / danger / icon buttons lift and glow on hover.
+   Every button presses down when clicked. */
+.button, button.primary { position: relative; isolation: isolate; overflow: hidden; transition: background-color .18s, border-color .18s, color .18s, box-shadow .25s, transform .2s ease; }
+.button:where(:not(.secondary, .text, .danger, .archive-delete-button)),
+button.primary {
+    background-image: linear-gradient(110deg, #564B68 0%, #6F6382 25%, #895E61 50%, #6F6382 75%, #564B68 100%);
+    background-size: 300% 100%;
+    animation: seller-btn-flow 8s ease-in-out infinite;
+}
+.button:not(.text)::after, button.primary::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -60%;
+    z-index: -1;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .3), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+    transition: left .65s ease;
+}
+.button.secondary::after { background: linear-gradient(100deg, transparent, rgba(192, 139, 127, .18), transparent); }
+.button:not(.text):hover::after, button.primary:hover::after { left: 120%; }
+
+.button:not(.text):hover, button.primary:hover { transform: translateY(-2px); }
+.button:where(:not(.secondary, .text, .danger, .archive-delete-button)):hover,
+button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px rgba(137, 94, 97, .8); }
+.button.secondary:hover { border-color: #E8C6BE; color: #89574E; box-shadow: 0 8px 18px -14px rgba(112, 85, 142, .6); }
+.button.danger:hover, .button.archive-delete-button:hover { box-shadow: 0 10px 20px -12px rgba(107, 63, 55, .75); }
+.button:not(.text):active, button.primary:active { transform: translateY(0) scale(.97); transition-duration: .08s; }
+
+/* Arrow / icon inside a button nudges forward on hover. */
+.button .icon { transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
+.button:hover .icon { transform: translateX(3px); }
+
+/* Disabled buttons stay still. */
+.button:disabled, .button[aria-disabled="true"], .button.is-disabled, button.primary:disabled { animation: none; transform: none; box-shadow: none; }
+.button:disabled::after, .button[aria-disabled="true"]::after, .button.is-disabled::after, button.primary:disabled::after { content: none; }
+
+/* Topbar icons and small round controls get a gentle pop. */
+.topbar-icon { transition: background .18s, color .18s, transform .2s cubic-bezier(.34, 1.56, .64, 1); }
+.topbar-icon:hover { transform: translateY(-2px); color: var(--accent); }
+.topbar-icon:active { transform: scale(.92); }
+.topbar-avatar { transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s; }
+.topbar-account:hover .topbar-avatar { transform: scale(1.06); box-shadow: 0 0 0 1px #E8C6BE, 0 6px 14px -6px rgba(137, 94, 97, .6); }
+
+@keyframes seller-btn-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .button, button.primary { animation: none !important; transform: none !important; }
+    .button::after, button.primary::after { content: none; }
+    .button .icon, .topbar-icon, .topbar-avatar { transition: none; transform: none !important; }
+}
