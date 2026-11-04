@@ -15,7 +15,6 @@
     @if(auth()->user()->isSeller())
         <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/seller-chat-popups.css') }}?v={{ filemtime(public_path('css/seller-chat-popups.css')) }}">
-        <link rel="stylesheet" href="{{ asset('css/seller-numerals.css') }}?v={{ filemtime(public_path('css/seller-numerals.css')) }}">
     @endif
 </head>
 <body class="{{ request()->routeIs('seller.dashboard') ? 'seller-overview' : '' }}">
@@ -167,7 +166,6 @@ document.addEventListener('keydown', event => {
         @include('seller.partials.chat-popup', ['id' => 'lc', 'label' => 'Logistics', 'title' => 'Logistics chat', 'subtitle' => 'Message a logistics hub', 'conversationsUrl' => route('seller.logistics.conversations'), 'inboxUrl' => route('seller.logistics'), 'emptyText' => 'No logistics hubs are available yet. Approved hubs will appear here.'])
     </div>
     <script src="{{ asset('js/seller-chat-popups.js') }}?v={{ filemtime(public_path('js/seller-chat-popups.js')) }}" defer></script>
-    <script src="{{ asset('js/seller-numerals.js') }}?v={{ filemtime(public_path('js/seller-numerals.js')) }}" defer></script>
 @endif
 @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')

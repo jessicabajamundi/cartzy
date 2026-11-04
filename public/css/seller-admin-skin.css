@@ -20,12 +20,16 @@
     --brand-blend: linear-gradient(115deg, #F0EAF6, #FFF0EA);
     --admin-shadow: 0 3px 8px #34243f03;
 }
-body {
-    /* Admin text font; the seller's Bodoni digits ("Seller Numerals") stay first in the stack. */
-    font-family: "Seller Numerals", "Segoe UI", Arial, sans-serif;
+/* ─── Admin font style ───
+   Text and numbers in Segoe UI (admin body font); big page titles in Cormorant Garamond (admin h1).
+   The old Bodoni "Seller Numerals" files are no longer loaded by the seller layout. */
+body, body.seller-overview {
+    font-family: "Segoe UI", Arial, sans-serif;
     background: var(--canvas);
     color: var(--ink);
 }
+h1, .pe-card-head h2 { font-family: 'Cormorant Garamond', Georgia, serif; }
+.seller-overview .seller-welcome h2, .seller-notifications-link .badge { font-family: inherit; }
 ::selection { background: var(--accent-light); color: var(--ink); }
 input, select, textarea { accent-color: var(--accent); }
 :focus-visible { outline-color: var(--focus); }
