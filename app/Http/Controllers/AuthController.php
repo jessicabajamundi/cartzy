@@ -238,8 +238,7 @@ class AuthController extends Controller
     public function showRegisterForm(Request $request)
     {
         $selectedRole = $request->query('role', 'buyer');
-        $shopCategories = \App\Models\Category::where('is_active', true)->orderBy('name')->get();
-        return view('auth.register', compact('selectedRole', 'shopCategories'));
+        return view('auth.register', compact('selectedRole'));
     }
 
     /**
@@ -462,7 +461,6 @@ class AuthController extends Controller
                     $fail('This shop name is already in use. Choose another name.');
                 }
             }],
-            'shop_category' => ['required', Rule::exists('categories', 'id')->where('is_active', true)],
             'seller_type' => ['required', Rule::in(['individual', 'sole_proprietorship', 'corporation'])],
             'tin_number' => ['required', 'regex:/\A[0-9]{12}\z/'],
             'phone' => ['required', ...$this->registrationPhoneRules()],
@@ -711,7 +709,7 @@ class AuthController extends Controller
                 'barangay'         => $barangay,
                 'postal_code'      => $postalCode,
                 'business_name'    => $validated['role'] === User::ROLE_SELLER ? $validated['shop_name'] : ($validated['business_name'] ?? null),
-                'line_of_business' => $validated['role'] === User::ROLE_SELLER ? \App\Models\Category::findOrFail($validated['shop_category'])->name : null,
+                'line_of_business' => $validated['role'] === User::ROLE_SELLER ? 'General Merchandise' : null, // sellers can list in many categories
                 'seller_type'      => $validated['seller_type'] ?? null,
                 'tin_number'       => $validated['tin_number'] ?? null,
                 'sec_certificate'  => $secCertPath,

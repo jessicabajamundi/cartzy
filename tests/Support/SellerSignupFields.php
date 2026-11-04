@@ -7,9 +7,8 @@ trait SellerSignupFields
     private function sellerSignupFields(): array
     {
         \Illuminate\Support\Facades\Storage::fake('public');
-        $category = \App\Models\Category::firstOrCreate(['slug' => 'signup-test'], ['name' => 'Test category', 'is_active' => true]);
         return [
-            'shop_name' => 'Test Shop', 'shop_category' => $category->id,
+            'shop_name' => 'Test Shop',
             'seller_type' => 'individual', 'tin_number' => '123456789000',
             'region' => 'NCR', 'province' => 'Metro Manila', 'city' => 'Manila',
             'barangay' => 'Barangay 1', 'street_address' => '12 Main Street', 'postal_code' => '1000',

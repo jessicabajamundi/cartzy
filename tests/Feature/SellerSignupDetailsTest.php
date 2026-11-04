@@ -18,14 +18,13 @@ class SellerSignupDetailsTest extends TestCase
     {
         Storage::fake('public');
         Storage::fake('local');
-        $category = Category::firstOrCreate(['slug' => 'electronics'], ['name' => 'Electronics', 'is_active' => true]);
         Cache::put('otp_seller@example.com', ['otp' => '123456', 'email' => 'seller@example.com'], 600);
         $data = [
             'role' => 'seller', 'first_name' => 'Maria', 'last_name' => 'Cruz',
             'email' => 'seller@example.com', 'phone' => '+639171234567',
             'password' => 'SecurePass!123', 'password_confirmation' => 'SecurePass!123',
             'email_verification_otp' => '123456', 'shop_name' => 'Maria Store',
-            'shop_category' => $category->id, 'seller_type' => $type, 'tin_number' => '123-456-789-000',
+            'seller_type' => $type, 'tin_number' => '123-456-789-000',
             'region' => 'NCR', 'province' => 'Metro Manila', 'city' => 'Manila',
             'barangay' => 'Barangay 1', 'street_address' => '12 Main Street', 'postal_code' => '1000',
             'id_photo' => UploadedFile::fake()->create('id.pdf', 20, 'application/pdf'),
@@ -39,7 +38,7 @@ class SellerSignupDetailsTest extends TestCase
     public function test_details_page_renders_with_system_fields(): void
     {
         $this->details();
-        $this->get('/register?role=seller')->assertOk()->assertSee('Your shop')->assertSee('Pickup address')->assertSee('Electronics')->assertSee('BIR Form 2303');
+        $this->get('/register?role=seller')->assertOk()->assertSee('Your shop')->assertSee('Pickup address')->assertDontSee('Shop category')->assertSee('BIR Form 2303');
     }
 
     public function test_seller_can_register_without_terms_while_section_is_removed(): void
@@ -63,7 +62,7 @@ class SellerSignupDetailsTest extends TestCase
         $user = User::where('email', 'seller@example.com')->firstOrFail();
         $this->assertSame('09171234567', $user->phone);
         $this->assertSame('123456789000', $user->tin_number);
-        $this->assertSame('Electronics', $user->line_of_business);
+        $this->assertSame('General Merchandise', $user->line_of_business); // sellers list in many categories
         $this->assertSame('pending', $user->status);
         $this->assertNotNull($user->email_verified_at);
         $seller = \App\Models\Seller::where('user_id', $user->id)->firstOrFail();

@@ -6,27 +6,15 @@
         <p class="seller-field-hint">3 to 30 characters. Buyers see this name. It must not be used by another shop.</p>
         <p class="seller-field-error" id="shop_name_error" role="alert">{{ $errors->first('shop_name') }}</p>
     </div>
-    <div class="form-grid-2 mb-4">
-        <div>
-            <label class="field-label" for="shop_category">Shop category <span class="seller-required">*</span></label>
-            <select class="auth-input seller-detail-input" id="shop_category" name="shop_category" data-seller-required>
-                <option value="">Choose a category</option>
-                @foreach($shopCategories as $category)
-                    <option value="{{ $category->id }}" @selected(old('shop_category') == $category->id)>{{ $category->name }}</option>
-                @endforeach
-            </select>
-            <p class="seller-field-error" id="shop_category_error" role="alert">{{ $errors->first('shop_category') }}</p>
-        </div>
-        <div>
-            <label class="field-label" for="seller_type">Seller type <span class="seller-required">*</span></label>
-            <select class="auth-input seller-detail-input" id="seller_type" name="seller_type" data-seller-required>
-                <option value="">Choose a seller type</option>
-                @foreach(['individual' => 'Individual', 'sole_proprietorship' => 'Sole Proprietorship', 'corporation' => 'Corporation'] as $value => $label)
-                    <option value="{{ $value }}" @selected(old('seller_type') === $value)>{{ $label }}</option>
-                @endforeach
-            </select>
-            <p class="seller-field-error" id="seller_type_error" role="alert">{{ $errors->first('seller_type') }}</p>
-        </div>
+    <div class="mb-4">
+        <label class="field-label" for="seller_type">Seller type <span class="seller-required">*</span></label>
+        <select class="auth-input seller-detail-input" id="seller_type" name="seller_type" data-seller-required>
+            <option value="">Choose a seller type</option>
+            @foreach(['individual' => 'Individual', 'sole_proprietorship' => 'Sole Proprietorship', 'corporation' => 'Corporation'] as $value => $label)
+                <option value="{{ $value }}" @selected(old('seller_type') === $value)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <p class="seller-field-error" id="seller_type_error" role="alert">{{ $errors->first('seller_type') }}</p>
     </div>
     <div class="mb-4">
         <label class="field-label" for="tin_number">TIN <span class="seller-required">*</span></label>
