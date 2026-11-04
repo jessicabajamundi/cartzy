@@ -90,9 +90,15 @@ body:has(.chat-bubble-form:not([hidden])) .chat-dock { bottom: 88px; }
 .chat-mini:hover .chat-mini-close, .chat-mini:focus-within .chat-mini-close { opacity: 1; }
 @media (hover: none) { .chat-mini-close { opacity: 1; } }
 @keyframes chat-mini-in { from { opacity: 0; transform: translateY(8px) scale(.9); } }
+/* Cozy sits in the bottom-right corner, so stack the chat bubbles just above her
+   (centred over the bear). If Cozy is hidden or dragged elsewhere, the dock keeps the corner. */
+body:has(.buddy-launcher:not([hidden]):not([style*="top"])) .chat-dock { right: 36px; bottom: 118px; }
+body:has(.chat-bubble-form:not([hidden])):has(.buddy-launcher:not([hidden]):not([style*="top"])) .chat-dock { bottom: 186px; }
 @media (max-width: 480px) {
     .chat-dock { right: 16px; bottom: 16px; }
     body:has(.chat-bubble-form:not([hidden])) .chat-dock { bottom: 84px; }
+    body:has(.buddy-launcher:not([hidden]):not([style*="top"])) .chat-dock { right: 20px; bottom: 98px; }
+    body:has(.chat-bubble-form:not([hidden])):has(.buddy-launcher:not([hidden]):not([style*="top"])) .chat-dock { bottom: 164px; }
 }
 @media (prefers-reduced-motion: reduce) { .chat-mini { animation: none; } .chat-mini-open { transition: none; } }
 
