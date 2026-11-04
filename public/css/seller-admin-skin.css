@@ -1,0 +1,155 @@
+/* Seller workspace in the admin design (public/css/admin.css).
+   Loaded after seller.css on every seller page, so the seller centre uses the same tokens,
+   topbar, buttons, cards, tables, forms, badges and notices as the admin workspace.
+   Page-specific seller stylesheets still load after this and keep their own components. */
+
+/* ─── Admin tokens ─── */
+:root {
+    --bg: #f6f5f9;
+    --canvas: #f6f5f9;
+    --line: #eae6ef;
+    --brand-border: #eae6ef;
+    --muted: #756d81;
+    --ink: #292334;
+    --accent: #70558e;
+    --accent-hover: #543b70;
+    --accent-light: #f0eaf6;
+    --focus: #9478b0;
+    --focus-ring: #d9cae8;
+    --rose-gold: #C08B7F;
+    --brand-blend: linear-gradient(115deg, #F0EAF6, #FFF0EA);
+    --admin-shadow: 0 3px 8px #34243f03;
+}
+body {
+    /* Admin text font; the seller's Bodoni digits ("Seller Numerals") stay first in the stack. */
+    font-family: "Seller Numerals", "Segoe UI", Arial, sans-serif;
+    background: var(--canvas);
+    color: var(--ink);
+}
+::selection { background: var(--accent-light); color: var(--ink); }
+input, select, textarea { accent-color: var(--accent); }
+:focus-visible { outline-color: var(--focus); }
+
+/* ─── Topbar (admin .topbar) ─── */
+.topbar { height: 68px; padding: 0 32px; background: #ffffffed; border-bottom-color: var(--line); }
+.topbar .inline { font-size: 11px; color: var(--muted); gap: 12px; }
+.topbar .inline strong { color: var(--accent-hover); font-weight: 600; }
+.breadcrumb { margin: 0 12px; color: var(--focus); }
+.topbar-actions { display: flex; align-items: center; gap: 20px; }
+.topbar-account { border-left: 1px solid var(--line); padding-left: 16px; display: inline-flex; }
+.topbar-avatar { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--brand-blend); color: #62427f; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--line); font-weight: 650; font-size: 14px; }
+.topbar .button { min-height: 36px; padding: 7px 13px; font-size: 11px; border-radius: 8px; }
+.topbar-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--muted); transition: background .18s, border-color .18s; }
+.topbar-icon:hover { background: var(--accent-light); color: var(--muted); }
+.topbar-icon .badge[data-notification-count] { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid #fff; border-radius: 9px; background: var(--rose-gold); color: #fff; font-size: 10px; font-weight: 700; line-height: 14px; text-align: center; }
+.topbar-icon .badge[hidden] { display: none; }
+.topbar-logout { margin: 0; display: inline-flex; }
+@media (max-width: 600px) { .topbar { padding: 0 16px; height: 60px; } .topbar-account { display: none; } .topbar-actions { gap: 10px; } }
+
+/* ─── Page shell and headings ─── */
+main { max-width: 1540px; padding: 28px 32px; }
+.page-heading { margin-bottom: 23px; }
+.eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--accent); margin-bottom: 6px; }
+.subtitle { font-size: 12px; color: var(--muted); }
+.date-label { font-size: 11px; border-radius: 7px; padding: 8px 12px; box-shadow: none; }
+.page-footer { font-size: 10px; color: var(--muted); border-top-color: var(--line); }
+@media (max-width: 600px) { main { padding: 21px 16px; } }
+
+/* ─── Sidebar group labels (admin "Workspace / Operations / Administration") ─── */
+.seller-admin-sidebar .nav-label { display: block; text-transform: uppercase; }
+.seller-admin-sidebar .nav-label:first-of-type { margin-top: 6px; }
+
+/* ─── Buttons (admin .button / .button.subtle / .button.danger) ─── */
+.button, button.primary {
+    min-height: 42px;
+    gap: 9px;
+    padding: 10px 17px;
+    border: 1px solid #7E6578;
+    border-radius: 9px;
+    background: linear-gradient(115deg, #6F6382, #895E61);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    box-shadow: none;
+    transition: background .18s, border-color .18s;
+}
+.button:hover, button.primary:hover {
+    background: linear-gradient(115deg, #564B68, #774F53);
+    border-color: #7E6578;
+    color: #fff;
+    box-shadow: none;
+    transform: none;
+}
+.button.secondary {
+    background: #fff;
+    color: var(--muted);
+    border-color: var(--line);
+}
+.button.secondary:hover {
+    background: var(--canvas);
+    border-color: var(--focus);
+    color: var(--muted);
+}
+.button.small { min-height: 36px; padding: 7px 13px; font-size: 11px; border-radius: 8px; }
+.button.text, .button.text:hover { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent); }
+.button.text:hover { text-decoration: underline; }
+.button.danger, .button.archive-delete-button { background: #89574E; border-color: #89574E; color: #fff; }
+.button.danger:hover, .button.archive-delete-button:hover { background: #6B3F37; border-color: #6B3F37; color: #fff; }
+.button:focus-visible, button.primary:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+.button:disabled, .button[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+
+/* ─── Cards: metrics and panels (admin .stat-card / .panel) ─── */
+.metric, .panel { border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--admin-shadow); }
+.metric { padding: 20px; }
+.metric:hover { box-shadow: 0 6px 18px #51336e0d; border-color: var(--focus); transform: none; }
+.panel-header { padding: 19px 21px; border-bottom: 1px solid var(--line); }
+.panel-header h2 { font-size: 15px; }
+.panel-header small, .panel-header p { font-size: 11px; color: var(--muted); }
+
+/* ─── Tables (admin th/td) ─── */
+th { background: #fbfafc; color: var(--muted); font-size: 9px; font-weight: 600; letter-spacing: .65px; text-transform: uppercase; padding: 12px 21px; border-bottom: 1px solid var(--line); }
+td { padding: 16px 21px; border-bottom: 1px solid var(--line); }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--canvas); }
+td small { color: var(--muted); font-size: 11px; }
+@media (max-width: 600px) { th, td, .table-wrap td, .table-wrap th { padding: 14px 18px; } }
+
+/* ─── Filters bar (admin .filters, shown as its own card) ─── */
+.filters { padding: 21px 24px; background: var(--canvas); border: 1px solid var(--line); border-radius: 13px; }
+.filters label { min-width: 135px; }
+.filters .button { min-height: 42px; }
+@media (max-width: 600px) { .filters { padding: 18px; } }
+
+/* ─── Form fields (admin label/input) ─── */
+label { color: var(--muted); font-size: 12px; font-weight: 500; }
+/* :where() keeps this as weak as a plain "input" rule, so page-specific field styles still win. */
+input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"])),
+select, textarea {
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background-color: #fff;
+    color: var(--ink);
+    font-size: 13px;
+}
+input::placeholder, textarea::placeholder { color: var(--muted); }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-color: var(--focus); box-shadow: none; }
+
+/* ─── Badges (admin .badge, .good, .warning, .danger) ─── */
+.badge { display: inline-flex; align-items: center; padding: 4px 10px; border: 0; border-radius: 20px; background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 600; text-transform: capitalize; }
+.badge.delivered, .badge.completed, .badge.active, .badge.paid, .badge.good { background: #edf5ef; color: #39704c; }
+.badge.pending, .badge.ready_to_ship, .badge.packed, .badge.warning { background: #fbf1df; color: #886325; }
+.badge.cancelled, .badge.archived, .badge.danger { background: #89574E; color: #fff; }
+
+/* ─── Notices (admin .notice) ─── */
+.notice { border: 1px solid var(--line); border-left-width: 3px; border-radius: 10px; background: var(--canvas); color: var(--accent); padding: 15px 18px; margin-bottom: 20px; font-size: 13px; }
+.notice.success, .notice.error { background: #FFF5F3; border-color: #E8C6BE; color: #89574E; }
+.notice.pending-approval { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: #fbf1df; border-color: #ecd5a6; color: #886325; }
+.notice.pending-approval > div { display: flex; align-items: center; gap: 10px; }
+.notice.pending-approval .button { white-space: nowrap; }
+
+/* ─── Empty states ─── */
+.empty strong { color: var(--ink); font-size: 14px; font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) { .button, .topbar-icon { transition: none; } }

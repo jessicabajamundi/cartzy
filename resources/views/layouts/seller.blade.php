@@ -11,6 +11,7 @@
     @if(request()->routeIs('seller.dashboard'))
         <link rel="stylesheet" href="{{ asset('css/seller-dashboard.css') }}?v={{ filemtime(public_path('css/seller-dashboard.css')) }}">
     @endif
+    <link rel="stylesheet" href="{{ asset('css/seller-admin-skin.css') }}?v={{ filemtime(public_path('css/seller-admin-skin.css')) }}">
     @if(auth()->user()->isSeller())
         <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/seller-chat-popups.css') }}?v={{ filemtime(public_path('css/seller-chat-popups.css')) }}">
@@ -29,12 +30,21 @@
         <nav aria-label="{{ $sellerMode ? 'Seller' : 'Buyer' }} navigation">
             @unless($sellerMode)<span class="nav-label">WORKSPACE</span>@endunless
             @if($sellerMode)
-                @foreach(['dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'], 'orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'], 'chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user']] as $key => [$label,$icon])
-                    @php($navActive = request()->routeIs('seller.'.$key.'*'))
-                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
-                    @if($key === 'dashboard')
-                        @include('seller.partials.workspace-notifications')
-                    @endif
+                {{-- Grouped like the admin sidebar: Workspace / Operations / Administration. --}}
+                @php($sellerNavGroups = [
+                    'Workspace' => ['dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive']],
+                    'Operations' => ['orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart']],
+                    'Administration' => ['chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user']],
+                ])
+                @foreach($sellerNavGroups as $group => $links)
+                    <p class="nav-label">{{ $group }}</p>
+                    @foreach($links as $key => [$label,$icon])
+                        @php($navActive = request()->routeIs('seller.'.$key.'*'))
+                        <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
+                        @if($key === 'dashboard')
+                            @include('seller.partials.workspace-notifications')
+                        @endif
+                    @endforeach
                 @endforeach
             @else
                 <a class="nav-link" href="{{ route('buyer.dashboard') }}">@include('seller.partials.icon', ['name' => 'grid'])My account</a>
@@ -61,18 +71,19 @@
                 <strong>@yield('page_title', 'Overview')</strong>
             </div>
             @unless($sellerMode) @include('layouts.partials.account-navigation') @endunless
-            <div class="topbar-actions" style="display: flex; align-items: center; gap: 10px;">
-                <a class="button small secondary" href="{{ route('home') }}">Marketplace ↗</a>
+            <div class="topbar-actions">
+                <a class="button secondary" href="{{ route('home') }}">View storefront @include('seller.partials.icon', ['name' => 'arrow-right'])</a>
                 @if($sellerMode)
+                    <a class="topbar-account" href="{{ route('seller.account') }}" aria-label="My account" title="My account"><span class="topbar-avatar">{{ mb_strtoupper(mb_substr($shop?->name ?? auth()->user()->name, 0, 1)) }}</span></a>
                     @php($sellerNotifData = \App\Services\SellerNotifications::feed(auth()->user()))
-                    <a class="icon-button seller-header-notif-btn" href="{{ route('seller.notifications') }}" aria-label="Notifications" title="Notifications" style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); text-decoration: none; transition: var(--transition);">
+                    <a class="topbar-icon seller-header-notif-btn" href="{{ route('seller.notifications') }}" aria-label="Notifications" title="Notifications">
                         @include('seller.partials.icon', ['name' => 'bell'])
-                        <span class="badge" data-notification-count style="position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: var(--rose-primary); color: #fff; font-size: 10px; font-weight: 700; line-height: 18px; text-align: center; border: 2px solid #fff;" @if(($sellerNotifData['notificationCount'] ?? 0) <= 0) hidden @endif>{{ ($sellerNotifData['notificationCount'] ?? 0) > 0 ? $sellerNotifData['notificationCount'] : '' }}</span>
+                        <span class="badge" data-notification-count @if(($sellerNotifData['notificationCount'] ?? 0) <= 0) hidden @endif>{{ ($sellerNotifData['notificationCount'] ?? 0) > 0 ? $sellerNotifData['notificationCount'] : '' }}</span>
                     </a>
                 @endif
-                <form method="POST" action="{{ route('logout') }}" style="margin: 0; display: inline-flex;">
+                <form method="POST" action="{{ route('logout') }}" class="topbar-logout">
                     @csrf
-                    <button class="icon-button" type="submit" aria-label="Log out" title="Log out" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--rose-soft); color: var(--rose-ink); cursor: pointer; transition: var(--transition);">
+                    <button class="topbar-icon" type="submit" aria-label="Log out" title="Log out">
                         @include('seller.partials.icon', ['name' => 'logout', 'size' => 18])
                     </button>
                 </form>
@@ -82,14 +93,14 @@
             @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
             @if($errors->any())<div class="notice error" role="alert"><strong>Please check your entries.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
             @if($sellerMode && (auth()->user()->status !== 'active' || ($shop && !$shop->isApproved())))
-                <div class="notice" style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-left: 5px solid #F59E0B; color: #92400E; display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 22px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 20px;">🔒</span>
+                <div class="notice pending-approval">
+                    <div>
+                        <span style="font-size: 20px;" aria-hidden="true">🔒</span>
                         <div>
                             <strong>Account Pending Administrator Approval:</strong> Your seller account is currently under review. You can view your dashboard and store settings, but adding products and selling are locked until your business permits and documents are approved.
                         </div>
                     </div>
-                    <a href="{{ route('seller.account') }}" class="button small" style="white-space: nowrap; background: #92400E; color: #fff;">Upload / Check documents &rarr;</a>
+                    <a href="{{ route('seller.account') }}" class="button small">Upload / Check documents &rarr;</a>
                 </div>
             @elseif($sellerMode && !$shop && !request()->routeIs('seller.account*'))
                 <div class="notice">Finish setting up your store to start managing products. <a href="{{ route('seller.account') }}">Set up store &rarr;</a></div>
