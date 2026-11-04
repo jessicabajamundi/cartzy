@@ -2596,7 +2596,7 @@ body.product-modal-open {
     background: #fff;
     border-right-color: #eae6ef;
     box-shadow: none;
-    font-family: "Seller Numerals", "Segoe UI", Arial, sans-serif;
+    font-family: "Manrope", Arial, sans-serif;
 }
 .seller-admin-sidebar + .workspace { margin-left: 244px; }
 .seller-admin-sidebar .brand { flex-shrink: 0; align-items: flex-start; padding: 24px 25px 21px; gap: 9px; }

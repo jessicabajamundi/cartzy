@@ -31,7 +31,7 @@ input,select,textarea{accent-color:var(--accent)}
 .button.danger{background:var(--rose-ink);border-color:var(--rose-ink);color:var(--surface)}
 .button.danger:hover{background:var(--rose-hover);border-color:var(--rose-hover)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.55 "Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.55 "Manrope",Arial,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}button,a,input,select,textarea,summary{-webkit-tap-highlight-color:transparent}
 button,summary{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:4px}
 h1,h2,h3,p{margin:0}h1{font-size:34px;font-weight:650;letter-spacing:-1px;line-height:1.2}h2{font-size:16px;font-weight:650;letter-spacing:-.2px}h3{font-size:15px;margin:10px 0}small{font-size:12px}strong{font-weight:600}.icon{width:19px;height:19px;flex-shrink:0}.muted{color:var(--muted)}.nowrap{white-space:nowrap}.preserve-lines{white-space:pre-wrap;overflow-wrap:anywhere}.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--accent)}.skip-link{position:fixed;top:-100px;left:20px;z-index:100;background:var(--surface);padding:12px}.skip-link:focus{top:12px}

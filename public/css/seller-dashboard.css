@@ -1,5 +1,5 @@
 /* Admin-inspired presentation, loaded only on the seller overview. */
-.seller-overview { --bg:#f6f5f9; --line:#eae6ef; --muted:#756d81; font-family:"Seller Numerals","Segoe UI",Arial,sans-serif; }
+.seller-overview { --bg:#f6f5f9; --line:#eae6ef; --muted:#756d81; font-family:"Manrope",Arial,sans-serif; }
 .seller-overview main { max-width:1540px; margin:auto; }
 .seller-overview h1,.seller-overview h2 { font-family:inherit; }
 .seller-overview .nav-link.active { background:linear-gradient(115deg,#f0eaf6,#fff0ea); color:#62427f; box-shadow:inset 3px 0 #c08b7f; }

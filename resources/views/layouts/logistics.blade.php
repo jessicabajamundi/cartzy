@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     @stack('styles')
@@ -100,7 +101,7 @@
 <script>
     // Charts follow the admin palette and type.
     if (window.Chart) {
-        Chart.defaults.font.family = '"Segoe UI", Arial, sans-serif';
+        Chart.defaults.font.family = '"Manrope", Arial, sans-serif';
         Chart.defaults.font.size = 11;
         Chart.defaults.color = '#6F6382';
         Chart.defaults.borderColor = '#E1DDE7';
