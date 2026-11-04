@@ -155,7 +155,7 @@ class DashboardController extends Controller
         $request->validate(['ref' => ['required', 'string']]);
         Wishlist::where('user_id', Auth::id())->where('ref', $request->input('ref'))->delete();
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'count' => Wishlist::where('user_id', Auth::id())->count()]);
     }
 
     /** Save a review for an item from a completed order. */

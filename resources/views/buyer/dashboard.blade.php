@@ -200,7 +200,7 @@
                                 <article class="wishlist-card">
                                     <div class="wishlist-media">
                                         <img src="{{ $w['image'] }}" alt="{{ $w['name'] }}" loading="lazy" decoding="async">
-                                        <button type="button" onclick="removeFromWishlist({{ json_encode($w['ref']) }})" title="Remove from wishlist" aria-label="Remove {{ $w['name'] }} from wishlist" class="wishlist-remove">
+                                        <button type="button" onclick="removeFromWishlist({{ json_encode($w['ref']) }}, this)" title="Remove from wishlist" aria-label="Remove {{ $w['name'] }} from wishlist" class="wishlist-remove">
                                             <svg aria-hidden="true" fill="currentColor" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
                                         </button>
                                     </div>
@@ -212,6 +212,7 @@
                                                 @disabled(!$w['in_stock'])
                                                 @if($w['in_stock']) onclick="moveToCart('{{ $w['ref'] }}', {{ json_encode($w['ref']) }}, {{ json_encode($w['name']) }}, {{ $w['price'] }}, {{ json_encode($w['image']) }}, {{ json_encode($w['variation']) }})" @endif
                                                 class="wishlist-cart"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01"/></svg>{{ $w['in_stock'] ? 'Move to cart' : 'Out of Stock' }}</button>
+                                        <button type="button" onclick="removeFromWishlist({{ json_encode($w['ref']) }}, this)" aria-label="Remove {{ $w['name'] }} from wishlist" class="wishlist-delete"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>Remove</button>
                                     </div>
                                 </article>
                             @endforeach
@@ -448,8 +449,11 @@
     });
 })();
 
-window.removeFromWishlist = function (ref) {
+window.removeFromWishlist = function (ref, trigger) {
     if (!confirm('Remove this product from your wishlist?')) return;
+    const card = trigger?.closest('.wishlist-card');
+    const buttons = card ? card.querySelectorAll('.wishlist-remove, .wishlist-delete') : [];
+    buttons.forEach(b => { b.disabled = true; });
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     fetch('{{ route('wishlist.remove') }}', {
         method: 'POST',
@@ -460,13 +464,27 @@ window.removeFromWishlist = function (ref) {
         },
         body: JSON.stringify({ ref: ref })
     })
-    .then(r => r.json())
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
     .then(data => {
-        if (data.success) {
+        if (!data.success) throw new Error();
+        const left = Number.isInteger(data.count) ? data.count : null;
+        if (!card || left === 0) {
             window.location.href = '{{ route('buyer.dashboard', ['tab' => 'wishlist']) }}';
+            return;
         }
+        card.classList.add('is-removing');
+        setTimeout(() => card.remove(), 260);
+        if (left !== null) {
+            const label = document.querySelector('.wishlist-heading .commerce-count');
+            if (label) label.textContent = left + (left === 1 ? ' saved item' : ' saved items');
+            window.updateBuyerNavCount?.('wishlist', left);
+        }
+        window.showToast?.('Removed from your wishlist.', 'success');
     })
-    .catch(() => alert('Could not remove item. Please try again.'));
+    .catch(() => {
+        buttons.forEach(b => { b.disabled = false; });
+        window.showToast ? window.showToast('Could not remove item. Please try again.', 'error') : alert('Could not remove item. Please try again.');
+    });
 };
 
 window.moveToCart = async function (ref, id, name, price, image, variation) {
@@ -486,7 +504,7 @@ window.moveToCart = async function (ref, id, name, price, image, variation) {
     .then(() => {
         setTimeout(() => {
             window.location.href = '{{ route('buyer.dashboard', ['tab' => 'cart']) }}';
-        }, 500);
+        }, 900); // let the fly-to-cart animation finish first
     });
 };
 
