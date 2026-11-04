@@ -19,18 +19,18 @@
 <div class="dashboard-section-heading">
     <div><span class="dashboard-eyebrow">PERFORMANCE</span><h2>Your store in numbers</h2><small class="muted">Updated {{ $updatedAt }} PHT</small></div>
     <div class="overview-actions">
-        <a class="button secondary" href="{{ route('seller.reports', $reportDates) }}">View reports ↗</a>
+        <a class="button secondary" href="{{ route('seller.reports', $reportDates) }}">@include('seller.partials.icon', ['name' => 'chart', 'size' => 16, 'class' => 'icon icon-lead'])<span>View reports</span></a>
         @if(auth()->user()->status !== 'active' || !$shop || !$shop->isApproved())
             @if($shop)
-                <button type="button" class="button secondary" disabled title="Your shop page goes live once an administrator approves your store.">View my shop</button>
+                <button type="button" class="button secondary" disabled title="Your shop page goes live once an administrator approves your store.">@include('seller.partials.icon', ['name' => 'store', 'size' => 16, 'class' => 'icon icon-lead'])<span>View my shop</span></button>
             @endif
-            <button type="button" class="button" disabled style="opacity:0.65; cursor:not-allowed; background:#9ca3af; display:inline-flex; align-items:center; gap:6px;" title="Administrator approval is required before you can sell or add products.">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <button type="button" class="button" disabled style="opacity:0.65; cursor:not-allowed; background:#9ca3af;" title="Administrator approval is required before you can sell or add products.">
+                @include('seller.partials.icon', ['name' => 'lock', 'size' => 15, 'stroke' => 2, 'class' => 'icon icon-lead'])
                 <span>Add product (Locked)</span>
             </button>
         @else
-            <a class="button secondary" href="{{ route('store.show', $shop->slug) }}" target="_blank" rel="noopener" title="See your shop the way buyers do">View my shop ↗</a>
-            <a class="button" href="{{ route('seller.products', ['create' => 1]) }}#add-product">＋ Add product</a>
+            <a class="button secondary" href="{{ route('store.show', $shop->slug) }}" target="_blank" rel="noopener" title="See your shop the way buyers do (opens in a new tab)">@include('seller.partials.icon', ['name' => 'store', 'size' => 16, 'class' => 'icon icon-lead'])<span>View my shop</span>@include('seller.partials.icon', ['name' => 'external', 'size' => 14, 'class' => 'icon icon-trail'])</a>
+            <a class="button" href="{{ route('seller.products', ['create' => 1]) }}#add-product">@include('seller.partials.icon', ['name' => 'plus', 'size' => 16, 'stroke' => 2.2, 'class' => 'icon icon-lead'])<span>Add product</span></a>
         @endif
     </div>
 </div>

@@ -194,6 +194,10 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 /* Arrow / icon inside a button nudges forward on hover. */
 .button .icon { transition: transform .25s cubic-bezier(.34, 1.56, .64, 1); }
 .button:hover .icon { transform: translateX(3px); }
+/* Leading icons (chart, store, plus) pop instead of sliding; the "opens in new tab" arrow points up-right. */
+.button:hover .icon.icon-lead { transform: scale(1.12); }
+.button:hover .icon.icon-trail { transform: translate(2px, -2px); }
+.button:disabled .icon { transform: none; }
 
 /* Disabled buttons stay still. */
 .button:disabled, .button[aria-disabled="true"], .button.is-disabled, button.primary:disabled { animation: none; transform: none; box-shadow: none; }
