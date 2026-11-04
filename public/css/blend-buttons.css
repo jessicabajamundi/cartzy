@@ -1,0 +1,50 @@
+/* Lavender ↔ rose gold "blend" buttons.
+   The background slowly flows between Cartzy's two palettes; on hover it speeds up,
+   lifts a little and a soft shine sweeps across. Add class="btn-blend" to a button. */
+.btn-blend {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    transition: transform .2s ease, box-shadow .25s ease;
+}
+.btn-blend:not(:disabled) {
+    color: #fff !important;
+    background-color: #6F6382 !important;
+    background-image: linear-gradient(110deg, #564B68 0%, #6F6382 22%, #8E6A80 42%, #A9766B 55%, #8C5A50 70%, #6F6382 85%, #564B68 100%) !important;
+    background-size: 300% 100% !important;
+    background-position: 0% 50%;
+    box-shadow: 0 8px 20px -10px rgba(111, 99, 130, .75);
+    animation: btn-blend-flow 7s ease-in-out infinite;
+}
+.btn-blend:not(:disabled)::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -60%;
+    z-index: -1;
+    width: 45%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .32), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+    transition: left .65s ease;
+}
+.btn-blend:hover:not(:disabled) {
+    animation-duration: 2.4s;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 26px -12px rgba(140, 90, 80, .75);
+}
+.btn-blend:hover:not(:disabled)::after { left: 120%; }
+.btn-blend:active:not(:disabled) { transform: translateY(0) scale(.97); transition-duration: .08s; }
+.btn-blend:focus-visible { outline: 3px solid rgba(192, 139, 127, .6); outline-offset: 2px; }
+/* Disabled buttons keep their own greyed-out look. */
+.btn-blend:disabled::after { content: none; }
+
+@keyframes btn-blend-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-blend, .btn-blend:not(:disabled) { animation: none; background-position: 35% 50%; transition: none; }
+    .btn-blend::after { display: none; }
+    .btn-blend:hover:not(:disabled) { transform: none; }
+}

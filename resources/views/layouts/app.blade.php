@@ -180,6 +180,7 @@
     <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     @if(Auth::check() && Auth::user()->isBuyer() && Auth::user()->status === 'active')
     <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/blend-buttons.css') }}?v={{ filemtime(public_path('css/blend-buttons.css')) }}">
     @endif
 
 </head>

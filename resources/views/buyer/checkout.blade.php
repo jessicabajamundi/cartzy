@@ -205,7 +205,7 @@
                     <div class="checkout-grand-total"><div><strong>Total payment</strong><span>Pay on delivery</span></div><strong data-total>&#8369;{{ number_format($total, 2) }}</strong></div>
                     <div class="checkout-total-savings" data-savings @if($totalSavings <= 0) hidden @endif>You're saving <strong>&#8369;{{ number_format($totalSavings, 2) }}</strong> on this order</div>
                     <div class="checkout-review"><span>Payment method</span><strong>Cash on Delivery</strong></div>
-                    <button type="submit" class="checkout-submit" @disabled(empty($checkoutAddress) || $hasUnavailableItems)><span>Place order</span><span data-total-button>&#8369;{{ number_format($total, 2) }} &rarr;</span></button>
+                    <button type="submit" class="checkout-submit btn-blend" @disabled(empty($checkoutAddress) || $hasUnavailableItems)><span>Place order</span><span data-total-button>&#8369;{{ number_format($total, 2) }} &rarr;</span></button>
                     @if(empty($checkoutAddress))<p class="checkout-item-error">Add your delivery address to continue.</p>@elseif($hasUnavailableItems)<p class="checkout-item-error">Remove unavailable items from your cart to continue.</p>@endif
                     <p class="checkout-submit-help" id="checkout-submit-status" aria-live="polite">Review your details before confirming. Your order will appear in My Orders after it is placed.</p>
                     <a class="checkout-summary-edit" href="{{ route('cart.index') }}">Need to change something? Edit your cart</a>
