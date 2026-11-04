@@ -208,11 +208,13 @@
                                         <h3 class="wishlist-name">{{ $w['name'] }}</h3>
                                         <p class="wishlist-variant">{{ $w['variation'] ?? 'Standard' }}</p>
                                         <p class="wishlist-price">{{ $peso($w['price']) }}</p>
+                                        <div class="wishlist-actions">
                                         <button type="button"
                                                 @disabled(!$w['in_stock'])
                                                 @if($w['in_stock']) onclick="moveToCart('{{ $w['ref'] }}', {{ json_encode($w['ref']) }}, {{ json_encode($w['name']) }}, {{ $w['price'] }}, {{ json_encode($w['image']) }}, {{ json_encode($w['variation']) }})" @endif
                                                 class="wishlist-cart"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l3 12h10l3-9H6M9 20h.01M18 20h.01"/></svg>{{ $w['in_stock'] ? 'Move to cart' : 'Out of Stock' }}</button>
-                                        <button type="button" onclick="removeFromWishlist({{ json_encode($w['ref']) }}, this)" aria-label="Remove {{ $w['name'] }} from wishlist" class="wishlist-delete"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>Remove</button>
+                                        <button type="button" onclick="removeFromWishlist({{ json_encode($w['ref']) }}, this)" aria-label="Remove {{ $w['name'] }} from wishlist" title="Remove from wishlist" class="wishlist-delete"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>
+                                        </div>
                                     </div>
                                 </article>
                             @endforeach

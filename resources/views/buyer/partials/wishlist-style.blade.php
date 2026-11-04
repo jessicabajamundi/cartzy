@@ -23,8 +23,10 @@
 .wishlist-cart svg { width:18px; height:18px; }
 .wishlist-cart:not(:disabled):hover { background:linear-gradient(110deg,var(--brand-dark,#564B68),var(--accent-darkest,#4A2520)); }
 .wishlist-cart:disabled { background:#f3f4f6; color:#9ca3af; cursor:not-allowed; pointer-events:none; animation:none; transition:none; transform:none; box-shadow:none; }
-.wishlist-delete { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-height:44px; margin-top:8px; padding:8px 12px; border:1px solid var(--brand-border,#E1DDE7); border-radius:9px; background:#fff; color:var(--accent-dark,#8C5A50); font:600 13px/1.5 'Inter',sans-serif; cursor:pointer; transition:background .2s,border-color .2s,color .2s; }
-.wishlist-delete svg { width:17px; height:17px; }
+.wishlist-actions { display:flex; gap:8px; margin-top:auto; }
+.wishlist-actions .wishlist-cart { flex:1; min-width:0; margin-top:0; }
+.wishlist-delete { display:grid; place-items:center; flex:none; width:44px; height:44px; padding:0; border:1px solid var(--brand-border,#E1DDE7); border-radius:9px; background:#fff; color:var(--accent-dark,#8C5A50); cursor:pointer; transition:background .2s,border-color .2s,color .2s; }
+.wishlist-delete svg { width:19px; height:19px; }
 .wishlist-delete:hover { border-color:var(--accent-primary,#D4A69A); background:var(--accent-light,#FCEAE6); color:var(--accent-darkest,#4A2520); }
 .wishlist-delete:disabled, .wishlist-remove:disabled { opacity:.6; cursor:wait; }
 .wishlist-page .wishlist-card.is-removing { opacity:0; transform:scale(.94); transition:opacity .25s, transform .25s; }
