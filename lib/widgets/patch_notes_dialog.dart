@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.8' || version == 'v1.2.8') {
+      return const [
+        'Bulk Quantity Warehouse Note: Orders with 100+ items now clearly note that bulk quantities ship directly from seller warehouses.',
+        'Auto-Sliding Category Carousel: Find your next favorite now auto-scrolls through categories smoothly.',
+        'Guest Drawer Navigation: Hamburger menu is now accessible from the guest home header for effortless browsing.',
+        'Quantity Keypad Input: Direct typing for item quantities in both cart and product pages with live inventory limits.',
+      ];
+    }
     if (version == '1.2.7' || version == 'v1.2.7') {
       return const [
         'Custom Quantity Input: Buyers can now tap the quantity number in the cart and product details to type any desired quantity directly with stock validation.',
