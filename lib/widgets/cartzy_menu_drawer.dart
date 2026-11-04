@@ -30,13 +30,18 @@ class _MenuPalette {
   );
 }
 
-/// Side menu opened from the hamburger button on the buyer home header.
+/// Side menu opened from the hamburger button on the home header.
 ///
 /// Every tap closes the drawer first and then runs its action, so the
 /// next screen opens on top of the home screen, not on top of the drawer.
+///
+/// With [isGuest], items that need an account (My Orders, My Vouchers,
+/// Messages) show a lock and ask the guest to log in, and the footer offers
+/// Log in / Create account instead of Log out.
 class CartzyMenuDrawer extends StatelessWidget {
   final String? userName;
-  final ValueNotifier<int> unreadMessages;
+  final bool isGuest;
+  final ValueNotifier<int>? unreadMessages;
   final VoidCallback onMessages;
   final VoidCallback onFlashDeals;
   final VoidCallback onMyOrders;
@@ -45,12 +50,15 @@ class CartzyMenuDrawer extends StatelessWidget {
   final VoidCallback onWhatsNew;
   final VoidCallback onCozy;
   final VoidCallback onLoginAsRider;
-  final VoidCallback onLogout;
+  final VoidCallback? onLogout;
+  final VoidCallback? onLogin;
+  final VoidCallback? onSignUp;
 
   const CartzyMenuDrawer({
     super.key,
     this.userName,
-    required this.unreadMessages,
+    this.isGuest = false,
+    this.unreadMessages,
     required this.onMessages,
     required this.onFlashDeals,
     required this.onMyOrders,
@@ -59,13 +67,29 @@ class CartzyMenuDrawer extends StatelessWidget {
     required this.onWhatsNew,
     required this.onCozy,
     required this.onLoginAsRider,
-    required this.onLogout,
+    this.onLogout,
+    this.onLogin,
+    this.onSignUp,
   });
 
-  void _run(BuildContext context, VoidCallback action) {
+  void _run(BuildContext context, VoidCallback? action) {
     Navigator.of(context).pop(); // close the drawer
-    action();
+    action?.call();
   }
+
+  /// Opens [action], or for a guest asks them to log in first.
+  void _member(BuildContext context, VoidCallback action) {
+    if (isGuest) {
+      _askToLogin(context);
+    } else {
+      _run(context, action);
+    }
+  }
+
+  /// Small lock shown to guests on items that need an account.
+  Widget? get _lock => isGuest
+      ? const Icon(Icons.lock_outline_rounded, size: 16, color: CartzyColors.brand400)
+      : null;
 
   @override
   Widget build(BuildContext context) {
@@ -93,12 +117,14 @@ class CartzyMenuDrawer extends StatelessWidget {
                 _MenuTile(
                   icon: Icons.inventory_2_outlined,
                   label: 'My Orders',
-                  onTap: () => _run(context, onMyOrders),
+                  trailing: _lock,
+                  onTap: () => _member(context, onMyOrders),
                 ),
                 _MenuTile(
                   icon: Icons.confirmation_number_outlined,
                   label: 'My Vouchers',
-                  onTap: () => _run(context, onVouchers),
+                  trailing: _lock,
+                  onTap: () => _member(context, onVouchers),
                 ),
                 ValueListenableBuilder<List<RecentlyViewedProduct>>(
                   valueListenable: RecentlyViewedService.items,
@@ -112,12 +138,12 @@ class CartzyMenuDrawer extends StatelessWidget {
                 ),
                 const _SectionDivider(),
                 ValueListenableBuilder<int>(
-                  valueListenable: unreadMessages,
+                  valueListenable: unreadMessages ?? ValueNotifier<int>(0),
                   builder: (context, count, _) => _MenuTile(
                     icon: Icons.chat_bubble_outline_rounded,
                     label: 'Messages',
-                    trailing: count > 0 ? _CountBadge(count) : null,
-                    onTap: () => _run(context, onMessages),
+                    trailing: _lock ?? (count > 0 ? _CountBadge(count) : null),
+                    onTap: () => _member(context, onMessages),
                   ),
                 ),
                 _MenuTile(
@@ -194,19 +220,36 @@ class CartzyMenuDrawer extends StatelessWidget {
     );
   }
 
-  // ── Footer: Log out ──────────────────────────────────────────
+  // ── Footer: Log out, or Log in / Create account for guests ──
 
   Widget _buildFooter(BuildContext context) {
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: _MenuTile(
-          icon: Icons.logout_rounded,
-          label: 'Log out',
-          color: _MenuPalette.roseGoldDeep,
-          onTap: () => _confirmLogout(context),
-        ),
+        child: isGuest
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _MenuTile(
+                    icon: Icons.login_rounded,
+                    label: 'Log in',
+                    color: _MenuPalette.roseGoldDeep,
+                    onTap: () => _run(context, onLogin),
+                  ),
+                  _MenuTile(
+                    icon: Icons.person_add_alt_outlined,
+                    label: 'Create account',
+                    onTap: () => _run(context, onSignUp),
+                  ),
+                ],
+              )
+            : _MenuTile(
+                icon: Icons.logout_rounded,
+                label: 'Log out',
+                color: _MenuPalette.roseGoldDeep,
+                onTap: () => _confirmLogout(context),
+              ),
       ),
     );
   }
@@ -224,7 +267,23 @@ class CartzyMenuDrawer extends StatelessWidget {
     if (ok && context.mounted) _run(context, onLogout);
   }
 
+  Future<void> _askToLogin(BuildContext context) async {
+    final ok = await _showConfirm(
+      context,
+      icon: Icons.lock_outline_rounded,
+      title: 'Log in to continue',
+      message: 'Log in or create an account to see your orders, vouchers and messages.',
+      confirmLabel: 'Log in',
+    );
+    if (ok && context.mounted) _run(context, onLogin);
+  }
+
   Future<void> _confirmRiderSwitch(BuildContext context) async {
+    // A guest has no buyer session to end, so go straight to rider login.
+    if (isGuest) {
+      _run(context, onLoginAsRider);
+      return;
+    }
     final ok = await _showConfirm(
       context,
       icon: Icons.delivery_dining_outlined,

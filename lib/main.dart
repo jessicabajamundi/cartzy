@@ -368,6 +368,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onSaleClick: () => goTo('sale'),
           onInboxClick: () => goTo('guestInbox'),
           onProfileClick: () => goTo('guestAccount'),
+          onLoginAsRider: switchToRiderLogin,
         );
 
       case 'guestCart':
