@@ -103,45 +103,60 @@
         const cartKey = cartKeyInput ? cartKeyInput.value : '';
         const minusBtn = qtyForm.querySelector('.cart-qty-minus');
         const plusBtn = qtyForm.querySelector('.cart-qty-plus');
-        const valSpan = qtyForm.querySelector('.cart-qty-val');
+        const qtyInput = qtyForm.querySelector('.cart-qty-val');
         const checkbox = row.querySelector('.cart-item-checkbox');
         const rowTotalEl = row.querySelector('.cart-row-total');
+        const warehouseNote = row.querySelector('.cart-warehouse-note');
+        const warehouseThreshold = Number(warehouseNote?.dataset.threshold || 100);
         const price = Number(checkbox?.dataset.price || 0);
+        // The only upper limit is the stock for this option (unknown → no limit here; the server still checks).
+        const maxQty = Number(qtyForm.dataset.max) || Infinity;
+        let savedQty = Math.max(1, Math.trunc(Number(qtyInput.value)) || 1);
 
         qtyForm.addEventListener('submit', e => {
             e.preventDefault();
         });
 
-        function adjustQuantity(delta) {
-            const currentQty = Number(valSpan.textContent.trim()) || 1;
-            const targetQty = currentQty + delta;
-            if (targetQty < 1 || targetQty > 99) return;
-
-            const oldQty = currentQty;
-
-            // Instant optimistic update
-            valSpan.textContent = targetQty;
-            if (checkbox) checkbox.dataset.quantity = targetQty;
+        function showQuantity(qty) {
+            qtyInput.value = qty;
+            if (checkbox) checkbox.dataset.quantity = qty;
             if (minusBtn) {
-                minusBtn.disabled = targetQty <= 1;
-                minusBtn.value = Math.max(1, targetQty - 1);
+                minusBtn.disabled = qty <= 1;
+                minusBtn.value = Math.max(1, qty - 1);
             }
             if (plusBtn) {
-                plusBtn.disabled = targetQty >= 99;
-                plusBtn.value = Math.min(99, targetQty + 1);
+                plusBtn.disabled = qty >= maxQty;
+                plusBtn.value = Math.min(maxQty, qty + 1);
             }
             if (rowTotalEl) {
-                rowTotalEl.textContent = money(price * targetQty);
+                rowTotalEl.textContent = money(price * qty);
             }
-
+            // More than 100 pieces: shipped from the seller's warehouse instead of Cartzy logistics.
+            if (warehouseNote) warehouseNote.hidden = qty <= warehouseThreshold;
             // Immediately update Order Summary & Items Count
             update();
+        }
+
+        function setQuantity(requested) {
+            let targetQty = Math.trunc(Number(requested));
+            if (!Number.isFinite(targetQty) || targetQty < 1) targetQty = 1;
+            if (targetQty > maxQty) {
+                targetQty = maxQty;
+                window.showToast?.(`Only ${maxQty} available for this option.`, 'error');
+            }
+
+            // Instant optimistic update
+            showQuantity(targetQty);
+            clearTimeout(qtyDebounceTimers[cartKey]);
+            if (targetQty === savedQty) {
+                qtyInput.style.opacity = '1';
+                return;
+            }
 
             // Subtle indicator that it's saving
-            valSpan.style.opacity = '0.5';
+            qtyInput.style.opacity = '0.5';
 
             // Debounce request to avoid spamming server
-            clearTimeout(qtyDebounceTimers[cartKey]);
             qtyDebounceTimers[cartKey] = setTimeout(async () => {
                 try {
                     const response = await fetch(qtyForm.action, {
@@ -162,6 +177,7 @@
                     if (!response.ok || !data.success) {
                         throw new Error(data.message || 'Could not update quantity');
                     }
+                    savedQty = targetQty;
 
                     // Sync header badge and cart preview popover
                     if (typeof window.updateCartBadge === 'function') {
@@ -171,24 +187,11 @@
                         window.updateCartPopover(data.cart, data.cartCount);
                     }
                 } catch (err) {
-                    // Revert to old quantity if failed
-                    valSpan.textContent = oldQty;
-                    if (checkbox) checkbox.dataset.quantity = oldQty;
-                    if (minusBtn) {
-                        minusBtn.disabled = oldQty <= 1;
-                        minusBtn.value = Math.max(1, oldQty - 1);
-                    }
-                    if (plusBtn) {
-                        plusBtn.disabled = oldQty >= 99;
-                        plusBtn.value = Math.min(99, oldQty + 1);
-                    }
-                    if (rowTotalEl) {
-                        rowTotalEl.textContent = money(price * oldQty);
-                    }
-                    update();
+                    // Revert to the last saved quantity if it failed
+                    showQuantity(savedQty);
                     window.showToast?.(err.message || 'Could not update quantity', 'error');
                 } finally {
-                    valSpan.style.opacity = '1';
+                    qtyInput.style.opacity = '1';
                 }
             }, 250);
         }
@@ -196,15 +199,26 @@
         if (minusBtn) {
             minusBtn.addEventListener('click', e => {
                 e.preventDefault();
-                adjustQuantity(-1);
+                setQuantity(Number(qtyInput.value) - 1);
             });
         }
         if (plusBtn) {
             plusBtn.addEventListener('click', e => {
                 e.preventDefault();
-                adjustQuantity(1);
+                setQuantity(Number(qtyInput.value) + 1);
             });
         }
+        // Typing a number: show the note as you type, save when you leave the box or press Enter.
+        qtyInput.addEventListener('input', () => {
+            const typed = Math.trunc(Number(qtyInput.value));
+            if (warehouseNote && Number.isFinite(typed)) warehouseNote.hidden = Math.min(typed, maxQty) <= warehouseThreshold;
+        });
+        qtyInput.addEventListener('change', () => setQuantity(qtyInput.value));
+        qtyInput.addEventListener('keydown', e => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            qtyInput.blur();
+        });
     });
 
     // ─── Seamless Item Removal (AJAX - Smooth row exit) ───

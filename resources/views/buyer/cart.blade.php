@@ -93,17 +93,17 @@
                                     </div>
 
                                     {{-- Quantity Selector --}}
+                                    @php($qtyMax = isset($item['stock']) && $item['stock'] > 0 ? (int) $item['stock'] : null)
                                     <div class="col-span-2 flex items-center justify-center">
-                                        <form action="{{ route('cart.update') }}" method="POST" class="cart-qty-form flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white shadow-2xs">
+                                        <form action="{{ route('cart.update') }}" method="POST" class="cart-qty-form flex items-center border border-gray-300 rounded-xl overflow-hidden bg-white shadow-2xs" @if($qtyMax) data-max="{{ $qtyMax }}" @endif>
                                             @csrf
                                             <input type="hidden" name="cart_key" value="{{ $key }}">
                                             <button type="submit" name="quantity" value="{{ max(1, $item['quantity'] - 1) }}" class="cart-qty-btn cart-qty-minus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition disabled:opacity-30 disabled:cursor-not-allowed" data-action="decrease" @disabled($item['quantity'] <= 1) aria-label="Decrease quantity">
                                                 -
                                             </button>
-                                            <span class="cart-qty-val w-8 text-center text-xs font-bold text-gray-900 select-none transition-opacity duration-150">
-                                                {{ $item['quantity'] }}
-                                            </span>
-                                            <button type="submit" name="quantity" value="{{ min(99, $item['quantity'] + 1) }}" class="cart-qty-btn cart-qty-plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition disabled:opacity-30 disabled:cursor-not-allowed" data-action="increase" @disabled($item['quantity'] >= 99) aria-label="Increase quantity">
+                                            <input type="number" class="cart-qty-val w-12 h-7 border-0 p-0 text-center text-xs font-bold text-gray-900 bg-transparent transition-opacity duration-150 focus:outline-none focus:ring-2 focus:ring-[#6F6382]/40 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                                   value="{{ $item['quantity'] }}" min="1" @if($qtyMax) max="{{ $qtyMax }}" @endif step="1" inputmode="numeric" aria-label="Quantity for {{ $item['name'] }}">
+                                            <button type="submit" name="quantity" value="{{ $qtyMax ? min($qtyMax, $item['quantity'] + 1) : $item['quantity'] + 1 }}" class="cart-qty-btn cart-qty-plus w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 font-bold text-sm cursor-pointer transition disabled:opacity-30 disabled:cursor-not-allowed" data-action="increase" @disabled($qtyMax && $item['quantity'] >= $qtyMax) aria-label="Increase quantity">
                                                 +
                                             </button>
                                         </form>
@@ -113,6 +113,12 @@
                                     <div class="cart-row-total col-span-2 text-right text-sm sm:text-base font-black text-gray-900">
                                         ₱{{ number_format($item['price'] * $item['quantity'], 2) }}
                                     </div>
+
+                                    {{-- Bulk orders (more than 100 pieces) ship from the seller's warehouse --}}
+                                    <p class="cart-warehouse-note col-span-12 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] sm:text-xs font-medium text-amber-900" role="status" data-threshold="{{ \App\Support\WarehouseShipping::THRESHOLD }}" @unless(\App\Support\WarehouseShipping::applies((int) $item['quantity'])) hidden @endunless>
+                                        <svg class="w-4 h-4 shrink-0 mt-px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21V8l9-5 9 5v13M7 21v-8h10v8M7 17h10"/></svg>
+                                        <span>{{ \App\Support\WarehouseShipping::NOTE }}</span>
+                                    </p>
                                 </div>
                             @endforeach
                         </div>

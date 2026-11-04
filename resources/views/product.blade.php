@@ -167,6 +167,10 @@
                     @endif
                     <button class="pd-button" id="pd-add" type="submit" @disabled($selected['stock'] < 1)>{{ $selected['stock'] > 0 ? 'Add to cart' : 'Sold out' }}</button>
                 </div>
+                <p class="pd-warehouse-note" id="pd-warehouse-note" role="status" data-threshold="{{ \App\Support\WarehouseShipping::THRESHOLD }}" hidden>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13M7 21v-8h10v8M7 17h10"/></svg>
+                    <span>{{ \App\Support\WarehouseShipping::NOTE }}</span>
+                </p>
                 @if(auth()->check() && !auth()->user()->isBuyer())
                     <p class="pd-notice">Purchases require a separate buyer account. <a href="{{ route('buyer.required') }}">How to shop with a buyer account</a></p>
                 @else

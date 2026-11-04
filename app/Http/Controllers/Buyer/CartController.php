@@ -116,11 +116,21 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'cart_key' => 'required|string',
-            'quantity' => 'required|integer|min:1|max:99',
+            'quantity' => 'required|integer|min:1|max:1000000',
         ]);
 
         $cart = app(\App\Services\BuyerCart::class)->all();
         $key = $validated['cart_key'];
+
+        // The only upper limit is the stock the seller has for this option.
+        $stock = $cart[$key]['stock'] ?? null;
+        if ($stock !== null && (int) $validated['quantity'] > $stock) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'quantity' => $stock > 0
+                    ? 'Only '.$stock.' item(s) are available for this option.'
+                    : 'This option is out of stock.',
+            ]);
+        }
 
         if (isset($cart[$key])) {
             app(\App\Services\BuyerCart::class)->quantity($key, (int) $validated['quantity']);

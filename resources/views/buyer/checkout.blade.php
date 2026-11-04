@@ -76,6 +76,7 @@
                                             <div class="checkout-unit-price">@if($originalPrice > $unitPrice)<del>&#8369;{{ number_format($originalPrice, 2) }}</del>@endif<strong>&#8369;{{ number_format($unitPrice, 2) }}</strong><span>each</span></div>
                                             @if($lineSavings > 0)<p class="checkout-saving">You save &#8369;{{ number_format($lineSavings, 2) }} on this item</p>@endif
                                             @if(!empty($item['unavailable']))<p class="checkout-item-error">Unavailable. Please remove this item from your cart.</p>@endif
+                                            @if(\App\Support\WarehouseShipping::applies((int) $item['quantity']))<p class="checkout-warehouse-note" role="note">{{ \App\Support\WarehouseShipping::NOTE }}</p>@endif
                                         </div>
                                         <div class="checkout-line-total"><span class="checkout-quantity">Qty: {{ $item['quantity'] }}</span><strong>&#8369;{{ number_format($unitPrice * $item['quantity'], 2) }}</strong><span>Item total</span></div>
                                     </article>

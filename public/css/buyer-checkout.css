@@ -37,3 +37,6 @@
 .checkout-store-shipping-fee strong { font-size: 14px; color: #28735d; }
 .checkout-totals dt small { font-weight: 400; color: #8b8295; }
 @media (max-width: 520px) { .checkout-store { padding: 12px; } .checkout-store-shipping { flex-wrap: wrap; } }
+
+/* Bulk orders (more than 100 pieces) ship from the seller's warehouse. */
+.checkout-warehouse-note{margin:10px 0 0;padding:8px 11px;border:1px solid #f1d9a8;border-radius:9px;background:#fff8eb;color:#7a4e0e;font-size:12px;font-weight:600;line-height:1.45}

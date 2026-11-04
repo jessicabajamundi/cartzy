@@ -183,6 +183,9 @@
         const max = Math.max(1, Number(quantityInput.max));
         const value = Math.min(max, Math.max(1, Math.trunc(Number(quantityInput.value) || 1)));
         if (normalize) quantityInput.value = value;
+        // More than 100 pieces: shipped from the seller's warehouse instead of Cartzy logistics.
+        const warehouseNote = document.getElementById('pd-warehouse-note');
+        if (warehouseNote) warehouseNote.hidden = quantityInput.disabled || value <= Number(warehouseNote.dataset.threshold || 100);
         quantityButtons.forEach(button => {
             button.disabled = quantityInput.disabled || (Number(button.dataset.quantityStep) < 0 ? value <= 1 : value >= max);
         });

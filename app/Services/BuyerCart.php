@@ -48,6 +48,7 @@ class BuyerCart
                     $item['variant_id'] = $pricedVariant->id;
                     $item['price'] = $pricedVariant->sale_price_minor / 100;
                     $item['original_price'] = $pricedVariant->price;
+                    $item['stock'] = (int) $pricedVariant->stock;
                 }
             } catch (\RuntimeException $e) {
                 // Keep unavailable items removable; order placement rejects them.
