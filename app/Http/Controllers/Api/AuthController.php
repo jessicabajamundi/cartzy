@@ -410,6 +410,45 @@ class AuthController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    public function changePassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required', 'string'],
+        ], [
+            'current_password.required' => 'Current password is required.',
+            'password.required' => 'New password is required.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ]);
+
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if (!Hash::check($data['current_password'], $user->password)) {
+            return response()->json([
+                'message' => 'The current password you entered is incorrect.',
+                'errors' => ['current_password' => ['The current password you entered is incorrect.']],
+            ], 422);
+        }
+
+        $user->password = Hash::make($data['password']);
+        $user->save();
+
+        ActivityLog::record(ActivityLog::PASSWORD_RESET, $request, $user, [
+            'method' => 'account_settings',
+            'description' => 'Password updated via mobile app',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your password has been changed successfully.',
+        ]);
+    }
+
     public function googleLogin(Request $request)
     {
         $data = $request->validate([

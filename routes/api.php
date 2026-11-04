@@ -39,6 +39,8 @@ Route::post('/buddy/chat', [BuddyController::class, 'chat'])->middleware('thrott
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/account/password', [AuthController::class, 'changePassword']);
     Route::get('/account/activity', [ActivityController::class, 'index']);
 
     Route::middleware('api.role:buyer')->group(function () {
@@ -50,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->whereNumber('id');
 
         Route::get('/orders', [OrderController::class, 'index']);
+        Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:10,1');
         Route::get('/orders/{id}/tracking', [OrderController::class, 'tracking'])->whereNumber('id');
         Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->whereNumber('id');
         Route::post('/orders/{id}/report', [OrderController::class, 'report'])->whereNumber('id')->middleware('throttle:10,1');
