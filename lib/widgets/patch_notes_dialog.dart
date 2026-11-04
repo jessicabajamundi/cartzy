@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.10' || version == 'v1.2.10') {
+      return const [
+        'Dedicated Change Password Screen: Update and secure your account in a dedicated full screen with live password strength checklist and visibility toggles.',
+        'Direct Inline Quantity Keypad: Type quantity numbers directly in cart and product details without modal pop-ups; keypad opens instantly on tap.',
+        'Accurate Cart Item Counter: Cart badge and counters now strictly count unique products in your cart rather than total units.',
+        'Real-time Inventory Protection: Quantities are validated and clamped against live stock with clear inventory notifications.',
+      ];
+    }
     if (version == '1.2.9' || version == 'v1.2.9') {
       return const [
         'Accurate Cart Counter: The cart badge and item counter now strictly count distinct products in your cart rather than multiplying total unit quantities.',
