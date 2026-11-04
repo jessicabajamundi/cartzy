@@ -733,11 +733,11 @@ class CategoryCardGrid extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Header ───────────────────────────────────────
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
+          // Phones: title, then the "Browse all categories" pill under it
+          // (same as the website on small screens). Wide screens: side by side.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final title = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Eyebrow
@@ -803,11 +803,8 @@ class CategoryCardGrid extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              // "Browse all categories ↗" pill button
-              GestureDetector(
+                );
+              final browse = GestureDetector(
                 onTap: () {
                   if (onBrowseAllCategories != null) {
                     onBrowseAllCategories!();
@@ -856,8 +853,18 @@ class CategoryCardGrid extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            ],
+              );
+              if (constraints.maxWidth < 600) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [title, const SizedBox(height: 8), browse],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [Expanded(child: title), browse],
+              );
+            },
           ),
 
           const SizedBox(height: 18),
@@ -884,24 +891,7 @@ class CategoryCardGrid extends StatelessWidget {
                   }),
                 );
               } else {
-                return SizedBox(
-                  height: 275,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _categoryCards.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 14),
-                    itemBuilder: (context, index) {
-                      final card = _categoryCards[index];
-                      return SizedBox(
-                        width: 250,
-                        child: _CategoryCardItem(
-                          card: card,
-                          onTap: () => onCategoryTap?.call(card.targetCategory),
-                        ),
-                      );
-                    },
-                  ),
-                );
+                return _CategoryCarousel(onCategoryTap: onCategoryTap);
               }
             },
           ),
@@ -926,14 +916,14 @@ class _CategoryCardItem extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: const Color(0xFFE8DCDA),
-            width: 1.1,
+            color: const Color(0xFFB76E79),
+            width: 1.4,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.025),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: const Color(0xFFB76E79).withValues(alpha: 0.10),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -1044,12 +1034,10 @@ class _CategoryCardItem extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: card.isHighlighted
-                          ? const Color(0xFF9E4B5E)
-                          : Colors.white,
+                          ? const Color(0xFFB76E79)
+                          : const Color(0xFFF9F6FB),
                       border: Border.all(
-                        color: card.isHighlighted
-                            ? Colors.transparent
-                            : const Color(0xFFE2D0D3),
+                        color: const Color(0xFFB76E79),
                         width: 1.1,
                       ),
                     ),
@@ -1067,6 +1055,154 @@ class _CategoryCardItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Phone layout of "Find your next favorite": one card at a time with a
+/// peek of the next, snapping on swipe and sliding by itself every few
+/// seconds (it waits while the buyer is touching it).
+class _CategoryCarousel extends StatefulWidget {
+  final ValueChanged<String>? onCategoryTap;
+
+  const _CategoryCarousel({this.onCategoryTap});
+
+  @override
+  State<_CategoryCarousel> createState() => _CategoryCarouselState();
+}
+
+class _CategoryCarouselState extends State<_CategoryCarousel> {
+  static const _interval = Duration(seconds: 4);
+
+  final PageController _controller = PageController(viewportFraction: 0.86);
+  Timer? _timer;
+  int _index = 0;
+  bool _touching = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _restartTimer();
+  }
+
+  void _restartTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(_interval, (_) {
+      if (!mounted || _touching || !_controller.hasClients) return;
+      // Don't slide while this page is covered by another screen.
+      if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+      final next = (_index + 1) % _categoryCards.length;
+      _controller.animateToPage(
+        next,
+        duration: Duration(milliseconds: next == 0 ? 800 : 550),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  void _goTo(int index) {
+    _controller.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
+    _restartTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 272,
+          child: Listener(
+            onPointerDown: (_) => _touching = true,
+            onPointerUp: (_) {
+              _touching = false;
+              _restartTimer();
+            },
+            onPointerCancel: (_) {
+              _touching = false;
+              _restartTimer();
+            },
+            child: PageView.builder(
+              controller: _controller,
+              padEnds: false,
+              itemCount: _categoryCards.length,
+              onPageChanged: (i) => setState(() => _index = i),
+              itemBuilder: (context, index) {
+                final card = _categoryCards[index];
+                return AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, child) {
+                    // Cards away from the centre shrink and fade a little.
+                    double page = _index.toDouble();
+                    if (_controller.hasClients &&
+                        _controller.position.haveDimensions) {
+                      page = _controller.page ?? page;
+                    }
+                    final distance = (page - index).abs().clamp(0.0, 1.0);
+                    return Opacity(
+                      opacity: 1 - distance * 0.25,
+                      child: Transform.scale(
+                        scale: 1 - distance * 0.05,
+                        alignment: Alignment.centerLeft,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12, bottom: 6),
+                    child: _CategoryCardItem(
+                      card: card,
+                      onTap: () =>
+                          widget.onCategoryTap?.call(card.targetCategory),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Dots: the active one is a wide lavender → rose gold pill.
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_categoryCards.length, (i) {
+            final active = i == _index;
+            return GestureDetector(
+              onTap: () => _goTo(i),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 6),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  width: active ? 22 : 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    gradient: active
+                        ? const LinearGradient(
+                            colors: [CartzyColors.brandDeep, Color(0xFFB76E79)],
+                          )
+                        : null,
+                    color: active ? null : CartzyColors.rose200,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 }
