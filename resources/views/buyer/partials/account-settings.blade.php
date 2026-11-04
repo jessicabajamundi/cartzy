@@ -105,16 +105,35 @@
                                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.9 3.3a2.5 2.5 0 0 1 3.5 0l.3.3a2.5 2.5 0 0 1 0 3.5L9.4 18.4a2 2 0 0 1-.9.5l-4.2 1.2a1 1 0 0 1-1.2-1.2l1.2-4.2a2 2 0 0 1 .5-.9L16.9 3.3Z"/></svg>
                                 Edit
                             </button>
-                            <form action="{{ route('account.avatar.remove') }}" method="POST" onsubmit="return confirm('Remove your profile photo?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="acct-btn acct-btn-outline">Remove</button>
-                            </form>
+                            <button type="button" class="acct-btn acct-btn-outline" data-acct-remove-open aria-haspopup="dialog" aria-controls="acct-remove-photo">Remove</button>
                         @endif
                     </div>
                     <p class="acct-photo-hint">JPG or PNG. You can crop, zoom, and rotate it before saving.</p>
                 </div>
             </div>
+
+            @if($user->avatar)
+            {{-- Confirm before removing the profile photo. --}}
+            <dialog class="acct-editor acct-confirm" id="acct-remove-photo" aria-labelledby="acct-remove-title" aria-describedby="acct-remove-text">
+                <form class="acct-editor-panel acct-confirm-panel" action="{{ route('account.avatar.remove') }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="acct-editor-close acct-confirm-close" data-acct-remove-cancel aria-label="Close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                    </button>
+                    <span class="acct-confirm-photo" aria-hidden="true">
+                        <img src="{{ $user->avatar_url }}" alt="">
+                        <span class="acct-confirm-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></span>
+                    </span>
+                    <h3 id="acct-remove-title">Remove profile photo?</h3>
+                    <p id="acct-remove-text">Your initial will show in place of your photo. You can upload a new one anytime.</p>
+                    <footer class="acct-editor-foot acct-confirm-foot">
+                        <button type="button" class="acct-btn acct-btn-outline" data-acct-remove-cancel autofocus>Cancel</button>
+                        <button type="submit" class="acct-btn acct-btn-danger" data-acct-remove-submit>Remove photo</button>
+                    </footer>
+                </form>
+            </dialog>
+            @endif
 
             {{-- Photo editor: drag to position, zoom, rotate, then save as a square JPEG. --}}
             <dialog class="acct-editor" id="acct-photo-editor" aria-labelledby="acct-editor-title">
@@ -608,6 +627,25 @@
         const m = today.getMonth() - born.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < born.getDate())) years--;
         age.value = years >= 0 ? `${years} years old` : '';
+    });
+})();
+</script>
+<script>
+// Remove-photo confirmation modal.
+(() => {
+    const dialog = document.getElementById('acct-remove-photo');
+    const opener = document.querySelector('[data-acct-remove-open]');
+    if (!dialog || !opener || typeof dialog.showModal !== 'function') return;
+    const close = () => dialog.close();
+    opener.addEventListener('click', () => dialog.showModal());
+    dialog.querySelectorAll('[data-acct-remove-cancel]').forEach((button) => button.addEventListener('click', close));
+    // Clicking the dimmed backdrop (outside the panel) also cancels.
+    dialog.addEventListener('click', (event) => { if (event.target === dialog) close(); });
+    dialog.addEventListener('close', () => opener.focus());
+    dialog.querySelector('form').addEventListener('submit', () => {
+        const submit = dialog.querySelector('[data-acct-remove-submit]');
+        submit.disabled = true;
+        submit.textContent = 'Removing…';
     });
 })();
 </script>
