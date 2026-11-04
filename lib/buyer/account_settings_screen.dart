@@ -20,6 +20,7 @@ import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 
 import 'package:cartzy/services/auth_service.dart';
+import 'change_password_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
 import 'package:cartzy/buyer/account_activity_screen.dart';
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
@@ -1483,7 +1484,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     _buildMenuTile(
                       icon: Icons.lock_outline_rounded,
                       label: 'Change password',
-                      onTap: _openChangePasswordModal,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                      ),
                     ),
                     const Divider(
                         height: 1,

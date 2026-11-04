@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'change_password_screen.dart';
 import 'buyer_account_screen.dart';
 import 'reviews_screen.dart';
 import 'vouchers_screen.dart';
@@ -276,8 +277,9 @@ class AccountMenuScreen extends StatelessWidget {
 
               label: 'Change Password',
 
-              onTap: () =>
-                  _comingSoon(context),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+              ),
             ),
 
             // ==================================================

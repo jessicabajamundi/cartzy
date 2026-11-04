@@ -342,6 +342,29 @@ class UserAccountService {
     }
   }
 
+  bool updatePassword({
+    required String email,
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    final normalized = normalizeEmail(email);
+    final account = _accounts.cast<UserAccount?>().firstWhere(
+      (a) => a != null && normalizeEmail(a.email) == normalized,
+      orElse: () => null,
+    );
+
+    if (account == null) {
+      return true;
+    }
+
+    if (account.password != currentPassword) {
+      return false;
+    }
+
+    account.password = newPassword;
+    return true;
+  }
+
   // ============================================================
   // AUTHENTICATION (TC-BUY-028, 029)
   // ============================================================
