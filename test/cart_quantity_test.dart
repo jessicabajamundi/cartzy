@@ -100,5 +100,45 @@ void main() {
     expect(find.byType(AlertDialog), findsNothing);
     expect(find.byType(Dialog), findsNothing);
   });
+
+  testWidgets('InlineQuantityField draws no second box from the app input theme', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        // Same kind of input theme as CartzyTheme: filled, with visible borders.
+        theme: ThemeData(
+          inputDecorationTheme: const InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.pink,
+            enabledBorder: OutlineInputBorder(),
+            focusedBorder: OutlineInputBorder(),
+          ),
+        ),
+        home: Scaffold(
+          body: Center(
+            child: InlineQuantityField(
+              quantity: 5,
+              onCommitted: (_) {},
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    void expectNoInnerBox() {
+      final decoration =
+          tester.widget<InputDecorator>(find.byType(InputDecorator)).decoration;
+      expect(decoration.filled, isFalse);
+      expect(decoration.enabledBorder, InputBorder.none);
+      expect(decoration.focusedBorder, InputBorder.none);
+    }
+
+    expectNoInnerBox();
+
+    await tester.tap(find.byType(InlineQuantityField));
+    await tester.pumpAndSettle();
+
+    expectNoInnerBox();
+  });
 }
 

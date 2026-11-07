@@ -135,7 +135,16 @@ class _InlineQuantityFieldState extends State<InlineQuantityField> {
             decoration: const InputDecoration(
               isDense: true,
               isCollapsed: true,
+              // The surrounding container is the only box. Every border state
+              // and the fill must be off here, or the app theme's input style
+              // draws a second box inside it.
+              filled: false,
               border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
             onTap: () {
