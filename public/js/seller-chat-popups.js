@@ -192,6 +192,8 @@
             launchers[0]?.focus();
         };
 
+        window.DragDiscard?.attach(bubbleWrap, { key: `seller-chat-bubble-spot:${id}`, onDiscard: dismiss });
+
         const refreshBadge = async () => {
             if (bubbleWrap.hidden || document.hidden) return;
             try { setUnread((await request(conversationsUrl)).unread_total); } catch (_) { /* badge is best effort */ }

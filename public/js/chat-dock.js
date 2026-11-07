@@ -52,6 +52,7 @@ window.ChatDock = window.ChatDock || (() => {
             dismiss.textContent = '×';
             dismiss.setAttribute('aria-label', `Close chat: ${name}`);
             dismiss.title = 'Close chat';
+            dismiss.dataset.noDrag = '';
             item.append(open, dismiss);
 
             const handle = {
@@ -63,6 +64,10 @@ window.ChatDock = window.ChatDock || (() => {
             open.addEventListener('click', () => { handle.remove(); onOpen?.(); });
             dismiss.addEventListener('click', () => { handle.remove(); onDismiss?.(); });
             ensureDock().append(item);
+            window.DragDiscard?.attach(item, {
+                key: `chat-mini-spot:${name}`,
+                onDiscard: () => { handle.remove(); onDismiss?.(); },
+            });
             open.focus();
             return handle;
         },

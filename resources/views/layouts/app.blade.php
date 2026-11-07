@@ -208,6 +208,7 @@
         window.registerUrl = "{{ route('register', ['from' => 'cart']) }}";
     </script>
     <script src="{{ asset('js/buyer-navigation-counts.js') }}?v={{ filemtime(public_path('js/buyer-navigation-counts.js')) }}"></script>
+    <script src="{{ asset('js/drag-discard.js') }}?v={{ filemtime(public_path('js/drag-discard.js')) }}"></script>
     @if(Auth::check() && Auth::user()->isBuyer() && Auth::user()->status === 'active')
         <script src="{{ asset('js/chat-dock.js') }}?v={{ filemtime(public_path('js/chat-dock.js')) }}"></script>
         @include('partials.chat-widget')

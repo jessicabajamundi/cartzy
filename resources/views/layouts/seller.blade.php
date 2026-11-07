@@ -174,6 +174,7 @@ document.addEventListener('keydown', event => {
         @include('seller.partials.chat-popup', ['id' => 'sm', 'label' => 'Messages', 'title' => 'Messages', 'subtitle' => 'Buyer questions and order chats', 'conversationsUrl' => route('seller.popup.conversations'), 'inboxUrl' => route('seller.chat'), 'emptyText' => 'No conversations yet. Buyer questions and order chats will appear here.'])
         @include('seller.partials.chat-popup', ['id' => 'lc', 'label' => 'Logistics', 'title' => 'Logistics chat', 'subtitle' => 'Message a logistics hub', 'conversationsUrl' => route('seller.logistics.conversations'), 'inboxUrl' => route('seller.logistics'), 'emptyText' => 'No logistics hubs are available yet. Approved hubs will appear here.'])
     </div>
+    <script src="{{ asset('js/drag-discard.js') }}?v={{ filemtime(public_path('js/drag-discard.js')) }}" defer></script>
     <script src="{{ asset('js/seller-chat-popups.js') }}?v={{ filemtime(public_path('js/seller-chat-popups.js')) }}" defer></script>
 @endif
 @include('partials.prevent-back-cache')

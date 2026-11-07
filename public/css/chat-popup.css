@@ -104,3 +104,16 @@ body:has(.chat-bubble-form:not([hidden])):has(.buddy-launcher:not([hidden]):not(
 
 .cw-retry { display: block; margin: -16px auto 0; padding: 8px 18px; border: 1px solid #574362; border-radius: 999px; color: #574362; background: white; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cw-retry:hover { background: #f6f2f8; }
+
+/* Dragging a floating chat bubble, and the target that closes it. */
+.is-draggable { cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+.is-draggable > * { cursor: inherit; }
+.is-draggable.is-dragging { cursor: grabbing; z-index: 80; }
+.is-dragging .chat-bubble, .is-dragging .chat-mini-open { transition: none; transform: none; }
+.drag-discard { position: fixed; left: 50%; bottom: 24px; z-index: 79; display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(110px); transition: transform .22s ease, opacity .22s ease; }
+.drag-discard.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.drag-discard-circle { display: grid; place-items: center; width: 58px; height: 58px; border: 1.5px solid rgba(255, 255, 255, .4); border-radius: 50%; color: white; background: rgba(42, 27, 40, .92); box-shadow: 0 8px 20px rgba(26, 16, 24, .3); transition: transform .15s ease, background .15s ease; }
+.drag-discard-label { padding: 3px 10px; border-radius: 12px; color: white; background: rgba(26, 16, 24, .85); font-size: 11px; font-weight: 600; white-space: nowrap; }
+.drag-discard.is-active .drag-discard-circle { background: #D32F2F; border: 2.5px solid white; transform: scale(1.22); }
+.drag-discard.is-active .drag-discard-label { background: #D32F2F; }
+@media (prefers-reduced-motion: reduce) { .drag-discard, .drag-discard-circle { transition: none; } }
