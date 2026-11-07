@@ -49,7 +49,6 @@
 .seller-overview .panel { min-width:0; border-radius:13px; box-shadow:0 3px 8px #34243f03; }
 .seller-overview .panel-header { padding:19px 21px; background:#fff; border-radius:13px 13px 0 0; }
 .seller-overview .panel-header h2 { font-size:15px; }
-.seller-overview #needs-attention .panel-header h2,
 .seller-overview .seller-welcome h2 { font-family:"Bodoni MT", Didot, "Times New Roman", serif; }
 .seller-overview .panel-body { padding:21px; }
 .seller-overview .task-row strong { font-size:12px; }
