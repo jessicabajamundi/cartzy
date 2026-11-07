@@ -22,6 +22,7 @@
     <p class="lm-page-footer">&copy; {{ date('Y') }} cartzy. All rights reserved.</p>
 
     <script src="{{ asset('js/auth/login-modal.js') }}?v={{ filemtime(public_path('js/auth/login-modal.js')) }}"></script>
+    <script src="{{ asset('js/auth/cozy-peek.js') }}?v={{ filemtime(public_path('js/auth/cozy-peek.js')) }}"></script>
     <script>
         if (window.location.hash === '#forgot-password') {
             window.location.replace('{{ route("password.forgot") }}');

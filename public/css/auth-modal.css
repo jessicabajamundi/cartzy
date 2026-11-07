@@ -447,6 +447,65 @@ body.lm-page {
     pointer-events: none;
 }
 
+
+/* ── Cozy peeking over an edge of the modal (js/auth/cozy-peek.js) ──
+   The head sits behind the dialog and rises over the edge; the paws sit in front, gripping it.
+   JS sets left/top (a point on the edge) and --peek-rotate (0 top, -90deg left, 90deg right). */
+.lm-overlay .lm-dialog { z-index: 2; }
+.lm-peek,
+.lm-peek-paws {
+    position: absolute;
+    left: 0;
+    top: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+.lm-peek {
+    z-index: 1;
+    width: 76px;
+    height: 57px;
+    transform: translate(-50%, -100%) rotate(var(--peek-rotate, 0deg));
+    transform-origin: 50% 100%;
+}
+.lm-peek-paws {
+    z-index: 3;
+    width: 64px;
+    height: 20px;
+    transform: translate(-50%, -50%) rotate(var(--peek-rotate, 0deg)) translateY(3px);
+    transform-origin: 50% 50%;
+}
+.lm-peek.is-ready, .lm-peek-paws.is-ready { visibility: visible; }
+.lm-peek svg, .lm-peek-paws svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.lm-peek-inner {
+    width: 100%;
+    height: 100%;
+    transform: translateY(105%);
+    transition: transform .7s cubic-bezier(.34, 1.4, .5, 1);
+}
+.lm-peek.is-peeking .lm-peek-inner { transform: translateY(14%); }
+.lm-peek.is-peeking { pointer-events: auto; cursor: pointer; }
+.lm-peek.is-ducking .lm-peek-inner { transform: translateY(105%); transition: transform .35s cubic-bezier(.5, 0, .75, 0); }
+
+/* A gentle curious tilt and ear wiggle while she watches */
+.lm-peek-head { transform-origin: 50% 100%; }
+.lm-peek.is-peeking .lm-peek-head { animation: lm-peek-tilt 4.5s ease-in-out .8s infinite; }
+.lm-peek-ear { transform-box: fill-box; transform-origin: 50% 80%; }
+.lm-peek.is-peeking .lm-peek-ear-left { animation: lm-peek-ear 3.2s ease-in-out 1.2s infinite; }
+.lm-peek.is-peeking .lm-peek-ear-right { animation: lm-peek-ear 3.2s ease-in-out 2.4s infinite; }
+.lm-peek-eyes { transform-box: fill-box; transform-origin: 50% 50%; animation: lm-peek-blink 3.8s ease-in-out infinite; }
+.lm-peek-pupils { transition: transform .25s ease-out; }
+@keyframes lm-peek-tilt { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-6deg); } 65% { transform: rotate(5deg); } }
+@keyframes lm-peek-ear { 0%, 88%, 100% { transform: rotate(0); } 92% { transform: rotate(-12deg); } 96% { transform: rotate(8deg); } }
+@keyframes lm-peek-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+
+.lm-peek-paws svg {
+    transform: translateY(6px) scale(.6);
+    opacity: 0;
+    transition: transform .3s ease, opacity .2s ease;
+}
+.lm-peek-paws.is-peeking svg { transform: none; opacity: 1; transition-delay: .35s; }
+
 /* ── Responsive ── */
 @media (max-height: 640px) and (min-width: 521px) {
     .lm-panel { padding: 22px 28px 16px; }
@@ -469,4 +528,5 @@ body.lm-page {
 @media (prefers-reduced-motion: reduce) {
     .lm-backdrop, .lm-dialog, .lm-close, .lm-submit, .lm-submit svg, .lm-role { transition: none !important; }
     .lm-step.is-entering-forward, .lm-step.is-entering-back { animation: none; }
+    .lm-peek, .lm-peek-paws { display: none; }
 }

@@ -224,6 +224,7 @@
         @php($loginPortals = \App\Http\Controllers\AuthController::loginPortals())
         @include('auth.partials.login-modal', ['portal' => $loginPortals['buyer'] + ['key' => 'buyer'], 'portals' => $loginPortals])
         <script src="{{ asset('js/auth/login-modal.js') }}?v={{ filemtime(public_path('js/auth/login-modal.js')) }}"></script>
+        <script src="{{ asset('js/auth/cozy-peek.js') }}?v={{ filemtime(public_path('js/auth/cozy-peek.js')) }}"></script>
     @endguest
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
