@@ -20,7 +20,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Public Marketplace Homepage (Buyer facing)
-Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// On an Android phone's browser the home page is the "get the app" page.
+Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->middleware(\App\Http\Middleware\AndroidVisitorsGetTheApp::class)->name('home');
 Route::get('/sale', [\App\Http\Controllers\HomeController::class, 'sale'])->name('sale');
 Route::get('/products/{id}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 Route::post('/buddy/chat', [\App\Http\Controllers\BuddyController::class, 'chat'])->middleware('throttle:buddy')->name('buddy.chat');

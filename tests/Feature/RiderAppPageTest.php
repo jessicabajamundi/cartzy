@@ -84,4 +84,46 @@ class RiderAppPageTest extends TestCase
         $this->get(route('login.seller'))->assertOk()->assertSee('name="password"', false);
         $this->get(route('rider.app'))->assertSee(route('login.seller'))->assertSee(route('login.logistics'));
     }
+
+    private const ANDROID_CHROME = 'Mozilla/5.0 (Linux; Android 14; SM-A546E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+
+    public function test_android_phone_browser_gets_the_app_page_instead_of_the_home_page(): void
+    {
+        $this->fakeLatestRelease();
+
+        $this->withHeader('User-Agent', self::ANDROID_CHROME)->get('/')
+            ->assertOk()
+            ->assertSee('Shop with the', false)
+            ->assertSee('Download the app (APK)')
+            ->assertSee('Login as Rider')
+            ->assertSee(route('rider.app.download'))
+            ->assertHeader('Vary');
+    }
+
+    public function test_computers_iphones_and_crawlers_still_get_the_store(): void
+    {
+        $this->fakeLatestRelease();
+        $agents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+            'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        ];
+
+        foreach ($agents as $agent) {
+            $this->withHeader('User-Agent', $agent)->get('/')
+                ->assertOk()
+                ->assertDontSee('Shop with the', false);
+        }
+    }
+
+    public function test_only_the_home_page_changes_on_android(): void
+    {
+        $this->fakeLatestRelease();
+
+        // Product and store links shared to a phone, and the seller login, still open normally.
+        $this->withHeader('User-Agent', self::ANDROID_CHROME)->get(route('login.seller'))
+            ->assertOk()->assertSee('name="password"', false);
+        $this->withHeader('User-Agent', self::ANDROID_CHROME)->get(route('rider.app'))
+            ->assertOk()->assertSee('Deliver with the', false);
+    }
 }

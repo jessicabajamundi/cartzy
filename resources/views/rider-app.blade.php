@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rider App | cartzy</title>
+    <title>{{ $forEveryone ? 'Get the app' : 'Rider App' }} | cartzy</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -150,9 +150,15 @@
 <body>
     <main class="ra-card">
         <div class="ra-icon"><img src="{{ asset('images/cartzy-app-icon.png') }}" alt="cartzy app icon" width="84" height="84"></div>
-        <p class="ra-eyebrow">CARTZY RIDERS</p>
-        <h1>Deliver with the <em>cartzy</em> app</h1>
-        <p class="ra-lead">Riders sign in on our Android app, not the website. Use it to see your dashboard, accept deliveries, scan parcels, take delivery photos and collect cash on delivery.</p>
+        @if($forEveryone)
+            <p class="ra-eyebrow">CARTZY ON YOUR PHONE</p>
+            <h1>Shop with the <em>cartzy</em> app</h1>
+            <p class="ra-lead">On Android phones, cartzy works in our app, not the website. Use it to shop, check out, track your orders and chat with shops. Riders use the same app for their deliveries.</p>
+        @else
+            <p class="ra-eyebrow">CARTZY RIDERS</p>
+            <h1>Deliver with the <em>cartzy</em> app</h1>
+            <p class="ra-lead">Riders sign in on our Android app, not the website. Use it to see your dashboard, accept deliveries, scan parcels, take delivery photos and collect cash on delivery.</p>
+        @endif
 
         <a class="ra-download" href="{{ route('rider.app.download') }}" rel="nofollow">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
@@ -163,7 +169,11 @@
         <ol class="ra-steps">
             <li><strong>Download</strong> the app with the button above.</li>
             <li><strong>Open</strong> the downloaded <code>{{ $release['apk_name'] ?? 'cartzy-mobile.apk' }}</code> file. If Android asks, allow your browser to install unknown apps.</li>
-            <li><strong>Sign in:</strong> open the menu, choose <strong>Login as Rider</strong>, and use the email and password you registered with.</li>
+            @if($forEveryone)
+                <li><strong>Sign in</strong> or create an account. <strong>Riders:</strong> open the menu and choose <strong>Login as Rider</strong>.</li>
+            @else
+                <li><strong>Sign in:</strong> open the menu, choose <strong>Login as Rider</strong>, and use the email and password you registered with.</li>
+            @endif
         </ol>
 
         <p class="ra-note">The app is not on the Play Store yet, so Google Play Protect may warn you the first time. Choose <strong>Install anyway</strong>. To update, download it again and install over the old version; you stay signed in.</p>

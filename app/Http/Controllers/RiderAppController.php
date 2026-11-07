@@ -47,10 +47,29 @@ class RiderAppController extends Controller
 
     public function show(Request $request)
     {
-        return view('rider-app', [
+        return self::page($request, forEveryone: false);
+    }
+
+    /**
+     * The same page for everyone, shown instead of the home page on Android phones.
+     * $forEveryone switches the wording from riders to all shoppers.
+     */
+    public static function page(Request $request, bool $forEveryone)
+    {
+        return response()->view('rider-app', [
             'release' => self::latestRelease(),
+            'forEveryone' => $forEveryone,
             'rider' => $request->user()?->role === \App\Models\User::ROLE_COURIER ? $request->user() : null,
         ]);
+    }
+
+    /** Android phones and tablets, but not search-engine crawlers (they must keep seeing the store). */
+    public static function isAndroidVisitor(Request $request): bool
+    {
+        $agent = (string) $request->userAgent();
+
+        return stripos($agent, 'Android') !== false
+            && !preg_match('/bot|crawl|spider|slurp|lighthouse|headless/i', $agent);
     }
 
     /** Always the newest APK, even though each release names its file after the version. */
