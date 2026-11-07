@@ -130,5 +130,5 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 }
 
 /* Sidebar link in the seller, admin and logistics workspaces. */
-.nav-link.cozy-nav-link { display: flex; align-items: center; width: 100%; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; }
-.nav-link.cozy-nav-link[aria-expanded="true"] { color: #70558e; }
+.nav-link.cozy-nav-link { width: 100%; border: 0; font-family: inherit; text-align: left; cursor: pointer; }
+.nav-link.cozy-nav-link:not(:hover) { background: transparent; }
