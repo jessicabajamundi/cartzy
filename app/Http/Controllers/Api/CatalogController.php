@@ -44,6 +44,8 @@ class CatalogController extends Controller
             'price' => $cheapest ? $cheapest->sale_price_minor / 100 : null,
             'regular_price' => $cheapest ? $cheapest->price_minor / 100 : null,
             'on_sale' => (bool) $product->sale_is_active,
+            // Null when not on sale or when the sale has no end date.
+            'sale_ends_at' => $product->sale_is_active ? $product->discount_ends_at?->toIso8601String() : null,
             'badge' => $product->badge ?: null,
             'image' => $this->imageUrl($product->coverImage?->path) ?? $variants->map->image_url->filter()->first(),
             'rating' => $product->reviews_avg_rating !== null ? round((float) $product->reviews_avg_rating, 1) : null,
@@ -122,6 +124,7 @@ class CatalogController extends Controller
         $request->validate([
             'q' => 'nullable|string|max:100', 'category' => 'nullable|string|max:100',
             'sort' => 'nullable|in:newest,price_asc,price_desc', 'per_page' => 'nullable|integer|min:1|max:50',
+            'on_sale' => 'nullable|boolean',
         ]);
         $activeVariants = fn ($q) => $q->where('is_active', true);
         $query = $this->available()
@@ -130,6 +133,14 @@ class CatalogController extends Controller
             ->withAvg('reviews', 'rating')->withCount('reviews')
             ->withSum(['orderItems as sold_quantity' => fn ($items) => $items->whereHas('sellerOrder', fn ($order) => $order->whereIn('status', ['delivered', 'completed']))], 'quantity');
 
+        if ($request->boolean('on_sale')) {
+            // Same rule as the website Flash Sale page: running now and still in stock.
+            $now = now();
+            $query->whereIn('discount_type', ['percentage', 'fixed'])->where('discount_value', '>', 0)
+                ->where(fn ($q) => $q->whereNull('discount_starts_at')->orWhere('discount_starts_at', '<=', $now))
+                ->where(fn ($q) => $q->whereNull('discount_ends_at')->orWhere('discount_ends_at', '>', $now))
+                ->whereHas('variants', fn ($q) => $q->where('is_active', true)->where('stock', '>', 0));
+        }
         if ($request->filled('q')) {
             $term = '%'.$request->q.'%';
             $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('description', 'like', $term));
