@@ -108,14 +108,12 @@ class SellerPortalController extends Controller
                 + \App\Models\ProductInquiryMessage::whereHas('inquiry', fn ($q) => $q->where('seller_id', $request->user()->seller?->id ?? 0))
                     ->where('sender_id', '!=', $request->user()->id)->whereNull('read_at')->count(),
         ];
-        $days = collect(\Carbon\CarbonPeriod::create($start, '1 day', $end));
-        $daily = (clone $sales)->get()->groupBy(fn ($order) => $order->delivered_at->format('Y-m-d'));
-        $chart = $days->map(fn ($day) => ['label' => $day->format($days->count() <= 7 ? 'D' : 'M j'), 'date' => $day->format('M j'), 'sales' => $daily->get($day->format('Y-m-d'), collect())->sum('subtotal_minor')]);
+        $rankings = app(\App\Services\StoreRankings::class)->forSeller($this->shop());
         $recentOrders = $this->ordersQuery()->with(self::ORDERS_TABLE_RELATIONS)->latest()->limit(5)->get();
         $reportDates = ['from_date' => $start->format('Y-m-d'), 'to_date' => $end->format('Y-m-d')];
         $updatedAt = now()->timezone('Asia/Manila')->format('M j, Y \a\t g:i A');
 
-        return $this->page('dashboard', compact('stats', 'chart', 'recentOrders', 'period', 'periodLabels', 'periodLabel', 'reportDates', 'updatedAt'));
+        return $this->page('dashboard', compact('stats', 'rankings', 'recentOrders', 'period', 'periodLabels', 'periodLabel', 'reportDates', 'updatedAt'));
     }
 
     public function orders(Request $request)

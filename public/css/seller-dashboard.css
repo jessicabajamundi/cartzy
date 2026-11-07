@@ -63,3 +63,25 @@
 @media(max-width:1350px) { .seller-overview .metrics.overview-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:900px) { .seller-overview .metrics.overview-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:380px) { .seller-overview .metrics.overview-metrics { grid-template-columns:1fr; } }
+
+/* Store rankings */
+.store-ranking-list { margin: 0; padding: 0; list-style: none; }
+.store-ranking-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; border-bottom: 1px solid var(--line); }
+.store-ranking-row:last-child { border-bottom: 0; }
+.store-ranking-row.is-mine { background: var(--brand-blend); border-bottom-color: transparent; box-shadow: inset 3px 0 var(--rose-gold); }
+.store-ranking-place { flex: 0 0 28px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--muted); font-size: 13px; font-weight: 700; }
+.store-ranking-place.is-top-1 { background: #f6e7bd; color: #7a5a12; }
+.store-ranking-place.is-top-2 { background: #e8e6ec; color: #554e60; }
+.store-ranking-place.is-top-3 { background: #f2d9c9; color: #7d4d33; }
+.store-ranking-logo { flex: 0 0 36px; display: grid; place-items: center; width: 36px; height: 36px; overflow: hidden; border: 1px solid var(--line); border-radius: 50%; background: var(--accent-light); color: var(--accent); font-size: 14px; font-weight: 700; }
+.store-ranking-logo img { width: 100%; height: 100%; object-fit: cover; }
+.store-ranking-copy { flex: 1; min-width: 0; }
+.store-ranking-copy a { color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.store-ranking-copy a:hover { color: var(--accent); text-decoration: underline; }
+.store-ranking-copy em { margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: var(--accent-light); color: var(--accent); font-size: 10px; font-style: normal; font-weight: 700; }
+.store-ranking-copy small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+.store-ranking-sold { flex-shrink: 0; color: var(--muted); text-align: right; white-space: nowrap; }
+.store-ranking-sold strong { color: var(--ink); font-size: 14px; font-weight: 700; }
+.store-ranking-sold small { font-size: 11px; }
+.store-ranking-divider { margin: 14px 0 6px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
+.store-ranking-empty { margin: 0; padding: 20px 0; color: var(--muted); font-size: 13px; text-align: center; }
