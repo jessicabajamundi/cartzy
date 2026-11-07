@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.11' || version == 'v1.2.11') {
+      return const [
+        'Real Store & Product Ratings: Authentic rating scores and review counts reflect actual buyer feedback across all product cards, search results, and store pages.',
+        'Brand Logo in Navigation Menu: The official Cartzy logo wordmark now headers the hamburger drawer.',
+        'Two-Column Daily Discover Grid: Discover feed is organized into a clean, balanced two-column grid.',
+        'Optimized Checkout Header & Clean Quantity Box: Fixed checkout header text overflow on smaller screens and refined inline quantity field styling.',
+      ];
+    }
     if (version == '1.2.10' || version == 'v1.2.10') {
       return const [
         'Dedicated Change Password Screen: Update and secure your account in a dedicated full screen with live password strength checklist and visibility toggles.',
