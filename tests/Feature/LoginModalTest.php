@@ -29,7 +29,7 @@ class LoginModalTest extends TestCase
     {
         $this->get('/login')->assertOk()
             ->assertSee('data-step="choose"', false)
-            ->assertSee('Sign in as')
+            ->assertSee('Continue as...')
             ->assertSeeInOrder([
                 'Buyer', 'Shop, track orders and save favourites',
                 'Seller', 'Manage your store, products and orders',

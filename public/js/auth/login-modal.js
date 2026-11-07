@@ -148,16 +148,17 @@
         if (event.target.closest('[data-lm-close]')) close();
     });
 
-    // Up / down arrows move through the role list.
+    // Arrow keys move through the role grid (left/right by one, up/down by one row).
     overlay.addEventListener('keydown', function (event) {
         var button = event.target.closest('.lm-role');
-        if (!button || ['ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(event.key) === -1) return;
+        var steps = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 2, ArrowUp: -2 };
+        if (!button || !(event.key in steps || event.key === 'Home' || event.key === 'End')) return;
         event.preventDefault();
         var buttons = Array.prototype.slice.call(stepEl('choose').querySelectorAll('.lm-role'));
         var index = buttons.indexOf(button);
         var next = event.key === 'Home' ? 0
             : event.key === 'End' ? buttons.length - 1
-            : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+            : Math.min(Math.max(index + steps[event.key], 0), buttons.length - 1);
         buttons[next].focus();
     });
 

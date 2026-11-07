@@ -277,17 +277,25 @@
     text-transform: uppercase;
     color: var(--lm-muted);
 }
-.lm-role-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+/* Role cards: square boxes in a 2-column grid; lavender + rose blended */
+.lm-role-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.lm-role-list li { display: flex; }
+/* An odd last card (Admin) sits centred on its own row, same size as the others */
+.lm-role-list li:last-child:nth-child(odd) { grid-column: 1 / -1; justify-content: center; }
+.lm-role-list li:last-child:nth-child(odd) .lm-role { width: calc(50% - 5px); }
 .lm-overlay .lm-role {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 12px;
+    justify-content: flex-start;
+    gap: 8px;
     width: 100%;
-    padding: 10px 12px;
+    min-height: 132px;
+    padding: 16px 12px 14px;
     border: 1.5px solid var(--lm-line);
-    border-radius: 13px;
+    border-radius: 16px;
     background: #fff;
-    text-align: left;
+    text-align: center;
     font-family: 'Inter', system-ui, sans-serif;
     color: var(--lm-ink);
     cursor: pointer;
@@ -296,37 +304,49 @@
 .lm-role-icon {
     display: grid;
     place-items: center;
-    flex: 0 0 38px;
-    height: 38px;
-    border-radius: 11px;
-    background: #F3F0F7;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #F1EDF6 0%, #F8ECE8 100%);
     color: var(--lm-lavender-dark);
-    transition: background .18s, color .18s;
+    transition: background .18s, color .18s, box-shadow .18s;
 }
 .lm-role-icon svg { width: 20px; height: 20px; }
-.lm-role-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-.lm-role-name { display: flex; align-items: center; gap: 6px; font-size: .86rem; font-weight: 800; line-height: 1.2; }
+.lm-role-text { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.lm-role-name { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px; font-size: .9rem; font-weight: 800; line-height: 1.2; }
 .lm-role-name small {
     padding: 1px 7px;
     border-radius: 999px;
     background: #FCEAE6;
     color: var(--lm-rose-dark);
-    font-size: .6rem;
+    font-size: .58rem;
     font-weight: 800;
     letter-spacing: .02em;
     line-height: 1.5;
 }
-.lm-role-desc { font-size: .74rem; font-weight: 500; line-height: 1.35; color: var(--lm-muted); }
-.lm-role-arrow { flex: 0 0 16px; width: 16px; height: 16px; color: #BDB6C7; transition: transform .18s, color .18s; }
+.lm-role-desc { font-size: .72rem; font-weight: 500; line-height: 1.4; color: var(--lm-muted); }
 .lm-overlay .lm-role:hover,
 .lm-overlay .lm-role:focus-visible {
-    border-color: var(--lm-lavender);
-    background: var(--lm-soft);
-    box-shadow: 0 6px 16px -10px rgba(86, 75, 104, 0.45);
+    border-color: transparent;
+    background:
+        linear-gradient(135deg, #F5F1F9 0%, #FBF1EE 100%) padding-box,
+        linear-gradient(135deg, var(--lm-lavender) 0%, var(--lm-rose) 100%) border-box;
+    box-shadow:
+        0 0 0 4px rgba(192, 139, 127, 0.18),
+        0 16px 30px -14px rgba(86, 75, 104, 0.55);
+    transform: translateY(-4px);
 }
-.lm-role:hover .lm-role-icon, .lm-role:focus-visible .lm-role-icon { background: var(--lm-lavender-dark); color: #fff; }
-.lm-role:hover .lm-role-arrow, .lm-role:focus-visible .lm-role-arrow { color: var(--lm-lavender-dark); transform: translateX(3px); }
-.lm-role:active { transform: scale(.99); }
+.lm-overlay .lm-role:focus-visible { outline: none; }
+.lm-role .lm-role-icon { transition: background .18s, color .18s, box-shadow .18s, transform .22s cubic-bezier(.2, .8, .2, 1); }
+.lm-role .lm-role-name { transition: color .18s; }
+.lm-role:hover .lm-role-icon, .lm-role:focus-visible .lm-role-icon {
+    background: linear-gradient(135deg, var(--lm-lavender) 0%, var(--lm-rose) 100%);
+    color: #fff;
+    box-shadow: 0 8px 16px -6px rgba(140, 90, 80, 0.6);
+    transform: scale(1.1) rotate(-4deg);
+}
+.lm-role:hover .lm-role-name, .lm-role:focus-visible .lm-role-name { color: var(--lm-lavender-dark); }
+.lm-overlay .lm-role:active { transform: translateY(-1px) scale(.98); }
 
 /* ── Step 2: back button + role badge ── */
 .lm-back {
@@ -447,6 +467,6 @@ body.lm-page {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .lm-backdrop, .lm-dialog, .lm-close, .lm-submit, .lm-submit svg, .lm-role, .lm-role-arrow { transition: none !important; }
+    .lm-backdrop, .lm-dialog, .lm-close, .lm-submit, .lm-submit svg, .lm-role { transition: none !important; }
     .lm-step.is-entering-forward, .lm-step.is-entering-back { animation: none; }
 }

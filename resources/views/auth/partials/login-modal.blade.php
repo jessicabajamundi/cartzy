@@ -86,7 +86,7 @@
                 <div class="lm-alert lm-alert-info" role="status">{{ session('info') }}</div>
             @endif
 
-            <p class="lm-roles-label">Sign in as</p>
+            <p class="lm-roles-label">Continue as...</p>
             <ul class="lm-role-list">
                 @foreach($roles as $key => $role)
                     @continue(! isset($portals[$key]))
@@ -99,7 +99,6 @@
                                 <span class="lm-role-name">{{ $role['label'] }} @if(! empty($role['app']))<small>In the app</small>@endif</span>
                                 <span class="lm-role-desc">{{ $role['description'] }}</span>
                             </span>
-                            <svg class="lm-role-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                         </button>
                     </li>
                 @endforeach
