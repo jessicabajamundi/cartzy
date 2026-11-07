@@ -3,12 +3,13 @@
 namespace App\Services;
 
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\Review;
 use App\Models\Seller;
 
 /**
- * Ranks public stores by items delivered in the last 30 days. Sellers see each other's items sold and
- * ratings, which are already public on store pages, but never each other's earnings.
+ * Ranks public stores and products by items delivered in the last 30 days. Sellers see each other's items
+ * sold and ratings, which are already public on store pages, but never each other's earnings.
  */
 class StoreRankings
 {
@@ -16,15 +17,15 @@ class StoreRankings
 
     private const TOP = 10;
 
+    private const MY_PRODUCTS = 5;
+
     /**
-     * @return array{top: array<int, array>, mine: ?array, total: int} "mine" is set only when the store is outside the top list.
+     * @return array{top: array<int, array>, mine: ?array, total: int, products: array<int, array>} "mine" is set only when
+     *     the store is outside the top list; "products" are this store's best sellers with their rank across all shops.
      */
     public function forSeller(?Seller $shop): array
     {
-        $sold = OrderItem::query()
-            ->join('seller_orders', 'seller_orders.id', '=', 'order_items.seller_order_id')
-            ->whereIn('seller_orders.status', ['delivered', 'completed'])
-            ->where('seller_orders.delivered_at', '>=', now()->subDays(self::DAYS - 1)->startOfDay())
+        $sold = $this->delivered()
             ->groupBy('seller_orders.seller_id')
             ->selectRaw('seller_orders.seller_id as store_id, SUM(order_items.quantity) as items_sold')
             ->pluck('items_sold', 'store_id');
@@ -54,7 +55,48 @@ class StoreRankings
             'top' => $ranked->take(self::TOP)->all(),
             'mine' => $mine && ($mine['rank'] === null || $mine['rank'] > self::TOP) ? $mine : null,
             'total' => $ranked->count(),
+            'products' => $this->myBestSellers($shop),
         ];
+    }
+
+    /** A rank counts every public product, so "#3 on Cartzy" means the third best seller of all shops. */
+    private function myBestSellers(?Seller $shop): array
+    {
+        if (!$shop) {
+            return [];
+        }
+
+        $sold = $this->delivered()
+            ->groupBy('order_items.product_id')
+            ->selectRaw('order_items.product_id as ranked_product_id, SUM(order_items.quantity) as items_sold')
+            ->pluck('items_sold', 'ranked_product_id');
+
+        $products = Product::approved()->where('is_active', true)->whereIn('id', $sold->keys())
+            ->whereHas('seller', fn ($seller) => $seller->publiclyVisible())
+            ->get(['id', 'seller_id', 'name'])
+            ->sort(fn (Product $a, Product $b) => [(int) $sold[$b->id], $a->id] <=> [(int) $sold[$a->id], $b->id])
+            ->values();
+
+        return $products
+            ->map(fn (Product $product, int $index) => [
+                'rank' => $index + 1,
+                'seller_id' => $product->seller_id,
+                'name' => $product->name,
+                'url' => route('products.show', $product->id),
+                'sold' => (int) $sold[$product->id],
+            ])
+            ->where('seller_id', $shop->id)
+            ->take(self::MY_PRODUCTS)
+            ->values()
+            ->all();
+    }
+
+    private function delivered()
+    {
+        return OrderItem::query()
+            ->join('seller_orders', 'seller_orders.id', '=', 'order_items.seller_order_id')
+            ->whereIn('seller_orders.status', ['delivered', 'completed'])
+            ->where('seller_orders.delivered_at', '>=', now()->subDays(self::DAYS - 1)->startOfDay());
     }
 
     private function row(Seller $store, int $sold, mixed $rating, ?Seller $shop): array

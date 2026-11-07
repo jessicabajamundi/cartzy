@@ -48,8 +48,8 @@
     <a href="{{ route('seller.inventory', ['tab' => 'low_stock']) }}">@include('seller.partials.icon', ['name' => 'tag'])<span><strong>Stock &amp; inventory</strong><small>{{ number_format($stockAlertCount ?? 0) }} variations need restocking</small></span>@include('seller.partials.icon', ['name' => 'arrow-right'])</a>
     <a href="{{ route('seller.courier', ['status' => 'ready_to_ship']) }}">@include('seller.partials.icon', ['name' => 'truck'])<span><strong>Arrange shipping</strong><small>{{ number_format($stats['ready_for_pickup']) }} orders ready for pickup</small></span>@include('seller.partials.icon', ['name' => 'arrow-right'])</a>
 </nav>
-<div class="two-column">
-    @include('seller.partials.store-rankings')
+@include('seller.partials.store-rankings')
+<div class="dashboard-attention">
     <section class="panel" id="needs-attention"><div class="panel-header"><h2>Needs your attention</h2>@include('seller.partials.icon',['name'=>'check'])</div><div class="panel-body">
         <a class="task-row" href="{{ route('seller.orders', ['status' => 'cancellation_requested']) }}"><div><strong>Cancellation requests</strong><small>Review requests awaiting your decision</small></div><span class="task-number">{{ number_format($stats['cancellation_requests']) }}</span></a>
         <a class="task-row" href="{{ route('seller.courier', ['status' => 'ready_to_ship']) }}"><div><strong>Ready for pickup</strong><small>Packed orders awaiting courier collection</small></div><span class="task-number">{{ number_format($stats['ready_for_pickup']) }}</span></a>

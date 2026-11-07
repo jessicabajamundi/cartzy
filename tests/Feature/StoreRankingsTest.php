@@ -106,8 +106,41 @@ class StoreRankingsTest extends TestCase
         $this->sell($rival, 7, 'delivered', null, 9876500);
 
         $this->actingAs($mine->user)->get('/seller/dashboard')->assertOk()
-            ->assertSee('Store rankings')->assertSee('Rival Shop')->assertSee('My Shop')
+            ->assertSee('Your ranking on Cartzy')->assertSee('Rival Shop')->assertSee('My Shop')
+            ->assertSee('Best-selling products')->assertSee('Not ranked yet')
             ->assertSee(route('store.show', $rival->slug))
             ->assertDontSee('Sales performance')->assertDontSee('98,765');
+    }
+
+    public function test_my_best_sellers_show_their_rank_across_all_shops(): void
+    {
+        $mine = $this->store('My Shop');
+        $rival = $this->store('Rival Shop');
+        $this->sell($mine, 100);
+        $this->sell($rival, 50);
+        $category = Category::firstOrCreate(['slug' => 'rank'], ['name' => 'Rank', 'is_active' => true]);
+        $second = $mine->products()->create(['name' => 'Second item', 'slug' => 'second-item', 'category_id' => $category->id, 'is_active' => true]);
+        $variant = $second->variants()->create(['sku' => 'SECOND', 'name' => 'One', 'price_minor' => 100, 'stock' => 5, 'is_active' => true]);
+        $sellerOrder = SellerOrder::where('seller_id', $mine->id)->first();
+        $sellerOrder->items()->create(['product_id' => $second->id, 'product_variant_id' => $variant->id, 'product_name' => 'Second item', 'variant_name' => 'One', 'unit_price_minor' => 100, 'quantity' => 8]);
+
+        $products = app(StoreRankings::class)->forSeller($mine)['products'];
+
+        $this->assertSame(['Item', 'Second item'], array_column($products, 'name'));
+        $this->assertSame([1, 3], array_column($products, 'rank'));
+        $this->assertSame([100, 8], array_column($products, 'sold'));
+
+        $this->actingAs($mine->user)->get('/seller/dashboard')->assertOk()
+            ->assertSee('Best shop on Cartzy')->assertSee('Best seller on Cartzy')->assertSee('#3 on Cartzy')
+            ->assertSee(route('products.show', $second->id));
+    }
+
+    public function test_hidden_products_are_not_ranked(): void
+    {
+        $mine = $this->store('My Shop');
+        $this->sell($mine, 10);
+        $this->product($mine)->update(['is_active' => false]);
+
+        $this->assertSame([], app(StoreRankings::class)->forSeller($mine)['products']);
     }
 }

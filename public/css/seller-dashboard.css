@@ -64,8 +64,16 @@
 @media(max-width:380px) { .seller-overview .metrics.overview-metrics { grid-template-columns:1fr; } }
 
 /* Store rankings */
+.store-rankings, .dashboard-attention { margin-bottom: 22px; }
+.store-rankings-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; padding: 20px 21px; }
+.store-rankings-box { padding: 18px; border: 1px solid var(--rose-gold); border-radius: 12px; background: #fff9f6; }
+.store-rankings-standing { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; color: var(--rose-gold); }
+.store-rankings-standing .icon { flex-shrink: 0; }
+.store-rankings-standing strong { display: block; color: var(--ink); font-size: 16px; font-weight: 700; }
+.store-rankings-standing small { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; }
+.store-rankings-products h3 { margin: 0 0 6px; color: var(--ink); font-size: 15px; font-weight: 700; }
 .store-ranking-list { margin: 0; padding: 0; list-style: none; }
-.store-ranking-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; border-bottom: 1px solid var(--line); }
+.store-ranking-row { display: flex; align-items: center; gap: 12px; padding: 9px 8px; border-radius: 10px; border-bottom: 1px solid var(--line); }
 .store-ranking-row:last-child { border-bottom: 0; }
 .store-ranking-row.is-mine { background: var(--brand-blend); border-bottom-color: transparent; box-shadow: inset 3px 0 var(--rose-gold); }
 .store-ranking-place { flex: 0 0 28px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--muted); font-size: 13px; font-weight: 700; }
@@ -83,4 +91,13 @@
 .store-ranking-sold strong { color: var(--ink); font-size: 14px; font-weight: 700; }
 .store-ranking-sold small { font-size: 11px; }
 .store-ranking-divider { margin: 14px 0 6px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; }
-.store-ranking-empty { margin: 0; padding: 20px 0; color: var(--muted); font-size: 13px; text-align: center; }
+.store-ranking-empty { margin: 0; padding: 18px 0; color: var(--muted); font-size: 13px; text-align: center; }
+.product-ranking-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 4px; border-bottom: 1px solid var(--line); }
+.product-ranking-row:last-child { border-bottom: 0; }
+.product-ranking-row > div { min-width: 0; }
+.product-ranking-row a { color: var(--ink); font-size: 14px; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.product-ranking-row a:hover { color: var(--accent); text-decoration: underline; }
+.product-ranking-row small { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+.product-ranking-pill { flex-shrink: 0; padding: 6px 12px; border-radius: 99px; background: var(--accent-light); color: var(--accent); font-size: 10.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; white-space: nowrap; }
+.product-ranking-pill.is-best { background: var(--ink); color: #fff; }
+@media (max-width: 900px) { .store-rankings-body { grid-template-columns: minmax(0, 1fr); } }
