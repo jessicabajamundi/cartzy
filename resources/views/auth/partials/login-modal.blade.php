@@ -16,15 +16,6 @@
     <div class="lm-backdrop" data-lm-close></div>
 
     <div class="lm-dialog" role="dialog" aria-modal="true" aria-labelledby="lm-title" aria-describedby="lm-subtitle">
-        <aside class="lm-visual" aria-hidden="true">
-            <img src="{{ asset('images/auth/cartzy-collection.jpg') }}" width="1122" height="1402" alt="" @unless($standalone) loading="lazy" @endunless>
-            <div class="lm-visual-copy">
-                <p class="lm-eyebrow">{{ $portal['eyebrow'] ?? 'THE CARTZY COLLECTION' }}</p>
-                <p class="lm-visual-heading">{{ $portal['heading'][0] ?? 'Good finds.' }}<br><span>{{ $portal['heading'][1] ?? 'Great beginnings.' }}</span></p>
-            </div>
-            <p class="lm-visual-caption">Fashion &middot; Tech &middot; Beauty &middot; Home</p>
-        </aside>
-
         <div class="lm-panel">
             @if($standalone)
                 <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">

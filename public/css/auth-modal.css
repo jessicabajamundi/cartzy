@@ -41,10 +41,10 @@
 /* ── Dialog ── */
 .lm-dialog {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    max-width: 920px;
+    max-width: 520px;
     max-height: calc(100vh - 48px);
     background: #fff;
     border-radius: 24px;
@@ -58,64 +58,7 @@
 .lm-overlay.is-open .lm-backdrop { opacity: 1; }
 .lm-overlay.is-open .lm-dialog { opacity: 1; transform: none; }
 
-/* ── Left: editorial visual ── */
-.lm-visual {
-    position: relative;
-    min-height: 100%;
-    background: #F6E3DE;
-    overflow: hidden;
-}
-.lm-visual img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center 60%;
-}
-.lm-visual::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(252, 234, 230, 0.92) 0%, rgba(252, 234, 230, 0.35) 34%, rgba(40, 33, 51, 0) 60%, rgba(40, 33, 51, 0.35) 100%);
-}
-.lm-visual-copy {
-    position: relative;
-    z-index: 1;
-    padding: 40px 36px 0;
-}
-.lm-eyebrow {
-    margin: 0 0 14px;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: .22em;
-    color: var(--lm-rose-dark);
-}
-.lm-visual-heading {
-    margin: 0;
-    font-size: 2.1rem;
-    line-height: 1.05;
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    color: var(--lm-ink);
-}
-.lm-visual-heading span { color: var(--lm-rose-dark); }
-.lm-visual-caption {
-    position: absolute;
-    z-index: 1;
-    left: 0;
-    right: 0;
-    bottom: 22px;
-    margin: 0;
-    text-align: center;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: .24em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.92);
-}
-
-/* ── Right: form panel ── */
+/* ── Form panel ── */
 .lm-panel {
     position: relative;
     padding: 40px 48px 32px;
@@ -399,17 +342,11 @@ body.lm-page {
 }
 
 /* ── Responsive ── */
-@media (max-height: 760px) and (min-width: 821px) {
+@media (max-height: 760px) and (min-width: 521px) {
     .lm-panel { padding: 28px 44px 24px; }
     .lm-logo { height: 36px; margin-bottom: 12px; }
     .lm-head { margin-bottom: 18px; }
     .lm-title { font-size: 1.85rem; }
-}
-
-@media (max-width: 820px) {
-    .lm-dialog { grid-template-columns: 1fr; max-width: 480px; }
-    .lm-visual { display: none; }
-    .lm-panel { padding: 36px 32px 28px; }
 }
 
 @media (max-width: 520px) {
