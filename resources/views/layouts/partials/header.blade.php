@@ -265,12 +265,7 @@
                 @auth
                     @if($sellerOnStorefront)
                         <div class="header-auth-links flex items-center gap-2 ml-1 sm:ml-1.5">
-                            <a href="{{ route('seller.dashboard') }}" class="flex items-center gap-1.5 text-white bg-gradient-to-r from-[#564B68] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] shadow-sm hover:shadow-md transition-all duration-200 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transform hover:-translate-y-0.5 active:translate-y-0">
-                                <svg class="shrink-0 w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/>
-                                </svg>
-                                <span>Dashboard</span>
-                            </a>
+                            <a href="{{ route('seller.dashboard') }}" class="flex items-center text-[#3E354C] hover:text-[#8C5A50] transition-colors py-1.5 text-xs font-bold">Dashboard</a>
                         </div>
                     @else
                         @include('layouts.partials.profile-menu')
