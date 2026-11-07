@@ -25,6 +25,21 @@ class LoginModalTest extends TestCase
         $this->get('/seller/login')->assertOk()->assertSee('Seller Centre');
     }
 
+    public function test_people_choose_who_they_sign_in_as(): void
+    {
+        $this->get('/login')->assertOk()
+            ->assertSee('Sign in as')
+            ->assertSeeInOrder(['Buyer', 'Seller', 'Logistics', 'Rider', 'In the app', 'Admin'])
+            ->assertSee('data-lm-role="buyer"'."\n".'                                aria-checked="true"', false)
+            ->assertSee('Riders sign in on the cartzy app')
+            ->assertSee(route('login.courier'), false);
+
+        // The seller page opens with Seller already picked.
+        $this->get('/seller/login')->assertOk()
+            ->assertSee('data-lm-role="seller"'."\n".'                                aria-checked="true"', false)
+            ->assertSee('name="portal" value="seller"', false);
+    }
+
     public function test_storefront_includes_the_modal_for_guests_only(): void
     {
         $this->get('/')->assertOk()->assertSee('id="login-modal"', false)->assertSee('name="redirect_to" value="/"', false);

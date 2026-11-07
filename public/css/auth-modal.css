@@ -86,18 +86,6 @@
 
 .lm-head { text-align: center; margin-bottom: 18px; }
 .lm-logo { display: block; height: 32px; width: auto; margin: 0 auto 10px; }
-.lm-badge {
-    display: inline-block;
-    margin: 0 0 10px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    background: #F1EFF5;
-    color: var(--lm-lavender-dark);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-}
 .lm-title {
     margin: 0 0 4px;
     font-family: 'Cormorant Garamond', Georgia, serif;
@@ -279,34 +267,84 @@
 }
 .lm-foot .lm-link { font-size: .8rem; margin-left: 2px; }
 
-.lm-portals {
+/* "Sign in as" role picker */
+.lm-roles { margin: 0 0 16px; }
+.lm-roles-label {
+    margin: 0 0 6px;
+    font-size: .75rem;
+    font-weight: 700;
+    color: var(--lm-ink);
+}
+.lm-role-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+}
+.lm-overlay .lm-role {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--lm-line);
-    font-size: .72rem;
-    color: var(--lm-muted);
-}
-.lm-portals span { margin-right: 2px; }
-.lm-portals a {
-    padding: 3px 9px;
-    border-radius: 999px;
-    border: 1px solid var(--lm-line);
+    min-height: 58px;
+    padding: 8px 2px 7px;
+    border: 1.5px solid var(--lm-line);
+    border-radius: 11px;
     background: #fff;
-    color: var(--lm-lavender-dark);
-    font-weight: 700;
-    text-decoration: none;
-    transition: background .18s, border-color .18s, color .18s;
+    color: var(--lm-muted);
+    font: 600 .7rem 'Inter', system-ui, sans-serif;
+    cursor: pointer;
+    transition: border-color .18s, background .18s, color .18s, box-shadow .18s;
 }
-.lm-portals a:hover { background: var(--lm-soft); border-color: #D6CFE0; color: var(--lm-ink); }
+.lm-role svg { width: 19px; height: 19px; flex-shrink: 0; }
+.lm-role span { line-height: 1; }
+.lm-role small {
+    position: absolute;
+    top: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: var(--lm-rose);
+    color: #fff;
+    font-size: .52rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+.lm-overlay .lm-role:hover { border-color: #D6CFE0; color: var(--lm-ink); background: var(--lm-soft); }
+.lm-overlay .lm-role[aria-checked="true"] {
+    border-color: var(--lm-lavender);
+    background: #F3F0F7;
+    color: var(--lm-lavender-dark);
+    box-shadow: 0 0 0 3px rgba(111, 99, 130, 0.12);
+}
+.lm-role[aria-checked="true"] span { font-weight: 800; }
+
+/* Rider: sign in on the app */
+.lm-app-note { text-align: center; padding: 4px 0 2px; }
+.lm-app-note[hidden], [data-lm-section][hidden], .lm-foot[hidden] { display: none; }
+.lm-app-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    background: #FCEAE6;
+    color: var(--lm-rose-dark);
+}
+.lm-app-icon svg { width: 24px; height: 24px; }
+.lm-app-title { margin: 0 0 4px; font-size: .95rem; font-weight: 800; color: var(--lm-ink); }
+.lm-app-text { margin: 0 auto 16px; max-width: 300px; font-size: .8rem; line-height: 1.5; color: var(--lm-muted); }
+.lm-app-button { text-decoration: none; }
 
 .lm-overlay a:focus-visible,
 .lm-overlay button:focus-visible,
-.lm-overlay input[type="checkbox"]:focus-visible {
+.lm-overlay input[type="checkbox"]:focus-visible,
+.lm-overlay .lm-role:focus-visible {
     outline: 2px solid var(--lm-lavender-dark);
     outline-offset: 2px;
 }
