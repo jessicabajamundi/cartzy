@@ -20,12 +20,16 @@
     const storeKey = `cartzy-buddy-chat-${workspaceMode ? `${workspaceMode}-` : ''}${root.dataset.userId || 'guest'}`;
     const discardedKey = `cartzy-buddy-discarded-${root.dataset.userId || 'guest'}`;
     const posKey = `cartzy-buddy-pos-${root.dataset.userId || 'guest'}`;
+    // In a workspace the bear only comes out from the sidebar, and stays out for this tab until discarded.
+    const summonedKey = `cartzy-buddy-summoned-${workspaceMode}-${root.dataset.userId || 'guest'}`;
     const peso = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: Number.isInteger(amount) ? 0 : 2 }).format(amount);
     const productMatch = location.pathname.match(/^\/products\/(\d+)/);
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const bears = [...root.querySelectorAll('[data-bear]')];
     bears.forEach((slot) => slot.appendChild(art.content.cloneNode(true)));
+
+    if (workspaceMode && sessionStorage.getItem(summonedKey) === '1') launcher.hidden = false;
 
     // Check if Cozy was discarded in this session or restore custom position
     if (sessionStorage.getItem(discardedKey) === '1') {
@@ -229,16 +233,10 @@
         return false;
     };
 
-    const cozyLinks = [...document.querySelectorAll('[data-cozy-open]')];
-    const setExpanded = (open) => {
-        launcher.setAttribute('aria-expanded', String(open));
-        cozyLinks.forEach((link) => link.setAttribute('aria-expanded', String(open)));
-    };
-
     const openPanel = () => {
         root.classList.add('is-open');
         panel.hidden = false;
-        setExpanded(true);
+        launcher.setAttribute('aria-expanded', 'true');
         greeting.hidden = true;
         if (!log.children.length && !restore()) welcome();
         playClass('is-waving', 2200);
@@ -249,8 +247,8 @@
     const closePanel = () => {
         root.classList.remove('is-open');
         panel.hidden = true;
-        setExpanded(false);
-        (launcher.hidden ? cozyLinks[0] : launcher)?.focus();
+        launcher.setAttribute('aria-expanded', 'false');
+        launcher.focus();
     };
 
     async function submit(text) {
@@ -372,9 +370,9 @@
             launcher.style.bottom = 'auto';
 
             if (discard) {
-                const discardRect = discard.getBoundingClientRect();
-                const discardCenterX = discardRect.left + discardRect.width / 2;
-                const discardCenterY = discardRect.top + discardRect.height / 2;
+                // Measured from where the target settles, so a quick drag counts before it finishes sliding in.
+                const discardCenterX = window.innerWidth / 2;
+                const discardCenterY = window.innerHeight - parseFloat(getComputedStyle(discard).bottom) - discard.offsetHeight / 2;
                 const bearCenterX = newLeft + launcherWidth / 2;
                 const bearCenterY = newTop + launcherHeight / 2;
                 const dist = Math.hypot(bearCenterX - discardCenterX, bearCenterY - discardCenterY);
@@ -413,6 +411,7 @@
             if (wasActive) {
                 launcher.classList.add('is-discarding');
                 sessionStorage.setItem(discardedKey, '1');
+                sessionStorage.removeItem(summonedKey);
                 setTimeout(() => {
                     launcher.hidden = true;
                     launcher.classList.remove('is-discarding');
@@ -454,13 +453,24 @@
     };
     cozyIcons.forEach((icon) => icon.addEventListener('click', bringBack));
 
-    // The workspace sidebars open the chat directly, and get out of the way on phones.
-    cozyLinks.forEach((link) => link.addEventListener('click', () => {
+    let greetingTimer;
+    const greet = (text) => {
+        clearTimeout(greetingTimer);
+        greeting.textContent = text;
+        greeting.hidden = false;
+        playClass('is-waving', 2200);
+        greetingTimer = setTimeout(() => { greeting.hidden = true; }, 6000);
+    };
+
+    // The workspace sidebars bring out the bear with a hello, and get out of the way on phones.
+    document.querySelectorAll('[data-cozy-open]').forEach((link) => link.addEventListener('click', () => {
         document.getElementById('seller-sidebar')?.classList.remove('open');
         const overlay = document.querySelector('[data-sidebar-close]');
         if (overlay && !overlay.hidden) overlay.click();
-        if (panel.hidden) openPanel();
-        else closePanel();
+        sessionStorage.setItem(summonedKey, '1');
+        if (launcher.hidden) bringBack();
+        else setMood('love', 1800);
+        if (panel.hidden) greet(root.dataset.greeting);
     }));
 
     $('buddyClose').addEventListener('click', closePanel);
@@ -499,16 +509,11 @@
 
     // A quick hello per visit, once Cozy has popped in.
     try {
-        if (!launcher.hidden && !sessionStorage.getItem('cartzy-buddy-greeted')) {
+        if (!workspaceMode && !sessionStorage.getItem('cartzy-buddy-greeted')) {
             sessionStorage.setItem('cartzy-buddy-greeted', '1');
             setTimeout(() => {
                 if (!panel.hidden) return;
-                greeting.textContent = workspaceMode
-                    ? root.dataset.greeting
-                    : (name ? `Hi ${name}! Need a shopping buddy?` : 'Psst! Need a shopping buddy?');
-                greeting.hidden = false;
-                playClass('is-waving', 2200);
-                setTimeout(() => { greeting.hidden = true; }, 6000);
+                greet(name ? `Hi ${name}! Need a shopping buddy?` : 'Psst! Need a shopping buddy?');
             }, 1800);
         }
     } catch { /* No greeting without storage. */ }

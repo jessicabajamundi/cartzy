@@ -1,12 +1,14 @@
 {{-- Cozy the teddy bear: floating shopping buddy for the storefront, or a helper in a workspace with
-     $buddyMode (seller, admin, logistics). $buddyFloating false leaves only the sidebar link to open her. --}}
+     $buddyMode (seller, admin, logistics). $buddyFloating false keeps the bear hidden until the sidebar link brings her out. --}}
 @php
     $buddyMode = $buddyMode ?? null;
     $buddyFirstName = Auth::check() ? strtok((string) Auth::user()->name, ' ') : '';
+    $buddyStoreName = $buddyMode === 'seller' ? (Auth::user()->seller?->name ?? $buddyFirstName) : '';
+    $buddyHubName = $buddyMode === 'logistics' ? (Auth::user()->logisticsProvider?->name ?? $buddyFirstName) : '';
     $buddyWorkspace = [
-        'seller' => ['status' => 'Your Cartzy shop helper', 'welcome' => "Hi {$buddyFirstName}! I'm Cozy, your shop helper. I can check your orders, stock and sales, or show you where to do things.", 'chips' => ['What needs attention?', 'Low stock items', 'Sales this month'], 'greeting' => "Hi {$buddyFirstName}! Need help with your shop?"],
-        'admin' => ['status' => 'Your Cartzy admin helper', 'welcome' => "Hi {$buddyFirstName}! I'm Cozy, your admin helper. I can check platform totals and what's waiting for review, or show you where to do things.", 'chips' => ['What needs review?', 'Open disputes', 'Platform totals'], 'greeting' => "Hi {$buddyFirstName}! Need a hand?"],
-        'logistics' => ['status' => 'Your Cartzy hub helper', 'welcome' => "Hi {$buddyFirstName}! I'm Cozy, your hub helper. I can check today's parcels, pickups and riders, or show you where to do things.", 'chips' => ['Parcels in the hub', 'Pickups today', 'Rider applications'], 'greeting' => "Hi {$buddyFirstName}! Need a hand?"],
+        'seller' => ['status' => 'Your Cartzy shop helper', 'welcome' => "Hi {$buddyStoreName}! I'm Cozy, your shop helper. I can check your orders, stock and sales, or show you where to do things.", 'chips' => ['What needs attention?', 'Low stock items', 'Sales this month'], 'greeting' => "Hi {$buddyStoreName}! Need help with your shop?"],
+        'admin' => ['status' => 'Your Cartzy admin helper', 'welcome' => "Hi Admin! I'm Cozy, your admin helper. I can check platform totals and what's waiting for review, or show you where to do things.", 'chips' => ['What needs review?', 'Open disputes', 'Platform totals'], 'greeting' => "Hi Admin! Need a hand with the marketplace?"],
+        'logistics' => ['status' => 'Your Cartzy hub helper', 'welcome' => "Hello, {$buddyHubName}! I'm Cozy, your hub helper. I can check today's parcels, pickups and riders, or show you where to do things.", 'chips' => ['Parcels in the hub', 'Pickups today', 'Rider applications'], 'greeting' => "Hello, {$buddyHubName}! Ready to check today's parcels?"],
     ][$buddyMode] ?? null;
 @endphp
 <div id="buddy" class="buddy" @if($buddyWorkspace) data-mode="{{ $buddyMode }}" data-welcome="{{ $buddyWorkspace['welcome'] }}" data-chips='@json($buddyWorkspace['chips'])' data-greeting="{{ $buddyWorkspace['greeting'] }}" @endif data-chat-url="{{ route('buddy.chat') }}" data-user-id="{{ Auth::id() }}" data-user-name="{{ Auth::check() ? strtok((string) Auth::user()->name, ' ') : '' }}">

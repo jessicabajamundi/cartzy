@@ -1,5 +1,5 @@
-{{-- Sidebar link that opens the Cozy chat (buddy.js). --}}
-<button type="button" class="nav-link cozy-nav-link" data-cozy-open aria-controls="buddyPanel" aria-expanded="false">
+{{-- Sidebar link that brings out the Cozy bear (buddy.js). Pressing the bear opens her chat. --}}
+<button type="button" class="nav-link cozy-nav-link" data-cozy-open title="Bring out Cozy">
     <svg class="icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="6" cy="6.5" r="2.6"/><circle cx="18" cy="6.5" r="2.6"/>
         <circle cx="12" cy="13" r="8" fill="#fff"/>

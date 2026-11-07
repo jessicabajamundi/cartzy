@@ -338,21 +338,19 @@ class BuddyChatTest extends TestCase
         return substr($page, strpos($page, '<aside'), strpos($page, '</aside>') - strpos($page, '<aside'));
     }
 
-    public function test_cozy_is_in_the_seller_sidebar_and_floats_only_on_the_dashboard(): void
+    public function test_seller_bear_stays_hidden_until_the_sidebar_brings_her_out(): void
     {
         $mine = $this->sellerWithOrder('Mine', 'MINE-1');
         $this->actingAs($mine->user);
 
-        $dashboard = $this->get('/seller/dashboard')->assertOk()->assertSee('data-mode="seller"', false)->getContent();
-        $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($dashboard));
-        $this->assertDoesNotMatchRegularExpression('/id="buddyLauncher"\s+hidden/', $dashboard);
-
-        $orders = $this->get('/seller/orders')->assertOk()->assertSee('data-mode="seller"', false)->assertSee('js/buddy.js', false)->getContent();
-        $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($orders));
-        $this->assertMatchesRegularExpression('/id="buddyLauncher"\s+hidden/', $orders);
+        foreach (['/seller/dashboard', '/seller/orders'] as $url) {
+            $page = $this->get($url)->assertOk()->assertSee('data-mode="seller"', false)->assertSee('js/buddy.js', false)->assertDontSee('data-open-cozy', false)->getContent();
+            $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($page));
+            $this->assertMatchesRegularExpression('/id="buddyLauncher"\s+hidden/', $page);
+        }
     }
 
-    public function test_cozy_is_in_the_admin_and_logistics_sidebars_without_a_floating_bear(): void
+    public function test_admin_and_logistics_bear_stays_hidden_until_the_sidebar_brings_her_out(): void
     {
         $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
         $hub = User::factory()->create(['role' => 'logistics', 'status' => 'active']);
@@ -363,6 +361,28 @@ class BuddyChatTest extends TestCase
             $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($page));
             $this->assertMatchesRegularExpression('/id="buddyLauncher"\s+hidden/', $page);
         }
+    }
+
+    public function test_admin_greeting_says_admin_instead_of_the_name(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'active', 'name' => 'Ana Admin']);
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()
+            ->assertSee('data-greeting="Hi Admin! Need a hand with the marketplace?"', false)
+            ->assertDontSee('Hi Ana!');
+    }
+
+    public function test_seller_and_logistics_greetings_use_the_store_and_hub_names(): void
+    {
+        $mine = $this->sellerWithOrder("Mia's Shop", 'MINE-1');
+        $this->actingAs($mine->user)->get('/seller/orders')->assertOk()
+            ->assertSee('data-greeting="'.e("Hi Mia's Shop! Need help with your shop?").'"', false);
+
+        $hub = User::factory()->create(['role' => 'logistics', 'status' => 'active', 'name' => 'Hal Hub']);
+        LogisticsProvider::create(['user_id' => $hub->id, 'name' => 'Laguna Hub', 'slug' => 'laguna-hub', 'status' => 'approved']);
+        $this->actingAs($hub)->get(route('logistics.account'))->assertOk()
+            ->assertSee('data-greeting="'.e("Hello, Laguna Hub! Ready to check today's parcels?").'"', false)
+            ->assertDontSee('Hal!');
     }
 
     public function test_each_workspace_mode_needs_its_own_active_role(): void
