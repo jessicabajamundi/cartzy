@@ -30,21 +30,17 @@
         <nav aria-label="{{ $sellerMode ? 'Seller' : 'Buyer' }} navigation">
             @unless($sellerMode)<span class="nav-label">WORKSPACE</span>@endunless
             @if($sellerMode)
-                {{-- Grouped like the admin sidebar: Workspace / Operations / Administration. --}}
-                @php($sellerNavGroups = [
-                    'Workspace' => ['dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive']],
-                    'Operations' => ['orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart']],
-                    'Administration' => ['chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user']],
+                @php($sellerNavLinks = [
+                    'dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'],
+                    'orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'],
+                    'chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user'],
                 ])
-                @foreach($sellerNavGroups as $group => $links)
-                    <p class="nav-label">{{ $group }}</p>
-                    @foreach($links as $key => [$label,$icon])
-                        @php($navActive = request()->routeIs('seller.'.$key.'*'))
-                        <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
-                        @if($key === 'dashboard')
-                            @include('seller.partials.workspace-notifications')
-                        @endif
-                    @endforeach
+                @foreach($sellerNavLinks as $key => [$label,$icon])
+                    @php($navActive = request()->routeIs('seller.'.$key.'*'))
+                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
+                    @if($key === 'dashboard')
+                        @include('seller.partials.workspace-notifications')
+                    @endif
                 @endforeach
             @else
                 <a class="nav-link" href="{{ route('buyer.dashboard') }}">@include('seller.partials.icon', ['name' => 'grid'])My account</a>

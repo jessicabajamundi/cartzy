@@ -45,6 +45,14 @@ class SellerPortalTest extends TestCase
         return $product;
     }
 
+    public function test_sidebar_lists_links_without_section_labels(): void
+    {
+        $this->actingAs($this->shop()->user);
+        $this->get('/seller/dashboard')->assertOk()
+            ->assertSee('Overview')->assertSee('Sales reports')->assertSee('My account')
+            ->assertDontSee('<p class="nav-label">', false);
+    }
+
     public function test_inventory_low_stock_includes_ten_units_and_updates_after_restock(): void
     {
         $shop = $this->shop();
