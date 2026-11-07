@@ -41,7 +41,7 @@ class WishlistItem {
     }
 
     final rawRating = json['rating'];
-    double parsedRating = 5.0;
+    double parsedRating = 0;
     if (rawRating is num) {
       parsedRating = rawRating.toDouble();
     }

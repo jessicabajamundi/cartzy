@@ -23,7 +23,7 @@ class ProductItem {
   final String? originalPrice;
   final int discountPercent;
   final String badge;
-  final double rating;
+  final double? rating;
   final String soldCount;
   final String? imageUrl;
   final String? sellerName;

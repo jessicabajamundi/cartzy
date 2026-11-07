@@ -54,7 +54,7 @@ class CatalogService {
       originalPrice: discount > 0 ? peso(regular) : null,
       discountPercent: discount,
       badge: badge,
-      rating: (json['rating'] as num?)?.toDouble() ?? 4.8,
+      rating: (json['rating'] as num?)?.toDouble(),
       soldCount: _sold((json['sold'] as num?)?.toInt() ?? 0),
       imageUrl: json['image']?.toString(),
       sellerName: seller,

@@ -733,7 +733,9 @@ class _InboxScreenState extends State<InboxScreen>
                                 size: 15, color: Color(0xFFF59E0B)),
                             const SizedBox(width: 3),
                             Text(
-                              '${store.rating.toStringAsFixed(1)} ★',
+                              store.rating > 0
+                                  ? '${store.rating.toStringAsFixed(1)} ★'
+                                  : 'No ratings',
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,

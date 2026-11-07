@@ -70,6 +70,7 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final hasRating = (widget.rating ?? 0) > 0;
     final cleanPrice = widget.price.startsWith('₱')
         ? widget.price.substring(1).trim()
         : widget.price.trim();
@@ -304,19 +305,25 @@ class _ProductCardState extends State<ProductCard> {
                       // Rating · sold · free shipping
                       Row(
                         children: [
-                          const Icon(Icons.star_rounded, size: 13, color: Color(0xFFF2A93B)),
-                          const SizedBox(width: 2),
-                          Text(
-                            (widget.rating ?? 4.8).toStringAsFixed(1),
-                            style: GoogleFonts.dmSans(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              color: _ink,
-                            ),
+                          Icon(
+                            hasRating ? Icons.star_rounded : Icons.star_outline_rounded,
+                            size: 13,
+                            color: const Color(0xFFF2A93B),
                           ),
+                          const SizedBox(width: 2),
+                          if (hasRating)
+                            Text(
+                              widget.rating!.toStringAsFixed(1),
+                              style: GoogleFonts.dmSans(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: _ink,
+                              ),
+                            ),
+                          // "No ratings" sits in here so it can shorten on narrow cards.
                           Expanded(
                             child: Text(
-                              '  ·  ${widget.soldCount ?? '0 sold'}',
+                              '${hasRating ? '  ·  ' : 'No ratings  ·  '}${widget.soldCount ?? '0 sold'}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: GoogleFonts.dmSans(fontSize: 10.5, color: _muted),

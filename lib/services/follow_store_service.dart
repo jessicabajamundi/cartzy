@@ -23,7 +23,7 @@ class FollowedStore {
     this.logo,
     this.isOfficial = true,
     this.location = 'Philippines',
-    this.rating = 4.8,
+    this.rating = 0,
     this.followersCount = 120,
     this.productsCount = 12,
     required this.followedAt,
@@ -49,7 +49,7 @@ class FollowedStore {
         logo: json['logo']?.toString(),
         isOfficial: json['is_official'] as bool? ?? true,
         location: json['location']?.toString() ?? 'Philippines',
-        rating: (json['rating'] as num?)?.toDouble() ?? 4.8,
+        rating: (json['rating'] as num?)?.toDouble() ?? 0,
         followersCount: (json['followers_count'] as num?)?.toInt() ?? 120,
         productsCount: (json['products_count'] as num?)?.toInt() ?? 12,
         followedAt: DateTime.tryParse(json['followed_at']?.toString() ?? '') ??

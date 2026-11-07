@@ -150,7 +150,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     _originalPrice = widget.originalPrice;
     _sellerName = widget.sellerName ?? 'Cartzy Store';
     _badge = widget.badge ?? '';
-    _rating = widget.rating ?? 4.8;
+    _rating = widget.rating ?? 0;
     _soldCount = widget.soldCount ?? '0 sold';
 
     RecentlyViewedService.record(RecentlyViewedProduct(
@@ -278,9 +278,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             _badge = rawBadge;
           }
 
-          if (data['rating'] != null) {
-            _rating = (data['rating'] as num).toDouble();
-          }
+          _rating = (data['rating'] as num?)?.toDouble() ?? 0;
           if (data['reviews_count'] != null) {
             _reviewsCount = (data['reviews_count'] as num).toInt();
           }
@@ -1185,10 +1183,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           Row(
             children: [
               // Rating stars
-              const Icon(Icons.star_rounded, color: Color(0xFFFFA41C), size: 18),
+              Icon(
+                _rating > 0 ? Icons.star_rounded : Icons.star_outline_rounded,
+                color: const Color(0xFFFFA41C),
+                size: 18,
+              ),
               const SizedBox(width: 4),
               Text(
-                _rating.toStringAsFixed(1),
+                _rating > 0 ? _rating.toStringAsFixed(1) : 'No ratings',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -1939,7 +1941,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               Column(
                 children: [
                   Text(
-                    _rating.toStringAsFixed(1),
+                    _rating > 0 ? _rating.toStringAsFixed(1) : '—',
                     style: const TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
