@@ -79,7 +79,7 @@
 
         $('[data-lm-badge-icon]').innerHTML = data.icon;
         $('[data-lm-badge-label]').textContent = data.label;
-        $('#lm-title').textContent = data.title;
+        $('#lm-title').textContent = data.heading;
         $('#lm-subtitle').textContent = data.subtitle;
         $('[data-lm-button]').textContent = data.button;
         $('[data-lm-portal-input]').value = key;

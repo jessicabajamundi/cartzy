@@ -22,7 +22,7 @@ class LoginModalTest extends TestCase
             ->assertSee('is-open is-standalone', false)
             ->assertSee('Welcome back');
 
-        $this->get('/seller/login')->assertOk()->assertSee('Seller Centre');
+        $this->get('/seller/login')->assertOk()->assertSee('Seller Centre')->assertSee('Welcome, Seller');
     }
 
     public function test_login_starts_by_choosing_who_you_sign_in_as(): void

@@ -40,6 +40,11 @@
         'label' => $roles[$key]['label'] ?? $p['label'],
         'icon' => $roles[$key]['icon'] ?? '',
         'title' => $p['title'],
+        'heading' => match ($key) {
+            'buyer' => 'Welcome back',
+            'logistics' => 'Welcome, Partner',
+            default => 'Welcome, '.($roles[$key]['label'] ?? $p['label']),
+        },
         'subtitle' => $p['subtitle'],
         'button' => $p['button'],
         'register' => $p['register'] ?? null,
@@ -173,7 +178,7 @@
                         Switch
                     </span>
                 </button>
-                <h2 class="lm-title" id="lm-title">{{ $active['title'] }}</h2>
+                <h2 class="lm-title" id="lm-title">{{ $active['heading'] }}</h2>
                 <p class="lm-subtitle" id="lm-subtitle">{{ $active['subtitle'] }}</p>
             </div>
 
