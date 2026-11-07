@@ -269,4 +269,79 @@ class BuddyChatTest extends TestCase
     {
         $this->get('/')->assertOk()->assertSee('id="buddyLauncher"', false)->assertSee('js/buddy.js', false);
     }
+
+    private function sellerWithOrder(string $name, string $reference): Seller
+    {
+        $shop = Seller::create(['user_id' => User::factory()->create(['role' => 'seller', 'status' => 'active'])->id, 'name' => $name, 'slug' => 'shop-'.uniqid(), 'status' => 'approved']);
+        $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active', 'name' => 'Private Buyer']);
+        $order = \App\Models\Order::create(['buyer_id' => $buyer->id, 'reference' => $reference, 'total_minor' => 11000, 'payment_method' => 'cod', 'payment_status' => 'pending', 'shipping_address' => ['recipient' => 'Private Recipient', 'phone' => '09170000000']]);
+        \App\Models\SellerOrder::create(['order_id' => $order->id, 'seller_id' => $shop->id, 'subtotal_minor' => 10000, 'shipping_fee_minor' => 1000, 'commission_minor' => 1000, 'status' => 'pending']);
+
+        return $shop;
+    }
+
+    public function test_only_active_sellers_can_use_seller_mode(): void
+    {
+        config(['services.anthropic.key' => null]);
+        $seller = ['mode' => 'seller'] + $this->say('hello');
+
+        $this->postJson('/buddy/chat', $seller)->assertForbidden();
+        $this->actingAs(User::factory()->create(['role' => 'buyer', 'status' => 'active']))->postJson('/buddy/chat', $seller)->assertForbidden();
+
+        $shop = $this->sellerWithOrder('Mine', 'MINE-1');
+        $shop->user->update(['status' => 'suspended']);
+        $this->actingAs($shop->user->fresh())->postJson('/buddy/chat', $seller)->assertForbidden();
+    }
+
+    public function test_seller_mode_only_reads_the_sellers_own_shop_and_hides_buyer_details(): void
+    {
+        $mine = $this->sellerWithOrder('Mine', 'MINE-1');
+        $this->sellerWithOrder('Theirs', 'THEIRS-1');
+        $fake = $this->fakeClaude([
+            $this->toolCall('shop_orders', []),
+            $this->answer(['reply' => 'One order!', 'mood' => 'happy', 'suggestions' => [], 'product_ids' => []]),
+        ]);
+
+        $this->actingAs($mine->user)->postJson('/buddy/chat', ['mode' => 'seller'] + $this->say('orders?'))
+            ->assertOk()->assertJsonPath('reply', 'One order!');
+
+        $result = $fake->sent[1]['messages'][2]['content'][0]['content'];
+        $this->assertStringContainsString('MINE-1', $result);
+        $this->assertStringNotContainsString('THEIRS-1', $result);
+        $this->assertStringNotContainsString('Private', $result);
+        $this->assertStringNotContainsString('09170000000', $result);
+        $this->assertStringContainsString('Seller Workspace', $fake->sent[0]['system'][0]['text']);
+        $this->assertArrayHasKey('error', (clone $fake)->runTool('my_orders', [], $mine->user));
+    }
+
+    public function test_a_seller_outside_seller_mode_keeps_the_storefront_buddy(): void
+    {
+        $mine = $this->sellerWithOrder('Mine', 'MINE-1');
+        $fake = $this->fakeClaude([$this->answer(['reply' => 'Hi!', 'mood' => 'happy', 'suggestions' => [], 'product_ids' => []])]);
+
+        $this->actingAs($mine->user)->postJson('/buddy/chat', $this->say('hello'))->assertOk();
+
+        $this->assertStringContainsString('shopping buddy', $fake->sent[0]['system'][0]['text']);
+    }
+
+    public function test_seller_mode_answers_from_shop_numbers_without_an_api_key(): void
+    {
+        config(['services.anthropic.key' => null]);
+        $mine = $this->sellerWithOrder('Mine', 'MINE-1');
+
+        $this->actingAs($mine->user)->postJson('/buddy/chat', ['mode' => 'seller'] + $this->say('Ilan orders ko?'))
+            ->assertOk()->assertJsonPath('reply', 'You have 1 order to prepare. Open Orders and press Mark packed once one is ready.');
+    }
+
+    public function test_cozy_is_on_the_seller_dashboard_only_and_not_in_the_sidebar(): void
+    {
+        $mine = $this->sellerWithOrder('Mine', 'MINE-1');
+        $this->actingAs($mine->user);
+
+        $dashboard = $this->get('/seller/dashboard')->assertOk()->assertSee('data-mode="seller"', false)->assertSee('js/buddy.js', false)->getContent();
+        $sidebar = substr($dashboard, strpos($dashboard, '<aside'), strpos($dashboard, '</aside>') - strpos($dashboard, '<aside'));
+        $this->assertStringNotContainsStringIgnoringCase('cozy', $sidebar);
+
+        $this->get('/seller/orders')->assertOk()->assertDontSee('id="buddy"', false)->assertDontSee('js/buddy.js', false);
+    }
 }

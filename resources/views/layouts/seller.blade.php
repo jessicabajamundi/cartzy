@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('css/seller.css') }}?v={{ filemtime(public_path('css/seller.css')) }}">
     @if(request()->routeIs('seller.dashboard'))
         <link rel="stylesheet" href="{{ asset('css/seller-dashboard.css') }}?v={{ filemtime(public_path('css/seller-dashboard.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     @endif
     <link rel="stylesheet" href="{{ asset('css/seller-admin-skin.css') }}?v={{ filemtime(public_path('css/seller-admin-skin.css')) }}">
     @if(auth()->user()->isSeller())
@@ -72,6 +73,17 @@
                 @if($sellerMode)
                     <a class="topbar-account" href="{{ route('seller.account') }}" aria-label="My account" title="My account"><span class="topbar-avatar">{{ mb_strtoupper(mb_substr($shop?->name ?? auth()->user()->name, 0, 1)) }}</span></a>
                     @php($sellerNotifData = \App\Services\SellerNotifications::feed(auth()->user()))
+                    @if(request()->routeIs('seller.dashboard'))
+                        {{-- Only shown while Cozy is discarded; clicking brings her back (buddy.js). --}}
+                        <button type="button" class="topbar-icon" data-open-cozy hidden title="Bring back Cozy" aria-label="Bring back Cozy">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="6" cy="6.5" r="2.6"/><circle cx="18" cy="6.5" r="2.6"/>
+                                <circle cx="12" cy="13" r="8" fill="#fff"/>
+                                <circle cx="9.2" cy="11.6" r=".7" fill="currentColor" stroke="none"/><circle cx="14.8" cy="11.6" r=".7" fill="currentColor" stroke="none"/>
+                                <ellipse cx="12" cy="16" rx="3.1" ry="2.3"/><path d="M11.3 15.4h1.4"/>
+                            </svg>
+                        </button>
+                    @endif
                     <a class="topbar-icon seller-header-notif-btn" href="{{ route('seller.notifications') }}" aria-label="Notifications" title="Notifications">
                         @include('seller.partials.icon', ['name' => 'bell'])
                         <span class="badge" data-notification-count @if(($sellerNotifData['notificationCount'] ?? 0) <= 0) hidden @endif>{{ ($sellerNotifData['notificationCount'] ?? 0) > 0 ? $sellerNotifData['notificationCount'] : '' }}</span>
@@ -165,6 +177,10 @@ document.addEventListener('keydown', event => {
     <script src="{{ asset('js/seller-chat-popups.js') }}?v={{ filemtime(public_path('js/seller-chat-popups.js')) }}" defer></script>
 @endif
 @include('partials.prevent-back-cache')
+@if(request()->routeIs('seller.dashboard'))
+    @include('partials.buddy', ['buddySeller' => true])
+    <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
+@endif
 @include('partials.logout-confirm')
 </body>
 </html>

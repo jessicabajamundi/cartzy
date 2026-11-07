@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 /**
  * Chat endpoint for Cozy the teddy bear: the website posts here with its session, the app with a Bearer token.
- * Guests are welcome; only active buyers get order lookups.
+ * Guests are welcome; only active buyers get order lookups. The seller dashboard asks for seller mode,
+ * which only an active seller can use and which only ever reads that seller's own shop.
  */
 class BuddyController extends Controller
 {
@@ -21,6 +22,7 @@ class BuddyController extends Controller
             'messages.*.role' => ['required', 'in:user,assistant'],
             'messages.*.content' => ['required', 'string', 'max:2000'],
             'product_id' => ['nullable', 'integer'],
+            'mode' => ['nullable', 'in:seller'],
         ]);
 
         // Claude's history must start with the buyer, and must end with what they just said.
@@ -33,6 +35,13 @@ class BuddyController extends Controller
         }
 
         $user = $request->user() ?? auth('sanctum')->user();
+
+        if (($data['mode'] ?? null) === 'seller') {
+            abort_unless($user && $user->isSeller() && $user->status === 'active', 403);
+
+            return response()->json($buddy->replyToSeller($history, $user));
+        }
+
         $buyer = $user && $user->isBuyer() && $user->status === 'active' ? $user : null;
 
         return response()->json($buddy->reply($history, $buyer, $data['product_id'] ?? null));

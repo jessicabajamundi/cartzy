@@ -1,5 +1,5 @@
-{{-- Cozy the teddy bear: floating shopping buddy for the storefront. --}}
-<div id="buddy" class="buddy" data-chat-url="{{ route('buddy.chat') }}" data-user-id="{{ Auth::id() }}" data-user-name="{{ Auth::check() ? strtok((string) Auth::user()->name, ' ') : '' }}">
+{{-- Cozy the teddy bear: floating shopping buddy for the storefront, or shop helper with $buddySeller. --}}
+<div id="buddy" class="buddy" @if($buddySeller ?? false) data-mode="seller" @endif data-chat-url="{{ route('buddy.chat') }}" data-user-id="{{ Auth::id() }}" data-user-name="{{ Auth::check() ? strtok((string) Auth::user()->name, ' ') : '' }}">
     <template id="buddy-bear-art">
         <svg viewBox="0 0 200 200" class="buddy-bear" aria-hidden="true" focusable="false">
             <g class="buddy-bear-body" stroke-linejoin="round">
@@ -61,7 +61,7 @@
             <span class="buddy-head-bear" data-bear data-mood="happy"></span>
             <div class="buddy-head-text">
                 <strong>Cozy</strong>
-                <small id="buddyStatus">Your Cartzy shopping buddy</small>
+                <small id="buddyStatus">{{ ($buddySeller ?? false) ? 'Your Cartzy shop helper' : 'Your Cartzy shopping buddy' }}</small>
             </div>
             <button type="button" class="buddy-icon" id="buddyReset" aria-label="Start a new chat" title="Start a new chat">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.700L3 8"/><path d="M3 3v5h5"/></svg>

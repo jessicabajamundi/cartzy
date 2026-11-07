@@ -49,6 +49,8 @@ input, select, textarea { accent-color: var(--accent); }
 .topbar-icon:hover { background: var(--accent-light); color: var(--muted); }
 .topbar-icon .badge[data-notification-count] { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid #fff; border-radius: 9px; background: var(--rose-gold); color: #fff; font-size: 10px; font-weight: 700; line-height: 14px; text-align: center; }
 .topbar-icon .badge[hidden] { display: none; }
+.topbar-icon[hidden] { display: none; }
+.topbar-icon[data-open-cozy] { border: 0; background: transparent; cursor: pointer; }
 .topbar-logout { margin: 0; display: inline-flex; }
 @media (max-width: 600px) { .topbar { padding: 0 16px; height: 60px; } .topbar-account { display: none; } .topbar-actions { gap: 10px; } }
 

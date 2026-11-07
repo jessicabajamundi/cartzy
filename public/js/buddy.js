@@ -1,4 +1,4 @@
-// Cozy the teddy bear: floating shopping buddy for the storefront.
+// Cozy the teddy bear: floating shopping buddy for the storefront, and shop helper on the seller dashboard.
 (() => {
     const root = document.getElementById('buddy');
     if (!root) return;
@@ -13,8 +13,11 @@
     const art = $('buddy-bear-art');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const name = root.dataset.userName;
+    const sellerMode = root.dataset.mode === 'seller';
+    const statusText = status.textContent;
     // Per account, so a chat about someone's orders doesn't reappear after they sign out.
-    const storeKey = `cartzy-buddy-chat-${root.dataset.userId || 'guest'}`;
+    // A seller's shop chat stays apart from their storefront chat.
+    const storeKey = `cartzy-buddy-chat-${sellerMode ? 'seller-' : ''}${root.dataset.userId || 'guest'}`;
     const discardedKey = `cartzy-buddy-discarded-${root.dataset.userId || 'guest'}`;
     const posKey = `cartzy-buddy-pos-${root.dataset.userId || 'guest'}`;
     const peso = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: Number.isInteger(amount) ? 0 : 2 }).format(amount);
@@ -195,6 +198,14 @@
     };
 
     const welcome = () => {
+        if (sellerMode) {
+            const text = `Hi ${name}! I'm Cozy, your shop helper. I can check your orders, stock and sales, or show you where to do things.`;
+            addBubble('assistant', text);
+            transcript = [{ role: 'assistant', text, products: [] }];
+            history = [];
+            setChips(['What needs attention?', 'Low stock items', 'Sales this month']);
+            return;
+        }
         const hello = name ? `Hi ${name}! I'm Cozy, your cuddly shopping buddy.` : "Hi hi! I'm Cozy, your cuddly shopping buddy.";
         const text = `${hello} Want to chat, hunt for something cute, or check on an order?`;
         addBubble('assistant', text);
@@ -262,7 +273,7 @@
             const response = await fetch(root.dataset.chatUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
-                body: JSON.stringify({ messages: history, product_id: productMatch ? Number(productMatch[1]) : null }),
+                body: JSON.stringify(sellerMode ? { messages: history, mode: 'seller' } : { messages: history, product_id: productMatch ? Number(productMatch[1]) : null }),
             });
             if (response.status === 429) {
                 reply = { reply: 'Whew, my paws need a little rest! Let\'s chat again in a minute.', mood: 'sad', suggestions: [], products: [], failed: true };
@@ -286,7 +297,7 @@
         save();
 
         setMood(reply.mood, reply.mood === 'sad' ? 4000 : 6000);
-        status.textContent = 'Your Cartzy shopping buddy';
+        status.textContent = statusText;
         if (reply.mood === 'love' || reply.mood === 'excited') {
             hearts(panel.querySelector('.buddy-head-bear'));
         }
@@ -477,7 +488,9 @@
             sessionStorage.setItem('cartzy-buddy-greeted', '1');
             setTimeout(() => {
                 if (!panel.hidden) return;
-                greeting.textContent = name ? `Hi ${name}! Need a shopping buddy?` : 'Psst! Need a shopping buddy?';
+                greeting.textContent = sellerMode
+                    ? `Hi ${name}! Need help with your shop?`
+                    : (name ? `Hi ${name}! Need a shopping buddy?` : 'Psst! Need a shopping buddy?');
                 greeting.hidden = false;
                 playClass('is-waving', 2200);
                 setTimeout(() => { greeting.hidden = true; }, 6000);

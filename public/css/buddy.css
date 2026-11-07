@@ -51,8 +51,8 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-head { position: relative; display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 14px; color: white; background: linear-gradient(120deg, #6F6382 0%, #91879E 55%, #C08B7F 100%); }
 .buddy-head-bear { flex: none; width: 58px; height: 58px; margin: -4px 0 -6px; filter: drop-shadow(0 3px 5px rgba(40, 33, 51, .3)); }
 .buddy-head-text { flex: 1; min-width: 0; }
-.buddy-head-text strong { display: block; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 25px; font-weight: 700; line-height: 1; }
-.buddy-head-text small { display: block; margin-top: 3px; overflow: hidden; font-size: 12.500px; opacity: .95; white-space: nowrap; text-overflow: ellipsis; }
+.buddy-head-text strong { display: block; color: inherit; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 25px; font-weight: 700; line-height: 1; }
+.buddy-head-text small { display: block; margin-top: 3px; color: inherit; overflow: hidden; font-size: 12.500px; opacity: .95; white-space: nowrap; text-overflow: ellipsis; }
 .buddy-icon { display: inline-grid; place-items: center; flex: none; width: 36px; height: 36px; border: 0; border-radius: 12px; color: white; background: transparent; cursor: pointer; }
 .buddy-icon:hover { background: rgba(255, 255, 255, .2); }
 .buddy-icon:focus-visible { outline: 2px solid white; outline-offset: -2px; }
