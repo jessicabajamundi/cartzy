@@ -411,33 +411,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   // ── Breadcrumbs ──
                   Row(
                     children: [
-                      GestureDetector(
-                        onTap: widget.onBack,
-                        child: Text(
-                          'Home',
-                          style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+                      // Wraps onto a second line on small phones so the pill always fits.
+                      Expanded(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: widget.onBack,
+                              child: Text(
+                                'Home',
+                                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+                              ),
+                            ),
+                            Text(
+                              '  /  ',
+                              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFB8AEB2)),
+                            ),
+                            GestureDetector(
+                              onTap: widget.onBack,
+                              child: Text(
+                                'Cart',
+                                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+                              ),
+                            ),
+                            Text(
+                              '  /  ',
+                              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFB8AEB2)),
+                            ),
+                            Text(
+                              'Checkout',
+                              style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: _CheckoutPalette.ink),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '  /  ',
-                        style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFB8AEB2)),
-                      ),
-                      GestureDetector(
-                        onTap: widget.onBack,
-                        child: Text(
-                          'Cart',
-                          style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
-                        ),
-                      ),
-                      Text(
-                        '  /  ',
-                        style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFB8AEB2)),
-                      ),
-                      Text(
-                        'Checkout',
-                        style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: _CheckoutPalette.ink),
-                      ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       GestureDetector(
                         onTap: widget.onBack,
                         child: const _ActionPill('Back to cart', icon: Icons.arrow_back_rounded),

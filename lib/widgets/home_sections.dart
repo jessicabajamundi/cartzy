@@ -1509,7 +1509,7 @@ class DailyDiscoverSection extends StatefulWidget {
 }
 
 class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
-  static const int _productsPerRow = 6;
+  static const int _productsPerRow = 2;
   List<ProductItem> _products = [];
   bool _loading = true;
   String? _errorMessage;
@@ -1657,12 +1657,11 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
         const SizedBox(height: 18),
 
         // ── Products List ──
+        if (!_loading && _products.isNotEmpty)
+          _buildProductGrid(context)
+        else
         SizedBox(
-          height: _loading || _products.isEmpty
-              ? 312
-              : ((_products.length + _productsPerRow - 1) ~/ _productsPerRow) *
-                      (312.0 + 16) -
-                  16,
+          height: 312,
           child: _loading
               ? const Center(
                   child:
@@ -1710,67 +1709,66 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                         ],
                       ),
                     )
-                  : _products.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No products found in the catalog.',
-                            style: GoogleFonts.dmSans(color: CartzyColors.gray),
-                          ),
-                        )
-                      : Column(
-                          children: [
-                            for (var rowStart = 0;
-                                rowStart < _products.length;
-                                rowStart += _productsPerRow) ...[
-                              if (rowStart > 0) const SizedBox(height: 16),
-                              SizedBox(
-                                // Square photo (card width 155) + details.
-                                height: 155 + ProductCard.bodyHeight(context),
-                                child: ListView.separated(
-                                  key: PageStorageKey(
-                                      'daily-discover-row-$rowStart'),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 20),
-                                  scrollDirection: Axis.horizontal,
-                                  primary: false,
-                                  itemCount: (_products.length - rowStart)
-                                      .clamp(0, _productsPerRow),
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(width: 10),
-                                  itemBuilder: (context, index) {
-                                    final p = _products[rowStart + index];
-                                    return SizedBox(
-                                      width: 155,
-                                      child: ProductCard(
-                                          productId: p.id,
-                                        name: p.name,
-                                        price: p.price,
-                                        originalPrice: p.originalPrice,
-                                        discountPercent: p.discountPercent > 0
-                                            ? p.discountPercent
-                                            : null,
-                                        badge: p.badge,
-                                        rating: p.rating,
-                                        soldCount: p.soldCount,
-                                        hasFreeShipping: p.hasFreeShipping,
-                                        sellerName: p.sellerName,
-                                        inStock: p.inStock,
-                                        stock: p.stock,
-                                        imageUrl: p.effectiveImageUrl,
-                                        onTap: () => widget.onProductTap(p),
-                                        onAddToCart: widget.onAddToCart != null
-                                            ? () => widget.onAddToCart!(p)
-                                            : null,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                  : Center(
+                      child: Text(
+                        'No products found in the catalog.',
+                        style: GoogleFonts.dmSans(color: CartzyColors.gray),
+                      ),
+                    ),
         ),
       ],
+    );
+  }
+
+  /// Two products per row, filling the screen width. The page itself scrolls
+  /// down through the rows; nothing here scrolls sideways.
+  Widget _buildProductGrid(BuildContext context) {
+    const sidePadding = 20.0;
+    const gap = 10.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth -
+                sidePadding * 2 -
+                gap * (_productsPerRow - 1)) /
+            _productsPerRow;
+        return GridView.builder(
+          shrinkWrap: true,
+          primary: false,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: sidePadding),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: _productsPerRow,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: gap,
+            // Square photo + details.
+            mainAxisExtent: cardWidth + ProductCard.bodyHeight(context),
+          ),
+          itemCount: _products.length,
+          itemBuilder: (context, index) {
+            final p = _products[index];
+            return ProductCard(
+              productId: p.id,
+              name: p.name,
+              price: p.price,
+              originalPrice: p.originalPrice,
+              discountPercent:
+                  p.discountPercent > 0 ? p.discountPercent : null,
+              badge: p.badge,
+              rating: p.rating,
+              soldCount: p.soldCount,
+              hasFreeShipping: p.hasFreeShipping,
+              sellerName: p.sellerName,
+              inStock: p.inStock,
+              stock: p.stock,
+              imageUrl: p.effectiveImageUrl,
+              onTap: () => widget.onProductTap(p),
+              onAddToCart: widget.onAddToCart != null
+                  ? () => widget.onAddToCart!(p)
+                  : null,
+            );
+          },
+        );
+      },
     );
   }
 }
