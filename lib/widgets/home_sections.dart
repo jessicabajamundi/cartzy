@@ -1215,14 +1215,21 @@ class FlashDealsSection extends StatefulWidget {
   final VoidCallback? onViewAll;
   final void Function(ProductItem product)? onProductTap;
 
-  const FlashDealsSection({super.key, this.onViewAll, this.onProductTap});
+  /// Replaces the server call in tests.
+  final Future<List<ProductItem>> Function()? loadDeals;
+
+  const FlashDealsSection({
+    super.key,
+    this.onViewAll,
+    this.onProductTap,
+    this.loadDeals,
+  });
 
   @override
-  State<FlashDealsSection> createState() => _FlashDealsSectionState();
+  State<FlashDealsSection> createState() => FlashDealsSectionState();
 }
 
-class _FlashDealsSectionState extends State<FlashDealsSection> {
-  Duration _remaining = const Duration(hours: 2, minutes: 45, seconds: 18);
+class FlashDealsSectionState extends State<FlashDealsSection> {
   Timer? _timer;
   List<ProductItem> _deals = [];
   bool _loading = true;
@@ -1230,29 +1237,47 @@ class _FlashDealsSectionState extends State<FlashDealsSection> {
   @override
   void initState() {
     super.initState();
-    _loadDeals();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(() {
-        if (_remaining.inSeconds > 0) {
-          _remaining -= const Duration(seconds: 1);
-        } else {
-          _remaining = const Duration(hours: 2, minutes: 45, seconds: 18);
-        }
-      });
-    });
+    reload();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
   }
 
-  Future<void> _loadDeals() async {
-    try {
-      var list = await CatalogService.fetchProducts(category: 'Flash Deals');
-      if (list.isEmpty) {
-        list = await CatalogService.fetchProducts(perPage: 10);
+  /// The deal ending soonest sets the countdown. It is worked out from the
+  /// sale's real end time each tick, so it stays right after the app has been
+  /// in the background.
+  DateTime? get _nextEnd {
+    DateTime? soonest;
+    for (final deal in _deals) {
+      final end = deal.saleEndsAt;
+      if (end != null && (soonest == null || end.isBefore(soonest))) {
+        soonest = end;
       }
+    }
+    return soonest;
+  }
+
+  List<ProductItem> _stillRunning(List<ProductItem> deals) {
+    final now = DateTime.now();
+    return deals
+        .where((d) => d.saleEndsAt == null || d.saleEndsAt!.isAfter(now))
+        .toList();
+  }
+
+  void _tick() {
+    if (!mounted) return;
+    final running = _stillRunning(_deals);
+    // Nothing on screen changes when there is no countdown and no deal ended.
+    if (_nextEnd == null && running.length == _deals.length) return;
+    setState(() => _deals = running);
+  }
+
+  Future<void> reload() async {
+    try {
+      final list = await (widget.loadDeals ??
+          () => CatalogService.fetchProducts(category: 'Flash Deals'))();
       debugPrint('[FlashDeals] loaded: ${list.length} deals');
       if (mounted) {
         setState(() {
-          _deals = list;
+          _deals = _stillRunning(list);
           _loading = false;
         });
       }
@@ -1272,11 +1297,28 @@ class _FlashDealsSectionState extends State<FlashDealsSection> {
 
   String _two(int n) => n.toString().padLeft(2, '0');
 
+  /// Days appear only when the sale is at least a day away from ending.
+  Widget _buildCountdown(Duration remaining) {
+    final safe = remaining.isNegative ? Duration.zero : remaining;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (safe.inDays > 0) ...[
+          _timeBlock('${safe.inDays}d'),
+          const SizedBox(width: 3),
+        ],
+        _timeBlock(_two(safe.inHours.remainder(24))),
+        _colon(),
+        _timeBlock(_two(safe.inMinutes.remainder(60))),
+        _colon(),
+        _timeBlock(_two(safe.inSeconds.remainder(60))),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final h = _two(_remaining.inHours);
-    final m = _two(_remaining.inMinutes.remainder(60));
-    final s = _two(_remaining.inSeconds.remainder(60));
+    final nextEnd = _nextEnd;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1315,16 +1357,9 @@ class _FlashDealsSectionState extends State<FlashDealsSection> {
                   ],
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _timeBlock(h),
-                  _colon(),
-                  _timeBlock(m),
-                  _colon(),
-                  _timeBlock(s),
-                ],
-              ),
+              // No timer unless a running sale really has an end time.
+              if (nextEnd != null)
+                _buildCountdown(nextEnd.difference(DateTime.now())),
                 ],
                 ),
               ),

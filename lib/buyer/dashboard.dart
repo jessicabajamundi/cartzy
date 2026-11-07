@@ -63,6 +63,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _selectedCategory = categoryIcons.first.label;
 
   final GlobalKey<HeroBannerState> _heroKey = GlobalKey<HeroBannerState>();
+  final GlobalKey<FlashDealsSectionState> _flashKey =
+      GlobalKey<FlashDealsSectionState>();
   final GlobalKey<DailyDiscoverSectionState> _discoverKey =
       GlobalKey<DailyDiscoverSectionState>();
 
@@ -280,6 +282,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   MessageService.fetchUnreadCount();
                   await Future.wait([
                     _heroKey.currentState?.reload() ?? Future.value(),
+                    _flashKey.currentState?.reload() ?? Future.value(),
                     _discoverKey.currentState?.reload() ?? Future.value(),
                   ]);
                 },
@@ -576,6 +579,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     // FLASH DEALS
                     FlashDealsSection(
+                      key: _flashKey,
                       onViewAll: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(

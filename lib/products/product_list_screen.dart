@@ -31,6 +31,9 @@ class ProductItem {
   final int? stock;
   final bool hasFreeShipping;
 
+  /// When this product's sale ends; null if not on sale or no end date.
+  final DateTime? saleEndsAt;
+
   const ProductItem({
     this.id,
     required this.name,
@@ -46,6 +49,7 @@ class ProductItem {
     this.inStock = true,
     this.stock,
     this.hasFreeShipping = true,
+    this.saleEndsAt,
   });
 
   String get effectiveImageUrl => (imageUrl != null && imageUrl!.isNotEmpty)

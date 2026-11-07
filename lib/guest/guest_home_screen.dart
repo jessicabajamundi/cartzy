@@ -51,6 +51,8 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = categoryIcons.first.label;
   final GlobalKey<HeroBannerState> _heroKey = GlobalKey<HeroBannerState>();
+  final GlobalKey<FlashDealsSectionState> _flashKey =
+      GlobalKey<FlashDealsSectionState>();
   final GlobalKey<DailyDiscoverSectionState> _discoverKey =
       GlobalKey<DailyDiscoverSectionState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -263,6 +265,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                   CatalogService.clearCache();
                   await Future.wait([
                     _heroKey.currentState?.reload() ?? Future.value(),
+                    _flashKey.currentState?.reload() ?? Future.value(),
                     _discoverKey.currentState?.reload() ?? Future.value(),
                   ]);
                 },
@@ -432,6 +435,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 
                     // FLASH DEALS
                     FlashDealsSection(
+                      key: _flashKey,
                       onViewAll: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(

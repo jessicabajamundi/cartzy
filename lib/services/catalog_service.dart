@@ -61,6 +61,7 @@ class CatalogService {
       inStock: inStock,
       stock: (json['stock'] as num?)?.toInt(),
       hasFreeShipping: true,
+      saleEndsAt: DateTime.tryParse(json['sale_ends_at']?.toString() ?? ''),
     );
   }
 
@@ -74,6 +75,7 @@ class CatalogService {
     final params = <String, String>{
       'per_page': '$perPage',
       if (category != null && category != 'All' && category != 'Flash Deals') 'category': category,
+      if (category == 'Flash Deals') 'on_sale': '1',
       if (query != null && query.trim().isNotEmpty) 'q': query.trim(),
     };
     final response = await _get('/products?${Uri(queryParameters: params).query}');
