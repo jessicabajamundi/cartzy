@@ -1,5 +1,15 @@
-{{-- Cozy the teddy bear: floating shopping buddy for the storefront, or shop helper with $buddySeller. --}}
-<div id="buddy" class="buddy" @if($buddySeller ?? false) data-mode="seller" @endif data-chat-url="{{ route('buddy.chat') }}" data-user-id="{{ Auth::id() }}" data-user-name="{{ Auth::check() ? strtok((string) Auth::user()->name, ' ') : '' }}">
+{{-- Cozy the teddy bear: floating shopping buddy for the storefront, or a helper in a workspace with
+     $buddyMode (seller, admin, logistics). $buddyFloating false leaves only the sidebar link to open her. --}}
+@php
+    $buddyMode = $buddyMode ?? null;
+    $buddyFirstName = Auth::check() ? strtok((string) Auth::user()->name, ' ') : '';
+    $buddyWorkspace = [
+        'seller' => ['status' => 'Your Cartzy shop helper', 'welcome' => "Hi {$buddyFirstName}! I'm Cozy, your shop helper. I can check your orders, stock and sales, or show you where to do things.", 'chips' => ['What needs attention?', 'Low stock items', 'Sales this month'], 'greeting' => "Hi {$buddyFirstName}! Need help with your shop?"],
+        'admin' => ['status' => 'Your Cartzy admin helper', 'welcome' => "Hi {$buddyFirstName}! I'm Cozy, your admin helper. I can check platform totals and what's waiting for review, or show you where to do things.", 'chips' => ['What needs review?', 'Open disputes', 'Platform totals'], 'greeting' => "Hi {$buddyFirstName}! Need a hand?"],
+        'logistics' => ['status' => 'Your Cartzy hub helper', 'welcome' => "Hi {$buddyFirstName}! I'm Cozy, your hub helper. I can check today's parcels, pickups and riders, or show you where to do things.", 'chips' => ['Parcels in the hub', 'Pickups today', 'Rider applications'], 'greeting' => "Hi {$buddyFirstName}! Need a hand?"],
+    ][$buddyMode] ?? null;
+@endphp
+<div id="buddy" class="buddy" @if($buddyWorkspace) data-mode="{{ $buddyMode }}" data-welcome="{{ $buddyWorkspace['welcome'] }}" data-chips='@json($buddyWorkspace['chips'])' data-greeting="{{ $buddyWorkspace['greeting'] }}" @endif data-chat-url="{{ route('buddy.chat') }}" data-user-id="{{ Auth::id() }}" data-user-name="{{ Auth::check() ? strtok((string) Auth::user()->name, ' ') : '' }}">
     <template id="buddy-bear-art">
         <svg viewBox="0 0 200 200" class="buddy-bear" aria-hidden="true" focusable="false">
             <g class="buddy-bear-body" stroke-linejoin="round">
@@ -43,7 +53,7 @@
         </svg>
     </template>
 
-    <button type="button" class="buddy-launcher" id="buddyLauncher" aria-expanded="false" aria-controls="buddyPanel" aria-label="Chat with Cozy the teddy bear">
+    <button type="button" class="buddy-launcher" id="buddyLauncher" @unless($buddyFloating ?? true) hidden @endunless aria-expanded="false" aria-controls="buddyPanel" aria-label="Chat with Cozy the teddy bear">
         <span class="buddy-launcher-bear" data-bear data-mood="happy"></span>
         <span class="buddy-greeting" id="buddyGreeting" hidden></span>
     </button>
@@ -61,7 +71,7 @@
             <span class="buddy-head-bear" data-bear data-mood="happy"></span>
             <div class="buddy-head-text">
                 <strong>Cozy</strong>
-                <small id="buddyStatus">{{ ($buddySeller ?? false) ? 'Your Cartzy shop helper' : 'Your Cartzy shopping buddy' }}</small>
+                <small id="buddyStatus">{{ $buddyWorkspace['status'] ?? 'Your Cartzy shopping buddy' }}</small>
             </div>
             <button type="button" class="buddy-icon" id="buddyReset" aria-label="Start a new chat" title="Start a new chat">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.700L3 8"/><path d="M3 3v5h5"/></svg>

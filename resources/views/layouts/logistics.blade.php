@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     @stack('styles')
+    <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/logistics.css') }}?v={{ filemtime(public_path('css/logistics.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/logistics-workspace.css') }}?v={{ filemtime(public_path('css/logistics-workspace.css')) }}">
@@ -64,6 +65,7 @@
                 </a>
             @endforeach
         @endforeach
+        @include('partials.cozy-nav-link')
         <hr class="sidebar-logout-divider">
         <form method="POST" action="{{ route('logout') }}" class="sidebar-logout-form">
             @csrf
@@ -169,6 +171,8 @@
     <script src="{{ asset('js/logistics-chat-popup.js') }}?v={{ filemtime(public_path('js/logistics-chat-popup.js')) }}" defer></script>
 <script src="{{ asset('js/admin/admin.js') }}?v={{ filemtime(public_path('js/admin/admin.js')) }}" defer></script>
     @stack('scripts')
+    @include('partials.buddy', ['buddyMode' => 'logistics', 'buddyFloating' => false])
+    <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
 </body>

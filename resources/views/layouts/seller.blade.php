@@ -11,10 +11,10 @@
     <link rel="stylesheet" href="{{ asset('css/seller.css') }}?v={{ filemtime(public_path('css/seller.css')) }}">
     @if(request()->routeIs('seller.dashboard'))
         <link rel="stylesheet" href="{{ asset('css/seller-dashboard.css') }}?v={{ filemtime(public_path('css/seller-dashboard.css')) }}">
-        <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     @endif
     <link rel="stylesheet" href="{{ asset('css/seller-admin-skin.css') }}?v={{ filemtime(public_path('css/seller-admin-skin.css')) }}">
     @if(auth()->user()->isSeller())
+        <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/seller-chat-popups.css') }}?v={{ filemtime(public_path('css/seller-chat-popups.css')) }}">
     @endif
@@ -43,6 +43,7 @@
                         @include('seller.partials.workspace-notifications')
                     @endif
                 @endforeach
+                @include('partials.cozy-nav-link')
             @else
                 <a class="nav-link" href="{{ route('buyer.dashboard') }}">@include('seller.partials.icon', ['name' => 'grid'])My account</a>
                 <a class="nav-link active" href="{{ route('buyer.messages') }}">@include('seller.partials.icon', ['name' => 'chat'])Messages</a>
@@ -178,8 +179,8 @@ document.addEventListener('keydown', event => {
     <script src="{{ asset('js/seller-chat-popups.js') }}?v={{ filemtime(public_path('js/seller-chat-popups.js')) }}" defer></script>
 @endif
 @include('partials.prevent-back-cache')
-@if(request()->routeIs('seller.dashboard'))
-    @include('partials.buddy', ['buddySeller' => true])
+@if($sellerMode)
+    @include('partials.buddy', ['buddyMode' => 'seller', 'buddyFloating' => request()->routeIs('seller.dashboard')])
     <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
 @endif
 @include('partials.logout-confirm')

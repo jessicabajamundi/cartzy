@@ -333,15 +333,84 @@ class BuddyChatTest extends TestCase
             ->assertOk()->assertJsonPath('reply', 'You have 1 order to prepare. Open Orders and press Mark packed once one is ready.');
     }
 
-    public function test_cozy_is_on_the_seller_dashboard_only_and_not_in_the_sidebar(): void
+    private function sidebarOf(string $page): string
+    {
+        return substr($page, strpos($page, '<aside'), strpos($page, '</aside>') - strpos($page, '<aside'));
+    }
+
+    public function test_cozy_is_in_the_seller_sidebar_and_floats_only_on_the_dashboard(): void
     {
         $mine = $this->sellerWithOrder('Mine', 'MINE-1');
         $this->actingAs($mine->user);
 
-        $dashboard = $this->get('/seller/dashboard')->assertOk()->assertSee('data-mode="seller"', false)->assertSee('js/buddy.js', false)->getContent();
-        $sidebar = substr($dashboard, strpos($dashboard, '<aside'), strpos($dashboard, '</aside>') - strpos($dashboard, '<aside'));
-        $this->assertStringNotContainsStringIgnoringCase('cozy', $sidebar);
+        $dashboard = $this->get('/seller/dashboard')->assertOk()->assertSee('data-mode="seller"', false)->getContent();
+        $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($dashboard));
+        $this->assertDoesNotMatchRegularExpression('/id="buddyLauncher"\s+hidden/', $dashboard);
 
-        $this->get('/seller/orders')->assertOk()->assertDontSee('id="buddy"', false)->assertDontSee('js/buddy.js', false);
+        $orders = $this->get('/seller/orders')->assertOk()->assertSee('data-mode="seller"', false)->assertSee('js/buddy.js', false)->getContent();
+        $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($orders));
+        $this->assertMatchesRegularExpression('/id="buddyLauncher"\s+hidden/', $orders);
+    }
+
+    public function test_cozy_is_in_the_admin_and_logistics_sidebars_without_a_floating_bear(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $hub = User::factory()->create(['role' => 'logistics', 'status' => 'active']);
+        LogisticsProvider::create(['user_id' => $hub->id, 'name' => 'My Hub', 'slug' => 'my-hub', 'status' => 'approved']);
+
+        foreach ([[$admin, route('admin.dashboard'), 'admin'], [$hub, route('logistics.dashboard'), 'logistics']] as [$user, $url, $mode]) {
+            $page = $this->actingAs($user)->get($url)->assertOk()->assertSee('data-mode="'.$mode.'"', false)->assertSee('js/buddy.js', false)->getContent();
+            $this->assertStringContainsString('data-cozy-open', $this->sidebarOf($page));
+            $this->assertMatchesRegularExpression('/id="buddyLauncher"\s+hidden/', $page);
+        }
+    }
+
+    public function test_each_workspace_mode_needs_its_own_active_role(): void
+    {
+        config(['services.anthropic.key' => null]);
+        $seller = $this->sellerWithOrder('Mine', 'MINE-1')->user;
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $hub = User::factory()->create(['role' => 'logistics', 'status' => 'active']);
+        $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active']);
+
+        foreach ([[$seller, 'admin'], [$seller, 'logistics'], [$hub, 'admin'], [$hub, 'seller'], [$admin, 'seller'], [$admin, 'logistics'], [$buyer, 'admin'], [$buyer, 'logistics']] as [$user, $mode]) {
+            $this->actingAs($user)->postJson('/buddy/chat', ['mode' => $mode] + $this->say('hello'))->assertForbidden();
+        }
+
+        $hub->update(['is_suspended' => true]);
+        $this->actingAs($hub->fresh())->postJson('/buddy/chat', ['mode' => 'logistics'] + $this->say('hello'))->assertForbidden();
+        $this->actingAs($admin)->postJson('/buddy/chat', ['mode' => 'admin'] + $this->say('hello'))->assertOk()->assertJsonPath('mood', 'happy');
+    }
+
+    public function test_admin_and_logistics_modes_use_their_own_prompt_and_totals_only(): void
+    {
+        $this->sellerWithOrder('Mine', 'MINE-1');
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $fake = $this->fakeClaude([
+            $this->toolCall('platform_overview', []),
+            $this->answer(['reply' => 'One order.', 'mood' => 'happy', 'suggestions' => [], 'product_ids' => []]),
+        ]);
+        $this->actingAs($admin)->postJson('/buddy/chat', ['mode' => 'admin'] + $this->say('totals?'))->assertOk()->assertJsonPath('reply', 'One order.');
+        $this->assertStringContainsString('Admin Workspace', $fake->sent[0]['system'][0]['text']);
+        $result = $fake->sent[1]['messages'][2]['content'][0]['content'];
+        $this->assertStringContainsString('"orders":1', $result);
+        $this->assertStringNotContainsString('MINE-1', $result);
+        $this->assertStringNotContainsString('Private', $result);
+
+        $hub = User::factory()->create(['role' => 'logistics', 'status' => 'active']);
+        $provider = LogisticsProvider::create(['user_id' => $hub->id, 'name' => 'My Hub', 'slug' => 'my-hub', 'status' => 'approved']);
+        $other = LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Other Hub', 'slug' => 'other-hub', 'status' => 'approved']);
+        $order = \App\Models\SellerOrder::first();
+        \App\Models\Shipment::create(['seller_order_id' => $order->id, 'logistics_provider_id' => $other->id, 'tracking_code' => 'OTHER-1', 'status' => 'in_transit']);
+        $fake = $this->fakeClaude([
+            $this->toolCall('hub_overview', []),
+            $this->answer(['reply' => 'Quiet day.', 'mood' => 'happy', 'suggestions' => [], 'product_ids' => []]),
+        ]);
+        $this->actingAs($hub)->postJson('/buddy/chat', ['mode' => 'logistics'] + $this->say('parcels?'))->assertOk();
+        $this->assertStringContainsString('Logistics Hub', $fake->sent[0]['system'][0]['text']);
+        $result = $fake->sent[1]['messages'][2]['content'][0]['content'];
+        $this->assertStringContainsString('"hub_name":"My Hub"', $result);
+        $this->assertStringContainsString('"parcels_in_hub":0', $result);
+        $this->assertNotNull($provider);
     }
 }

@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     @stack('styles')
 </head>
 <body>
@@ -57,6 +58,7 @@
                 </a>
             @endforeach
         @endforeach
+        @include('partials.cozy-nav-link')
         <hr class="sidebar-logout-divider">
         <form method="POST" action="{{ route('logout') }}" class="sidebar-logout-form">
             @csrf
@@ -90,6 +92,8 @@
 </div>
 <script src="{{ asset('js/admin/admin.js') }}?v={{ filemtime(public_path('js/admin/admin.js')) }}" defer></script>
 @stack('scripts')
+@include('partials.buddy', ['buddyMode' => 'admin', 'buddyFloating' => false])
+<script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
 @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
 </body>

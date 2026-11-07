@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Cozy, the teddy bear shopping buddy, shared by the website and the mobile app.
- * On the seller dashboard she helps run the shop instead, with tools that only read that seller's own data.
+ * In the seller, admin and logistics workspaces she helps with the work instead, with tools that only read what that account may see.
  * Every tool is read-only: Cozy can look things up and point the way, but never changes an account.
  */
 class BuddyChat
@@ -61,6 +61,40 @@ How an order moves: Mark packed in Orders, then request pickup in Shipping, then
 You can't change anything: you can't pack, cancel, restock, edit a listing, send a message or issue a voucher. Tell the seller where to do it. Choose the mood that matches your reply. Keep product_ids empty. Give 0 to 3 suggestions: very short things the seller might say next, written in their voice and their language.
 PROMPT;
 
+    private const ADMIN_PROMPT = <<<'PROMPT'
+You are Cozy, a super cute lavender teddy bear with a rose-gold bow. Here you are the helper inside the Cartzy Admin Workspace, chatting with a platform administrator. Cartzy is a Philippine online marketplace.
+
+Be warm and practical: lead with the answer or the next step. A small bear touch now and then is fine. Keep replies short enough for a chat bubble: usually 1 to 4 sentences. Write plain text without Markdown. Reply in the language the person uses, including Tagalog or Taglish. Prices are in Philippine pesos (₱).
+
+Help with running the marketplace: what needs review, platform totals, and where to do things in the workspace. You can also draft notices and replies. For requests unrelated to Cartzy administration, give a sweet one-line "that's beyond my little paws" and steer back. If someone seems genuinely upset or unsafe, drop the work talk, respond with care, and encourage them to reach out to someone they trust or to local emergency services. If asked, say honestly that you're an AI helper.
+
+Use your tool rather than guessing. Only state totals that the tool returned. You only see totals, not individual accounts or orders, so point to the right page for those. Never invent a figure, date, or policy.
+
+Where things are in the workspace sidebar:
+- Overview: platform summary. Seller products: review listings. Registrations and ID checks: review accounts. Logistics partners and User accounts: manage them.
+- Product compliance, Archive, Disputes, Commission, Vouchers, Shipping rates, Reports, Activity logs.
+- Messages, Platform settings, My account.
+
+You can't change anything: you can't approve, reject, suspend, refund or edit. Tell the person where to do it. Choose the mood that matches your reply. Keep product_ids empty. Give 0 to 3 suggestions: very short things the person might say next, written in their voice and their language.
+PROMPT;
+
+    private const LOGISTICS_PROMPT = <<<'PROMPT'
+You are Cozy, a super cute lavender teddy bear with a rose-gold bow. Here you are the helper inside the Cartzy Logistics Hub, chatting with the person running a logistics hub. Cartzy is a Philippine online marketplace.
+
+Be warm and practical: lead with the answer or the next step. A small bear touch now and then is fine. Keep replies short enough for a chat bubble: usually 1 to 4 sentences. Write plain text without Markdown. Reply in the language the person uses, including Tagalog or Taglish.
+
+Help with running the hub: today's parcels, pickups, riders, and where to do things in the workspace. You can also draft messages to sellers or riders. For requests unrelated to Cartzy logistics, give a sweet one-line "that's beyond my little paws" and steer back. If someone seems genuinely upset or unsafe, drop the work talk, respond with care, and encourage them to reach out to someone they trust or to local emergency services. If asked, say honestly that you're an AI helper.
+
+Use your tool rather than guessing. Only state totals that the tool returned, and only about this hub. You only see totals, not individual parcels, riders or customers, so point to the right page for those. Never invent a figure, date, or policy.
+
+Where things are in the workspace sidebar:
+- Dashboard: the hub summary. Rider management: riders and applications.
+- Pickup requests: seller pickups. Hub desk: receiving and sorting parcels. Delivery monitoring: parcels on the road.
+- Reports, Notifications, Chat / messaging, Account management.
+
+You can't change anything: you can't assign riders, scan parcels, approve applications or send messages. Tell the person where to do it. Choose the mood that matches your reply. Keep product_ids empty. Give 0 to 3 suggestions: very short things the person might say next, written in their voice and their language.
+PROMPT;
+
     private const OUTPUT_SCHEMA = [
         'type' => 'object',
         'properties' => [
@@ -100,8 +134,10 @@ PROMPT;
     /** Products the tools returned this turn: the only ones a reply may show as cards. */
     private array $seenProducts = [];
 
-    /** The seller Cozy is helping, when the chat comes from the seller dashboard. */
-    private ?User $sellerAccount = null;
+    /** Which workspace the chat comes from (seller, admin or logistics), and whose account it is. */
+    private ?string $workspaceMode = null;
+
+    private ?User $workspaceUser = null;
 
     public function __construct(private BuyerOrders $orders, private CatalogController $catalog) {}
 
@@ -112,7 +148,8 @@ PROMPT;
     public function reply(array $history, ?User $user, ?int $productId = null): array
     {
         $this->seenProducts = [];
-        $this->sellerAccount = null;
+        $this->workspaceMode = null;
+        $this->workspaceUser = null;
 
         if (!config('services.anthropic.key')) {
             return $this->offlineReply((string) end($history)['content'], $user);
@@ -128,34 +165,46 @@ PROMPT;
     }
 
     /**
-     * The same chat for a seller: shop tools only, and only ever about this seller's own shop.
+     * The same chat inside a workspace: only that workspace's tools, about what this account may see.
      *
-     * @param  array<int, array{role: string, content: string}>  $history  Oldest first, ending with the seller's message.
+     * @param  array<int, array{role: string, content: string}>  $history  Oldest first, ending with the person's message.
+     * @param  string  $mode  seller, admin or logistics. The caller has checked the account may use it.
      * @return array{reply: string, mood: string, suggestions: array, products: array}
      */
-    public function replyToSeller(array $history, User $seller): array
+    public function replyInWorkspace(array $history, User $user, string $mode): array
     {
         $this->seenProducts = [];
-        $this->sellerAccount = $seller;
+        $this->workspaceMode = $mode;
+        $this->workspaceUser = $user;
 
         if (!config('services.anthropic.key')) {
-            return $this->sellerOfflineReply((string) end($history)['content']);
+            return $this->workspaceOfflineReply((string) end($history)['content']);
         }
 
         try {
-            return $this->converse($history, $seller, null);
+            return $this->converse($history, $user, null);
         } catch (\Throwable $e) {
-            Log::warning('Seller buddy chat failed: '.$e->getMessage());
+            Log::warning('Workspace buddy chat failed: '.$e->getMessage());
 
-            return $this->sellerOfflineReply((string) end($history)['content']);
+            return $this->workspaceOfflineReply((string) end($history)['content']);
         }
+    }
+
+    private function systemPrompt(): string
+    {
+        return match ($this->workspaceMode) {
+            'seller' => self::SELLER_PROMPT,
+            'admin' => self::ADMIN_PROMPT,
+            'logistics' => self::LOGISTICS_PROMPT,
+            default => self::SYSTEM_PROMPT,
+        };
     }
 
     private function converse(array $history, ?User $user, ?int $productId): array
     {
         $messages = array_map(fn ($m) => ['role' => $m['role'], 'content' => $m['content']], $history);
         $system = [
-            ['type' => 'text', 'text' => $this->sellerAccount ? self::SELLER_PROMPT : self::SYSTEM_PROMPT, 'cacheControl' => ['type' => 'ephemeral']],
+            ['type' => 'text', 'text' => $this->systemPrompt(), 'cacheControl' => ['type' => 'ephemeral']],
             ['type' => 'text', 'text' => $this->visitorContext($user, $productId)],
         ];
 
@@ -204,11 +253,15 @@ PROMPT;
 
     private function visitorContext(?User $user, ?int $productId): string
     {
-        if ($this->sellerAccount) {
-            $shop = $this->sellerAccount->seller;
+        if ($this->workspaceMode) {
+            $firstName = strtok((string) $this->workspaceUser->name, ' ');
 
-            return 'The person chatting is a signed-in seller named '.strtok((string) $this->sellerAccount->name, ' ').', '
-                .($shop ? 'who runs the shop "'.$shop->name.'". Use their name sparingly.' : 'who has not set up a shop yet.');
+            return match ($this->workspaceMode) {
+                'seller' => "The person chatting is a signed-in seller named {$firstName}, "
+                    .($this->workspaceUser->seller ? 'who runs the shop "'.$this->workspaceUser->seller->name.'". Use their name sparingly.' : 'who has not set up a shop yet.'),
+                'admin' => "The person chatting is a signed-in administrator named {$firstName}. Use their name sparingly.",
+                default => "The person chatting is a signed-in logistics hub operator named {$firstName}. Use their name sparingly.",
+            };
         }
 
         $context = $user
@@ -225,9 +278,9 @@ PROMPT;
     private function finish(object $response): array
     {
         if ($response->stopReason === 'refusal') {
-            if ($this->sellerAccount) {
+            if ($this->workspaceMode) {
                 return [
-                    'reply' => "Hmm, that's one I can't help with, but I'd love to help with your shop!",
+                    'reply' => "Hmm, that's one I can't help with, but I'd love to help with your work here!",
                     'mood' => 'sad', 'suggestions' => ['What needs attention?'], 'products' => [],
                 ];
             }
@@ -284,8 +337,8 @@ PROMPT;
 
     private function tools(): array
     {
-        if ($this->sellerAccount) {
-            return $this->sellerTools();
+        if ($this->workspaceMode) {
+            return $this->workspaceTools();
         }
 
         return [
@@ -333,8 +386,24 @@ PROMPT;
         ];
     }
 
-    private function sellerTools(): array
+    private function workspaceTools(): array
     {
+        if ($this->workspaceMode === 'admin') {
+            return [[
+                'name' => 'platform_overview',
+                'description' => 'Get Cartzy\'s platform totals: accounts and products waiting for review, open disputes, orders, products, buyers, sellers, couriers, and earned sales and commission.',
+                'inputSchema' => ['type' => 'object', 'properties' => new \stdClass],
+            ]];
+        }
+
+        if ($this->workspaceMode === 'logistics') {
+            return [[
+                'name' => 'hub_overview',
+                'description' => 'Get this hub\'s totals: riders, rider applications, today\'s pickups, parcels in the hub, parcels out for delivery, and today\'s delivered and failed parcels.',
+                'inputSchema' => ['type' => 'object', 'properties' => new \stdClass],
+            ]];
+        }
+
         return [
             [
                 'name' => 'shop_overview',
@@ -357,10 +426,23 @@ PROMPT;
         ];
     }
 
-    /** The shop always comes from the signed-in seller, never from anything in the chat. */
-    private function runSellerTool(string $name, array $input): array
+    /** The shop or hub always comes from the signed-in account, never from anything in the chat. */
+    private function runWorkspaceTool(string $name, array $input): array
     {
-        $shop = $this->sellerAccount->seller;
+        if ($this->workspaceMode === 'admin') {
+            return $name === 'platform_overview' ? app(StaffBuddyData::class)->platform() : ['error' => 'Unknown tool.'];
+        }
+
+        if ($this->workspaceMode === 'logistics') {
+            if ($name !== 'hub_overview') {
+                return ['error' => 'Unknown tool.'];
+            }
+            $provider = $this->workspaceUser->logisticsProvider;
+
+            return $provider ? app(StaffBuddyData::class)->hub($provider) : ['error' => 'This account has no hub yet.'];
+        }
+
+        $shop = $this->workspaceUser->seller;
         if (!$shop) {
             return ['error' => 'This account has no shop yet.'];
         }
@@ -378,8 +460,8 @@ PROMPT;
     /** Runs one tool. Order tools only ever read the signed-in buyer's own orders. */
     public function runTool(string $name, array $input, ?User $user): array
     {
-        if ($this->sellerAccount) {
-            return $this->runSellerTool($name, $input);
+        if ($this->workspaceMode) {
+            return $this->runWorkspaceTool($name, $input);
         }
 
         return match ($name) {
@@ -575,10 +657,40 @@ PROMPT;
             ])->values()->all();
     }
 
-    /** A seller's question answered from their shop numbers, used when no API key is set or the API can't be reached. */
+    /** A short summary from real numbers, used when no API key is set or the API can't be reached. */
+    private function workspaceOfflineReply(string $message): array
+    {
+        if ($this->workspaceMode === 'seller') {
+            return $this->sellerOfflineReply($message);
+        }
+
+        try {
+            if ($this->workspaceMode === 'admin') {
+                $data = app(StaffBuddyData::class)->platform();
+                $reply = "Here's the platform today: {$data['pending_account_reviews']} accounts to review, {$data['pending_products']} products waiting for approval, and {$data['open_disputes']} open disputes.";
+                $suggestions = ['What needs review?', 'Open disputes', 'Platform totals'];
+            } else {
+                $provider = $this->workspaceUser->logisticsProvider;
+                if (!$provider) {
+                    return ['reply' => 'I can\'t find a hub on this account yet. Account management is the place to check your details!', 'mood' => 'sad', 'suggestions' => [], 'products' => []];
+                }
+                $data = app(StaffBuddyData::class)->hub($provider);
+                $reply = "Here's your hub today: {$data['pickups_today']} pickups, {$data['parcels_in_hub']} parcels in the hub, {$data['out_for_delivery']} out for delivery, and {$data['rider_applications_pending']} rider applications to review.";
+                $suggestions = ['Parcels in the hub', 'Pickups today', 'Rider applications'];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Workspace buddy offline lookup failed: '.$e->getMessage());
+
+            return ['reply' => 'Oh no, I couldn\'t peek at the numbers just now. Your overview page has the latest ones.', 'mood' => 'sad', 'suggestions' => [], 'products' => []];
+        }
+
+        return ['reply' => $reply, 'mood' => 'happy', 'suggestions' => $suggestions, 'products' => []];
+    }
+
+    /** A seller's question answered from their shop numbers. */
     private function sellerOfflineReply(string $message): array
     {
-        $shop = $this->sellerAccount->seller;
+        $shop = $this->workspaceUser->seller;
         if (!$shop) {
             return [
                 'reply' => 'I can\'t find a shop on this account yet. My account is the place to check your shop details!',

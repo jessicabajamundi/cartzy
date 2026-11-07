@@ -1,4 +1,4 @@
-// Cozy the teddy bear: floating shopping buddy for the storefront, and shop helper on the seller dashboard.
+// Cozy the teddy bear: floating shopping buddy for the storefront, and a helper in the seller, admin and logistics workspaces.
 (() => {
     const root = document.getElementById('buddy');
     if (!root) return;
@@ -13,11 +13,11 @@
     const art = $('buddy-bear-art');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const name = root.dataset.userName;
-    const sellerMode = root.dataset.mode === 'seller';
+    const workspaceMode = root.dataset.mode || '';
     const statusText = status.textContent;
     // Per account, so a chat about someone's orders doesn't reappear after they sign out.
-    // A seller's shop chat stays apart from their storefront chat.
-    const storeKey = `cartzy-buddy-chat-${sellerMode ? 'seller-' : ''}${root.dataset.userId || 'guest'}`;
+    // A workspace chat stays apart from the same person's storefront chat.
+    const storeKey = `cartzy-buddy-chat-${workspaceMode ? `${workspaceMode}-` : ''}${root.dataset.userId || 'guest'}`;
     const discardedKey = `cartzy-buddy-discarded-${root.dataset.userId || 'guest'}`;
     const posKey = `cartzy-buddy-pos-${root.dataset.userId || 'guest'}`;
     const peso = (amount) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: Number.isInteger(amount) ? 0 : 2 }).format(amount);
@@ -198,12 +198,12 @@
     };
 
     const welcome = () => {
-        if (sellerMode) {
-            const text = `Hi ${name}! I'm Cozy, your shop helper. I can check your orders, stock and sales, or show you where to do things.`;
+        if (workspaceMode) {
+            const text = root.dataset.welcome;
             addBubble('assistant', text);
             transcript = [{ role: 'assistant', text, products: [] }];
             history = [];
-            setChips(['What needs attention?', 'Low stock items', 'Sales this month']);
+            setChips(JSON.parse(root.dataset.chips));
             return;
         }
         const hello = name ? `Hi ${name}! I'm Cozy, your cuddly shopping buddy.` : "Hi hi! I'm Cozy, your cuddly shopping buddy.";
@@ -229,10 +229,16 @@
         return false;
     };
 
+    const cozyLinks = [...document.querySelectorAll('[data-cozy-open]')];
+    const setExpanded = (open) => {
+        launcher.setAttribute('aria-expanded', String(open));
+        cozyLinks.forEach((link) => link.setAttribute('aria-expanded', String(open)));
+    };
+
     const openPanel = () => {
         root.classList.add('is-open');
         panel.hidden = false;
-        launcher.setAttribute('aria-expanded', 'true');
+        setExpanded(true);
         greeting.hidden = true;
         if (!log.children.length && !restore()) welcome();
         playClass('is-waving', 2200);
@@ -243,8 +249,8 @@
     const closePanel = () => {
         root.classList.remove('is-open');
         panel.hidden = true;
-        launcher.setAttribute('aria-expanded', 'false');
-        launcher.focus();
+        setExpanded(false);
+        (launcher.hidden ? cozyLinks[0] : launcher)?.focus();
     };
 
     async function submit(text) {
@@ -273,7 +279,7 @@
             const response = await fetch(root.dataset.chatUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf },
-                body: JSON.stringify(sellerMode ? { messages: history, mode: 'seller' } : { messages: history, product_id: productMatch ? Number(productMatch[1]) : null }),
+                body: JSON.stringify(workspaceMode ? { messages: history, mode: workspaceMode } : { messages: history, product_id: productMatch ? Number(productMatch[1]) : null }),
             });
             if (response.status === 429) {
                 reply = { reply: 'Whew, my paws need a little rest! Let\'s chat again in a minute.', mood: 'sad', suggestions: [], products: [], failed: true };
@@ -448,6 +454,15 @@
     };
     cozyIcons.forEach((icon) => icon.addEventListener('click', bringBack));
 
+    // The workspace sidebars open the chat directly, and get out of the way on phones.
+    cozyLinks.forEach((link) => link.addEventListener('click', () => {
+        document.getElementById('seller-sidebar')?.classList.remove('open');
+        const overlay = document.querySelector('[data-sidebar-close]');
+        if (overlay && !overlay.hidden) overlay.click();
+        if (panel.hidden) openPanel();
+        else closePanel();
+    }));
+
     $('buddyClose').addEventListener('click', closePanel);
     $('buddyReset').addEventListener('click', () => {
         if (busy) return;
@@ -484,12 +499,12 @@
 
     // A quick hello per visit, once Cozy has popped in.
     try {
-        if (!sessionStorage.getItem('cartzy-buddy-greeted')) {
+        if (!launcher.hidden && !sessionStorage.getItem('cartzy-buddy-greeted')) {
             sessionStorage.setItem('cartzy-buddy-greeted', '1');
             setTimeout(() => {
                 if (!panel.hidden) return;
-                greeting.textContent = sellerMode
-                    ? `Hi ${name}! Need help with your shop?`
+                greeting.textContent = workspaceMode
+                    ? root.dataset.greeting
                     : (name ? `Hi ${name}! Need a shopping buddy?` : 'Psst! Need a shopping buddy?');
                 greeting.hidden = false;
                 playClass('is-waving', 2200);
