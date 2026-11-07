@@ -25,18 +25,27 @@ class LoginModalTest extends TestCase
         $this->get('/seller/login')->assertOk()->assertSee('Seller Centre');
     }
 
-    public function test_people_choose_who_they_sign_in_as(): void
+    public function test_login_starts_by_choosing_who_you_sign_in_as(): void
     {
         $this->get('/login')->assertOk()
+            ->assertSee('data-step="choose"', false)
             ->assertSee('Sign in as')
-            ->assertSeeInOrder(['Buyer', 'Seller', 'Logistics', 'Rider', 'In the app', 'Admin'])
-            ->assertSee('data-lm-role="buyer"'."\n".'                                aria-checked="true"', false)
+            ->assertSeeInOrder([
+                'Buyer', 'Shop, track orders and save favourites',
+                'Seller', 'Manage your store, products and orders',
+                'Logistics', 'Run pickups and riders for your hub',
+                'Rider', 'In the app', 'Deliver parcels using the cartzy Rider app',
+                'Admin', 'Oversee the platform. Authorized staff only',
+            ])
             ->assertSee('Riders sign in on the cartzy app')
             ->assertSee(route('login.courier'), false);
+    }
 
-        // The seller page opens with Seller already picked.
+    public function test_a_roles_own_login_page_opens_straight_on_its_form(): void
+    {
         $this->get('/seller/login')->assertOk()
-            ->assertSee('data-lm-role="seller"'."\n".'                                aria-checked="true"', false)
+            ->assertSee('data-step="login"', false)
+            ->assertSee('Sign In to Seller Centre')
             ->assertSee('name="portal" value="seller"', false);
     }
 

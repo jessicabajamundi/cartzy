@@ -1,21 +1,44 @@
 {{--
-    Login modal. Used two ways:
+    Login modal, in two steps:
+      1. "choose" — people pick who they sign in as (Buyer, Seller, Logistics, Rider, Admin).
+      2. "login"  — the sign-in form for that role (Riders get a pointer to the mobile app instead).
+    Used two ways:
     - standalone (the /login pages): rendered open over a blurred backdrop; closing goes to the shop.
     - in the storefront layout for guests: hidden until a login link is clicked.
-    People pick who they are signing in as (Buyer, Seller, Logistics, Rider, Admin) at the top.
-    Riders sign in on the mobile app, so that choice points to the app instead of showing the form.
 --}}
 @php
     $standalone = $standalone ?? false;
     $current = $portal['key'];
+    // The generic /login page (and the storefront modal) start on the role picker;
+    // a role's own login page, or a failed attempt, goes straight to the form.
+    $startStep = $startStep ?? (($current === 'buyer' && ! $errors->any()) ? 'choose' : 'login');
+
     $roles = [
-        'buyer' => ['label' => 'Buyer', 'icon' => '<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 016 0"/>'],
-        'seller' => ['label' => 'Seller', 'icon' => '<path d="M4 10l1.5-5h13L20 10"/><path d="M4 10a2.7 2.7 0 005.3 0 2.7 2.7 0 005.4 0 2.7 2.7 0 005.3 0"/><path d="M5 11v9h14v-9"/><path d="M10 20v-5h4v5"/>'],
-        'logistics' => ['label' => 'Logistics', 'icon' => '<path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>'],
-        'courier' => ['label' => 'Rider', 'icon' => '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8"/><path d="M8 9h4"/>', 'app' => true],
-        'admin' => ['label' => 'Admin', 'icon' => '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>'],
+        'buyer' => [
+            'label' => 'Buyer', 'description' => 'Shop, track orders and save favourites',
+            'icon' => '<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 016 0"/>',
+        ],
+        'seller' => [
+            'label' => 'Seller', 'description' => 'Manage your store, products and orders',
+            'icon' => '<path d="M4 10l1.5-5h13L20 10"/><path d="M4 10a2.7 2.7 0 005.3 0 2.7 2.7 0 005.4 0 2.7 2.7 0 005.3 0"/><path d="M5 11v9h14v-9"/><path d="M10 20v-5h4v5"/>',
+        ],
+        'logistics' => [
+            'label' => 'Logistics', 'description' => 'Run pickups and riders for your hub',
+            'icon' => '<path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>',
+        ],
+        'courier' => [
+            'label' => 'Rider', 'description' => 'Deliver parcels using the cartzy Rider app', 'app' => true,
+            'icon' => '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8"/><path d="M8 9h4"/>',
+        ],
+        'admin' => [
+            'label' => 'Admin', 'description' => 'Oversee the platform. Authorized staff only',
+            'icon' => '<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/>',
+        ],
     ];
+
     $portalData = collect($portals)->map(fn ($p, $key) => [
+        'label' => $roles[$key]['label'] ?? $p['label'],
+        'icon' => $roles[$key]['icon'] ?? '',
         'title' => $p['title'],
         'subtitle' => $p['subtitle'],
         'button' => $p['button'],
@@ -27,51 +50,94 @@
     if ($portalData->has('courier')) {
         $portalData['courier'] = ['subtitle' => 'Deliveries and routes are in the cartzy Rider app'] + $portalData['courier'];
     }
+    $active = $portalData[$current] ?? $portalData['buyer'];
     $hintKey = session('portal_hint') ? collect($portals)->search(fn ($p) => $p['label'] === session('portal_hint.label')) : null;
+
+    $closeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 @endphp
 
 <div class="lm-overlay {{ $standalone ? 'is-open is-standalone' : '' }}" id="login-modal"
-     data-login-url="{{ route('login') }}" data-portal="{{ $current }}"
+     data-login-url="{{ route('login') }}" data-portal="{{ $current }}" data-step="{{ $startStep }}"
      data-portals='@json($portalData)'
      @if($errors->any()) data-has-errors="true" @endif
      @unless($standalone) hidden @endunless>
     <div class="lm-backdrop" data-lm-close></div>
 
-    <div class="lm-dialog" role="dialog" aria-modal="true" aria-labelledby="lm-title" aria-describedby="lm-subtitle">
+    {{-- ── Step 1: choose who you are signing in as ── --}}
+    <section class="lm-dialog lm-step" data-lm-step="choose" role="dialog" aria-modal="true" aria-labelledby="lm-choose-title"
+             @unless($startStep === 'choose') hidden @endunless>
         <div class="lm-panel">
             @if($standalone)
-                <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">
+                <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">{!! $closeIcon !!}</a>
             @else
-                <button type="button" class="lm-close" data-lm-close aria-label="Close login">
+                <button type="button" class="lm-close" data-lm-close aria-label="Close login">{!! $closeIcon !!}</button>
             @endif
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-            @if($standalone) </a> @else </button> @endif
 
             <div class="lm-head">
                 <img class="lm-logo" src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy">
-                <h2 class="lm-title" id="lm-title">{{ $portal['title'] }}</h2>
-                <p class="lm-subtitle" id="lm-subtitle">{{ $portal['subtitle'] }}</p>
-            </div>
-
-            <div class="lm-roles">
-                <p class="lm-roles-label" id="lm-roles-label">Sign in as</p>
-                <div class="lm-role-grid" role="radiogroup" aria-labelledby="lm-roles-label">
-                    @foreach($roles as $key => $role)
-                        @continue(! isset($portals[$key]))
-                        <button type="button" class="lm-role" role="radio" data-lm-role="{{ $key }}"
-                                aria-checked="{{ $key === $current ? 'true' : 'false' }}" tabindex="{{ $key === $current ? '0' : '-1' }}">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $role['icon'] !!}</svg>
-                            <span>{{ $role['label'] }}</span>
-                            @if(! empty($role['app']))<small>In the app</small>@endif
-                        </button>
-                    @endforeach
-                </div>
+                <h2 class="lm-title" id="lm-choose-title">Sign in to cartzy</h2>
+                <p class="lm-subtitle">Choose how you use cartzy to continue</p>
             </div>
 
             @if($standalone && session('success'))
                 <div class="lm-alert lm-alert-success" role="status">{{ session('success') }}</div>
             @endif
             @if($standalone && session('info'))
+                <div class="lm-alert lm-alert-info" role="status">{{ session('info') }}</div>
+            @endif
+
+            <p class="lm-roles-label">Sign in as</p>
+            <ul class="lm-role-list">
+                @foreach($roles as $key => $role)
+                    @continue(! isset($portals[$key]))
+                    <li>
+                        <button type="button" class="lm-role" data-lm-role="{{ $key }}">
+                            <span class="lm-role-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">{!! $role['icon'] !!}</svg>
+                            </span>
+                            <span class="lm-role-text">
+                                <span class="lm-role-name">{{ $role['label'] }} @if(! empty($role['app']))<small>In the app</small>@endif</span>
+                                <span class="lm-role-desc">{{ $role['description'] }}</span>
+                            </span>
+                            <svg class="lm-role-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                        </button>
+                    </li>
+                @endforeach
+            </ul>
+
+            @if(! empty($portals['buyer']['register']))
+                <p class="lm-foot">New to cartzy? <a href="{{ $portals['buyer']['register'] }}" class="lm-link" data-lm-skip>Create an account</a></p>
+            @endif
+        </div>
+    </section>
+
+    {{-- ── Step 2: sign in to that account ── --}}
+    <section class="lm-dialog lm-step" data-lm-step="login" role="dialog" aria-modal="true" aria-labelledby="lm-title" aria-describedby="lm-subtitle"
+             @unless($startStep === 'login') hidden @endunless>
+        <div class="lm-panel">
+            <button type="button" class="lm-back" data-lm-back aria-label="Back to choosing how you sign in">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                <span>Back</span>
+            </button>
+            @if($standalone)
+                <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">{!! $closeIcon !!}</a>
+            @else
+                <button type="button" class="lm-close" data-lm-close aria-label="Close login">{!! $closeIcon !!}</button>
+            @endif
+
+            <div class="lm-head">
+                <span class="lm-role-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-lm-badge-icon>{!! $active['icon'] !!}</svg>
+                    <span data-lm-badge-label>{{ $active['label'] }}</span>
+                </span>
+                <h2 class="lm-title" id="lm-title">{{ $active['title'] }}</h2>
+                <p class="lm-subtitle" id="lm-subtitle">{{ $active['subtitle'] }}</p>
+            </div>
+
+            @if($standalone && $startStep === 'login' && session('success'))
+                <div class="lm-alert lm-alert-success" role="status">{{ session('success') }}</div>
+            @endif
+            @if($standalone && $startStep === 'login' && session('info'))
                 <div class="lm-alert lm-alert-info" role="status">{{ session('info') }}</div>
             @endif
             @if($errors->any())
@@ -112,7 +178,7 @@
                         <div class="lm-input-wrap">
                             <svg class="lm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 7 10-7"/></svg>
                             <input type="email" name="email" id="lm-email" value="{{ old('email') }}" required autocomplete="email"
-                                   placeholder="you@example.com" @if($standalone) autofocus @endif
+                                   placeholder="you@example.com" @if($standalone && $startStep === 'login') autofocus @endif
                                    class="@error('email') is-invalid @enderror">
                         </div>
                     </div>
@@ -120,7 +186,7 @@
                     <div class="lm-field">
                         <div class="lm-label-row">
                             <label for="lm-password">Password</label>
-                            <a href="{{ $portalData[$current]['forgot'] ?? route('password.forgot') }}" class="lm-link" data-lm-forgot>Forgot password?</a>
+                            <a href="{{ $active['forgot'] }}" class="lm-link" data-lm-forgot>Forgot password?</a>
                         </div>
                         <div class="lm-input-wrap">
                             <svg class="lm-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
@@ -138,14 +204,14 @@
                     </label>
 
                     <button type="submit" class="lm-submit">
-                        <span data-lm-button>{{ $portal['button'] }}</span>
+                        <span data-lm-button>{{ $active['button'] }}</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </button>
                 </form>
 
                 <div class="lm-divider"><span>or</span></div>
 
-                <a href="{{ $portalData[$current]['google'] ?? route('auth.google') }}" class="lm-google" data-lm-google>
+                <a href="{{ $active['google'] }}" class="lm-google" data-lm-google>
                     <svg viewBox="0 0 24 24" aria-hidden="true">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -155,10 +221,10 @@
                     <span>Continue with Google</span>
                 </a>
 
-                <p class="lm-foot" data-lm-register-row @unless($portal['register'] ?? null) hidden @endunless>
-                    New to cartzy? <a href="{{ $portal['register'] ?? route('register') }}" class="lm-link" data-lm-register>Create an account</a>
+                <p class="lm-foot" data-lm-register-row @unless($active['register']) hidden @endunless>
+                    New to cartzy? <a href="{{ $active['register'] ?? route('register') }}" class="lm-link" data-lm-register data-lm-skip>Create an account</a>
                 </p>
             </div>
         </div>
-    </div>
+    </section>
 </div>

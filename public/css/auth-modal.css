@@ -267,61 +267,110 @@
 }
 .lm-foot .lm-link { font-size: .8rem; margin-left: 2px; }
 
-/* "Sign in as" role picker */
-.lm-roles { margin: 0 0 16px; }
+/* ── Step 1: "Sign in as" role list ── */
+.lm-step[hidden] { display: none; }
 .lm-roles-label {
-    margin: 0 0 6px;
-    font-size: .75rem;
-    font-weight: 700;
-    color: var(--lm-ink);
-}
-.lm-role-grid {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 6px;
-}
-.lm-overlay .lm-role {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    min-height: 58px;
-    padding: 8px 2px 7px;
-    border: 1.5px solid var(--lm-line);
-    border-radius: 11px;
-    background: #fff;
-    color: var(--lm-muted);
-    font: 600 .7rem 'Inter', system-ui, sans-serif;
-    cursor: pointer;
-    transition: border-color .18s, background .18s, color .18s, box-shadow .18s;
-}
-.lm-role svg { width: 19px; height: 19px; flex-shrink: 0; }
-.lm-role span { line-height: 1; }
-.lm-role small {
-    position: absolute;
-    top: -7px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 1px 5px;
-    border-radius: 999px;
-    background: var(--lm-rose);
-    color: #fff;
-    font-size: .52rem;
+    margin: 0 0 8px;
+    font-size: .7rem;
     font-weight: 800;
-    letter-spacing: .02em;
-    line-height: 1.4;
-    white-space: nowrap;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--lm-muted);
 }
-.lm-overlay .lm-role:hover { border-color: #D6CFE0; color: var(--lm-ink); background: var(--lm-soft); }
-.lm-overlay .lm-role[aria-checked="true"] {
-    border-color: var(--lm-lavender);
+.lm-role-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lm-overlay .lm-role {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--lm-line);
+    border-radius: 13px;
+    background: #fff;
+    text-align: left;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--lm-ink);
+    cursor: pointer;
+    transition: border-color .18s, background .18s, box-shadow .18s, transform .18s;
+}
+.lm-role-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 38px;
+    height: 38px;
+    border-radius: 11px;
     background: #F3F0F7;
     color: var(--lm-lavender-dark);
-    box-shadow: 0 0 0 3px rgba(111, 99, 130, 0.12);
+    transition: background .18s, color .18s;
 }
-.lm-role[aria-checked="true"] span { font-weight: 800; }
+.lm-role-icon svg { width: 20px; height: 20px; }
+.lm-role-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.lm-role-name { display: flex; align-items: center; gap: 6px; font-size: .86rem; font-weight: 800; line-height: 1.2; }
+.lm-role-name small {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #FCEAE6;
+    color: var(--lm-rose-dark);
+    font-size: .6rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    line-height: 1.5;
+}
+.lm-role-desc { font-size: .74rem; font-weight: 500; line-height: 1.35; color: var(--lm-muted); }
+.lm-role-arrow { flex: 0 0 16px; width: 16px; height: 16px; color: #BDB6C7; transition: transform .18s, color .18s; }
+.lm-overlay .lm-role:hover,
+.lm-overlay .lm-role:focus-visible {
+    border-color: var(--lm-lavender);
+    background: var(--lm-soft);
+    box-shadow: 0 6px 16px -10px rgba(86, 75, 104, 0.45);
+}
+.lm-role:hover .lm-role-icon, .lm-role:focus-visible .lm-role-icon { background: var(--lm-lavender-dark); color: #fff; }
+.lm-role:hover .lm-role-arrow, .lm-role:focus-visible .lm-role-arrow { color: var(--lm-lavender-dark); transform: translateX(3px); }
+.lm-role:active { transform: scale(.99); }
+
+/* ── Step 2: back button + role badge ── */
+.lm-back {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 30px;
+    padding: 0 10px 0 6px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--lm-soft);
+    color: var(--lm-muted);
+    font: 700 .74rem 'Inter', system-ui, sans-serif;
+    cursor: pointer;
+    transition: background .18s, color .18s;
+}
+.lm-back svg { width: 16px; height: 16px; transition: transform .18s; }
+.lm-back:hover { background: #EFEAF4; color: var(--lm-ink); }
+.lm-back:hover svg { transform: translateX(-2px); }
+
+.lm-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 10px;
+    padding: 5px 12px 5px 9px;
+    border-radius: 999px;
+    background: #F3F0F7;
+    color: var(--lm-lavender-dark);
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.lm-role-badge svg { width: 15px; height: 15px; }
+
+/* Moving between the two steps */
+.lm-step.is-entering-forward { animation: lm-in-forward .28s cubic-bezier(.2, .8, .2, 1); }
+.lm-step.is-entering-back { animation: lm-in-back .28s cubic-bezier(.2, .8, .2, 1); }
+@keyframes lm-in-forward { from { opacity: 0; transform: translateX(28px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes lm-in-back { from { opacity: 0; transform: translateX(-28px) scale(.98); } to { opacity: 1; transform: none; } }
 
 /* Rider: sign in on the app */
 .lm-app-note { text-align: center; padding: 4px 0 2px; }
@@ -343,8 +392,7 @@
 
 .lm-overlay a:focus-visible,
 .lm-overlay button:focus-visible,
-.lm-overlay input[type="checkbox"]:focus-visible,
-.lm-overlay .lm-role:focus-visible {
+.lm-overlay input[type="checkbox"]:focus-visible {
     outline: 2px solid var(--lm-lavender-dark);
     outline-offset: 2px;
 }
@@ -399,5 +447,6 @@ body.lm-page {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .lm-backdrop, .lm-dialog, .lm-close, .lm-submit, .lm-submit svg { transition: none !important; }
+    .lm-backdrop, .lm-dialog, .lm-close, .lm-submit, .lm-submit svg, .lm-role, .lm-role-arrow { transition: none !important; }
+    .lm-step.is-entering-forward, .lm-step.is-entering-back { animation: none; }
 }

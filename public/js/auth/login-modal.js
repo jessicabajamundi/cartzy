@@ -1,9 +1,10 @@
 /**
- * Cartzy login modal.
- * - People choose who they sign in as (Buyer, Seller, Logistics, Rider, Admin); the form updates in place.
- * - Storefront: clicking any link to a login page opens the modal on that role instead.
- *   Other scripts can call window.cartzyLogin.open('seller').
- * - Standalone /login pages: the modal is already open; switching role also updates the address bar.
+ * Cartzy login modal, in two steps:
+ *   1. "choose" — pick who you sign in as (Buyer, Seller, Logistics, Rider, Admin)
+ *   2. "login"  — the sign-in form for that role (Riders are pointed to the mobile app)
+ * - Storefront: links to /login open step 1; links to a role's login page open step 2 for that role.
+ *   Other scripts can call window.cartzyLogin.open() or window.cartzyLogin.open('buyer').
+ * - Standalone /login pages: already open; changing role also updates the address bar.
  */
 (function () {
     'use strict';
@@ -11,18 +12,59 @@
     var overlay = document.getElementById('login-modal');
     if (!overlay) return;
 
-    var dialog = overlay.querySelector('.lm-dialog');
     var form = overlay.querySelector('#lm-form');
     var standalone = overlay.classList.contains('is-standalone');
     var portals = JSON.parse(overlay.dataset.portals || '{}');
     var current = overlay.dataset.portal || 'buyer';
+    var step = overlay.dataset.step || 'choose';
     var FLAG = 'cartzy-login-modal';
     var ROLE = 'cartzy-login-portal';
     var lastFocus = null;
     var closeTimer = null;
 
     function $(selector) { return overlay.querySelector(selector); }
-    function roleButtons() { return Array.prototype.slice.call(overlay.querySelectorAll('.lm-role')); }
+    function stepEl(name) { return overlay.querySelector('[data-lm-step="' + name + '"]'); }
+
+    function updateUrl() {
+        if (!standalone || !window.history.replaceState) return;
+        var key = step === 'login' && current !== 'courier' ? current : 'buyer';
+        var data = portals[key];
+        if (!data) return;
+        window.history.replaceState(null, '', data.url);
+        document.title = (key === 'buyer' ? 'Log In' : data.title + ' Log In') + ' | cartzy';
+    }
+
+    function showStep(name, options) {
+        options = options || {};
+        var changed = name !== step;
+        step = name;
+        ['choose', 'login'].forEach(function (n) {
+            var el = stepEl(n);
+            el.hidden = n !== name;
+            el.classList.remove('is-entering-forward', 'is-entering-back');
+        });
+        var el = stepEl(name);
+        if (changed && overlay.classList.contains('is-open')) {
+            void el.offsetWidth; // restart the entrance animation
+            el.classList.add(name === 'login' ? 'is-entering-forward' : 'is-entering-back');
+        }
+        updateUrl();
+        if (options.focus !== false) focusStep();
+    }
+
+    function focusStep() {
+        if (step === 'choose') {
+            var role = stepEl('choose').querySelector('.lm-role[data-lm-role="' + current + '"]') || stepEl('choose').querySelector('.lm-role');
+            if (role) role.focus({ preventScroll: true });
+        } else if (current === 'courier') {
+            var app = $('.lm-app-button');
+            if (app) app.focus({ preventScroll: true });
+        } else {
+            var email = $('#lm-email');
+            var target = email && email.value ? $('#lm-password') : email;
+            if (target) target.focus({ preventScroll: true });
+        }
+    }
 
     function setRole(key, options) {
         options = options || {};
@@ -31,16 +73,12 @@
         var changed = key !== current;
         current = key;
 
-        roleButtons().forEach(function (button) {
-            var on = button.dataset.lmRole === key;
-            button.setAttribute('aria-checked', on ? 'true' : 'false');
-            button.tabIndex = on ? 0 : -1;
-        });
-
         var isApp = key === 'courier';
         $('[data-lm-section="app"]').hidden = !isApp;
         $('[data-lm-section="form"]').hidden = isApp;
 
+        $('[data-lm-badge-icon]').innerHTML = data.icon;
+        $('[data-lm-badge-label]').textContent = data.label;
         $('#lm-title').textContent = data.title;
         $('#lm-subtitle').textContent = data.subtitle;
         $('[data-lm-button]').textContent = data.button;
@@ -52,11 +90,6 @@
 
         // An error from a previous attempt belongs to the role that was selected then.
         if (changed && !options.keepErrors) clearErrors();
-
-        if (standalone && changed && !isApp && window.history.replaceState) {
-            window.history.replaceState(null, '', data.url);
-            document.title = (key === 'buyer' ? 'Log In' : data.title + ' Log In') + ' | cartzy';
-        }
     }
 
     function clearErrors() {
@@ -67,21 +100,16 @@
 
     function focusables() {
         return Array.prototype.filter.call(
-            dialog.querySelectorAll('a[href], button:not([disabled]):not([tabindex="-1"]), input:not([type="hidden"]):not([disabled])'),
+            stepEl(step).querySelectorAll('a[href], button:not([disabled]), input:not([type="hidden"]):not([disabled])'),
             function (el) { return el.offsetParent !== null; }
         );
     }
 
-    function focusFirstField() {
-        if (current === 'courier') return;
-        var email = $('#lm-email');
-        var target = email && email.value ? $('#lm-password') : email;
-        if (target) target.focus({ preventScroll: true });
-    }
-
     function open(role) {
         if (role) setRole(role);
-        if (standalone || overlay.classList.contains('is-open')) return;
+        showStep(role ? 'login' : 'choose', { focus: false });
+        if (standalone) return focusStep();
+        if (overlay.classList.contains('is-open')) return focusStep();
         clearTimeout(closeTimer);
         lastFocus = document.activeElement;
         overlay.hidden = false;
@@ -89,7 +117,7 @@
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 overlay.classList.add('is-open');
-                focusFirstField();
+                focusStep();
             });
         });
     }
@@ -102,33 +130,34 @@
         if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     }
 
-    window.cartzyLogin = { open: open, close: close, setRole: setRole };
+    window.cartzyLogin = { open: open, close: close };
 
     overlay.addEventListener('click', function (event) {
         var roleTrigger = event.target.closest('[data-lm-role]');
         if (roleTrigger) {
             event.preventDefault();
             setRole(roleTrigger.dataset.lmRole);
-            var selected = overlay.querySelector('.lm-role[aria-checked="true"]');
-            if (selected) selected.focus();
+            showStep('login');
+            return;
+        }
+        if (event.target.closest('[data-lm-back]')) {
+            clearErrors();
+            showStep('choose');
             return;
         }
         if (event.target.closest('[data-lm-close]')) close();
     });
 
-    // Arrow keys move between roles, like a radio group.
+    // Up / down arrows move through the role list.
     overlay.addEventListener('keydown', function (event) {
         var button = event.target.closest('.lm-role');
-        if (!button) return;
-        var keys = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
-        if (!(event.key in keys) && event.key !== 'Home' && event.key !== 'End') return;
+        if (!button || ['ArrowDown', 'ArrowUp', 'Home', 'End'].indexOf(event.key) === -1) return;
         event.preventDefault();
-        var buttons = roleButtons();
+        var buttons = Array.prototype.slice.call(stepEl('choose').querySelectorAll('.lm-role'));
         var index = buttons.indexOf(button);
         var next = event.key === 'Home' ? 0
             : event.key === 'End' ? buttons.length - 1
-            : (index + keys[event.key] + buttons.length) % buttons.length;
-        setRole(buttons[next].dataset.lmRole);
+            : (index + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
         buttons[next].focus();
     });
 
@@ -161,7 +190,7 @@
         });
     }
 
-    // Remember the attempt (and role) so a failed login reopens the modal on the same role.
+    // Remember the attempt (and role) so a failed login reopens the form on the same role.
     if (form) {
         form.addEventListener('submit', function () {
             try {
@@ -180,15 +209,19 @@
     } catch (e) { /* storage blocked */ }
 
     if (standalone) {
-        if (overlay.dataset.hasErrors === 'true' && storedRole) setRole(storedRole, { keepErrors: true });
+        if (overlay.dataset.hasErrors === 'true' && storedRole && portals[storedRole]) {
+            setRole(storedRole, { keepErrors: true });
+            showStep('login', { focus: false });
+        }
         return;
     }
 
-    // Intercept links to the login pages (except the Rider app page) and open the modal on that role.
+    // Intercept links to the login pages: /login opens step 1, a role's page opens its form.
     function path(url) { return new URL(url, window.location.href).pathname.replace(/\/$/, ''); }
+    var buyerPath = portals.buyer ? path(portals.buyer.url) : '/login';
     var rolesByPath = {};
     Object.keys(portals).forEach(function (key) {
-        if (key !== 'courier') rolesByPath[path(portals[key].url)] = key;
+        if (key !== 'courier' && key !== 'buyer') rolesByPath[path(portals[key].url)] = key;
     });
 
     document.addEventListener('click', function (event) {
@@ -197,10 +230,9 @@
         if (!link || link.hasAttribute('data-lm-skip') || overlay.contains(link) || link.target === '_blank') return;
         var url = new URL(link.href, window.location.href);
         if (url.origin !== window.location.origin) return;
-        var role = rolesByPath[url.pathname.replace(/\/$/, '')];
-        if (!role) return;
-        event.preventDefault();
-        open(role);
+        var linkPath = url.pathname.replace(/\/$/, '');
+        if (linkPath === buyerPath) { event.preventDefault(); open(); }
+        else if (rolesByPath[linkPath]) { event.preventDefault(); open(rolesByPath[linkPath]); }
     });
 
     var cameFromModal = false;
@@ -210,8 +242,8 @@
     } catch (e) { /* storage blocked */ }
 
     if (cameFromModal && overlay.dataset.hasErrors === 'true') {
-        if (storedRole) setRole(storedRole, { keepErrors: true });
-        open();
+        setRole(storedRole && portals[storedRole] ? storedRole : 'buyer', { keepErrors: true });
+        open(current);
     } else {
         // Errors on this page belong to some other form, not the login.
         clearErrors();
