@@ -224,15 +224,16 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 }
 
 /* ─── Seller orders table ─── */
-.seller-orders-table { min-width: 1080px; }
+.seller-orders-table { min-width: 1120px; }
+.seller-orders-table th, .seller-orders-table td { padding-left: 14px; padding-right: 14px; }
 .seller-orders-table td { vertical-align: middle; font-size: 13px; }
 .seller-orders-table td strong { display: block; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.35; }
 .seller-orders-table td small { display: block; margin-top: 3px; line-height: 1.4; }
-.seller-orders-table .so-order { min-width: 150px; }
+.seller-orders-table .so-order { min-width: 130px; }
 .seller-orders-table .so-order strong { overflow-wrap: anywhere; }
 .seller-orders-table .so-tracking { color: var(--rose-gold); font-family: Consolas, "SFMono-Regular", monospace; overflow-wrap: anywhere; }
-.seller-orders-table .so-buyer { min-width: 120px; }
-.seller-orders-table .so-items { min-width: 320px; }
+.seller-orders-table .so-buyer { min-width: 90px; }
+.seller-orders-table .so-items { min-width: 240px; }
 .so-item { display: flex; align-items: center; gap: 12px; }
 .so-thumb { display: grid; place-items: center; flex: 0 0 48px; width: 48px; height: 48px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--canvas); color: var(--muted); }
 .so-thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -240,8 +241,12 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 .so-item-price { flex-shrink: 0; color: var(--ink); font-weight: 700; white-space: nowrap; }
 .seller-orders-table .so-total { white-space: nowrap; }
 .seller-orders-table .so-status { white-space: nowrap; }
-.seller-orders-table .so-next { min-width: 250px; }
-.so-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.seller-orders-table .so-next { width: 1%; white-space: nowrap; }
+.so-actions { display: flex; align-items: center; flex-wrap: nowrap; gap: 8px 12px; }
+/* A cancellation request carries the buyer's reason and two decisions, so it alone keeps a second line. */
+.so-actions:has(.so-cancellation) { flex-wrap: wrap; }
+.so-next:has(.so-cancellation) { white-space: normal; min-width: 280px; }
+.so-actions > * { flex-shrink: 0; }
 .so-hint { color: var(--muted); font-size: 12px; }
 .so-handover { display: inline-flex; align-items: center; gap: 6px; color: #39704c; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .so-print { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -251,7 +256,7 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 .so-chat:hover { color: var(--accent); }
 .so-cancellation { flex-basis: 100%; }
 .so-cancellation .inline { margin-top: 8px; }
-.so-note { white-space: pre-line; }
+.so-next .so-note { max-width: 340px; white-space: pre-line; }
 
 /* Order details box, opened from the Details button */
 .so-popover { position: fixed; inset: auto; width: 440px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); margin: 0; padding: 22px; overflow-y: auto; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 16px 48px -12px rgba(40, 33, 51, .22), 0 4px 12px rgba(40, 33, 51, .04); }
