@@ -6,8 +6,8 @@
         ['wishlist',      'Wishlist',          'M4.3 6.3a4.5 4.5 0 016.4 0L12 7.6l1.3-1.3a4.5 4.5 0 116.4 6.4L12 20.4l-7.7-7.7a4.5 4.5 0 010-6.4z'],
         ['notifications', 'Notifications',     'M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 11-6 0'],
     ];
-    // Guests only get cart and wishlist; the rest appear once they have an account.
-    if (!Auth::check()) {
+    // Guests and sellers only get cart and wishlist; the rest appear for buyer accounts.
+    if (!Auth::check() || Auth::user()->isSeller()) {
         $navItems = array_values(array_filter($navItems, fn ($item) => in_array($item[0], ['cart', 'wishlist'], true)));
     }
 

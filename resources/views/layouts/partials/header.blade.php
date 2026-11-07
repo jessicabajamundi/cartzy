@@ -1,6 +1,8 @@
 @php
     $buyerHeader = request()->routeIs('home', 'sale', 'category.show', 'products.show', 'cart.*', 'checkout', 'checkout.*')
         || (Auth::check() && Auth::user()->isBuyer());
+    // Sellers browsing the storefront get the guest layout, with a way back to their dashboard.
+    $sellerOnStorefront = $buyerHeader && Auth::check() && Auth::user()->isSeller();
 @endphp
 <header class="{{ $buyerHeader ? 'buyer-header' : (Auth::check() ? 'account-header' : '') }} {{ Auth::check() ? '' : 'is-guest' }} sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-[#E1DDE7]/80 shadow-[0_2px_15px_-3px_rgba(40,33,51,0.05)] w-full transition-all">
     <!-- Main Navigation & Search Bar -->
@@ -261,7 +263,18 @@
 
                 {{-- Auth / Profile: Profile menu when logged in, or Login & Sign up when guest --}}
                 @auth
-                    @include('layouts.partials.profile-menu')
+                    @if($sellerOnStorefront)
+                        <div class="header-auth-links flex items-center gap-2 ml-1 sm:ml-1.5">
+                            <a href="{{ route('seller.dashboard') }}" class="flex items-center gap-1.5 text-white bg-gradient-to-r from-[#564B68] to-[#C08B7F] hover:from-[#433A52] hover:to-[#B07B6F] shadow-sm hover:shadow-md transition-all duration-200 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide transform hover:-translate-y-0.5 active:translate-y-0">
+                                <svg class="shrink-0 w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z"/>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                        </div>
+                    @else
+                        @include('layouts.partials.profile-menu')
+                    @endif
                 @else
                     <div class="header-auth-links flex items-center gap-2 ml-1 sm:ml-1.5">
                         <!-- Login Link -->
