@@ -7,6 +7,7 @@ import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/services/recently_viewed_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
+import 'package:cartzy/widgets/cartzy_logo.dart';
 
 /// Lavender and rose gold, the same blend used on the cart screen.
 class _MenuPalette {
@@ -189,24 +190,10 @@ class CartzyMenuDrawer extends StatelessWidget {
           20, MediaQuery.paddingOf(context).top + 12, 8, 12),
       child: Row(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              'assets/app_icon.png',
-              width: 30,
-              height: 30,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Cartzy',
-              style: GoogleFonts.playfairDisplay(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: _MenuPalette.ink,
-              ),
+          const Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: CartzyLogo(height: 40),
             ),
           ),
           IconButton(
