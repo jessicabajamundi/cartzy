@@ -257,8 +257,8 @@
             <section class="pe-card pe-card-photos" aria-labelledby="pe-photo-title">
                 <header class="pe-card-head pe-photos-header">
                     <div>
-                        <h2 id="pe-photo-title">Product Photos</h2>
-                        <p>Add as many photos as you like, up to 10 MB total including existing photos. The first photo is the cover.</p>
+                        <h2 id="pe-photo-title">Product Photos &amp; Video</h2>
+                        <p>Add as many photos as you like and one short video to promote the product, up to {{ \App\Models\Product::MEDIA_BUDGET_MB }} MB total including what's already saved. The first photo is the cover.</p>
                     </div>
                     <div class="pe-photos-header-actions">
                         <label class="button secondary pe-bulk-upload-btn" for="pe-bulk-photos-input" title="Choose multiple photos at once">
@@ -315,8 +315,9 @@
                             </div>
                         @endforeach
                     </div>
-                    <small class="pe-hint" style="margin-top: 14px; display: block;">JPG, PNG, or WebP. Maximum 10 MB total for all photos. Leave unchanged to keep a current photo.</small>
+                    <small class="pe-hint" style="margin-top: 14px; display: block;">JPG, PNG, or WebP. Leave unchanged to keep a current photo.</small>
                     <p class="pe-hint" data-photo-total aria-live="polite"></p>
+                    @include('seller.partials.product-video-field', ['product' => $product])
                 </div>
             </section>
 

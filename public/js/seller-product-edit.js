@@ -4,20 +4,25 @@
     const grid = document.querySelector('.pe-photos-grid');
     const bulkInput = document.querySelector('[data-bulk-photos-input]');
     const totalLabel = document.querySelector('[data-photo-total]');
-    const maxBytes = 10 * 1024 * 1024;
+    const videoField = document.querySelector('[data-product-video]');
+    const maxBytes = Number(videoField?.dataset.budgetBytes) || 30 * 1024 * 1024;
+    const maxMb = maxBytes / (1024 * 1024);
+    const videoBytes = () => Number(videoField?.dataset.videoBytes || 0);
     const cards = () => Array.from(grid?.querySelectorAll('[data-slot-card]') || []);
     const templateCard = cards()[0]?.cloneNode(true);
     let nextSlot = Math.max(-1, ...cards().map(card => Number(card.dataset.slotCard))) + 1;
     const pending = new Map();
     const objectUrls = new Map();
     const bytesFor = card => pending.get(card)?.size ?? Number(card.dataset.imageBytes || 0);
-    const totalBytes = () => cards().reduce((sum, card) => sum + bytesFor(card), 0);
+    const photoBytes = () => cards().reduce((sum, card) => sum + bytesFor(card), 0);
+    const totalBytes = () => photoBytes() + videoBytes();
     const countPhotos = () => cards().filter(card => card.classList.contains('has-image')).length;
     const validFile = file => ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
-    const tooLarge = () => alert('All product photos combined must be 10 MB or smaller. Remove photos or choose smaller images.');
+    const tooLarge = () => alert(`Photos and video combined must be ${maxMb} MB or smaller. Remove some or choose smaller files.`);
 
     function updateTotal() {
-        if (totalLabel) totalLabel.textContent = countPhotos() + ' photos · ' + (totalBytes() / (1024 * 1024)).toFixed(2) + ' / 10 MB';
+        if (videoField) videoField.dataset.photoBytes = String(photoBytes());
+        if (totalLabel) totalLabel.textContent = countPhotos() + ' photos' + (videoBytes() ? ' · 1 video' : '') + ' · ' + (totalBytes() / (1024 * 1024)).toFixed(2) + ' / ' + maxMb + ' MB';
     }
 
     function setInput(input, file) {
@@ -125,6 +130,7 @@
             alert('The server accepts up to ' + maxFiles + ' uploaded files per save. Save fewer new photos first, then add the rest. Existing photos do not count toward this upload limit.');
         }
     });
+    videoField?.addEventListener('product-video-change', updateTotal);
     updateTotal();
 
     const optionsForm = document.querySelector('[data-options-form]');

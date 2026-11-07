@@ -35,15 +35,15 @@ class SellerGalleryPhotosTest extends TestCase
         $this->assertCount(12, Storage::disk('public')->files('products'));
     }
 
-    public function test_gallery_accepts_exactly_ten_mb(): void
+    public function test_gallery_accepts_exactly_thirty_mb(): void
     {
-        $this->submitPhotos([5120, 5120])->assertSessionHasNoErrors();
+        $this->submitPhotos([15360, 15360])->assertSessionHasNoErrors();
         $this->assertCount(2, Storage::disk('public')->files('products'));
     }
 
-    public function test_gallery_rejects_combined_size_above_ten_mb(): void
+    public function test_gallery_rejects_combined_size_above_thirty_mb(): void
     {
-        $this->submitPhotos([5120, 5121])->assertSessionHasErrors('images');
+        $this->submitPhotos([15360, 15361])->assertSessionHasErrors('images');
         $this->assertDatabaseMissing('products', ['name' => 'Gallery product']);
         $this->assertSame([], Storage::disk('public')->allFiles());
     }

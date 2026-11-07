@@ -34,9 +34,9 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf \
     && sed -ri 's!AllowOverride None!AllowOverride All!g' /etc/apache2/apache2.conf
 
-# Production PHP settings (uploads up to 10 MB, matching the product photo limit).
+# Production PHP settings (one file up to 30 MB, matching the product photo and video budget, plus color photos on the same form).
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && printf "upload_max_filesize=12M\npost_max_size=40M\nmemory_limit=256M\nopcache.enable=1\nopcache.validate_timestamps=0\n" > "$PHP_INI_DIR/conf.d/cartzy.ini"
+    && printf "upload_max_filesize=32M\npost_max_size=64M\nmemory_limit=256M\nopcache.enable=1\nopcache.validate_timestamps=0\n" > "$PHP_INI_DIR/conf.d/cartzy.ini"
 
 WORKDIR /var/www/html
 COPY . .

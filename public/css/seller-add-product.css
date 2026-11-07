@@ -754,3 +754,10 @@
 #add-product .pe-color-photo-count { margin: 0; font-variant-numeric: tabular-nums; }
 #add-product .pe-option-photo-row .shade-photo-preview, .pe-variant-photo .shade-photo-preview { position: relative; }
 .shade-photo-count { position: absolute; right: 3px; bottom: 3px; padding: 0 5px; border-radius: 999px; background: #282133d9; color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; }
+
+/* Product video field */
+.pe-video-field { margin-top: 16px; }
+.pe-video-field .pe-dropzone[hidden], .pe-video-preview[hidden] { display: none; }
+.pe-video-preview { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 14px; border: 1px solid var(--line, #eae6ef); border-radius: 14px; background: #faf9fb; }
+.pe-video-preview video { width: 100%; max-width: 320px; max-height: 240px; border-radius: 10px; background: #1b1620; }
+.pe-field-error { margin: 8px 0 0; color: #a14848; font-size: 13px; }

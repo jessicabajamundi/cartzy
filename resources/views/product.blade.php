@@ -38,6 +38,7 @@
             </div>
             @endif
             <p class="pd-caption">@if($photos->isNotEmpty())<span class="pd-caption-hover">Hover over the photo to zoom &middot; </span>Click the photo to view it full screen @else Explore the photos, then choose the option that fits you. @endif</p>
+            @if($product->video_url)<div class="pd-video"><video controls preload="metadata" playsinline src="{{ $product->video_url }}" aria-label="Video of {{ $product->name }}"></video></div>@endif
         </section>
         @if($photos->isNotEmpty())
         <dialog class="pd-viewer" id="pd-viewer" aria-label="{{ $product->name }} photos">

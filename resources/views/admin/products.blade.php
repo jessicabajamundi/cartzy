@@ -251,6 +251,7 @@
                             'badge' => $product->badge,
                             'cover_url' => $coverUrl,
                             'gallery' => $galleryUrls,
+                            'video_url' => $product->video_url,
                             'description' => $product->description ?: 'No product description provided.',
                             'price_display' => $priceDisplay,
                             'total_stock' => $totalStock,
@@ -349,6 +350,7 @@
                         <img id="details-featured-img" src="" alt="Product cover" class="modal-featured-img">
                     </div>
                     <div id="details-gallery" class="modal-gallery-strip" style="display: none;"></div>
+                    <video id="details-video" controls preload="none" playsinline hidden style="display: block; width: 100%; max-height: 280px; margin-top: 12px; border-radius: 10px; background: #1b1620;" aria-label="Product video"></video>
 
                     <div class="modal-info-card" style="margin-top: 16px;">
                         <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px;">Product Description</strong>
@@ -705,6 +707,7 @@
 
     // Helper: close modals on backdrop click or close button
     document.querySelectorAll('.admin-modal').forEach(dialog => {
+        dialog.addEventListener('close', () => dialog.querySelectorAll('video').forEach(video => video.pause()));
         dialog.addEventListener('click', (e) => {
             if (e.target === dialog) dialog.close();
         });
@@ -728,6 +731,13 @@
             const featuredImg = document.getElementById('details-featured-img');
             featuredImg.src = data.cover_url;
             featuredImg.alt = data.name;
+
+            // Promo video
+            const detailsVideo = document.getElementById('details-video');
+            detailsVideo.pause();
+            detailsVideo.hidden = !data.video_url;
+            if (data.video_url) detailsVideo.src = data.video_url;
+            else detailsVideo.removeAttribute('src');
 
             // Gallery Thumbnails
             const galleryContainer = document.getElementById('details-gallery');

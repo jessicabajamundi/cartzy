@@ -102,10 +102,10 @@
         <section class="pe-card" id="product-media" aria-labelledby="pe-media-title">
             <header class="pe-card-head pe-card-head-row">
                 <div>
-                    <h2 id="pe-media-title">Photos <span class="pe-optional">optional</span></h2>
-                    <p>Add as many photos as you like, up to 10 MB total. The first one is the cover.</p>
+                    <h2 id="pe-media-title">Photos &amp; video <span class="pe-optional">optional</span></h2>
+                    <p>Add as many photos as you like and one short video to promote the product, up to {{ \App\Models\Product::MEDIA_BUDGET_MB }} MB total. The first photo is the cover.</p>
                 </div>
-                <span class="pe-photo-count" id="photos-counter-badge" aria-live="polite"><span id="photos-counter-text">0 photos · 0.00 / 10 MB</span></span>
+                <span class="pe-photo-count" id="photos-counter-badge" aria-live="polite"><span id="photos-counter-text">0 photos · 0.00 / {{ \App\Models\Product::MEDIA_BUDGET_MB }} MB</span></span>
             </header>
             <div class="pe-card-body pe-photos">
                 <input type="file" name="images[]" id="product-images-input" multiple accept="image/*,.jpg,.jpeg,.png,.webp,.jfif,.avif" style="display:none !important;" tabindex="-1">
@@ -117,10 +117,11 @@
                     </span>
                     <span>
                         <strong>+ Upload photos</strong>
-                        <small>Click or drag files here · JPG, PNG, WebP · 10 MB total for all photos</small>
+                        <small>Click or drag files here · JPG, PNG, WebP</small>
                     </span>
                 </label>
                 <div id="product-photos-preview-grid" class="media-preview-grid pe-photo-grid" style="display: none;"></div>
+                @include('seller.partials.product-video-field')
             </div>
         </section>
 

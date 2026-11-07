@@ -594,8 +594,11 @@
         if (event.key === 'Enter') { event.preventDefault(); addOptions(); }
     }));
 
-    // Product gallery: any number of photos within a combined 10 MB budget.
-    const galleryMaxBytes = 10 * 1024 * 1024;
+    // Product gallery: any number of photos, sharing a budget with the promo video.
+    const videoField = document.querySelector('[data-product-video]');
+    const galleryMaxBytes = Number(videoField?.dataset.budgetBytes) || 30 * 1024 * 1024;
+    const galleryMaxMb = galleryMaxBytes / (1024 * 1024);
+    const videoBytes = () => Number(videoField?.dataset.videoBytes || 0);
     const photosInput = document.getElementById('product-images-input');
     const photosPicker = document.getElementById('product-images-picker');
     const photosDropzone = document.getElementById('photos-dropzone');
@@ -639,8 +642,8 @@
             }
         });
 
-        if (nextFiles.reduce((sum, file) => sum + file.size, 0) > galleryMaxBytes) {
-            alert('All product photos combined must be 10 MB or smaller. Choose smaller photos or remove some selected photos.');
+        if (nextFiles.reduce((sum, file) => sum + file.size, 0) + videoBytes() > galleryMaxBytes) {
+            alert(`Photos and video combined must be ${galleryMaxMb} MB or smaller. Choose smaller files or remove some.`);
             syncInputFiles();
             return;
         }
@@ -713,11 +716,15 @@
         });
     }
 
+    videoField?.addEventListener('product-video-change', () => renderPhotosPreview());
+
     function renderPhotosPreview() {
         if (!previewGrid) return;
 
-        const totalMb = selectedGalleryFiles.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024);
-        const counter = `${selectedGalleryFiles.length} photos · ${totalMb.toFixed(2)} / 10 MB`;
+        const photoBytes = selectedGalleryFiles.reduce((sum, file) => sum + file.size, 0);
+        if (videoField) videoField.dataset.photoBytes = String(photoBytes);
+        const totalMb = (photoBytes + videoBytes()) / (1024 * 1024);
+        const counter = `${selectedGalleryFiles.length} photos${videoBytes() ? ' · 1 video' : ''} · ${totalMb.toFixed(2)} / ${galleryMaxMb} MB`;
         if (photosCounterText) {
             photosCounterText.textContent = counter;
         } else if (photosCounterBadge) {
@@ -834,7 +841,7 @@
             selectedGalleryFiles = [];
             syncInputFiles();
             setTimeout(() => {
-                if (photosCounterText) photosCounterText.textContent = '0 photos · 0.00 / 10 MB';
+                if (photosCounterText) photosCounterText.textContent = `0 photos · 0.00 / ${galleryMaxMb} MB`;
                 if (photosCounterBadge) photosCounterBadge.classList.remove('has-photos');
                 if (previewGrid) {
                     previewGrid.innerHTML = '';

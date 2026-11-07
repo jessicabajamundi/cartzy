@@ -21,6 +21,9 @@ class Product extends Model
         return max(self::MIN_LOW_STOCK_THRESHOLD, (int) $this->low_stock_threshold);
     }
 
+    /** Gallery photos and the promo video share this budget. Color photos have their own per-photo limit. */
+    public const MEDIA_BUDGET_MB = 30;
+
     protected $fillable = [
         'seller_id',
         'category_id',
@@ -36,6 +39,7 @@ class Product extends Model
         'is_active',
         'approval_status',
         'rejection_reason',
+        'video_path',
         'reviewed_at',
         'reviewed_by',
         'low_stock_threshold',
@@ -53,6 +57,16 @@ class Product extends Model
     public function isApproved(): bool
     {
         return $this->approval_status === self::APPROVAL_APPROVED;
+    }
+
+    /** The promo video's URL, when the product has one. */
+    public function getVideoUrlAttribute(): ?string
+    {
+        if (!$this->video_path) {
+            return null;
+        }
+
+        return preg_match('~^(https?://|/)~', $this->video_path) ? $this->video_path : \Illuminate\Support\Facades\Storage::disk('public')->url($this->video_path);
     }
 
     public function isPending(): bool

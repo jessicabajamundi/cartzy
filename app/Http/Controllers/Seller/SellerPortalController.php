@@ -26,6 +26,15 @@ class SellerPortalController extends Controller
     /** Everything the seller orders table reads for each row. */
     private const ORDERS_TABLE_RELATIONS = ['order.buyer', 'items.variant', 'items.product.coverImage', 'logisticsProvider', 'shipment.deliveryEvents', 'shipment.logisticsProvider', 'shipment.rider.user'];
 
+    /** One short promo video per product; browsers can play both of these formats. */
+    private const VIDEO_RULE = 'nullable|file|mimetypes:video/mp4,video/webm|max:'.(Product::MEDIA_BUDGET_MB * 1024);
+
+    private const VIDEO_MESSAGES = [
+        'video.mimetypes' => 'The product video must be an MP4 or WebM file.',
+        'video.max' => 'The product video must be '.Product::MEDIA_BUDGET_MB.' MB or smaller.',
+        'video.uploaded' => 'The product video could not be uploaded. Please choose a smaller file and try again.',
+    ];
+
     private function ordersQuery()
     {
         return SellerOrder::where('seller_id', $this->shop()?->id ?? 0);
@@ -380,12 +389,16 @@ class SellerPortalController extends Controller
             'gender' => ['nullable', 'string', Rule::in(['unisex', 'men', 'women', 'kids', 'boys', 'girls', 'all_kids'])],
             'badge' => ['nullable', 'string', 'max:60'],
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:10240',
-            'images' => ['nullable', 'array', function ($attribute, $files, $fail) {
-                if (is_array($files) && collect($files)->sum(fn ($file) => $file instanceof \Illuminate\Http\UploadedFile && $file->isValid() ? $file->getSize() : 0) > 10 * 1024 * 1024) {
-                    $fail('All product photos combined must be 10 MB or smaller.');
+            'video' => self::VIDEO_RULE,
+            'images' => ['nullable', 'array', function ($attribute, $files, $fail) use ($request) {
+                $video = $request->file('video');
+                $bytes = ($video && $video->isValid() ? $video->getSize() : 0)
+                    + (is_array($files) ? collect($files)->sum(fn ($file) => $file instanceof \Illuminate\Http\UploadedFile && $file->isValid() ? $file->getSize() : 0) : 0);
+                if ($bytes > Product::MEDIA_BUDGET_MB * 1024 * 1024) {
+                    $fail('Photos and video combined must be '.Product::MEDIA_BUDGET_MB.' MB or smaller.');
                 }
             }],
-            'images.*' => 'image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:10240',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:'.(Product::MEDIA_BUDGET_MB * 1024),
         ];
 
         if ($hasVariants) {
@@ -427,7 +440,7 @@ class SellerPortalController extends Controller
             'option_photos.*.*.image' => 'Color photos must be JPG, PNG or WebP images.',
             'option_photos.*.*.mimes' => 'Color photos must be JPG, PNG or WebP images.',
             'variants.*.image.max' => 'Each color photo must be 10 MB or smaller. Please choose a smaller photo.',
-        ]);
+        ] + self::VIDEO_MESSAGES);
 
         $categoryIds = collect($request->input('category_ids', []))
             ->filter()
@@ -507,6 +520,7 @@ class SellerPortalController extends Controller
                 'slug' => Str::slug($data['name']).'-'.Str::lower(Str::random(10)),
                 'is_active' => true,
                 'approval_status' => Product::APPROVAL_PENDING,
+                'video_path' => $request->file('video')?->store('products/videos', 'public'),
                 'low_stock_threshold' => (int) ($data['low_stock_threshold'] ?? Product::MIN_LOW_STOCK_THRESHOLD),
             ]);
 
@@ -714,18 +728,20 @@ class SellerPortalController extends Controller
             'weight_grams' => 'nullable|integer|min:0|max:1000000',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:10240',
             'photos' => 'nullable|array',
-            'photos.*' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:10240',
+            'photos.*' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:'.(Product::MEDIA_BUDGET_MB * 1024),
             'new_photos' => 'nullable|array',
-            'new_photos.*' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:10240',
+            'new_photos.*' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:'.(Product::MEDIA_BUDGET_MB * 1024),
             'remove_image_ids' => 'nullable|array',
             'remove_image_ids.*' => 'integer',
+            'video' => self::VIDEO_RULE,
+            'remove_video' => 'nullable|boolean',
             'is_active' => 'required|boolean',
-        ]);
+        ], self::VIDEO_MESSAGES);
         if ($single) {
             $this->validateDiscount(['discount_type' => $product->discount_type, 'discount_value' => $product->discount_value], [$data['price']]);
         }
 
-        // Count the final gallery, excluding removed and replaced photos.
+        // Count the final gallery and video, excluding whatever is being removed or replaced.
         $replacementFiles = $request->file('photos', []);
         if ($request->hasFile('image') && !isset($replacementFiles[0])) {
             $replacementFiles[0] = $request->file('image');
@@ -737,9 +753,14 @@ class SellerPortalController extends Controller
         foreach (array_merge($replacementFiles, $request->file('new_photos', [])) as $file) {
             $galleryBytes += $file ? $file->getSize() : 0;
         }
-        if ($galleryBytes > 10 * 1024 * 1024) {
+        if ($request->hasFile('video')) {
+            $galleryBytes += $request->file('video')->getSize();
+        } elseif ($product->video_path && !$request->boolean('remove_video') && $disk->exists($product->video_path)) {
+            $galleryBytes += $disk->size($product->video_path);
+        }
+        if ($galleryBytes > Product::MEDIA_BUDGET_MB * 1024 * 1024) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'photos' => 'All product photos combined must be 10 MB or smaller. Remove photos or choose smaller images.',
+                'photos' => 'Photos and video combined must be '.Product::MEDIA_BUDGET_MB.' MB or smaller. Remove some or choose smaller files.',
             ]);
         }
 
@@ -780,6 +801,14 @@ class SellerPortalController extends Controller
             }
             if (array_key_exists('weight_grams', $data) && $data['weight_grams'] !== null) {
                 $product->variants()->update(['weight_grams' => (int) $data['weight_grams']]);
+            }
+
+            // Promo video: a new upload or a removal drops the old file.
+            if ($request->hasFile('video') || $request->boolean('remove_video')) {
+                if ($product->video_path) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($product->video_path);
+                }
+                $product->update(['video_path' => $request->file('video')?->store('products/videos', 'public')]);
             }
 
             // 1. Remove requested images

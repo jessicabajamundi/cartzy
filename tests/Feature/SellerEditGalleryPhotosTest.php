@@ -30,18 +30,18 @@ class SellerEditGalleryPhotosTest extends TestCase
     {
         [$product, $image, $data] = $this->gallery();
         $this->post(route('seller.products.details', $product), $data + [
-            'new_photos' => [UploadedFile::fake()->create('new.jpg', 4097, 'image/jpeg')],
+            'new_photos' => [UploadedFile::fake()->create('new.jpg', 24 * 1024 + 1, 'image/jpeg')],
         ])->assertSessionHasErrors('photos');
         $this->assertCount(1, $product->fresh()->images);
         Storage::disk('public')->assertExists($image->path);
         $this->assertCount(1, Storage::disk('public')->allFiles());
     }
 
-    public function test_bulk_upload_accepts_more_than_five_photos_at_exactly_ten_mb(): void
+    public function test_bulk_upload_accepts_more_than_five_photos_at_exactly_thirty_mb(): void
     {
         [$product, $image, $data] = $this->gallery();
         $this->post(route('seller.products.details', $product), $data + [
-            'new_photos' => collect(range(1, 8))->map(fn ($i) => UploadedFile::fake()->create("new-$i.jpg", 512, 'image/jpeg'))->all(),
+            'new_photos' => collect(range(1, 8))->map(fn ($i) => UploadedFile::fake()->create("new-$i.jpg", 3072, 'image/jpeg'))->all(),
         ])->assertSessionHasNoErrors();
         $this->assertCount(9, $product->fresh()->images);
     }
