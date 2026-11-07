@@ -199,7 +199,10 @@
                 if (!standalone) sessionStorage.setItem(FLAG, '1');
             } catch (e) { /* storage blocked */ }
             var button = form.querySelector('.lm-submit');
-            if (button) setTimeout(function () { button.disabled = true; }, 0);
+            if (button) {
+                button.classList.add('is-loading');
+                setTimeout(function () { button.disabled = true; }, 0);
+            }
         });
     }
 

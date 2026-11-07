@@ -55,6 +55,30 @@
     transition: opacity .28s ease, transform .32s cubic-bezier(.2, .8, .2, 1);
 }
 
+/* Thin lavender-to-rose accent along the top of the dialog */
+.lm-dialog::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    height: 4px;
+    background: linear-gradient(90deg, var(--lm-lavender), var(--lm-rose), var(--lm-lavender));
+    background-size: 200% 100%;
+    animation: lm-accent-flow 8s linear infinite;
+    pointer-events: none;
+}
+@keyframes lm-accent-flow { to { background-position: 200% 0; } }
+
+/* Sign-in step: a faint lavender glow on one corner and rose on the other */
+.lm-step[data-lm-step="login"] .lm-panel {
+    background:
+        radial-gradient(90% 45% at 0% 0%, rgba(111, 99, 130, .09), transparent 70%),
+        radial-gradient(80% 40% at 100% 0%, rgba(192, 139, 127, .12), transparent 70%),
+        #fff;
+}
+
 .lm-overlay.is-open .lm-backdrop { opacity: 1; }
 .lm-overlay.is-open .lm-dialog { opacity: 1; transform: none; }
 
@@ -142,26 +166,28 @@
 .lm-overlay .lm-input-wrap input {
     display: block;
     width: 100%;
-    height: 42px;
+    height: 46px;
     margin: 0;
-    padding: 0 40px 0 38px;
+    padding: 0 42px 0 40px;
     border: 1.5px solid var(--lm-line);
-    border-radius: 10px;
-    background: var(--lm-soft);
+    border-radius: 12px;
+    background: #fff;
     font: 500 .86rem 'Inter', system-ui, sans-serif;
     color: var(--lm-ink);
     outline: none;
-    box-shadow: none;
-    transition: border-color .18s, background .18s, box-shadow .18s;
+    box-shadow: 0 1px 2px rgba(40, 33, 51, .04);
+    transition: border-color .2s, background .2s, box-shadow .2s;
 }
 .lm-overlay .lm-input-wrap input::placeholder { color: #A39CAE; font-weight: 400; }
-.lm-overlay .lm-input-wrap input:hover { border-color: #D6CFE0; }
+.lm-overlay .lm-input-wrap input:hover { border-color: #D9CCD8; }
 .lm-overlay .lm-input-wrap input:focus {
-    border-color: var(--lm-lavender);
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(111, 99, 130, 0.14);
+    border-color: transparent;
+    background:
+        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
+    box-shadow: 0 0 0 4px rgba(192, 139, 127, .14);
 }
-.lm-input-wrap:focus-within .lm-input-icon { color: var(--lm-lavender); }
+.lm-input-wrap:focus-within .lm-input-icon { color: var(--lm-rose-dark); }
 .lm-overlay .lm-input-wrap input.is-invalid { border-color: #F43F5E; background: #FFF7F8; }
 .lm-overlay input::-ms-reveal, .lm-overlay input::-ms-clear { display: none; }
 
@@ -204,28 +230,70 @@
 }
 .lm-remember input { width: 15px; height: 15px; margin: 0; accent-color: var(--lm-lavender); cursor: pointer; }
 
+/* Primary button: lavender flowing into rose, with a slow colour drift, a light sweep and a loading state */
 .lm-submit {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     width: 100%;
-    height: 44px;
+    height: 48px;
     border: 0;
-    border-radius: 11px;
-    background: linear-gradient(135deg, #6F6382 0%, #564B68 60%, #4A405A 100%);
+    border-radius: 12px;
+    background: linear-gradient(110deg, #4E4462 0%, #6F6382 30%, #8C5A50 60%, #6F6382 80%, #4E4462 100%);
+    background-size: 250% 100%;
+    background-position: 0% 50%;
     color: #fff;
-    font: 700 .88rem 'Inter', system-ui, sans-serif;
+    font: 700 .9rem 'Inter', system-ui, sans-serif;
     letter-spacing: .01em;
     cursor: pointer;
-    box-shadow: 0 10px 24px -10px rgba(86, 75, 104, 0.7);
-    transition: transform .18s, box-shadow .18s, filter .18s;
+    box-shadow: 0 12px 26px -12px rgba(86, 75, 104, .75), inset 0 1px 0 rgba(255, 255, 255, .18);
+    animation: lm-submit-drift 9s ease-in-out infinite;
+    transition: transform .2s cubic-bezier(.2, .8, .2, 1), box-shadow .2s;
 }
-.lm-submit svg { width: 16px; height: 16px; transition: transform .18s; }
-.lm-submit:hover { filter: brightness(1.08); box-shadow: 0 14px 28px -10px rgba(86, 75, 104, 0.75); transform: translateY(-1px); }
-.lm-submit:hover svg { transform: translateX(3px); }
-.lm-submit:active { transform: translateY(0); }
-.lm-submit[disabled] { opacity: .75; cursor: progress; }
+.lm-submit > * { position: relative; z-index: 1; }
+.lm-submit svg { width: 16px; height: 16px; flex: 0 0 16px; transition: transform .25s cubic-bezier(.34, 1.4, .5, 1); }
+.lm-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 32px -14px rgba(140, 90, 80, .7), 0 0 0 4px rgba(192, 139, 127, .16), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+.lm-submit:hover svg { transform: translateX(4px); }
+.lm-submit:active { transform: translateY(0) scale(.98); }
+
+/* A soft band of light that sweeps across now and then, and right away on hover */
+.lm-submit-shine {
+    position: absolute !important;
+    inset: 0;
+    z-index: 0 !important;
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .28) 50%, transparent 65%);
+    transform: translateX(-120%);
+    animation: lm-submit-shine 4.5s ease-in-out 1.5s infinite;
+    pointer-events: none;
+}
+.lm-submit:hover .lm-submit-shine { animation: lm-submit-shine-once .8s ease-out; }
+
+/* Loading: a spinner takes the arrow's place while signing in */
+.lm-submit-spinner {
+    display: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, .35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: lm-spin .7s linear infinite;
+}
+.lm-submit.is-loading .lm-submit-spinner { display: block; }
+.lm-submit.is-loading .lm-submit-arrow { display: none; }
+.lm-submit.is-loading .lm-submit-shine { animation: none; }
+.lm-submit[disabled] { cursor: progress; transform: none; }
+
+@keyframes lm-submit-drift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes lm-submit-shine { 0% { transform: translateX(-120%); } 30%, 100% { transform: translateX(120%); } }
+@keyframes lm-submit-shine-once { from { transform: translateX(-120%); } to { transform: translateX(120%); } }
+@keyframes lm-spin { to { transform: rotate(360deg); } }
 
 .lm-divider {
     display: flex;
@@ -246,18 +314,26 @@
     justify-content: center;
     gap: 10px;
     width: 100%;
-    height: 42px;
+    height: 46px;
     border: 1.5px solid var(--lm-line);
-    border-radius: 11px;
+    border-radius: 12px;
     background: #fff;
     font-size: .85rem;
     font-weight: 600;
     color: var(--lm-ink);
     text-decoration: none;
-    transition: border-color .18s, background .18s;
+    transition: border-color .2s, background .2s, box-shadow .2s, transform .2s;
 }
-.lm-google:hover { border-color: #D6CFE0; background: var(--lm-soft); }
-.lm-google svg { width: 18px; height: 18px; }
+.lm-google:hover {
+    border-color: transparent;
+    background:
+        linear-gradient(135deg, #FBF9FC, #FDF6F4) padding-box,
+        linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
+    box-shadow: 0 8px 18px -12px rgba(86, 75, 104, .5);
+    transform: translateY(-1px);
+}
+.lm-google svg { width: 18px; height: 18px; transition: transform .3s cubic-bezier(.34, 1.4, .5, 1); }
+.lm-google:hover svg { transform: scale(1.12) rotate(-8deg); }
 
 .lm-foot {
     margin: 14px 0 0;
@@ -348,43 +424,56 @@
 .lm-role:hover .lm-role-name, .lm-role:focus-visible .lm-role-name { color: var(--lm-lavender-dark); }
 .lm-overlay .lm-role:active { transform: translateY(-1px) scale(.98); }
 
-/* ── Step 2: back button + role badge ── */
-.lm-back {
-    position: absolute;
-    top: 14px;
-    left: 14px;
+/* ── Step 2: role badge (also the way back to the role picker) ── */
+.lm-overlay .lm-role-badge {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
-    height: 30px;
-    padding: 0 10px 0 6px;
-    border: 0;
+    gap: 8px;
+    margin: 2px 0 12px;
+    padding: 4px 6px 4px 4px;
+    border: 1.5px solid transparent;
     border-radius: 999px;
-    background: var(--lm-soft);
-    color: var(--lm-muted);
-    font: 700 .74rem 'Inter', system-ui, sans-serif;
-    cursor: pointer;
-    transition: background .18s, color .18s;
-}
-.lm-back svg { width: 16px; height: 16px; transition: transform .18s; }
-.lm-back:hover { background: #EFEAF4; color: var(--lm-ink); }
-.lm-back:hover svg { transform: translateX(-2px); }
-
-.lm-role-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin: 4px 0 10px;
-    padding: 5px 12px 5px 9px;
-    border-radius: 999px;
-    background: #F3F0F7;
+    background:
+        linear-gradient(135deg, #F6F3F9, #FBF2EF) padding-box,
+        linear-gradient(135deg, rgba(111, 99, 130, .45), rgba(192, 139, 127, .55)) border-box;
     color: var(--lm-lavender-dark);
-    font-size: .72rem;
-    font-weight: 800;
-    letter-spacing: .04em;
+    font: 800 .7rem 'Inter', system-ui, sans-serif;
+    letter-spacing: .08em;
     text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
 }
-.lm-role-badge svg { width: 15px; height: 15px; }
+.lm-role-badge-icon {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--lm-lavender) 0%, var(--lm-rose) 100%);
+    color: #fff;
+    box-shadow: 0 4px 10px -4px rgba(140, 90, 80, .6);
+}
+.lm-role-badge-icon svg { width: 14px; height: 14px; }
+.lm-role-badge-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 2px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--lm-rose-dark);
+    font-size: .62rem;
+    letter-spacing: .06em;
+    transition: background .2s, color .2s;
+}
+.lm-role-badge-switch svg { width: 12px; height: 12px; transition: transform .35s cubic-bezier(.34, 1.4, .5, 1); }
+.lm-overlay .lm-role-badge:hover,
+.lm-overlay .lm-role-badge:focus-visible { transform: translateY(-1px); box-shadow: 0 8px 18px -10px rgba(86, 75, 104, .55); }
+.lm-role-badge:hover .lm-role-badge-switch,
+.lm-role-badge:focus-visible .lm-role-badge-switch { background: var(--lm-rose-dark); color: #fff; }
+.lm-role-badge:hover .lm-role-badge-switch svg,
+.lm-role-badge:focus-visible .lm-role-badge-switch svg { transform: rotate(180deg); }
 
 /* Moving between the two steps */
 .lm-step.is-entering-forward { animation: lm-in-forward .28s cubic-bezier(.2, .8, .2, 1); }
@@ -529,4 +618,7 @@ body.lm-page {
     .lm-backdrop, .lm-dialog, .lm-close, .lm-submit, .lm-submit svg, .lm-role { transition: none !important; }
     .lm-step.is-entering-forward, .lm-step.is-entering-back { animation: none; }
     .lm-peek, .lm-peek-paws { display: none; }
+    .lm-dialog::before, .lm-submit, .lm-submit-shine { animation: none; }
+    .lm-submit-spinner { animation-duration: 1.6s; }
+    .lm-google, .lm-google svg, .lm-role-badge, .lm-role-badge-switch svg { transition: none !important; }
 }

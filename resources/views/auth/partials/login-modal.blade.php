@@ -155,10 +155,6 @@
     <section class="lm-dialog lm-step" data-lm-step="login" role="dialog" aria-modal="true" aria-labelledby="lm-title" aria-describedby="lm-subtitle"
              @unless($startStep === 'login') hidden @endunless>
         <div class="lm-panel">
-            <button type="button" class="lm-back" data-lm-back aria-label="Back to choosing how you sign in">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-                <span>Back</span>
-            </button>
             @if($standalone)
                 <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">{!! $closeIcon !!}</a>
             @else
@@ -166,10 +162,17 @@
             @endif
 
             <div class="lm-head">
-                <span class="lm-role-badge">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-lm-badge-icon>{!! $active['icon'] !!}</svg>
+                {{-- The role badge doubles as the way back to the role picker --}}
+                <button type="button" class="lm-role-badge" data-lm-back title="Sign in as someone else">
+                    <span class="lm-role-badge-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-lm-badge-icon>{!! $active['icon'] !!}</svg>
+                    </span>
                     <span data-lm-badge-label>{{ $active['label'] }}</span>
-                </span>
+                    <span class="lm-role-badge-switch">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h13"/><path d="M17 20l4-4-4-4"/><path d="M21 16H8"/></svg>
+                        Switch
+                    </span>
+                </button>
                 <h2 class="lm-title" id="lm-title">{{ $active['title'] }}</h2>
                 <p class="lm-subtitle" id="lm-subtitle">{{ $active['subtitle'] }}</p>
             </div>
@@ -243,9 +246,11 @@
                         <span>Keep me signed in</span>
                     </label>
 
-                    <button type="submit" class="lm-submit">
-                        <span data-lm-button>{{ $active['button'] }}</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    <button type="submit" class="lm-submit lm-submit-main">
+                        <span class="lm-submit-shine" aria-hidden="true"></span>
+                        <span class="lm-submit-spinner" aria-hidden="true"></span>
+                        <span class="lm-submit-label" data-lm-button>{{ $active['button'] }}</span>
+                        <svg class="lm-submit-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </button>
                 </form>
 
