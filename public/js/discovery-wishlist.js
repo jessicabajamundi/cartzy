@@ -21,7 +21,7 @@
             const button = form.querySelector('.discovery-wishlist');
             if (!button || button.disabled) return;
             if (section.dataset.authenticated !== 'true') {
-                window.location.assign(section.dataset.loginUrl);
+                window.cartzyLogin ? window.cartzyLogin.open() : window.location.assign(section.dataset.loginUrl);
                 return;
             }
 
@@ -40,7 +40,7 @@
                     body: JSON.stringify(product),
                 });
                 if (response.status === 401) {
-                    window.location.assign(section.dataset.loginUrl);
+                    window.cartzyLogin ? window.cartzyLogin.open() : window.location.assign(section.dataset.loginUrl);
                     return;
                 }
                 if (response.status === 419) {

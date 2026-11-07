@@ -423,7 +423,7 @@
     });
 
     heart.addEventListener('click', async () => {
-        if (heart.dataset.authenticated !== 'true') return window.location.assign(heart.dataset.loginUrl);
+        if (heart.dataset.authenticated !== 'true') return window.cartzyLogin ? window.cartzyLogin.open() : window.location.assign(heart.dataset.loginUrl);
         const ref = currentRef();
         heart.disabled = true;
         try {
@@ -439,7 +439,7 @@
                     variation: document.getElementById('pd-selected-name')?.textContent.trim() || '',
                 }),
             });
-            if (response.status === 401) return window.location.assign(heart.dataset.loginUrl);
+            if (response.status === 401) return window.cartzyLogin ? window.cartzyLogin.open() : window.location.assign(heart.dataset.loginUrl);
             if (response.status === 419) throw new Error('Your session has expired. Refresh the page and try again.');
             const result = response.ok ? await response.json() : null;
             if (!result?.success) throw new Error('Could not update your wishlist. Please try again.');

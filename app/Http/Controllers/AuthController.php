@@ -156,6 +156,12 @@ class AuthController extends Controller
         $portals = self::loginPortals();
         $portal = array_key_exists((string) $request->input('portal'), $portals) ? $request->input('portal') : User::ROLE_BUYER;
 
+        // The storefront login modal sends the page it was opened on, so buyers land back where they were.
+        $redirectTo = (string) $request->input('redirect_to');
+        if ($portal === User::ROLE_BUYER && preg_match('#^/(?![/\\\\])#', $redirectTo)) {
+            $request->session()->put('url.intended', url($redirectTo));
+        }
+
         try {
             if (Auth::attempt($credentials, $remember)) {
                 $user = Auth::user();

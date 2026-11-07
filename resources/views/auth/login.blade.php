@@ -1,147 +1,37 @@
-@extends('layouts.auth')
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ $portal['key'] === 'buyer' ? 'Log In' : $portal['title'].' Log In' }} | cartzy</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}?v={{ filemtime(public_path('images/favicon.png')) }}">
 
-@php($isBuyerPortal = $portal['key'] === 'buyer')
-@section('title', ($isBuyerPortal ? 'Log In' : $portal['title'].' Log In').' | cartzy')
-@section('auth_visual', 'products')
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v={{ filemtime(public_path('css/auth-modal.css')) }}">
+</head>
+<body class="lm-page">
+    <div class="lm-page-bg" aria-hidden="true"></div>
 
-@section('auth_form')
+    <main>
+        @include('auth.partials.login-modal', ['standalone' => true])
+    </main>
 
-    @unless($isBuyerPortal)<p class="auth-portal-badge">{{ $portal['label'] }} login</p>@endunless
-    <h2 class="auth-title">{{ $portal['title'] }}</h2>
-    <p class="auth-subtitle">{{ $portal['subtitle'] }}</p>
+    <p class="lm-page-footer">&copy; {{ date('Y') }} cartzy. All rights reserved.</p>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            <svg style="width: 18px; height: 18px; flex-shrink: 0; color: #16A34A;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            <span>{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if(session('info'))
-        <div class="auth-notice" role="status" aria-live="polite" aria-atomic="true">
-            <span class="auth-notice-icon" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="9"></circle>
-                    <path d="M12 11v5"></path>
-                    <path d="M12 8h.01"></path>
-                </svg>
-            </span>
-            <p class="auth-notice-message">{{ session('info') }}</p>
-        </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="alert alert-error">
-            @foreach ($errors->all() as $error)
-                <p>• {{ $error }}</p>
-            @endforeach
-            @if(session('portal_hint'))
-                <p><a href="{{ session('portal_hint.url') }}" class="auth-portal-hint">Go to the {{ session('portal_hint.label') }} login &rarr;</a></p>
-            @endif
-        </div>
-    @endif
-
-    <form action="{{ route('login.submit') }}" method="POST">
-        @csrf
-        <input type="hidden" name="portal" value="{{ $portal['key'] }}">
-
-        <label class="field-label" for="email">Email address</label>
-        <div class="input-group">
-            <span class="input-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="4" width="20" height="16" rx="2"/>
-                    <path d="M2 7l10 7 10-7"/>
-                </svg>
-            </span>
-            <input
-                type="email"
-                name="email"
-                id="email"
-                value="{{ old('email') }}"
-                required
-                autofocus
-                placeholder="Enter your email address"
-                class="auth-input @error('email') error @enderror"
-            >
-        </div>
-
-        <label class="field-label" for="login_password">Password</label>
-        <div class="input-group">
-            <span class="input-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="5" y="11" width="14" height="10" rx="2"/>
-                    <path d="M8 11V7a4 4 0 018 0v4"/>
-                </svg>
-            </span>
-            <input
-                type="password"
-                name="password"
-                id="login_password"
-                required
-                placeholder="Enter your password"
-                class="auth-input @error('password') error @enderror"
-            >
-            <button type="button" class="eye-btn" onclick="togglePassword('login_password', 'eye_icon_login')" tabindex="-1">
-                <svg id="eye_icon_login" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-            </button>
-        </div>
-
-        <div class="meta-row">
-            <label class="remember-label">
-                <input type="checkbox" name="remember">
-                <span>Remember me</span>
-            </label>
-            <a href="{{ route('password.forgot', ['portal' => $portal['key'] ?? 'buyer']) }}" class="forgot-link">Forgot password?</a>
-        </div>
-
-        <button type="submit" class="btn-primary">{{ $portal['button'] }}</button>
-    </form>
-
-    <div class="divider">or continue with</div>
-
-    <a href="{{ route('auth.google', ['portal' => $portal['key']]) }}" class="btn-google">
-        <svg viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-        </svg>
-        <span>Continue with Google</span>
-    </a>
-
-    <div class="auth-foot">
-        Don't have an account?
-        <a href="{{ $portal['register'] ?? route('register') }}">Sign up</a>
-    </div>
-
-    <nav class="auth-portals" aria-label="Log in to another portal">
-        <p>{{ $isBuyerPortal ? 'Not shopping? Log in to your workspace' : 'Log in as a different account type' }}</p>
-        <div>
-            @foreach($portals as $key => $other)
-                @continue($key === $portal['key'])
-                <a href="{{ route($other['route']) }}">{{ $other['label'] }}</a>
-            @endforeach
-        </div>
-    </nav>
-
-@push('scripts')
-<script src="{{ asset('js/auth/login.js') }}"></script>
-<script>
-    if (window.location.hash === '#forgot-password') {
-        window.location.replace('{{ route("password.forgot") }}');
-    }
-    window.addEventListener('hashchange', function() {
+    <script src="{{ asset('js/auth/login-modal.js') }}?v={{ filemtime(public_path('js/auth/login-modal.js')) }}"></script>
+    <script>
         if (window.location.hash === '#forgot-password') {
             window.location.replace('{{ route("password.forgot") }}');
         }
-    });
-</script>
-@endpush
-
-@endsection
+        window.addEventListener('hashchange', function () {
+            if (window.location.hash === '#forgot-password') {
+                window.location.replace('{{ route("password.forgot") }}');
+            }
+        });
+    </script>
+    @include('partials.prevent-back-cache')
+</body>
+</html>

@@ -178,6 +178,9 @@
     <link rel="stylesheet" href="{{ asset('css/header-primary.css') }}?v={{ filemtime(public_path('css/header-primary.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/rose-gold-borders.css') }}?v={{ filemtime(public_path('css/rose-gold-borders.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
+    @guest
+    <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v={{ filemtime(public_path('css/auth-modal.css')) }}">
+    @endguest
     @if(Auth::check() && Auth::user()->isBuyer() && Auth::user()->status === 'active')
     <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/blend-buttons.css') }}?v={{ filemtime(public_path('css/blend-buttons.css')) }}">
@@ -217,6 +220,11 @@
     <script src="{{ asset('js/cart.js') }}?v={{ filemtime(public_path('js/cart.js')) }}"></script>
     @include('partials.buddy')
     <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
+    @guest
+        @php($loginPortals = \App\Http\Controllers\AuthController::loginPortals())
+        @include('auth.partials.login-modal', ['portal' => $loginPortals['buyer'] + ['key' => 'buyer'], 'portals' => $loginPortals])
+        <script src="{{ asset('js/auth/login-modal.js') }}?v={{ filemtime(public_path('js/auth/login-modal.js')) }}"></script>
+    @endguest
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
 </body>
