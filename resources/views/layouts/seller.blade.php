@@ -38,7 +38,7 @@
                 ])
                 @foreach($sellerNavLinks as $key => [$label,$icon])
                     @php($navActive = request()->routeIs('seller.'.$key.'*'))
-                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span></a>
+                    <a href="{{ route('seller.'.$key) }}" class="nav-link {{ $navActive ? 'active' : '' }}" @if($navActive) aria-current="page" @endif @if(in_array($key, ['chat', 'logistics'], true)) data-chat-launch="{{ $key === 'chat' ? 'sm' : 'lc' }}" @endif>@include('seller.partials.icon', ['name' => $icon])<span>{{ $label }}</span>@if(in_array($key, ['chat', 'logistics'], true))<span class="badge" data-chat-unread="{{ $key === 'chat' ? 'sm' : 'lc' }}" hidden></span>@endif</a>
                     @if($key === 'dashboard')
                         @include('seller.partials.workspace-notifications')
                     @endif

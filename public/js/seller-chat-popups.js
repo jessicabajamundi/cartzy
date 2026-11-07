@@ -52,10 +52,15 @@
             parent.replaceChildren(p);
             return p;
         };
+        const sidebarBadge = document.querySelector(`[data-chat-unread="${id}"]`);
         const setUnread = total => {
             const count = Number(total) || 0;
-            badge.hidden = count <= 0;
-            badge.textContent = count > 99 ? '99+' : String(count);
+            [badge, sidebarBadge].forEach(node => {
+                if (!node) return;
+                node.hidden = count <= 0;
+                node.textContent = count > 99 ? '99+' : String(count);
+            });
+            sidebarBadge?.setAttribute('aria-label', `${count} unread`);
         };
         const renderStatus = status => el('span', 'pd-msg-status is-' + status, status === 'seen' ? '✓✓ Seen' : status === 'delivered' ? '✓✓ Delivered' : '✓ Sent');
 
@@ -195,7 +200,7 @@
         window.DragDiscard?.attach(bubbleWrap, { key: `seller-chat-bubble-spot:${id}`, onDiscard: dismiss });
 
         const refreshBadge = async () => {
-            if (bubbleWrap.hidden || document.hidden) return;
+            if (document.hidden) return;
             try { setUnread((await request(conversationsUrl)).unread_total); } catch (_) { /* badge is best effort */ }
         };
 
@@ -255,6 +260,7 @@
         });
 
         if (remembered(id)) toBubble();
+        else refreshBadge();
         setInterval(refreshBadge, 30000);
     };
 

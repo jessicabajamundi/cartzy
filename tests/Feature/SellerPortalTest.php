@@ -93,6 +93,22 @@ class SellerPortalTest extends TestCase
             ->assertSeeInOrder(['Delivery details', 'Jillian G · 09482672310', 'Purok 4, Magdalena, Laguna', 'Shipped: Oct 26, 2026 · 11:43 PM', 'Delivered: Oct 26, 2026 · 11:49 PM', 'Status history', 'Placed', 'Picked up by courier', 'Oct 26, 2026 · 11:43 PM', 'Out for delivery', 'Oct 26, 2026 · 11:47 PM']);
     }
 
+    public function test_sidebar_has_message_counters_fed_by_the_unread_totals(): void
+    {
+        $shop = $this->shop();
+        $order = $this->order($shop);
+        $buyer = $order->order->buyer;
+        $this->actingAs($buyer)->post('/buyer/messages/'.$order->id, ['message' => 'Is this in stock?'])->assertRedirect();
+        $hub = LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Counter hub', 'slug' => 'counter-hub', 'status' => 'approved']);
+        \App\Models\LogisticsMessage::create(['logistics_provider_id' => $hub->id, 'contact_user_id' => $shop->user_id, 'contact_name' => 'Seller', 'contact_type' => 'seller', 'sender_type' => 'hub', 'message' => 'Pickup tomorrow']);
+        \App\Models\LogisticsMessage::create(['logistics_provider_id' => $hub->id, 'contact_user_id' => $shop->user_id, 'contact_name' => 'Seller', 'contact_type' => 'seller', 'sender_type' => 'hub', 'message' => 'Please pack it']);
+
+        $this->actingAs($shop->user);
+        $this->get('/seller/orders')->assertOk()->assertSee('data-chat-unread="sm"', false)->assertSee('data-chat-unread="lc"', false);
+        $this->getJson(route('seller.popup.conversations'))->assertOk()->assertJsonPath('unread_total', 1);
+        $this->getJson(route('seller.logistics.conversations'))->assertOk()->assertJsonPath('unread_total', 2);
+    }
+
     public function test_sidebar_lists_links_without_section_labels(): void
     {
         $this->actingAs($this->shop()->user);
