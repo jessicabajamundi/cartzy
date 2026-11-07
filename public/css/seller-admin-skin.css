@@ -220,3 +220,33 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
     .button::after, button.primary::after { content: none; }
     .button .icon, .topbar-icon, .topbar-avatar { transition: none; transform: none !important; }
 }
+
+/* ─── Seller orders table ─── */
+.seller-orders-table { min-width: 1080px; }
+.seller-orders-table td { vertical-align: middle; font-size: 13px; }
+.seller-orders-table td strong { display: block; color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1.35; }
+.seller-orders-table td small { display: block; margin-top: 3px; line-height: 1.4; }
+.seller-orders-table .so-order { min-width: 150px; }
+.seller-orders-table .so-order strong { overflow-wrap: anywhere; }
+.seller-orders-table .so-tracking { color: var(--rose-gold); font-family: Consolas, "SFMono-Regular", monospace; overflow-wrap: anywhere; }
+.seller-orders-table .so-buyer { min-width: 120px; }
+.seller-orders-table .so-items { min-width: 320px; }
+.so-item { display: flex; align-items: center; gap: 12px; }
+.so-thumb { display: grid; place-items: center; flex: 0 0 48px; width: 48px; height: 48px; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: var(--canvas); color: var(--muted); }
+.so-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.so-item-copy { flex: 1; min-width: 0; }
+.so-item-price { flex-shrink: 0; color: var(--ink); font-weight: 700; white-space: nowrap; }
+.seller-orders-table .so-total { white-space: nowrap; }
+.seller-orders-table .so-status { white-space: nowrap; }
+.seller-orders-table .so-next { min-width: 250px; }
+.so-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.so-hint { color: var(--muted); font-size: 12px; }
+.so-handover { display: inline-flex; align-items: center; gap: 6px; color: #39704c; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.so-print { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.so-details { color: var(--accent); font-size: 12px; font-weight: 700; text-decoration: none; }
+.so-details:hover { color: var(--accent-hover); text-decoration: underline; }
+.so-chat { display: inline-flex; color: var(--muted); }
+.so-chat:hover { color: var(--accent); }
+.so-cancellation { flex-basis: 100%; }
+.so-cancellation .inline { margin-top: 8px; }
+.so-note { white-space: pre-line; }

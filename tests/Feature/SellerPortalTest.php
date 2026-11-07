@@ -45,6 +45,22 @@ class SellerPortalTest extends TestCase
         return $product;
     }
 
+    public function test_orders_table_shows_buyer_item_total_and_next_action(): void
+    {
+        $shop = $this->shop();
+        $product = $this->product($shop);
+        $shipped = $this->order($shop, 'shipped', 'paid');
+        $shipped->items()->create(['product_id' => $product->id, 'product_variant_id' => $product->variants()->first()->id, 'product_name' => 'Panda Dunk', 'variant_name' => 'US 8', 'unit_price_minor' => 10000, 'quantity' => 1]);
+        $shipped->shipment()->create(['logistics_provider_id' => LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Table courier', 'slug' => 'table-courier', 'status' => 'approved'])->id, 'tracking_code' => 'TRK-TABLE1', 'status' => 'out_for_delivery']);
+        $waiting = $this->order($shop);
+
+        $this->actingAs($shop->user)->get('/seller/orders')->assertOk()
+            ->assertSee('TRK-TABLE1')->assertSee('Panda Dunk — US 8')->assertSee('1 × ₱100.00')
+            ->assertSee('₱110.00')->assertSee('Out for delivery')->assertSee('Handover confirmed')
+            ->assertSee(route('seller.orders.waybill', ['id' => $shipped->id, 'print' => 1]), false)
+            ->assertSee('Mark packed')->assertSee(route('seller.orders.waybill', $waiting), false);
+    }
+
     public function test_sidebar_lists_links_without_section_labels(): void
     {
         $this->actingAs($this->shop()->user);

@@ -22,6 +22,8 @@
         </div>
     </div>
 
+    @if(request()->boolean('print'))<script>window.addEventListener('load', () => window.print());</script>@endif
+
     {{-- Delivery Status & Rider Verification Banner (Hidden during Print) --}}
     <div class="print-hide status-banner-wrapper">
         @if(in_array($order->status, ['delivered', 'completed']) || ($order->shipment && $order->shipment->status === 'delivered'))

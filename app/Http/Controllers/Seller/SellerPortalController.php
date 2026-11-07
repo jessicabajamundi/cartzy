@@ -23,6 +23,9 @@ class SellerPortalController extends Controller
         return Auth::user()->seller;
     }
 
+    /** Everything the seller orders table reads for each row. */
+    private const ORDERS_TABLE_RELATIONS = ['order.buyer', 'items.variant', 'items.product.coverImage', 'shipment'];
+
     private function ordersQuery()
     {
         return SellerOrder::where('seller_id', $this->shop()?->id ?? 0);
@@ -99,7 +102,7 @@ class SellerPortalController extends Controller
         $days = collect(\Carbon\CarbonPeriod::create($start, '1 day', $end));
         $daily = (clone $sales)->get()->groupBy(fn ($order) => $order->delivered_at->format('Y-m-d'));
         $chart = $days->map(fn ($day) => ['label' => $day->format($days->count() <= 7 ? 'D' : 'M j'), 'date' => $day->format('M j'), 'sales' => $daily->get($day->format('Y-m-d'), collect())->sum('subtotal_minor')]);
-        $recentOrders = $this->ordersQuery()->with(['order.buyer', 'items', 'shipment'])->latest()->limit(5)->get();
+        $recentOrders = $this->ordersQuery()->with(self::ORDERS_TABLE_RELATIONS)->latest()->limit(5)->get();
         $reportDates = ['from_date' => $start->format('Y-m-d'), 'to_date' => $end->format('Y-m-d')];
         $updatedAt = now()->timezone('Asia/Manila')->format('M j, Y \a\t g:i A');
 
@@ -109,7 +112,7 @@ class SellerPortalController extends Controller
     public function orders(Request $request)
     {
         $request->validate(['search' => 'nullable|string|max:150', 'status' => ['nullable', Rule::in(['all', 'cancellation_requested', 'to_prepare', 'pending', 'accepted', 'packed', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'])]]);
-        $query = $this->ordersQuery()->with(['order.buyer', 'items', 'shipment']);
+        $query = $this->ordersQuery()->with(self::ORDERS_TABLE_RELATIONS);
         if ($request->status === 'cancellation_requested') {
             $query->where('cancellation_status', 'pending');
         } elseif ($request->status === 'to_prepare') {
@@ -269,7 +272,7 @@ class SellerPortalController extends Controller
 
     public function deliveries()
     {
-        return $this->page('deliveries', ['orders' => $this->ordersQuery()->whereIn('status', ['delivered', 'completed'])->with(['order.buyer', 'shipment'])->latest('delivered_at')->paginate(15)]);
+        return $this->page('deliveries', ['orders' => $this->ordersQuery()->whereIn('status', ['delivered', 'completed'])->with(self::ORDERS_TABLE_RELATIONS)->latest('delivered_at')->paginate(15)]);
     }
 
     public function feedback(Request $request)

@@ -39,6 +39,21 @@ class OrderItem extends Model
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
+    /** The option's own photo, else the product cover; null when neither exists. */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if ($url = $this->variant?->image_url) {
+            return $url;
+        }
+
+        $cover = $this->product?->coverImage?->path;
+        if (!$cover) {
+            return null;
+        }
+
+        return preg_match('~^(https?://|/)~', $cover) ? $cover : \Illuminate\Support\Facades\Storage::disk('public')->url($cover);
+    }
+
     public function getUnitPriceAttribute(): float
     {
         return $this->unit_price_minor / 100;
