@@ -57,15 +57,12 @@ class CourierRiderHubTest extends TestCase
         return [$courier, $rider, $provider];
     }
 
-    public function test_courier_dashboard_renders_successfully(): void
+    public function test_courier_dashboard_in_a_browser_opens_the_app_download_page(): void
     {
         [$courier] = $this->createCourierRider();
 
-        $response = $this->actingAs($courier)->get(route('courier.dashboard'));
-        $response->assertOk()
-            ->assertSee('Rider Command Center')
-            ->assertSee('Arnel Gomez')
-            ->assertSee('NQ-4812');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.dashboard'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_pickups_page_and_accept_action(): void
@@ -90,10 +87,8 @@ class CourierRiderHubTest extends TestCase
             'status'                => 'pending',
         ]);
 
-        $response = $this->actingAs($courier)->get(route('courier.pickups'));
-        $response->assertOk()
-            ->assertSee('TechnoHub Manila')
-            ->assertSee('Warehouse 4, Ortigas Ave, Pasig');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.pickups'))->assertRedirect(route('rider.app'));
 
         $acceptResponse = $this->actingAs($courier)->post(route('courier.pickups.accept', $pickup->id));
         $acceptResponse->assertRedirect();
@@ -151,10 +146,8 @@ class CourierRiderHubTest extends TestCase
             'cod_collected'         => false,
         ]);
 
-        $response = $this->actingAs($courier)->get(route('courier.deliveries'));
-        $response->assertOk()
-            ->assertSee('CTZ-TEST-9988')
-            ->assertSee('Danilo Cruz');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.deliveries'))->assertRedirect(route('rider.app'));
 
         $deliverResponse = $this->actingAs($courier)->post(route('courier.deliver', $shipment->id), [
             'recipient_name' => 'Danilo Cruz',
@@ -175,40 +168,32 @@ class CourierRiderHubTest extends TestCase
     {
         [$courier] = $this->createCourierRider();
 
-        $response = $this->actingAs($courier)->get(route('courier.earnings'));
-        $response->assertOk()
-            ->assertSee('Payout')
-            ->assertSee('COD Cash On Hand');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.earnings'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_history_page(): void
     {
         [$courier] = $this->createCourierRider();
 
-        $response = $this->actingAs($courier)->get(route('courier.history'));
-        $response->assertOk()
-            ->assertSee('Completed Deliveries')
-            ->assertSee('Delivery Records');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.history'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_chat_page(): void
     {
         [$courier] = $this->createCourierRider();
 
-        $response = $this->actingAs($courier)->get(route('courier.chat'));
-        $response->assertOk()
-            ->assertSee('Cartzy Central Dispatch');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.chat'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_account_page_and_status_toggle(): void
     {
         [$courier, $rider] = $this->createCourierRider();
 
-        $response = $this->actingAs($courier)->get(route('courier.account'));
-        $response->assertOk()
-            ->assertSee('Rider Account Management')
-            ->assertSee('Fully Verified Courier')
-            ->assertSee('Arnel Gomez');
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.account'))->assertRedirect(route('rider.app'));
 
         $toggleResponse = $this->actingAs($courier)->post(route('courier.account.toggle-status'));
         $toggleResponse->assertRedirect();

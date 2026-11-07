@@ -28,6 +28,8 @@ Route::post('/products/{id}/comments', [\App\Http\Controllers\ProductController:
 Route::post('/comments/{commentId}/react', [\App\Http\Controllers\ProductController::class, 'react'])->whereNumber('commentId')->middleware(['auth', 'role:buyer,seller', 'throttle:60,1'])->name('products.comments.react');
 Route::get('/category/{slug}', [\App\Http\Controllers\HomeController::class, 'category'])->name('category.show');
 Route::get('/store/{slug}', [\App\Http\Controllers\StoreController::class, 'show'])->name('store.show');
+Route::get('/rider-app', [\App\Http\Controllers\RiderAppController::class, 'show'])->name('rider.app');
+Route::get('/rider-app/download', [\App\Http\Controllers\RiderAppController::class, 'download'])->middleware('throttle:30,1')->name('rider.app.download');
 Route::post('/store/{slug}/follow', [\App\Http\Controllers\StoreController::class, 'toggleFollow'])->middleware(['auth', 'role:buyer', 'throttle:30,1'])->name('store.follow');
 
 Route::view('/buyer-account-required', 'auth.buyer-required')->middleware('auth')->name('buyer.required');
@@ -48,7 +50,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::get('/seller/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'seller')->name('login.seller');
     Route::get('/logistics/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'logistics')->name('login.logistics');
-    Route::get('/courier/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'courier')->name('login.courier');
+    // Riders sign in on the Android app, so the rider "login" is the app download page.
+    Route::get('/courier/login', [\App\Http\Controllers\RiderAppController::class, 'show'])->name('login.courier');
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'admin')->name('login.admin');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
@@ -300,7 +303,8 @@ Route::middleware('auth')->group(function () {
     });
 
     // Courier / Rider Hub Routes
-    Route::middleware('role:courier')->prefix('courier')->name('courier.')->group(function () {
+    // Rider Hub pages open in the Android app; in a browser they show the download page.
+    Route::middleware(['role:courier', \App\Http\Middleware\RidersUseTheApp::class])->prefix('courier')->name('courier.')->group(function () {
         // 1. Dashboard Overview
         Route::get('/', [CourierDashboardController::class, 'index']);
         Route::get('/dashboard', [CourierDashboardController::class, 'index'])->name('dashboard');
