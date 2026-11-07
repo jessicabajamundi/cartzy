@@ -29,7 +29,7 @@ class CatalogController extends Controller
         return preg_match('~^(https?://|/)~', $path) ? $path : \Illuminate\Support\Facades\Storage::disk('public')->url($path);
     }
 
-    private function productJson(Product $product, bool $full = false): array
+    public function productJson(Product $product, bool $full = false): array
     {
         $variants = $product->variants;
         // sale_price_minor reads $variant->product; hand it the loaded parent

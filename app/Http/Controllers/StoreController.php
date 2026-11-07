@@ -29,15 +29,9 @@ class StoreController extends Controller
             ->whereHas('variants', fn ($q) => $q->where('is_active', true));
     }
 
-    public function show(Request $request, string $slug)
+    /** The store's visible products with rating and sold totals, searched, filtered and sorted. */
+    public function productQuery(Seller $seller, string $search, string $categorySlug, string $sort)
     {
-        $seller = $this->publicSeller($slug);
-        $text = fn (string $key) => is_string($value = $request->query($key)) ? trim($value) : '';
-        $tab = in_array($text('tab'), ['products', 'reviews', 'about'], true) ? $text('tab') : 'products';
-        $sort = array_key_exists($text('sort'), self::SORTS) ? $text('sort') : 'latest';
-        $search = mb_substr($text('q'), 0, 100);
-        $categorySlug = $text('category');
-
         $soldScope = fn ($items) => $items->whereHas('sellerOrder', fn ($order) => $order->whereIn('status', ['delivered', 'completed']));
         $products = $this->catalog($seller)
             ->with(['coverImage', 'variants' => fn ($q) => $q->where('is_active', true)->orderBy('price_minor')])
@@ -57,18 +51,36 @@ class StoreController extends Controller
             'price_desc' => $products->orderByDesc('min_price'),
             default => $products->latest(),
         };
-        $products = $products->orderByDesc('id')->paginate(20)->withQueryString()->fragment('store-products');
 
+        return $products;
+    }
+
+    /** Categories that have at least one visible product in this store. */
+    public function categories(Seller $seller)
+    {
         $catalogIds = $this->catalog($seller)->pluck('id');
-        $categories = Category::where('is_active', true)
+
+        return Category::where('is_active', true)
             ->where(fn ($q) => $q->whereHas('allProducts', fn ($p) => $p->whereIn('products.id', $catalogIds))
                 ->orWhereHas('products', fn ($p) => $p->whereIn('products.id', $catalogIds)))
             ->orderBy('position')->get();
+    }
 
-        $reviewQuery = Review::whereIn('product_id', Product::withTrashed()->where('seller_id', $seller->id)->select('id'));
+    /** Every review of this store's products, including products removed later. */
+    public function reviewQuery(Seller $seller)
+    {
+        return Review::whereIn('product_id', Product::withTrashed()->where('seller_id', $seller->id)->select('id'));
+    }
+
+    /** Store totals shown on the website and in the app. Rating is null until someone has rated. */
+    public function stats(Seller $seller): array
+    {
+        $catalogIds = $this->catalog($seller)->pluck('id');
+        $reviewQuery = $this->reviewQuery($seller);
         $ratingBreakdown = (clone $reviewQuery)->selectRaw('rating, count(*) as total')->groupBy('rating')->pluck('total', 'rating');
         $reviewTotal = (int) $ratingBreakdown->sum();
-        $stats = [
+
+        return [
             'followers' => $seller->followers()->count(),
             'products' => $catalogIds->count(),
             'rating' => $reviewTotal ? (float) (clone $reviewQuery)->avg('rating') : null,
@@ -77,6 +89,24 @@ class StoreController extends Controller
                 ->whereHas('sellerOrder', fn ($order) => $order->where('seller_id', $seller->id)->whereIn('status', ['delivered', 'completed']))->sum('quantity'),
             'breakdown' => collect(range(5, 1))->mapWithKeys(fn ($star) => [$star => (int) ($ratingBreakdown[$star] ?? 0)]),
         ];
+    }
+
+    public function show(Request $request, string $slug)
+    {
+        $seller = $this->publicSeller($slug);
+        $text = fn (string $key) => is_string($value = $request->query($key)) ? trim($value) : '';
+        $tab = in_array($text('tab'), ['products', 'reviews', 'about'], true) ? $text('tab') : 'products';
+        $sort = array_key_exists($text('sort'), self::SORTS) ? $text('sort') : 'latest';
+        $search = mb_substr($text('q'), 0, 100);
+        $categorySlug = $text('category');
+
+        $products = $this->productQuery($seller, $search, $categorySlug, $sort);
+        $products = $products->orderByDesc('id')->paginate(20)->withQueryString()->fragment('store-products');
+
+        $categories = $this->categories($seller);
+
+        $reviewQuery = $this->reviewQuery($seller);
+        $stats = $this->stats($seller);
 
         $ratingFilter = (int) $text('rating');
         $reviews = $reviewQuery->with(['user', 'product'])
