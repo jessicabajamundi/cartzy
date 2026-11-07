@@ -68,10 +68,29 @@ class SellerPortalTest extends TestCase
         $delivered->order->update(['shipping_address' => ['recipient' => 'Someone Else']]);
         $delivered->shipment()->create(['logistics_provider_id' => LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Done courier', 'slug' => 'done-courier', 'status' => 'approved'])->id, 'tracking_code' => 'TRK-DONE1', 'status' => 'delivered']);
 
-        $this->actingAs($shop->user)->get('/seller/orders')->assertOk()
-            ->assertSee($delivered->order->buyer->name)->assertDontSee('Someone Else')
+        $page = $this->actingAs($shop->user)->get('/seller/orders')->assertOk()
             ->assertSee('TRK-DONE1')->assertSee('Handover confirmed')->assertDontSee('Print waybill')
-            ->assertSee(route('seller.orders.waybill', $delivered), false);
+            ->assertSee(route('seller.orders.waybill', $delivered), false)->getContent();
+
+        $buyerCell = substr($page, strpos($page, 'so-buyer'), strpos($page, 'so-items') - strpos($page, 'so-buyer'));
+        $this->assertStringContainsString(e($delivered->order->buyer->name), $buyerCell);
+        $this->assertStringNotContainsString('Someone Else', $buyerCell);
+    }
+
+    public function test_order_details_open_in_a_box_with_delivery_info_and_status_history(): void
+    {
+        $shop = $this->shop();
+        $order = $this->order($shop, 'delivered', 'paid');
+        $order->order->update(['shipping_address' => ['recipient' => 'Jillian G', 'phone' => '09482672310', 'address' => 'Purok 4, Magdalena, Laguna']]);
+        $order->update(['delivered_at' => '2026-10-26 15:49:00']);
+        $shipment = $order->shipment()->create(['logistics_provider_id' => LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Box courier', 'slug' => 'box-courier', 'status' => 'approved'])->id, 'tracking_code' => 'TRK-BOX1', 'status' => 'delivered']);
+        $shipment->deliveryEvents()->create(['status' => 'picked_up', 'attempt' => 1, 'user_id' => $shop->user_id, 'occurred_at' => '2026-10-26 15:43:00']);
+        $shipment->deliveryEvents()->create(['status' => 'out_for_delivery', 'attempt' => 1, 'user_id' => $shop->user_id, 'occurred_at' => '2026-10-26 15:47:00']);
+
+        $this->actingAs($shop->user)->get('/seller/orders')->assertOk()
+            ->assertSee('popovertarget="so-details-'.$order->id.'"', false)
+            ->assertSee('id="so-details-'.$order->id.'"', false)
+            ->assertSeeInOrder(['Delivery details', 'Jillian G · 09482672310', 'Purok 4, Magdalena, Laguna', 'Shipped: Oct 26, 2026 · 11:43 PM', 'Delivered: Oct 26, 2026 · 11:49 PM', 'Status history', 'Placed', 'Picked up by courier', 'Oct 26, 2026 · 11:43 PM', 'Out for delivery', 'Oct 26, 2026 · 11:47 PM']);
     }
 
     public function test_sidebar_lists_links_without_section_labels(): void

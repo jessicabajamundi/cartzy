@@ -245,10 +245,22 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 .so-hint { color: var(--muted); font-size: 12px; }
 .so-handover { display: inline-flex; align-items: center; gap: 6px; color: #39704c; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .so-print { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.so-details { color: var(--accent); font-size: 12px; font-weight: 700; text-decoration: none; }
+.so-details { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .so-details:hover { color: var(--accent-hover); text-decoration: underline; }
 .so-chat { display: inline-flex; color: var(--muted); }
 .so-chat:hover { color: var(--accent); }
 .so-cancellation { flex-basis: 100%; }
 .so-cancellation .inline { margin-top: 8px; }
 .so-note { white-space: pre-line; }
+
+/* Order details box, opened from the Details button */
+.so-popover { position: fixed; inset: auto; width: 440px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); margin: 0; padding: 22px; overflow-y: auto; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 16px 48px -12px rgba(40, 33, 51, .22), 0 4px 12px rgba(40, 33, 51, .04); }
+.so-popover::backdrop { background: transparent; }
+.so-popover h3 { margin: 0 0 10px; color: var(--ink); font-size: 14px; font-weight: 700; }
+.so-popover h3:not(:first-child) { margin-top: 20px; }
+.so-popover p { margin: 0 0 7px; color: var(--muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.so-history { margin: 0; padding: 0; list-style: none; }
+.so-history li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+.so-history time { flex-shrink: 0; white-space: nowrap; }
+.so-waybill-link { display: inline-block; margin-top: 14px; color: var(--accent); font-size: 12px; font-weight: 700; text-decoration: none; }
+.so-waybill-link:hover { color: var(--accent-hover); text-decoration: underline; }

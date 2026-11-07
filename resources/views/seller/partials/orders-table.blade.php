@@ -16,6 +16,10 @@
         && !$canPack && !in_array($payment->payment_status, ['refunded', 'partially_refunded'], true);
     $needsPickup = $order->status === 'ready_to_ship' && (!$shipment || $shipment->status === 'unassigned');
     $awaitingRider = $order->status === 'ready_to_ship' && !$needsPickup;
+    $address = $payment->shipping_address ?? [];
+    $tracking = app(\App\Services\OrderTracking::class)->build($order);
+    $manilaTime = fn ($date) => $date?->copy()->timezone('Asia/Manila')->format('M d, Y · h:i A');
+    $shippedAt = $shipment?->deliveryEvents->firstWhere('status', 'picked_up')?->occurred_at;
 @endphp
 <tr>
     <td class="so-order">
@@ -77,13 +81,46 @@
             @if($shipment && !in_array($order->status, ['cancelled', 'delivered', 'completed'], true) && $shipment->status !== 'delivered')
                 <a class="button small secondary so-print" href="{{ route('seller.orders.waybill', ['id' => $order->id, 'print' => 1]) }}">@include('seller.partials.icon', ['name' => 'printer', 'size' => 16])<span>Print waybill</span></a>
             @endif
-            <a class="so-details" href="{{ route('seller.orders.waybill', $order) }}">Details</a>
+            <button type="button" class="so-details" popovertarget="so-details-{{ $order->id }}">Details</button>
             <a class="so-chat" href="{{ route('seller.chat', ['contact' => $order->id]) }}" aria-label="Message buyer for {{ $payment->reference }}" title="Message buyer">@include('seller.partials.icon', ['name' => 'chat', 'size' => 18])</a>
         </div>
         @if($order->status === 'cancelled' && $order->note)<small class="so-note">{{ $order->note }}</small>@endif
+        <div class="so-popover" id="so-details-{{ $order->id }}" popover aria-label="Details for {{ $payment->reference }}">
+            <h3>Delivery details</h3>
+            <p>{{ $address['recipient'] ?? $payment->buyer?->name }} · {{ $address['phone'] ?? $payment->buyer?->phone ?? 'No phone number' }}</p>
+            <p>{{ $address['address'] ?? implode(', ', array_filter(Arr::only($address, ['line1', 'barangay', 'city', 'province', 'postal_code']))) }}</p>
+            @if($shippedAt)<p>Shipped: {{ $manilaTime($shippedAt) }}</p>@endif
+            @if($order->delivered_at)<p>Delivered: {{ $manilaTime($order->delivered_at) }}</p>@endif
+            <h3>Status history</h3>
+            <ul class="so-history">
+                <li><span>Placed</span><time>{{ $tracking['steps'][0]['time'] }}</time></li>
+                @foreach(array_reverse($tracking['history']) as $event)
+                    <li><span>{{ $event['label'] }}</span><time>{{ $event['time'] }}</time></li>
+                @endforeach
+            </ul>
+            <a class="so-waybill-link" href="{{ route('seller.orders.waybill', $order) }}">View full waybill</a>
+        </div>
     </td>
 </tr>
 @empty
 <tr><td colspan="6"><div class="empty"><div class="empty-icon">@include('seller.partials.icon', ['name'=>'bag'])</div><h3>No orders to show</h3><p>Orders for your store will appear here. If you used a filter, try another status or search.</p></div></td></tr>
 @endforelse
 </tbody></table></div>
+@once
+<script>
+// Opens each order's details box next to its button, flipping up when there's no room below.
+document.addEventListener('toggle', (event) => {
+    const box = event.target;
+    if (!box.classList?.contains('so-popover') || event.newState !== 'open') return;
+    const button = document.querySelector(`[popovertarget="${box.id}"]`).getBoundingClientRect();
+    const gap = 8, edge = 12, size = box.getBoundingClientRect();
+    const below = button.bottom + gap;
+    const top = below + size.height <= innerHeight - edge ? below : button.top - gap - size.height;
+    box.style.top = `${Math.max(edge, top)}px`;
+    box.style.left = `${Math.max(edge, Math.min(button.right - size.width, innerWidth - size.width - edge))}px`;
+}, true);
+window.addEventListener('scroll', () => {
+    document.querySelectorAll('.so-popover:popover-open').forEach((box) => box.hidePopover());
+}, { passive: true });
+</script>
+@endonce

@@ -24,7 +24,7 @@ class SellerPortalController extends Controller
     }
 
     /** Everything the seller orders table reads for each row. */
-    private const ORDERS_TABLE_RELATIONS = ['order.buyer', 'items.variant', 'items.product.coverImage', 'shipment'];
+    private const ORDERS_TABLE_RELATIONS = ['order.buyer', 'items.variant', 'items.product.coverImage', 'logisticsProvider', 'shipment.deliveryEvents', 'shipment.logisticsProvider', 'shipment.rider.user'];
 
     private function ordersQuery()
     {
