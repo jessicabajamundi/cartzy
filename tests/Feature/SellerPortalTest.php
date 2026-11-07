@@ -61,6 +61,19 @@ class SellerPortalTest extends TestCase
             ->assertSee('Mark packed')->assertSee(route('seller.orders.waybill', $waiting), false);
     }
 
+    public function test_orders_table_shows_one_buyer_name_and_no_waybill_button_after_delivery(): void
+    {
+        $shop = $this->shop();
+        $delivered = $this->order($shop, 'delivered', 'paid');
+        $delivered->order->update(['shipping_address' => ['recipient' => 'Someone Else']]);
+        $delivered->shipment()->create(['logistics_provider_id' => LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Done courier', 'slug' => 'done-courier', 'status' => 'approved'])->id, 'tracking_code' => 'TRK-DONE1', 'status' => 'delivered']);
+
+        $this->actingAs($shop->user)->get('/seller/orders')->assertOk()
+            ->assertSee($delivered->order->buyer->name)->assertDontSee('Someone Else')
+            ->assertSee('TRK-DONE1')->assertSee('Handover confirmed')->assertDontSee('Print waybill')
+            ->assertSee(route('seller.orders.waybill', $delivered), false);
+    }
+
     public function test_sidebar_lists_links_without_section_labels(): void
     {
         $this->actingAs($this->shop()->user);

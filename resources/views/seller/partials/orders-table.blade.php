@@ -25,7 +25,6 @@
     </td>
     <td class="so-buyer">
         <strong>{{ $payment->buyer?->name }}</strong>
-        <small>{{ $payment->shipping_address['recipient'] ?? $payment->buyer?->name }}</small>
     </td>
     <td class="so-items">
         @if($firstItem)
@@ -75,7 +74,7 @@
             @if($handedOver)
                 <span class="so-handover">@include('seller.partials.icon', ['name' => 'check', 'size' => 18])<span>Handover confirmed</span></span>
             @endif
-            @if($shipment && $order->status !== 'cancelled')
+            @if($shipment && !in_array($order->status, ['cancelled', 'delivered', 'completed'], true) && $shipment->status !== 'delivered')
                 <a class="button small secondary so-print" href="{{ route('seller.orders.waybill', ['id' => $order->id, 'print' => 1]) }}">@include('seller.partials.icon', ['name' => 'printer', 'size' => 16])<span>Print waybill</span></a>
             @endif
             <a class="so-details" href="{{ route('seller.orders.waybill', $order) }}">Details</a>
