@@ -1471,7 +1471,7 @@ class _FlashDealCard extends StatelessWidget {
                     height: double.infinity,
                     child: CartzyProductImage(
                       imageUrl: deal.effectiveImageUrl,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),

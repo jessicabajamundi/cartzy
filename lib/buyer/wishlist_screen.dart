@@ -448,7 +448,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       color: const Color(0xFFF6F3F5),
                       child: CartzyProductImage(
                         imageUrl: effectiveImage,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                       ),
                     ),
 

@@ -109,7 +109,7 @@ class _ProductCardState extends State<ProductCard> {
                         imageUrl: (widget.imageUrl?.isNotEmpty ?? false)
                             ? widget.imageUrl
                             : CartzyProductImages.getImage(widget.name),
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                       ),
                     ),
 
