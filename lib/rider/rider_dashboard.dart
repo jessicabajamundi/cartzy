@@ -11,6 +11,7 @@ import 'rider_delivery_history_screen.dart';
 import 'rider_earnings_dashboard.dart';
 import 'rider_chat_list_screen.dart';
 import 'rider_account_screen.dart';
+import 'rider_attendance_screen.dart';
 
 // ============================================================
 // RIDER COMMAND CENTER — reference design from screenshot
@@ -967,6 +968,60 @@ class _RiderDashboardState extends State<RiderDashboard> {
     );
   }
 
+  // ── Time in / time out ──────────────────────────────────────
+  // Riders scan the QR code on their hub's screen (it changes every 25 seconds).
+  Widget _buildShiftCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFEDE5E0)),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _push(RiderAttendanceScreen(token: widget.token)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: CartzyColors.brand100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.badge_outlined, color: CartzyColors.brandDark),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Time in / time out',
+                        style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: CartzyColors.brand900),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Scan the QR code at your hub to start or end your shift',
+                        style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF6F6779)),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.qr_code_scanner, color: CartzyColors.brandDark),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── 4 KPI Metric Cards ──────────────────────────────────────
   Widget _buildKpiRow() {
     return LayoutBuilder(
@@ -1531,6 +1586,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                             children: [
                               _buildWelcomeAlert(),
                               _buildHeroBanner(),
+                              _buildShiftCard(),
                               _buildKpiRow(),
                               _buildDeliveryRouteSection(),
                               _buildPickupRequestsSection(),
