@@ -146,12 +146,6 @@
                 <div>
                     <label class="field-label" for="first_name">First name <span style="color:#ef4444">*</span></label>
                     <div class="input-group">
-                        <span class="input-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        </span>
                         <input
                             type="text"
                             name="first_name"
@@ -161,6 +155,7 @@
                             aria-invalid="{{ $errors->has('first_name') ? 'true' : 'false' }}"
                             value="{{ old('first_name') }}"
                             class="auth-input"
+                            style="padding-left: 16px !important;"
                             required
                         >
                     </div>
@@ -169,11 +164,6 @@
                 <div>
                     <label class="field-label" for="last_name">Last name <span style="color:#ef4444">*</span></label>
                     <div class="input-group">
-                        <span class="input-icon" style="visibility:hidden;">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        </span>
                         <input
                             type="text"
                             name="last_name"

@@ -68,17 +68,12 @@
                     <div class="rider-field-group">
                         <label class="field-label" for="first_name">First name <span class="required-star">*</span></label>
                         <div class="input-group">
-                            <span class="input-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                                    <circle cx="12" cy="7" r="4"/>
-                                </svg>
-                            </span>
                             <input type="text"
                                    id="first_name"
                                    name="first_name"
                                    maxlength="50"
-                                   class="auth-input rider-input rider-has-icon"
+                                   class="auth-input rider-input"
+                                   style="padding-left: 16px !important;"
                                    value="{{ old('first_name') }}"
                                    required
                                    autocomplete="given-name"
