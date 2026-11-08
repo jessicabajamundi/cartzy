@@ -7,38 +7,7 @@ class MockData {
   // RIDER ORDERS
   // ------------------------------------------------------------
 
-  static final List<RiderOrder> availablePickups = [
-    RiderOrder(
-      id: 1042,
-      status: 'to_ship',
-      buyerName: 'Maria Santos',
-      buyerPhone: '+63 917 123 4567',
-      deliveryAddress: 'Unit 402, Sunset Towers, BGC, Taguig City',
-      itemsSummary: '2x Organic Ground Coffee (500g), 1x French Press',
-      totalAmount: 1250.00,
-      createdAt: '2026-10-04 09:30 AM',
-    ),
-    RiderOrder(
-      id: 1043,
-      status: 'to_ship',
-      buyerName: 'Juan Dela Cruz',
-      buyerPhone: '+63 918 987 6543',
-      deliveryAddress: 'Block 12 Lot 5, San Isidro St., Pasig City',
-      itemsSummary: '1x Wireless Bluetooth Earbuds (Black)',
-      totalAmount: 899.00,
-      createdAt: '2026-10-04 10:15 AM',
-    ),
-    RiderOrder(
-      id: 1044,
-      status: 'to_ship',
-      buyerName: 'Angelica Reyes',
-      buyerPhone: '+63 920 555 1212',
-      deliveryAddress: '24 Orchid Lane, Ayala Alabang, Muntinlupa',
-      itemsSummary: '3x Ceramic Coffee Mug Set, 1x Pour Over Kettle',
-      totalAmount: 2150.00,
-      createdAt: '2026-10-04 11:00 AM',
-    ),
-  ];
+  static final List<RiderOrder> availablePickups = [];
 
   static final List<RiderOrder> activeDeliveries = [
     RiderOrder(

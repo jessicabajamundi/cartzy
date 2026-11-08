@@ -45,68 +45,7 @@ class RiderPickupDashboard extends StatefulWidget {
 class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
   String _activeFilter = 'All Pickups'; // 'All Pickups', 'Pending', 'Confirmed'
 
-  final List<MerchantPickupItem> _items = [
-    MerchantPickupItem(
-      id: 'PK-101',
-      storeName: 'TechZone Official Mall',
-      initials: 'TE',
-      phone: '09171112222',
-      address: '123 Tech Hub Bldg, Brgy. San Antonio, Pasig City',
-      packageCount: 6,
-      weightKg: 8.5,
-      scheduledWindow: '2:00 PM - 4:00 PM (Oct 16)',
-      merchantNote: 'High-value electronics. Sealed in bubblewrap security bags.',
-      status: 'PENDING',
-    ),
-    MerchantPickupItem(
-      id: 'PK-102',
-      storeName: 'TechZone Official Mall',
-      initials: 'TE',
-      phone: '09171112222',
-      address: '45 Commerce Center, Alabang, Muntinlupa City',
-      packageCount: 4,
-      weightKg: 5.2,
-      scheduledWindow: '4:30 PM - 5:30 PM (Oct 16)',
-      merchantNote: 'Contact warehouse manager Kuya Ben at 0917-888-9900.',
-      status: 'CONFIRMED',
-    ),
-    MerchantPickupItem(
-      id: 'PK-103',
-      storeName: 'Circuit Hub',
-      initials: 'CI',
-      phone: '0917-888-0000',
-      address: '88 Quezon Blvd, Brgy. Halang, Calamba, Laguna',
-      packageCount: 14,
-      weightKg: 22.1,
-      scheduledWindow: '10:00 AM (Oct 12)',
-      merchantNote: 'Boxes are large. Bring extra packaging tape.',
-      status: 'PENDING',
-    ),
-    MerchantPickupItem(
-      id: 'PK-104',
-      storeName: 'TechZone Official Mall',
-      initials: 'TE',
-      phone: '09171112222',
-      address: '123 Rizal St, Brgy. Poblacion, Santa Cruz, Laguna',
-      packageCount: 8,
-      weightKg: 12.4,
-      scheduledWindow: '2:00 PM (Oct 11)',
-      merchantNote: 'Fragile electronics. Handle with care.',
-      status: 'PENDING',
-    ),
-    MerchantPickupItem(
-      id: 'PK-105',
-      storeName: 'Hearth & Home',
-      initials: 'HE',
-      phone: '0917-888-0000',
-      address: '45 Mabini Ave, Brgy. San Jose, San Pablo, Laguna',
-      packageCount: 5,
-      weightKg: 3.8,
-      scheduledWindow: '3:30 PM (Oct 11)',
-      merchantNote: 'Fragile decor items. Keep upright in storage box.',
-      status: 'CONFIRMED',
-    ),
-  ];
+  final List<MerchantPickupItem> _items = [];
 
   int get _pendingCount => _items.where((e) => e.status == 'PENDING').length;
   int get _confirmedCount => _items.where((e) => e.status == 'CONFIRMED').length;

@@ -62,29 +62,8 @@ class _RiderDashboardState extends State<RiderDashboard> {
     });
   }
 
-  // Sample pickup requests matching reference
-  final List<Map<String, dynamic>> _pickupRequests = [
-    {
-      'id': 'pk-01',
-      'mall': 'Tech Zone Official Mall',
-      'parcels': '6 PARCELS (8.5 kg)',
-      'time': '2:00 PM - 4:00 PM',
-      'address': '123 Tech Hub Bldg., Brgy. San Antonio, Pasig City',
-      'note':
-          'Note: High-value electronics. Sealed in bubble wrap security bags.',
-      'accepted': false,
-    },
-    {
-      'id': 'pk-02',
-      'mall': 'Tech Zone Official Mall',
-      'parcels': '4 PARCELS (3.2 kg)',
-      'time': '4:30 PM - 5:30 PM',
-      'address': '45 Commerce Center, Alabang, Muntinlupa City',
-      'note':
-          'Note: Contact warehouse manager Kuya Ben at 0917-888-9900.',
-      'accepted': false,
-    },
-  ];
+  // Pickup requests list (empty by default; populated dynamically from merchant orders)
+  final List<Map<String, dynamic>> _pickupRequests = [];
 
   String get _displayName =>
       widget.userName.trim().isNotEmpty ? widget.userName.trim() : 'Rider';
@@ -479,7 +458,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   icon: Icons.inventory_2_outlined,
                   title: 'Items for Pickup',
                   isSelected: _selectedNav == 'Items for Pickup',
-                  badge: '${MockData.availablePickups.length}',
+                  badge: MockData.availablePickups.isNotEmpty
+                      ? '${MockData.availablePickups.length}'
+                      : null,
                   badgeColor: const Color(0xFFD97850),
                   onTap: () {
                     setState(() => _selectedNav = 'Items for Pickup');
@@ -1392,8 +1373,51 @@ class _RiderDashboardState extends State<RiderDashboard> {
 
           const Divider(height: 1, thickness: 1, color: Color(0xFFF3ECEE)),
 
-          // Pickup Request Cards
-          ListView.separated(
+          // Pickup Request Cards or Empty State
+          if (_pickupRequests.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF7F2F3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.inventory_2_outlined,
+                        size: 24,
+                        color: Color(0xFFBAABB0),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No Pickup Requests',
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF261E30),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'There are no merchant pickups scheduled right now.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        color: const Color(0xFF8A7780),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _pickupRequests.length,

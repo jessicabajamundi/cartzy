@@ -674,7 +674,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                           },
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       // X-axis days
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,

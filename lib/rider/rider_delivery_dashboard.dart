@@ -70,6 +70,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
       ),
     );
     if (delivered == true) {
+      if (!mounted) return;
       setState(() {
         _orders.removeWhere((o) => o.id == order.id);
       });
