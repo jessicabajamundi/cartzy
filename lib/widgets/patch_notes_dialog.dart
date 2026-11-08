@@ -76,6 +76,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.12' || version == 'v1.2.12') {
+      return const [
+        'Cozy Bear Companion Across All Tabs: Summon Cozy from your Profile card and bring her along across Home, Cart, Sale, Inbox, and Profile.',
+        'Dedicated Profile Chat Action: Tapping the Cozy card brings out Cozy in her interactive bear form, while tapping the Chat button opens the chat directly.',
+        'Rider Navigation & Hub Attendance: Added a 4-tab bottom navigation bar for riders along with hub QR code scanning for time-in and time-out.',
+        'First Mile & Last Mile Courier Selection: Riders can now select their courier role during registration.',
+      ];
+    }
     if (version == '1.2.11' || version == 'v1.2.11') {
       return const [
         'Real Store & Product Ratings: Authentic rating scores and review counts reflect actual buyer feedback across all product cards, search results, and store pages.',
