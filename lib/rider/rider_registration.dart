@@ -78,15 +78,14 @@ class _RiderRegistrationState extends State<RiderRegistration> {
 
   // ── Step 1: Your vehicle ──
   String _selectedVehicle = '';
-  static const List<String> vehicleOptions = [
-    'Motorcycle',
-    'Bicycle',
-    'E-bike',
-    'Tricycle',
-    'Car',
-    'Van',
-    'Truck',
-  ];
+  // Couriers (first mile) haul with a car, van or truck; riders (last mile) ride a motorcycle, tricycle or e-bike.
+  // Keep in step with Rider::VEHICLE_TYPES on the server.
+  static const Map<String, List<String>> vehicleOptionsByCourierType = {
+    'first_mile': ['Car', 'Van', 'Truck'],
+    'last_mile': ['Motorcycle', 'Tricycle', 'E-bike'],
+  };
+  List<String> get _vehicleOptions =>
+      vehicleOptionsByCourierType[_courierType] ?? vehicleOptionsByCourierType['last_mile']!;
   final _plateNumberController = TextEditingController();
 
   // ── Step 1: Driver's license ──
@@ -164,9 +163,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     return null;
   }
 
-  /// Bicycle and e-bike riders don't need a plate, license or OR/CR.
-  bool get _isNonMotorized =>
-      _selectedVehicle == 'Bicycle' || _selectedVehicle == 'E-bike';
+  /// E-bike riders don't need a plate, license or OR/CR.
+  bool get _isNonMotorized => _selectedVehicle == 'E-bike';
 
   @override
   void dispose() {
@@ -884,7 +882,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             selected: _courierType == value,
             button: true,
             child: InkWell(
-              onTap: () => setState(() => _courierType = value),
+              onTap: () => setState(() {
+                _courierType = value;
+                // A vehicle picked for the other type isn't allowed for this one.
+                if (!_vehicleOptions.contains(_selectedVehicle)) _selectedVehicle = '';
+              }),
               borderRadius: BorderRadius.circular(12),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 160),
@@ -1199,13 +1201,16 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         const SizedBox(height: 28),
 
         // ── 3. Your vehicle ──
-        _buildSectionHeader('Your vehicle',
-            "Bicycle and e-bike riders don't need a plate, driver's license or OR/CR."),
+        _buildSectionHeader(
+            'Your vehicle',
+            _vehicleOptions.contains('E-bike')
+                ? "E-bike riders don't need a plate, driver's license or OR/CR."
+                : 'What you will use to pick up parcels.'),
         RegistrationDropdown(
           label: 'Vehicle type *',
           icon: Icons.two_wheeler_outlined,
           selectedValue: _selectedVehicle,
-          options: vehicleOptions,
+          options: _vehicleOptions,
           showSearch: false,
           isError: _vehicleError,
           errorMessage: 'Please select your vehicle type',
