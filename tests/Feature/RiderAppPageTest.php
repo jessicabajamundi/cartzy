@@ -41,7 +41,7 @@ class RiderAppPageTest extends TestCase
             ->assertSee('Download the app (APK)')
             ->assertSee('Android 7.0 or newer')
             ->assertSee('Version 1.2.11')
-            ->assertSee('Login as Rider')
+            ->assertSee('Courier')
             ->assertSee('cartzy-mobile-v1.2.11.apk')
             ->assertSee(route('rider.app.download'))
             ->assertSee(route('register.rider'))
@@ -95,7 +95,7 @@ class RiderAppPageTest extends TestCase
             ->assertOk()
             ->assertSee('Shop with the', false)
             ->assertSee('Download the app (APK)')
-            ->assertSee('Login as Rider')
+            ->assertSee('Courier')
             ->assertSee(route('rider.app.download'))
             ->assertHeader('Vary');
     }

@@ -170,9 +170,9 @@
             <li><strong>Download</strong> the app with the button above.</li>
             <li><strong>Open</strong> the downloaded <code>{{ $release['apk_name'] ?? 'cartzy-mobile.apk' }}</code> file. If Android asks, allow your browser to install unknown apps.</li>
             @if($forEveryone)
-                <li><strong>Sign in</strong> or create an account. <strong>Riders:</strong> open the menu and choose <strong>Login as Rider</strong>.</li>
+                <li><strong>Sign in</strong> or create an account. <strong>Riders:</strong> on the Log In screen, tap <strong>Courier</strong> at the bottom.</li>
             @else
-                <li><strong>Sign in:</strong> open the menu, choose <strong>Login as Rider</strong>, and use the email and password you registered with.</li>
+                <li><strong>Sign in:</strong> on the Log In screen, tap <strong>Courier</strong> at the bottom, then use the email and password you registered with.</li>
             @endif
         </ol>
 
