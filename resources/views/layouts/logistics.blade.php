@@ -32,6 +32,7 @@
         ],
         'Riders' => [
             'riders' => ['Rider management', 'users'],
+            'attendance' => ['Time in / time out', 'clock'],
         ],
         'Parcel operations' => [
             'pickups' => ['Pickup requests', 'truck'],

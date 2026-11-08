@@ -308,6 +308,69 @@ class LogisticsPortalController extends Controller
     /**
      * 2. Rider Management
      */
+    /**
+     * Rider time in / time out: the hub's rotating QR code for riders to scan, and the attendance log for a day.
+     */
+    public function attendance(Request $request, \App\Services\RiderAttendanceService $attendance)
+    {
+        $provider = $this->provider();
+        $tz = 'Asia/Manila';
+        $date = rescue(fn () => Carbon::createFromFormat('Y-m-d', (string) $request->query('date'), $tz), null, false)?->startOfDay()
+            ?? now($tz)->startOfDay();
+        if ($date->isFuture()) {
+            $date = now($tz)->startOfDay();
+        }
+
+        $shifts = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
+            ->whereBetween('time_in_at', [$date->copy()->utc(), $date->copy()->endOfDay()->utc()])
+            ->with('rider.user')
+            ->orderByDesc('time_in_at')
+            ->get();
+
+        $onShift = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
+            ->whereNull('time_out_at')
+            ->where('time_in_at', '>', now()->subHours(\App\Services\RiderAttendanceService::MAX_SHIFT_HOURS))
+            ->with('rider.user')
+            ->orderBy('time_in_at')
+            ->get();
+
+        $code = $attendance->code($provider);
+
+        return view('logistics.attendance', [
+            'provider' => $provider,
+            'date' => $date,
+            'isToday' => $date->isSameDay(now($tz)),
+            'tz' => $tz,
+            'shifts' => $shifts,
+            'onShift' => $onShift,
+            'qrSvg' => $attendance->qrSvg($code),
+            'secondsLeft' => $attendance->secondsLeft(),
+            'windowSeconds' => \App\Services\RiderAttendanceService::WINDOW_SECONDS,
+            'version' => $this->attendanceVersion($provider->id),
+        ]);
+    }
+
+    /** The current QR code for the hub screen, fetched again each time it changes. */
+    public function attendanceQr(\App\Services\RiderAttendanceService $attendance)
+    {
+        $provider = $this->provider();
+
+        return response()->json([
+            'svg' => $attendance->qrSvg($attendance->code($provider)),
+            'seconds_left' => $attendance->secondsLeft(),
+            // Changes whenever a rider times in or out, so the page knows to refresh its lists.
+            'version' => $this->attendanceVersion($provider->id),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    private function attendanceVersion(int $providerId): string
+    {
+        $latest = \App\Models\RiderAttendance::where('logistics_provider_id', $providerId)
+            ->selectRaw('COUNT(*) as total, MAX(updated_at) as changed')->first();
+
+        return $latest->total.'-'.$latest->changed;
+    }
+
     public function riders(Request $request)
     {
         $hub      = Auth::user();

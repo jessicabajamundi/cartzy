@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\RiderAttendanceController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\BuddyController;
@@ -44,6 +45,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
     Route::post('/account/password', [AuthController::class, 'changePassword']);
     Route::get('/account/activity', [ActivityController::class, 'index']);
+
+    // Rider time in / time out: scan the QR code shown on the hub's Time in / time out page.
+    Route::middleware('api.role:courier')->prefix('rider/attendance')->group(function () {
+        Route::get('/', [RiderAttendanceController::class, 'show']);
+        Route::post('/scan', [RiderAttendanceController::class, 'scan'])->middleware('throttle:20,1');
+    });
 
     Route::middleware('api.role:buyer')->group(function () {
         Route::get('/addresses', [AddressController::class, 'index']);

@@ -19,6 +19,7 @@ $paths = [
     'bell' => 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9 M10 21h4',
     'logout' => 'M9 3H3v18h6 M9 12h12 m-5-5 5 5-5 5',
     'menu' => 'M3 6h18 M3 12h18 M3 18h18',
+    'clock' => 'M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18 M12 7v5l3 2',
 ];
 @endphp
 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $paths[$name] ?? $paths['file'] }}"/></svg>

@@ -1,0 +1,78 @@
+/* Rider time in / time out page (resources/views/logistics/attendance.blade.php) */
+.att-workspace { display: grid; gap: 20px; color: #302b38; }
+.att-eyebrow { display: block; margin-bottom: 6px; color: #8a7f91; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+.att-heading h2 { margin: 0 0 6px; font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+.att-heading p { margin: 0; max-width: 720px; color: #6f6779; font-size: 13px; line-height: 1.6; }
+
+.att-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.att-panel, .att-qr-card { background: #fff; border: 1px solid #eee7ef; border-radius: 14px; box-shadow: 0 3px 12px rgba(51, 38, 65, .03); }
+
+/* QR card */
+.att-qr-card { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px; text-align: center; }
+.att-qr-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; width: 100%; text-align: left; }
+.att-qr-top h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.att-qr { display: grid; place-items: center; width: min(300px, 100%); aspect-ratio: 1; padding: 10px; border: 1px solid #e7e0ea; border-radius: 14px; background: #fff; }
+.att-qr svg { display: block; width: 100%; height: 100%; }
+.att-qr-card.is-offline .att-qr { background: repeating-linear-gradient(45deg, #faf7fb, #faf7fb 10px, #f3eef5 10px, #f3eef5 20px); }
+.att-countdown { width: min(300px, 100%); }
+.att-countdown-bar { height: 6px; border-radius: 999px; background: #f0eaf3; overflow: hidden; }
+.att-countdown-bar span { display: block; height: 100%; width: 100%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .25s linear; }
+.att-countdown p { margin: 8px 0 0; color: #6f6779; font-size: 12px; }
+.att-countdown strong { color: #302b38; font-variant-numeric: tabular-nums; }
+.att-qr-note { margin: 0; color: #8a7f91; font-size: 11px; line-height: 1.5; }
+.att-status { margin: 0; min-height: 1em; color: #b4233f; font-size: 12px; font-weight: 700; }
+.att-status:empty { display: none; }
+
+/* Full screen on a hub tablet or monitor */
+.att-qr-card:fullscreen { justify-content: center; gap: 22px; border: 0; border-radius: 0; background: #fbf8fc; }
+.att-qr-card:fullscreen .att-qr-top { position: absolute; top: 24px; left: 32px; right: 32px; width: auto; }
+.att-qr-card:fullscreen .att-qr-top h3 { font-size: 22px; }
+.att-qr-card:fullscreen .att-qr { width: min(70vh, 80vw); }
+.att-qr-card:fullscreen .att-countdown { width: min(70vh, 80vw); }
+.att-qr-card:fullscreen .att-countdown p, .att-qr-card:fullscreen .att-qr-note { font-size: 16px; }
+
+/* Buttons and small bits */
+.att-button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 8px 13px; border: 1px solid #dcd2e2; border-radius: 8px; background: #fff; color: #6f6382; font: inherit; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.att-button:hover { background: #f3edf7; }
+.att-link { color: #6f6382; font-size: 12px; font-weight: 700; }
+.att-link:hover { text-decoration: underline; }
+.att-button:focus-visible, .att-link:focus-visible, .att-date input:focus-visible { outline: 2px solid #6f6382; outline-offset: 2px; }
+.att-pill { min-width: 26px; padding: 3px 9px; border-radius: 999px; background: #efe9f4; color: #564b68; font-size: 12px; font-weight: 800; text-align: center; }
+.att-tag { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.att-tag.live { background: #e7f4ec; color: #2f6b49; }
+.att-tag.warn { background: #fdf1e3; color: #8a5413; }
+
+/* Panels */
+.att-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 20px; border-bottom: 1px solid #eee7ef; }
+.att-panel-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.att-panel-head small { display: block; margin-top: 3px; color: #8a7f91; font-size: 12px; }
+.att-on-shift { margin: 0; padding: 6px 0; list-style: none; max-height: 420px; overflow-y: auto; }
+.att-on-shift li { display: flex; align-items: center; gap: 12px; padding: 10px 20px; }
+.att-on-shift li + li { border-top: 1px solid #f3eef5; }
+.att-avatar { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #efe9f4; color: #6f6382; font-weight: 800; }
+.att-on-shift-name { flex: 1; min-width: 0; }
+.att-on-shift-name strong, .att-on-shift-time { display: block; font-size: 13px; }
+.att-on-shift-name small, .att-on-shift-time small { display: block; color: #8a7f91; font-size: 11px; }
+.att-on-shift-time { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.att-empty { padding: 22px 20px !important; color: #8a7f91; font-size: 13px; text-align: center; }
+
+.att-date { display: flex; align-items: center; gap: 8px; }
+.att-date label { color: #6f6779; font-size: 12px; font-weight: 700; }
+.att-date input { min-height: 36px; padding: 6px 10px; border: 1px solid #dcd2e2; border-radius: 8px; background: #fdfcfe; font: inherit; font-size: 13px; color: #302b38; }
+
+.att-table-wrap { overflow-x: auto; }
+.att-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.att-table th { padding: 11px 20px; background: #faf7fb; color: #776c84; font-size: 11px; font-weight: 700; text-align: left; letter-spacing: .02em; }
+.att-table td { padding: 12px 20px; border-top: 1px solid #f3eef5; font-variant-numeric: tabular-nums; }
+.att-table td small { display: block; color: #8a7f91; font-size: 11px; }
+
+@media (max-width: 960px) {
+    .att-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+    .att-panel-head { flex-direction: column; align-items: stretch; }
+    .att-table th, .att-table td { padding: 10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .att-countdown-bar span { transition: none; }
+}
