@@ -723,6 +723,15 @@ body.auth-modal-page {
 .auth-modal-page .lm-dialog-form .rd-progress-title { font-size: .8rem; }
 .auth-modal-page .lm-dialog-form .rd-progress-hint { font-size: .7rem; }
 
+/* Seller sign-up steps: compact shop, address and document fields so each step fits */
+.auth-modal-page .lm-dialog-form .seller-field-hint { font-size: .66rem !important; line-height: 1.45; margin: 4px 0 8px !important; }
+.auth-modal-page .lm-dialog-form .seller-field-error { font-size: .66rem !important; margin-top: 3px !important; }
+.auth-modal-page .lm-dialog-form #sellerFieldsWrapper .mb-4 { margin-bottom: 8px !important; }
+.auth-modal-page .lm-dialog-form #sellerFieldsWrapper .seller-file-input { padding: 6px 10px !important; font-size: .74rem !important; }
+.auth-modal-page .lm-dialog-form .seller-file-input::file-selector-button { padding: 5px 10px; margin-right: 10px; font-size: .72rem; }
+/* The "Step 5 of 6 · Sign-in details" title already names the step */
+.auth-modal-page .lm-dialog-form .is-seller-stepped #step-2 > .field-block:first-child { display: none; }
+
 /* Shorter laptop screens: a smaller gap for Cozy and a more compact header so step 1 still fits */
 @media (max-height: 820px) and (min-width: 521px) {
     .auth-modal-page .lm-dialog-form .lm-panel { padding-top: 16px; padding-bottom: 14px; }
@@ -740,6 +749,10 @@ body.auth-modal-page {
     .auth-modal-page .lm-dialog-form .field-block { margin-top: 4px !important; margin-bottom: 6px !important; }
     .auth-modal-page .lm-dialog-form .stepper { padding-bottom: 8px !important; }
     .auth-modal-page .lm-dialog-form .lm-role-badge { margin-bottom: 6px; }
+    /* Seller steps 2-6: the title and "Step X of 6" are enough, so drop the logo and subtitle */
+    .auth-modal-page .lm-dialog-form.is-seller-later-step .lm-logo,
+    .auth-modal-page .lm-dialog-form.is-seller-later-step .auth-subtitle { display: none !important; }
+    .auth-modal-page .lm-dialog-form.is-seller-later-step .auth-title { margin-top: 6px !important; margin-bottom: 10px !important; }
 }
 
 @media (max-width: 520px) {

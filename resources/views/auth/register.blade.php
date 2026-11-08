@@ -52,7 +52,16 @@
 
     <div id="sellerNoticeBox" class="logistics-notice-box" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'block' : 'none' }};">Seller accounts require email verification and administrator approval before you can start selling.</div>
     <!-- Cartzy Original Stepper Component -->
-    <div class="stepper">
+    <!-- Seller sign-up runs in 6 short steps so the modal doesn't need scrolling (register.js updateSellerPages) -->
+    <div class="su-seller-progress" id="sellerProgress" hidden>
+        <div class="su-seller-progress-top">
+            <span class="su-seller-progress-count">Step <strong data-sp-number>1</strong> of 6</span>
+            <span class="su-seller-progress-title" data-sp-title>Your details</span>
+        </div>
+        <div class="su-seller-progress-bar" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1"><span data-sp-fill></span></div>
+    </div>
+
+    <div class="stepper" id="signupStepper">
         <div class="step">
             <span class="step-label" id="label-step-1">Details</span>
         </div>
@@ -137,6 +146,8 @@
                 </div>
             </div>
 
+            <!-- Seller step 1 of 6 (buyers see this section and nothing is split) -->
+            <div data-seller-page="1">
             <div class="field-block" style="margin-top: 18px;">
                 <label class="field-heading">Your personal details</label>
                 <p class="field-subheading" style="margin-bottom: 0;">Enter your name and personal details</p>
@@ -288,9 +299,21 @@
                     <p style="font-size: 0.78rem; color: #6b7280; margin-top: 4px; margin-bottom: 0;">Riders see this when choosing a partner to apply to.</p>
                 </div>
             </div>
+            </div>
 
             @include('auth.partials.seller-details')
             <button type="button" class="btn-primary btn-single btn-details-continue" style="margin-top: 26px;" onclick="nextStep(2)">Continue</button>
+            <!-- Seller steps 2-4: Back and Continue -->
+            <div class="form-btn-row su-seller-nav" hidden>
+                <button type="button" class="btn-action-back" onclick="sellerBack()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    Back
+                </button>
+                <button type="button" class="btn-action-continue su-seller-continue" onclick="nextStep(2)">Continue</button>
+            </div>
         </div>
 
         <!-- STEP 2: Sign-in (Your sign-in details) -->
@@ -717,6 +740,21 @@
     .auth-split-page .btn-primary.btn-details-continue:hover {
         background: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--rose-dark, #8C5A50) 100%) !important;
     }
+    /* Seller sign-up: 6 steps, one section at a time */
+    [data-seller-page][hidden],
+    .su-seller-nav[hidden],
+    .btn-details-continue[hidden],
+    .su-seller-progress[hidden] { display: none !important; }
+    .su-seller-progress { margin: 4px 0 16px; }
+    .su-seller-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+    .su-seller-progress-count { color: #6b6478; font-size: .74rem; font-weight: 600; }
+    .su-seller-progress-count strong { color: #564b68; }
+    .su-seller-progress-title { color: #282133; font-size: .9rem; font-weight: 800; text-align: right; }
+    .su-seller-progress-bar { height: 6px; border-radius: 999px; background: #efe9f3; overflow: hidden; }
+    .su-seller-progress-bar span { display: block; height: 100%; width: 16.7%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
+    @media (prefers-reduced-motion: reduce) { .su-seller-progress-bar span { transition: none; } }
+    /* The progress title names the section, so its heading is not repeated */
+    .is-seller-stepped [data-seller-page] > .field-block:first-child { display: none; }
     .form-btn-row {
         display: flex;
         align-items: center;

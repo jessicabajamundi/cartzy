@@ -219,6 +219,8 @@ function updateStepperUI() {
         updateOtpPreviewUI();
     }
 
+    updateSellerPages();
+
     const line1 = document.getElementById('line-1');
     const line2 = document.getElementById('line-2');
     if (line1) {
@@ -240,6 +242,21 @@ function updateStepperUI() {
 // Next Step transition
 async function nextStep(targetStep) {
     if (otpRequestPending) return;
+    // Sellers go through the details one section at a time (steps 1-4 of 6) before the sign-in step.
+    if (currentStep === 1 && isSellerSignup() && sellerPage < SELLER_DETAIL_PAGES) {
+        // Ignore extra clicks while this step is still being checked (the phone check waits on the server).
+        if (sellerPageChecking) return;
+        sellerPageChecking = true;
+        try {
+            if (!await validateSellerPage(sellerPage)) return;
+        } finally {
+            sellerPageChecking = false;
+        }
+        sellerPage = Math.min(sellerPage + 1, SELLER_DETAIL_PAGES);
+        updateStepperUI();
+        scrollFormToTop();
+        return;
+    }
     // Validate Step 1
     if (currentStep === 1) {
         if (!validateSellerDetails(true)) return;
@@ -322,6 +339,74 @@ function prevStep(targetStep) {
     currentStep = targetStep;
     updateStepperUI();
     scrollFormToTop();
+}
+
+// ── Seller sign-up in 6 steps ──
+// Steps 1-4 are sections of the details panel (step-1), step 5 is sign-in (step-2) and step 6 is verify (step-3).
+const SELLER_STEP_TITLES = ['Your details', 'Your shop', 'Pickup address', 'Documents', 'Sign-in details', 'Verify your email'];
+const SELLER_DETAIL_PAGES = 4;
+let sellerPage = 1;
+let sellerPageChecking = false;
+
+function isSellerSignup() {
+    return document.getElementById('role_input')?.value === 'seller';
+}
+
+async function validateSellerPage(page) {
+    if (page === 1) {
+        return validateRegistrationNames(true) && validateRegistrationPhone(true) && await checkPhoneAvailability(true);
+    }
+    return validateSellerDetails(true, page);
+}
+
+function sellerBack() {
+    if (sellerPage <= 1) return;
+    sellerPage--;
+    updateStepperUI();
+    scrollFormToTop();
+}
+window.sellerBack = sellerBack;
+
+// Show only the current seller section, and swap the 3-part stepper for "Step X of 6".
+function updateSellerPages() {
+    const seller = isSellerSignup();
+    const onDetails = currentStep === 1;
+    document.getElementById('registerForm')?.classList.toggle('is-seller-stepped', seller);
+    // Lets short screens drop the logo and subtitle after the first step (auth-modal.css).
+    document.querySelector('.lm-dialog-form')?.classList.toggle('is-seller-later-step', seller && !(onDetails && sellerPage === 1));
+    document.querySelectorAll('[data-seller-page]').forEach(section => {
+        section.hidden = seller && Number(section.dataset.sellerPage) !== sellerPage;
+    });
+
+    const progress = document.getElementById('sellerProgress');
+    const stepper = document.getElementById('signupStepper');
+    if (progress) progress.hidden = !seller;
+    if (stepper) stepper.style.display = seller ? 'none' : '';
+    if (seller && progress) {
+        const step = onDetails ? sellerPage : SELLER_DETAIL_PAGES + currentStep - 1;
+        progress.querySelector('[data-sp-number]').textContent = step;
+        progress.querySelector('[data-sp-title]').textContent = SELLER_STEP_TITLES[step - 1];
+        progress.querySelector('[data-sp-fill]').style.width = (step / SELLER_STEP_TITLES.length * 100) + '%';
+        progress.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', step);
+    }
+
+    // Page 1 keeps the full-width Continue; pages 2-4 get Back and Continue.
+    const single = document.querySelector('.btn-details-continue');
+    const nav = document.querySelector('.su-seller-nav');
+    const label = seller && sellerPage === SELLER_DETAIL_PAGES ? 'Continue to sign-in details' : 'Continue';
+    if (single) {
+        single.hidden = seller && sellerPage > 1;
+        single.textContent = label;
+    }
+    if (nav) {
+        nav.hidden = !(seller && sellerPage > 1);
+        const next = nav.querySelector('.su-seller-continue');
+        if (next) next.textContent = label;
+    }
+
+    // The approval notice only on the first step, to keep the later steps short.
+    const notice = document.getElementById('sellerNoticeBox');
+    if (notice) notice.style.display = seller && onDetails && sellerPage === 1 ? 'block' : 'none';
 }
 
 // Toggle password visibility and the eye icon.
@@ -577,6 +662,7 @@ function selectRole(role) {
             if (buyerOpt) buyerOpt.classList.add('selected');
         }
     }
+    sellerPage = 1;
     updateSellerDetails(role);
 }
 window.selectRole = selectRole;
@@ -603,12 +689,15 @@ function updateSellerDetails(role = document.getElementById('role_input').value)
         input.required = seller && applies;
         input.disabled = !seller;
     });
+    updateSellerPages();
 }
 
-function validateSellerDetails(focus = false) {
+// Checks the seller fields; with a page (2-4), only the fields of that sign-up step.
+function validateSellerDetails(focus = false, page = null) {
     if (document.getElementById('role_input').value !== 'seller') return true;
     let firstInvalid = null;
-    document.querySelectorAll('#sellerFieldsWrapper [data-seller-required], #sellerFieldsWrapper [data-seller-document]').forEach(input => {
+    const scope = page ? `#sellerFieldsWrapper [data-seller-page="${page}"]` : '#sellerFieldsWrapper';
+    document.querySelectorAll(`${scope} [data-seller-required], ${scope} [data-seller-document]`).forEach(input => {
         if (input.hasAttribute('data-seller-document') && input.disabled) return;
         input.setCustomValidity('');
         if (input.type === 'text') input.value = input.value.trim();
@@ -937,11 +1026,25 @@ document.addEventListener('DOMContentLoaded', function() {
         && !Array.from(document.querySelectorAll('#sellerFieldsWrapper .seller-field-error')).some(error => error.textContent.trim())) {
         currentStep = 2;
     }
+    // A seller sent back with errors starts on the first step that has one.
+    if (currentStep === 1 && isSellerSignup()) {
+        const errored = ['first_name', 'last_name', 'phone'].some(id => document.getElementById(id + '_error')?.textContent.trim())
+            ? null
+            : Array.from(document.querySelectorAll('#sellerFieldsWrapper .seller-field-error')).find(error => error.textContent.trim());
+        sellerPage = errored ? Number(errored.closest('[data-seller-page]')?.dataset.sellerPage || 1) : 1;
+    }
     updateStepperUI();
+    // Show the step holding the first field the browser rejects (later ones in the same submit are ignored).
+    let invalidShown = false;
     form?.addEventListener('invalid', event => {
+        if (invalidShown) return;
+        invalidShown = true;
+        setTimeout(() => { invalidShown = false; }, 0);
         const step = event.target.closest('[id^="step-"]');
         if (step) {
             currentStep = Number(step.id.replace('step-', ''));
+            const page = event.target.closest('[data-seller-page]');
+            if (page && isSellerSignup()) sellerPage = Number(page.dataset.sellerPage);
             updateStepperUI();
         }
     }, true);
