@@ -52,6 +52,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/scan', [RiderAttendanceController::class, 'scan'])->middleware('throttle:20,1');
     });
 
+    // Rider scans a waybill barcode or QR code to take the parcel; seller, buyer and hub are notified.
+    Route::post('/rider/parcels/scan', [\App\Http\Controllers\Api\RiderParcelController::class, 'scan'])
+        ->middleware(['api.role:courier', 'throttle:60,1']);
+
     Route::middleware('api.role:buyer')->group(function () {
         Route::get('/addresses', [AddressController::class, 'index']);
         Route::get('/addresses/{userId}', [AddressController::class, 'index'])->whereNumber('userId');

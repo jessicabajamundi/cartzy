@@ -127,86 +127,19 @@ class BarcodeService
     }
 
     /**
-     * Generate an SVG QR-like tracking matrix for clean dual-code waybill display.
+     * A real, scannable QR code holding the waybill's tracking code, so riders
+     * can scan either the barcode or the QR code.
      */
     public static function generateQrSvg(string $text, int $size = 100): string
     {
-        // Simple deterministic pseudo-QR visual matrix based on hash of text
-        // (Ensures crisp vector rendering on waybill matching commercial logistics layouts)
-        $hash = md5($text);
-        $gridSize = 21; // Standard Version 1 QR is 21x21
-        $moduleSize = $size / $gridSize;
+        $cleanText = trim($text) !== '' ? trim($text) : 'CTZ-000000';
+        $writer = new \BaconQrCode\Writer(new \BaconQrCode\Renderer\ImageRenderer(
+            new \BaconQrCode\Renderer\RendererStyle\RendererStyle($size, 1),
+            new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+        ));
+        $svg = $writer->writeString($cleanText);
 
-        $matrix = array_fill(0, $gridSize, array_fill(0, $gridSize, 0));
-
-        // Corner finder patterns (7x7)
-        $finder = [
-            [1,1,1,1,1,1,1],
-            [1,0,0,0,0,0,1],
-            [1,0,1,1,1,0,1],
-            [1,0,1,1,1,0,1],
-            [1,0,1,1,1,0,1],
-            [1,0,0,0,0,0,1],
-            [1,1,1,1,1,1,1],
-        ];
-
-        // Apply 3 position markers
-        $applyFinder = function (&$mat, $startX, $startY) use ($finder) {
-            for ($r = 0; $r < 7; $r++) {
-                for ($c = 0; $c < 7; $c++) {
-                    $mat[$startY + $r][$startX + $c] = $finder[$r][$c];
-                }
-            }
-        };
-
-        $applyFinder($matrix, 0, 0);
-        $applyFinder($matrix, $gridSize - 7, 0);
-        $applyFinder($matrix, 0, $gridSize - 7);
-
-        // Fill data based on string bytes
-        $bytes = unpack('C*', $text);
-        $bIndex = 1;
-        $bCount = count($bytes);
-
-        for ($r = 0; $r < $gridSize; $r++) {
-            for ($c = 0; $c < $gridSize; $c++) {
-                // Skip finder corners
-                if (($r < 8 && $c < 8) || ($r < 8 && $c >= $gridSize - 8) || ($r >= $gridSize - 8 && $c < 8)) {
-                    continue;
-                }
-                // Timing patterns
-                if ($r === 6 || $c === 6) {
-                    $matrix[$r][$c] = (($r + $c) % 2 === 0) ? 1 : 0;
-                    continue;
-                }
-                $val = ($bytes[($bIndex % $bCount) + 1] ?? 50) + ($r * 7) + ($c * 13);
-                $matrix[$r][$c] = ($val % 3 === 0 || $val % 5 === 0) ? 1 : 0;
-                $bIndex++;
-            }
-        }
-
-        $rects = '';
-        for ($r = 0; $r < $gridSize; $r++) {
-            for ($c = 0; $c < $gridSize; $c++) {
-                if ($matrix[$r][$c] === 1) {
-                    $rects .= sprintf(
-                        '<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="#111827"/>',
-                        $c * $moduleSize,
-                        $r * $moduleSize,
-                        $moduleSize + 0.1,
-                        $moduleSize + 0.1
-                    );
-                }
-            }
-        }
-
-        return sprintf(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" style="background:#ffffff; display:block;">%s</svg>',
-            $size,
-            $size,
-            $size,
-            $size,
-            $rects
-        );
+        // Drop the XML prolog so the SVG can sit inline in the waybill HTML.
+        return preg_replace('/^<\?xml[^>]*>\s*/', '', $svg);
     }
 }
