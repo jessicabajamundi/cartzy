@@ -28,7 +28,9 @@
                 </div>
             </div>
             @if($rankings['top'])
-                <ol class="store-ranking-list">
+                {{-- Five shops fit; the rest scroll inside the list --}}
+                @php $scrolls = count($rankings['top']) > 5; @endphp
+                <ol class="store-ranking-list {{ $scrolls ? 'is-scrollable' : '' }}" @if($scrolls) tabindex="0" aria-label="Top shops on Cartzy, scroll for more" data-visible-rows="5" @endif>
                     @foreach($rankings['top'] as $store)
                         @include('seller.partials.store-ranking-row', ['store' => $store])
                     @endforeach
@@ -57,3 +59,17 @@
         </div>
     </div>
 </section>
+<script>
+    // Size the scrollable shop list to end exactly after its fifth row.
+    (function () {
+        var list = document.querySelector('.store-ranking-list.is-scrollable');
+        if (!list) return;
+        function fit() {
+            var row = list.children[Number(list.dataset.visibleRows) - 1];
+            if (row && row.offsetHeight) list.style.maxHeight = (row.offsetTop + row.offsetHeight) + 'px';
+        }
+        fit();
+        window.addEventListener('resize', fit);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    })();
+</script>
