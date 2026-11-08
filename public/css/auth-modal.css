@@ -675,10 +675,6 @@ body.auth-modal-page {
 .auth-modal-page .lm-dialog-form .form-grid-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 0 12px !important; }
 .auth-modal-page .lm-dialog-form .form-grid-2 .input-group { margin-bottom: 10px !important; }
 
-/* Mobile number and birthday side by side; when birthday is hidden (sellers) the number takes the row */
-.auth-modal-page .lm-dialog-form .su-contact-row { display: flex; gap: 12px; }
-.auth-modal-page .lm-dialog-form .su-contact-row > * { flex: 1 1 0; min-width: 0; }
-
 /* Tighter vertical rhythm so short steps fit without scrolling */
 .auth-modal-page .lm-dialog-form .auth-input { font-size: .86rem !important; padding-top: 9px !important; padding-bottom: 9px !important; }
 .auth-modal-page .lm-dialog-form .input-group { margin-bottom: 10px !important; }
@@ -699,7 +695,6 @@ body.auth-modal-page {
 
 /* Shorter laptop screens: a smaller gap for Cozy and a more compact header so step 1 still fits */
 @media (max-height: 820px) and (min-width: 521px) {
-    .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 116px); }
     .auth-modal-page .lm-dialog-form .lm-panel { padding-top: 16px; padding-bottom: 14px; }
     .auth-modal-page .lm-dialog-form .lm-logo { height: 22px; margin-bottom: 4px; }
     .auth-modal-page .lm-dialog-form .auth-title,
@@ -710,16 +705,19 @@ body.auth-modal-page {
     .auth-modal-page .lm-dialog-form #googleSignupDivider { margin: 10px 0 !important; }
     .auth-modal-page .lm-dialog-form .btn-details-continue { margin-top: 10px !important; }
     .auth-modal-page .lm-dialog-form .auth-foot { margin-top: 10px; }
+    .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 104px); }
+    .auth-modal-page .lm-dialog-form .name-row.mb-4 { margin-bottom: 2px !important; }
+    .auth-modal-page .lm-dialog-form .field-block { margin-top: 4px !important; margin-bottom: 6px !important; }
+    .auth-modal-page .lm-dialog-form .stepper { padding-bottom: 8px !important; }
+    .auth-modal-page .lm-dialog-form .lm-role-badge { margin-bottom: 6px; }
 }
 
 @media (max-width: 520px) {
     /* Bottom sheet on phones, with room left at the top for Cozy */
     .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 90px); }
     .auth-modal-page .lm-dialog-form .lm-panel { padding: 20px 18px 16px; }
-    /* On phones the names (and every other two-field row) stack, and birthday drops below the phone number */
+    /* On phones the names (and every other two-field row) stack */
     .auth-modal-page .lm-dialog-form .form-grid-2 { grid-template-columns: 1fr !important; gap: 0 !important; }
-    .auth-modal-page .lm-dialog-form .su-contact-row { flex-direction: column; gap: 0; }
-    .auth-modal-page .lm-dialog-form .su-contact-row > * { flex: none; }
     .auth-modal-page .lm-dialog-form .auth-title,
     .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.5rem !important; }
 }
