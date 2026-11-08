@@ -25,7 +25,7 @@ class RiderRegistrationViewTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Become a rider')
-            ->assertSee('Apply to deliver for one of CARTZY\'s logistics partners.', false)
+            ->assertSee('Delivers parcels from the hub to buyers for one of cartzy\'s logistics partners.', false)
             ->assertSee('Your personal details')
             ->assertSee('name="first_name"', false)
             ->assertSee('name="last_name"', false)
@@ -53,14 +53,15 @@ class RiderRegistrationViewTest extends TestCase
             ->assertSee('CONTINUE TO SIGN-IN DETAILS');
     }
 
-    public function test_register_page_has_become_a_rider_link_in_same_tab(): void
+    public function test_register_page_has_rider_and_courier_choices_in_same_tab(): void
     {
         $response = $this->get(route('register'));
 
+        // "Sign up as..." links to the rider application as a Rider (Last Mile) or Courier (First Mile).
         $response->assertOk()
-            ->assertSee('id="linkRiderApply"', false)
-            ->assertSee('href="' . route('register.rider') . '"', false)
-            ->assertDontSee('id="linkRiderApply" target="_blank"', false);
+            ->assertSee('href="' . route('register.rider', ['type' => 'last_mile']) . '"', false)
+            ->assertSee('href="' . route('register.rider', ['type' => 'first_mile']) . '"', false)
+            ->assertDontSee('target="_blank"', false);
     }
 
     public function test_rider_registration_name_inputs_match_buyer_setup(): void
@@ -123,10 +124,9 @@ class RiderRegistrationViewTest extends TestCase
 
         $email = 'rider.applicant@example.com';
 
-        // The form asks what kind of courier they'll be (seller to hub, or hub to buyer).
-        $this->get(route('register.rider'))->assertOk()
-            ->assertSee('name="courier_type" value="first_mile"', false)
-            ->assertSee('name="courier_type" value="last_mile"', false);
+        // "Courier" on the sign-up chooser applies as First Mile (seller to hub).
+        $this->get(route('register.rider', ['type' => 'first_mile']))->assertOk()
+            ->assertSee('name="courier_type" value="first_mile"', false);
 
         // 1. Request OTP
         $otpRes = $this->postJson(route('register.request_otp'), [

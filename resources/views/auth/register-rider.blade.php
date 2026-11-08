@@ -1,15 +1,30 @@
 @extends('layouts.auth')
 
-@section('title', 'Become a Rider | cartzy')
-@section('auth_visual', 'courier')
+@php
+    // Picked on the sign-up modal: Rider = Last Mile (hub to buyer), Courier = First Mile (seller to hub).
+    $courierType = array_key_exists((string) old('courier_type'), \App\Models\Rider::COURIER_TYPES) ? old('courier_type') : ($courierType ?? \App\Models\Rider::LAST_MILE);
+    $applyAs = \App\Support\SignupRoles::all()[\App\Support\SignupRoles::forCourierType($courierType)];
+@endphp
+@section('title', 'Become a '.$applyAs['label'].' | cartzy')
+@section('auth_modal', 'signup')
+@section('auth_modal_label', 'riderTitle')
 
 @section('auth_form')
 <div class="rider-registration-container">
-    <!-- Header Badge & Title -->
-    <div class="rider-header-block">
-        <span class="rider-partner-tag">CARTZY PARTNERS</span>
-        <h2 class="auth-title rider-auth-title">Become a rider</h2>
-        <p class="rider-auth-subtitle">Apply to deliver for one of CARTZY's logistics partners.</p>
+    <!-- Role badge (back to "Sign up as...") & Title -->
+    <div class="rider-header-block su-badge-row">
+        <a href="{{ route('register') }}" class="lm-role-badge" title="Sign up as someone else">
+            <span class="lm-role-badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{!! $applyAs['icon'] !!}</svg>
+            </span>
+            <span>{{ $applyAs['label'] }} · {{ \App\Models\Rider::COURIER_TYPES[$courierType][0] }}</span>
+            <span class="lm-role-badge-switch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h13"/><path d="M17 20l4-4-4-4"/><path d="M21 16H8"/></svg>
+                Switch
+            </span>
+        </a>
+        <h2 class="auth-title rider-auth-title" id="riderTitle">Become a {{ strtolower($applyAs['label']) }}</h2>
+        <p class="rider-auth-subtitle">{{ \App\Models\Rider::COURIER_TYPES[$courierType][1] }} for one of cartzy's logistics partners.</p>
     </div>
 
     <!-- Logistics Notice Callout -->
@@ -194,22 +209,8 @@
                     <p class="rider-field-error" id="error_logistics_provider_id"></p>
                 </div>
 
-                {{-- First Mile: seller's warehouse to the hub. Last Mile: hub to the buyer. --}}
-                <fieldset class="rider-field-group courier-type-field">
-                    <legend class="field-label">What kind of courier will you be? <span class="required-star">*</span></legend>
-                    <div class="courier-type-options">
-                        @foreach(\App\Models\Rider::COURIER_TYPES as $key => [$label, $description])
-                            <label class="courier-type-option">
-                                <input type="radio" name="courier_type" value="{{ $key }}" @checked(old('courier_type', \App\Models\Rider::LAST_MILE) === $key)>
-                                <span class="courier-type-card">
-                                    <strong>{{ $label }}</strong>
-                                    <small>{{ $description }}</small>
-                                </span>
-                            </label>
-                        @endforeach
-                    </div>
-                    @error('courier_type')<p class="rider-field-error" style="display:block">{{ $message }}</p>@enderror
-                </fieldset>
+                <input type="hidden" name="courier_type" value="{{ $courierType }}">
+                @error('courier_type')<p class="rider-field-error" style="display:block">{{ $message }}</p>@enderror
             </div>
 
             <!-- Section 3: Your vehicle -->
@@ -626,13 +627,6 @@
         Already applied or registered?
         <a href="{{ route('login') }}">Log in</a>
     </div>
-    <div class="auth-foot rider-signup-links" aria-label="Other registration options">
-        <a href="{{ route('register', ['role' => 'buyer']) }}">Create new account</a>
-        <span aria-hidden="true">|</span>
-        <a href="{{ route('register', ['role' => 'seller']) }}">Sell in cartzy</a>
-        <span aria-hidden="true">|</span>
-        <a href="{{ route('register', ['role' => 'logistics']) }}">Become a logistics partner</a>
-    </div>
 </div>
 
 <style>
@@ -791,18 +785,6 @@
     }
 
     /* Form Section - Compact Spacing */
-    .courier-type-field { margin: 18px 0 0; padding: 0; border: 0; min-width: 0; }
-    .courier-type-field legend { padding: 0; margin-bottom: 8px; }
-    .courier-type-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .courier-type-option { position: relative; display: block; cursor: pointer; }
-    .courier-type-option input { position: absolute; opacity: 0; pointer-events: none; }
-    .courier-type-card { display: block; height: 100%; padding: 13px 15px; border: 1.5px solid #e1dde7; border-radius: 12px; background: #fff; transition: border-color .18s, background .18s, box-shadow .18s; }
-    .courier-type-card strong { display: block; margin-bottom: 3px; color: #282133; font-size: .9rem; }
-    .courier-type-card small { display: block; color: #6b7280; font-size: .76rem; line-height: 1.4; }
-    .courier-type-option:hover .courier-type-card { border-color: #a8a0b2; background: #faf8fc; }
-    .courier-type-option input:checked + .courier-type-card { border-color: #6f6382; background: #f6f4f8; box-shadow: 0 0 0 2px rgba(111, 99, 130, .2); }
-    .courier-type-option input:focus-visible + .courier-type-card { outline: 3px solid #6f6382; outline-offset: 2px; }
-    @media (max-width: 520px) { .courier-type-options { grid-template-columns: 1fr; } }
     .rider-form-section {
         margin-bottom: 10px;
     }

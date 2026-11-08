@@ -625,35 +625,55 @@ body.lm-page {
 
 
 /* ── Sign-up modal (layouts/auth with @section('auth_modal')) ──
-   The registration form keeps its own field styles (auth-split.css); these rules fit it to the dialog. */
+   Same 410px dialog as the login. Step 1 is the "Sign up as..." role list (login's role boxes);
+   step 2 is the registration form, whose field styles come from auth-split.css and are tightened here. */
 body.auth-modal-page {
     display: block !important;
     background: #F6E3DE !important;
 }
-.lm-dialog.lm-dialog-wide { max-width: 580px; }
-.lm-dialog-wide .lm-panel {
-    padding: 30px 36px 24px;
+.lm-dialog-form .lm-panel {
     background:
         radial-gradient(90% 30% at 0% 0%, rgba(111, 99, 130, .08), transparent 70%),
         radial-gradient(80% 26% at 100% 0%, rgba(192, 139, 127, .1), transparent 70%),
         #fff;
 }
-.auth-modal-page .lm-dialog-wide .auth-title {
-    font-size: 1.8rem !important;
-    margin-bottom: 4px !important;
-}
-.auth-modal-page .lm-dialog-wide .auth-subtitle {
-    font-size: .84rem !important;
-    margin-bottom: 18px !important;
-}
-.auth-modal-page .lm-dialog-wide .stepper { margin-bottom: 22px; }
-.auth-modal-page .lm-dialog-wide .auth-foot { margin-top: 18px; font-size: .86rem; }
-.auth-modal-page .lm-dialog-wide .auth-foot.registration-partner-row { margin-top: 10px; }
+.lm-overlay a.lm-role { text-decoration: none; }
+.su-badge-row { text-align: center; }
 
-@media (max-height: 640px) and (min-width: 521px) {
-    .lm-dialog-wide .lm-panel { padding: 24px 30px 18px; }
+/* Headings and spacing at login size */
+.auth-modal-page .lm-dialog-form .auth-title,
+.auth-modal-page .lm-dialog-form .rider-auth-title {
+    margin: 0 0 4px !important;
+    font-size: 1.65rem !important;
+    line-height: 1.1 !important;
 }
+.auth-modal-page .lm-dialog-form .auth-subtitle,
+.auth-modal-page .lm-dialog-form .rider-auth-subtitle {
+    margin-bottom: 16px !important;
+    font-size: .8rem !important;
+}
+.auth-modal-page .lm-dialog-form .stepper { gap: 8px; margin-bottom: 18px; }
+.auth-modal-page .lm-dialog-form .step-label { font-size: .78rem; }
+.auth-modal-page .lm-dialog-form .step-line { min-width: 16px; }
+.auth-modal-page .lm-dialog-form .field-heading { font-size: .92rem; }
+.auth-modal-page .lm-dialog-form .field-subheading,
+.auth-modal-page .lm-dialog-form .logistics-notice-box,
+.auth-modal-page .lm-dialog-form .rider-notice-text { font-size: .76rem; }
+.auth-modal-page .lm-dialog-form .logistics-notice-box { margin: 10px 0 14px; padding: 10px 12px; }
+.auth-modal-page .lm-dialog-form .auth-foot { margin-top: 16px; font-size: .8rem; }
+
+/* One column: two fields side by side don't fit in 410px */
+.auth-modal-page .lm-dialog-form .form-grid-2 { grid-template-columns: 1fr !important; gap: 0 !important; }
+.auth-modal-page .lm-dialog-form .form-grid-2 > * + * { margin-top: 2px; }
+.auth-modal-page .lm-dialog-form .form-grid-2 .input-group { margin-bottom: 12px !important; }
+.auth-modal-page .lm-dialog-form .auth-input { font-size: .86rem !important; }
+.auth-modal-page .lm-dialog-form .btn-action-back,
+.auth-modal-page .lm-dialog-form .btn-action-continue { height: 46px; font-size: .86rem; }
+.auth-modal-page .lm-dialog-form .form-btn-row { gap: 10px; margin-top: 20px; }
+.auth-modal-page .lm-dialog-form .otp-boxes-wrapper { gap: 7px; }
+.auth-modal-page .lm-dialog-form .otp-input { height: 44px; font-size: 1.05rem; }
+
 @media (max-width: 520px) {
-    .lm-dialog-wide .lm-panel { padding: 26px 20px 22px; }
-    .auth-modal-page .lm-dialog-wide .auth-title { font-size: 1.55rem !important; }
+    .auth-modal-page .lm-dialog-form .auth-title,
+    .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.5rem !important; }
 }

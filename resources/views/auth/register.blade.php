@@ -2,8 +2,31 @@
 
 @section('title', 'Sign Up | cartzy')
 @section('auth_modal', 'signup')
+@php
+    // A failed attempt (or a link that names the role) goes straight to the form.
+    $chooseFirst = ($chooseRole ?? false) && !$errors->any() && !old('role');
+    $signupRole = in_array(old('role', $selectedRole ?? 'buyer'), ['buyer', 'seller', 'logistics'], true) ? old('role', $selectedRole ?? 'buyer') : 'buyer';
+    $signupRoles = \App\Support\SignupRoles::all();
+@endphp
+@section('auth_modal_label', $chooseFirst ? 'su-choose-title' : 'authTitle')
 
 @section('auth_form')
+    @include('auth.partials.signup-roles', ['chooseFirst' => $chooseFirst, 'signupRole' => $signupRole])
+
+    {{-- ── Step 2: the sign-up form for the chosen role ── --}}
+    <div class="lm-step su-step-form" data-su-step="form" @if($chooseFirst) hidden @endif>
+    <div class="su-badge-row">
+        <button type="button" class="lm-role-badge" data-su-back title="Sign up as someone else">
+            <span class="lm-role-badge-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-su-badge-icon>{!! $signupRoles[$signupRole]['icon'] !!}</svg>
+            </span>
+            <span data-su-badge-label>{{ $signupRoles[$signupRole]['label'] }}</span>
+            <span class="lm-role-badge-switch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4L3 8l4 4"/><path d="M3 8h13"/><path d="M17 20l4-4-4-4"/><path d="M21 16H8"/></svg>
+                Switch
+            </span>
+        </button>
+    </div>
 
     <h2 class="auth-title" id="authTitle">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Become a Logistics Partner' : 'Create your account' }}</h2>
     <p class="auth-subtitle" id="authSubtitle">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Register your delivery company and manage your own riders on CARTZY.' : 'Join cartzy and discover your everyday favorites' }}</p>
@@ -455,15 +478,10 @@
         <a href="{{ route('login') }}">Log in</a>
     </div>
 
-    <div class="auth-foot registration-partner-row">
-        <a href="{{ route('register', ['role' => old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'buyer' : 'logistics']) }}" id="linkLogisticsApply" onclick="selectRole('{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'buyer' : 'logistics' }}'); return false;">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Create new account' : 'Become a logistics partner' }}</a>
-        <span id="logisticsSellerDivider" aria-hidden="true" class="registration-partner-divider" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'inline' : 'none' }};">|</span>
-        <a href="{{ route('register', ['role' => 'seller']) }}" id="linkLogisticsSeller" onclick="selectRole('seller'); return false;" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'inline' : 'none' }};">Sell in cartzy</a>
-        <span aria-hidden="true" class="registration-partner-divider">|</span>
-        <a href="{{ route('register.rider') }}" id="linkRiderApply">Become a rider</a>
     </div>
 
 <style>
+    #standardRoleWrapper { display: none !important; }
     .auth-foot.registration-partner-row {
         display: flex;
         flex-wrap: nowrap;
@@ -859,6 +877,7 @@
         window.selectRole(curRole || 'buyer');
     });
 </script>
+<script src="{{ asset('js/auth/signup-roles.js') }}?v={{ filemtime(public_path('js/auth/signup-roles.js')) }}" defer></script>
 <script src="{{ asset('js/auth/register.js') }}?v={{ file_exists(public_path('js/auth/register.js')) ? filemtime(public_path('js/auth/register.js')) : time() }}"></script>
 <script src="{{ asset('js/buyer/address-modal.js') }}?v={{ filemtime(public_path('js/buyer/address-modal.js')) }}"></script>
 @endpush

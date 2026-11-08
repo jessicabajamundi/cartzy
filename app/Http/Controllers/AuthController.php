@@ -243,20 +243,30 @@ class AuthController extends Controller
      */
     public function showRegisterForm(Request $request)
     {
-        $selectedRole = $request->query('role', 'buyer');
-        return view('auth.register', compact('selectedRole'));
+        // Sign-up starts with "Sign up as..." unless a link already says who is signing up
+        // (e.g. "Sell on cartzy" passes ?role=seller, and the cart sends buyers here).
+        $role = $request->query('role');
+        $chooseRole = !in_array($role, ['buyer', 'seller', 'logistics'], true) && $request->query('from') !== 'cart';
+        $selectedRole = in_array($role, ['buyer', 'seller', 'logistics'], true) ? $role : 'buyer';
+
+        return view('auth.register', compact('selectedRole', 'chooseRole'));
     }
 
     /**
      * Show the rider registration form.
      */
-    public function showRiderRegisterForm()
+    public function showRiderRegisterForm(Request $request)
     {
         $logisticsProviders = \App\Models\LogisticsProvider::where('status', 'approved')
             ->orderBy('name')
             ->get();
 
-        return view('auth.register-rider', compact('logisticsProviders'));
+        // "Rider" on the sign-up chooser applies as Last Mile (hub to buyer), "Courier" as First Mile (seller to hub).
+        $courierType = array_key_exists((string) $request->query('type'), \App\Models\Rider::COURIER_TYPES)
+            ? $request->query('type')
+            : \App\Models\Rider::LAST_MILE;
+
+        return view('auth.register-rider', compact('logisticsProviders', 'courierType'));
     }
 
     /**

@@ -455,7 +455,7 @@
 
             @include('auth.partials.cozy-peek')
 
-            <section class="lm-dialog lm-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+            <section class="lm-dialog lm-dialog-form" role="dialog" aria-modal="true" aria-labelledby="@yield('auth_modal_label', 'authTitle')">
                 <div class="lm-panel">
                     <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
