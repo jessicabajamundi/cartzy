@@ -28,7 +28,7 @@
     </div>
 
     <!-- Logistics Notice Callout -->
-    <div class="rider-notice-banner">
+    <div class="rider-notice-banner" data-rd-page="2">
         <svg class="rider-notice-icon" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
         </svg>
@@ -37,19 +37,14 @@
         </p>
     </div>
 
-    <!-- Rider registration progress -->
-    <div class="stepper" aria-label="Rider registration steps">
-        <div class="step" id="tab-step-1" aria-current="step">
-            <span class="step-label" id="label-step-1">Details</span>
+    <!-- Rider registration progress: 7 short steps so the modal doesn't need scrolling -->
+    <div class="rd-progress" id="riderProgress">
+        <div class="rd-progress-top">
+            <span class="rd-progress-count">Step <strong data-rd-number>1</strong> of 7</span>
+            <span class="rd-progress-title" data-rd-title>Your details</span>
         </div>
-        <div class="step-line inactive" id="line-1" aria-hidden="true"></div>
-        <div class="step" id="tab-step-2">
-            <span class="step-label inactive" id="label-step-2">Sign-in</span>
-        </div>
-        <div class="step-line inactive" id="line-2" aria-hidden="true"></div>
-        <div class="step" id="tab-step-3">
-            <span class="step-label inactive" id="label-step-3">Verify</span>
-        </div>
+        <div class="rd-progress-bar" role="progressbar" aria-label="Application progress" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"><span data-rd-fill></span></div>
+        <p class="rd-progress-hint" data-rd-hint>Your name, mobile number and birthday.</p>
     </div>
 
     <!-- Registration Form (Steps 1, 2, 3) -->
@@ -63,7 +58,7 @@
         <div id="riderStepDetails">
 
             <!-- Section 1: Your personal details -->
-            <div class="rider-form-section">
+            <div class="rider-form-section" data-rd-page="1">
                 <div class="field-block" style="border-top: 1px solid #E1DDE7; padding-top: 18px; margin-bottom: 20px;">
                     <h3 class="field-heading">Your personal details</h3>
                     <p class="field-subheading">Enter your name and personal details</p>
@@ -167,7 +162,7 @@
             </div>
 
             <!-- Section 2: Where you'll deliver -->
-            <div class="rider-form-section">
+            <div class="rider-form-section" data-rd-page="2">
                 <div class="rider-section-divider"></div>
                 <h3 class="rider-section-heading">Where you'll deliver</h3>
 
@@ -214,7 +209,7 @@
             </div>
 
             <!-- Section 3: Your vehicle -->
-            <div class="rider-form-section">
+            <div class="rider-form-section" data-rd-page="3">
                 <div class="rider-section-divider"></div>
                 <h3 class="rider-section-heading">Your vehicle</h3>
 
@@ -289,7 +284,7 @@
             </div>
 
             <!-- Section 4: Driver's license -->
-            <div class="rider-form-section" id="license_section">
+            <div class="rider-form-section" data-rd-page="4" id="license_section">
                 <div class="rider-section-divider"></div>
                 <h3 class="rider-section-heading">Driver's license</h3>
 
@@ -354,7 +349,7 @@
             </div>
 
             <!-- Section 5: Documents -->
-            <div class="rider-form-section" id="documents_section">
+            <div class="rider-form-section" data-rd-page="5" id="documents_section">
                 <div class="rider-section-divider"></div>
                 <h3 class="rider-section-heading">Documents</h3>
                 <p class="rider-field-hint" style="margin-bottom: 8px;">
@@ -442,10 +437,15 @@
                 </div>
             </div>
 
-            <!-- Submit / Continue Button -->
-            <div style="margin-top: 16px;">
-                <button type="button" id="btnContinueToSignIn" class="btn-primary rider-btn-continue" onclick="handleContinueToSignIn()">
-                    CONTINUE TO SIGN-IN DETAILS
+            <!-- Back / Continue between steps 1-5 (step 5 continues to sign-in details) -->
+            <div class="form-btn-row rd-nav">
+                <button type="button" class="btn-action-back" onclick="riderPrevPage()" data-signup-url="{{ route('register') }}" id="btnRiderBack">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                    Back
+                </button>
+                <button type="button" id="btnContinueToSignIn" class="btn-action-continue" onclick="riderNextPage()">
+                    <span data-rd-next-label>Continue</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
                 </button>
             </div>
 
@@ -630,6 +630,21 @@
 </div>
 
 <style>
+    /* 7 steps: one details section at a time (the progress title replaces the section headings) */
+    [data-rd-page]:not(.is-rd-current) { display: none !important; }
+    [data-rd-page] .rider-section-heading,
+    [data-rd-page] .rider-section-divider,
+    [data-rd-page="1"] > .field-block:first-child { display: none; }
+    .rd-progress { margin: 4px 0 16px; }
+    .rd-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
+    .rd-progress-count { color: #6b6478; font-size: .74rem; font-weight: 600; }
+    .rd-progress-count strong { color: #564b68; }
+    .rd-progress-title { color: #282133; font-size: .9rem; font-weight: 800; text-align: right; }
+    .rd-progress-bar { height: 6px; border-radius: 999px; background: #efe9f3; overflow: hidden; }
+    .rd-progress-bar span { display: block; height: 100%; width: 14.3%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
+    .rd-progress-hint { margin: 8px 0 0; color: #6b7280; font-size: .76rem; line-height: 1.45; }
+    .rd-nav { margin-top: 18px; }
+    @media (prefers-reduced-motion: reduce) { .rd-progress-bar span { transition: none; } }
     .auth-foot.rider-signup-links {
         display: flex;
         align-items: center;
@@ -2075,7 +2090,8 @@
             }, 150);
         }
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        renderRiderProgress();
+        scrollRiderFormTop();
     }
 
     function togglePasswordVisibility(inputId, btnEl) {
@@ -2308,7 +2324,69 @@
     }
 
     // Step 1 Validation & Continue Handler
-    function handleContinueToSignIn() {
+    // ── 7 steps: 1-5 are the details sections (one at a time), 6 is sign-in, 7 is verify ──
+    const RIDER_STEPS = [
+        ['Your details', 'Your name, mobile number and birthday.'],
+        ['Logistics partner', 'The hub you will work for. They review your application.'],
+        ['Your vehicle', 'What you will use on the road.'],
+        ["Driver's license", 'Not needed for bicycles and e-bikes.'],
+        ['Documents', 'Photos of your driver\'s license and vehicle OR/CR.'],
+        ['Sign-in details', "The email and password you'll log in with."],
+        ['Verify your email', 'Enter the 6-digit code we sent to your email.'],
+    ];
+    const RIDER_LAST_PAGE = 5;
+    let riderPage = 1;
+
+    function renderRiderProgress() {
+        document.querySelectorAll('[data-rd-page]').forEach(function (el) {
+            el.classList.toggle('is-rd-current', Number(el.dataset.rdPage) === riderPage);
+        });
+        const step = currentRiderStep === 1 ? riderPage : currentRiderStep + 4;
+        const progress = document.getElementById('riderProgress');
+        if (progress) {
+            progress.querySelector('[data-rd-number]').textContent = step;
+            progress.querySelector('[data-rd-title]').textContent = RIDER_STEPS[step - 1][0];
+            progress.querySelector('[data-rd-hint]').textContent = RIDER_STEPS[step - 1][1];
+            progress.querySelector('[data-rd-fill]').style.width = (step / RIDER_STEPS.length * 100) + '%';
+            progress.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', step);
+        }
+        const nextLabel = document.querySelector('[data-rd-next-label]');
+        if (nextLabel) nextLabel.textContent = riderPage === RIDER_LAST_PAGE ? 'Continue to sign-in' : 'Continue';
+    }
+
+    // In the sign-up modal the dialog panel scrolls, not the page.
+    function scrollRiderFormTop() {
+        const panel = document.getElementById('riderDetailsForm')?.closest('.lm-panel');
+        if (panel) panel.scrollTop = 0;
+        else window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showRiderPage(page, focus = true) {
+        riderPage = page;
+        renderRiderProgress();
+        scrollRiderFormTop();
+        if (!focus) return;
+        const first = document.querySelector('[data-rd-page="' + page + '"] input:not([type="hidden"]):not([type="file"]):not([disabled]), [data-rd-page="' + page + '"] select:not([disabled])');
+        if (first) first.focus({ preventScroll: true });
+    }
+
+    function riderNextPage() {
+        if (!validateRiderPage(riderPage)) return;
+        if (riderPage < RIDER_LAST_PAGE) showRiderPage(riderPage + 1);
+        else handleContinueToSignIn();
+    }
+
+    function riderPrevPage() {
+        if (riderPage > 1) {
+            showRiderPage(riderPage - 1);
+        } else {
+            // Step 1: back to "Sign up as..."
+            window.location.href = document.getElementById('btnRiderBack').dataset.signupUrl;
+        }
+    }
+
+    /** Checks the fields of one step; shows errors and focuses the first problem. */
+    function validateRiderPage(page) {
         let hasError = false;
 
         function checkField(id, errorMsg) {
@@ -2326,14 +2404,13 @@
                 if (!hasError) el.focus();
                 hasError = true;
                 return false;
-            } else {
-                if (errEl) {
-                    errEl.textContent = '';
-                    errEl.classList.remove('visible');
-                }
-                el.classList.remove('error');
-                return true;
             }
+            if (errEl) {
+                errEl.textContent = '';
+                errEl.classList.remove('visible');
+            }
+            el.classList.remove('error');
+            return true;
         }
 
         function validateNameField(id) {
@@ -2342,122 +2419,95 @@
             if (!input) return true;
             const val = input.value.trim();
             const label = id === 'first_name' ? 'first name' : 'last name';
+            let message = '';
+            if (!val) message = 'Please enter your ' + label + '.';
+            else if (Array.from(val).length > 50) message = (id === 'first_name' ? 'First' : 'Last') + ' name must not exceed 50 characters.';
+            else if (/[^\p{L}\p{M} .'-]/u.test(val)) message = 'Special characters and numbers are not allowed.';
 
-            if (!val) {
-                if (errorEl) {
-                    errorEl.textContent = 'Please enter your ' + label + '.';
-                    errorEl.classList.add('visible');
-                }
-                input.classList.add('error');
-                if (!hasError) input.focus();
-                hasError = true;
-                return false;
-            } else if (Array.from(val).length > 50) {
-                if (errorEl) {
-                    errorEl.textContent = (id === 'first_name' ? 'First' : 'Last') + ' name must not exceed 50 characters.';
-                    errorEl.classList.add('visible');
-                }
-                input.classList.add('error');
-                if (!hasError) input.focus();
-                hasError = true;
-                return false;
-            } else if (/[^\p{L}\p{M} .'-]/u.test(val)) {
-                if (errorEl) {
-                    errorEl.textContent = 'Special characters and numbers are not allowed.';
-                    errorEl.classList.add('visible');
-                }
-                input.classList.add('error');
-                if (!hasError) input.focus();
-                hasError = true;
-                return false;
-            } else {
-                if (errorEl) {
-                    errorEl.textContent = '';
-                    errorEl.classList.remove('visible');
-                }
-                input.classList.remove('error');
-                return true;
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.classList.toggle('visible', !!message);
             }
+            input.classList.toggle('error', !!message);
+            if (message) {
+                if (!hasError) input.focus();
+                hasError = true;
+            }
+            return !message;
         }
 
-        validateNameField('first_name');
-        validateNameField('last_name');
-
-        const phoneEl = document.getElementById('phone');
-        const phoneVal = phoneEl ? phoneEl.value.trim() : '';
-        const phoneErr = document.getElementById('error_phone');
-        const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
-
-        if (!phoneVal) {
-            checkField('phone', 'Please enter your mobile number.');
-        } else if (!phoneRegex.test(phoneVal)) {
-            if (phoneErr) {
-                phoneErr.textContent = 'Please enter a valid mobile number (e.g. 09171234567 or +639171234567).';
-                phoneErr.classList.add('visible');
+        function requireFile(id, message) {
+            const input = document.getElementById(id);
+            const errorEl = document.getElementById('error_' + id);
+            if (input && (!input.files || !input.files[0])) {
+                if (errorEl) {
+                    errorEl.textContent = message;
+                    errorEl.classList.add('visible');
+                }
+                hasError = true;
             }
-            phoneEl.classList.add('error');
-            if (!hasError) phoneEl.focus();
-            hasError = true;
-        } else {
-            if (phoneErr) {
-                phoneErr.textContent = '';
-                phoneErr.classList.remove('visible');
-            }
-            phoneEl.classList.remove('error');
         }
-
-        checkField('birthday', 'Please select your birthday.');
-        checkField('logistics_provider_id', 'Please choose a logistics partner.');
-        checkField('vehicle_type', 'Please select your vehicle type.');
 
         const vehicleType = document.getElementById('vehicle_type').value;
         const isExempt = (vehicleType === 'bicycle' || vehicleType === 'ebike');
 
-        if (!isExempt) {
-            const plateValid = validatePlateNumber(true);
-            if (!plateValid) {
-                if (!hasError) {
-                    const plateInput = document.getElementById('plate_no');
-                    if (plateInput) plateInput.focus();
+        if (page === 1) {
+            validateNameField('first_name');
+            validateNameField('last_name');
+
+            const phoneEl = document.getElementById('phone');
+            const phoneVal = phoneEl ? phoneEl.value.trim() : '';
+            const phoneErr = document.getElementById('error_phone');
+            const phoneRegex = /^(09\d{9}|\+639\d{9})$/;
+            if (!phoneVal) {
+                checkField('phone', 'Please enter your mobile number.');
+            } else if (!phoneRegex.test(phoneVal)) {
+                if (phoneErr) {
+                    phoneErr.textContent = 'Please enter a valid mobile number (e.g. 09171234567 or +639171234567).';
+                    phoneErr.classList.add('visible');
                 }
+                phoneEl.classList.add('error');
+                if (!hasError) phoneEl.focus();
                 hasError = true;
+            } else {
+                if (phoneErr) {
+                    phoneErr.textContent = '';
+                    phoneErr.classList.remove('visible');
+                }
+                phoneEl.classList.remove('error');
             }
 
-            const licenseValid = validateLicenseNumber(true);
-            if (!licenseValid) {
-                if (!hasError) {
-                    const licenseInput = document.getElementById('license_number');
-                    if (licenseInput) licenseInput.focus();
-                }
+            checkField('birthday', 'Please select your birthday.');
+        } else if (page === 2) {
+            checkField('logistics_provider_id', 'Please choose a logistics partner.');
+        } else if (page === 3) {
+            if (checkField('vehicle_type', 'Please select your vehicle type.') && !isExempt && !validatePlateNumber(true)) {
+                if (!hasError) document.getElementById('plate_no')?.focus();
+                hasError = true;
+            }
+        } else if (page === 4 && !isExempt) {
+            if (!validateLicenseNumber(true)) {
+                if (!hasError) document.getElementById('license_number')?.focus();
                 hasError = true;
             }
             checkField('license_expiry', 'Please enter your license expiry date.');
+        } else if (page === 5 && !isExempt) {
+            requireFile('license_doc', 'Please upload a photo of your driver\'s license.');
+            requireFile('or_cr_doc', 'Please upload your vehicle OR/CR.');
+        }
 
-            // Check files
-            const licenseDoc = document.getElementById('license_doc');
-            const errLicenseDoc = document.getElementById('error_license_doc');
-            if (licenseDoc && (!licenseDoc.files || !licenseDoc.files[0])) {
-                if (errLicenseDoc) {
-                    errLicenseDoc.textContent = 'Please upload a photo of your driver\'s license.';
-                    errLicenseDoc.classList.add('visible');
-                }
-                hasError = true;
-            }
+        return !hasError;
+    }
 
-            const orCrDoc = document.getElementById('or_cr_doc');
-            const errOrCrDoc = document.getElementById('error_or_cr_doc');
-            if (orCrDoc && (!orCrDoc.files || !orCrDoc.files[0])) {
-                if (errOrCrDoc) {
-                    errOrCrDoc.textContent = 'Please upload your vehicle OR/CR.';
-                    errOrCrDoc.classList.add('visible');
-                }
-                hasError = true;
+    /** From step 5: check every details step once more, then go on to sign-in details (step 6). */
+    function handleContinueToSignIn() {
+        for (let page = 1; page <= RIDER_LAST_PAGE; page++) {
+            if (!validateRiderPage(page)) {
+                if (page !== riderPage) showRiderPage(page, false);
+                return;
             }
         }
 
-        if (hasError) return;
-
-        // Details step is completely valid!
         const firstName = document.getElementById('first_name')?.value?.trim() || '';
         const lastName = document.getElementById('last_name')?.value?.trim() || '';
         const nameInput = document.getElementById('name');
@@ -2599,6 +2649,10 @@
             });
         }
 
+        // Start on step 1, or after a failed submit on the step that has the problem.
+        @php($riderErrorFields = [1 => ['first_name', 'last_name', 'phone', 'birthday'], 2 => ['logistics_provider_id', 'courier_type'], 3 => ['vehicle_type', 'plate_no'], 4 => ['license_number', 'license_expiry'], 5 => ['license_doc', 'or_cr_doc']])
+        @php($riderErrorPage = collect($riderErrorFields)->search(fn ($fields) => $errors->hasAny($fields)) ?: 1)
+        showRiderPage({{ $riderErrorPage }}, false);
         @if($errors->has('email_verification_otp'))
             goToRiderStep(3);
         @elseif($errors->has('email') || $errors->has('password'))

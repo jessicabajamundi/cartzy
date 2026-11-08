@@ -32,7 +32,7 @@
     <p class="auth-subtitle" id="authSubtitle">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Register your delivery company and manage your own riders on CARTZY.' : 'Join cartzy and discover your everyday favorites' }}</p>
 
     <!-- Logistics Partner Requirement Notice (shown only for logistics) -->
-    <div id="logisticsNoticeBox" class="logistics-notice-box" data-lg-page="1" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }};">
+    <div id="logisticsNoticeBox" class="logistics-notice-box" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }};">
         Logistics partner accounts require email verification and administrator approval. Once approved, riders can apply to your company.
     </div>
 
@@ -52,16 +52,6 @@
 
     <div id="sellerNoticeBox" class="logistics-notice-box" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'block' : 'none' }};">Seller accounts require email verification and administrator approval before you can start selling.</div>
     <!-- Cartzy Original Stepper Component -->
-    {{-- Logistics sign-up is 7 short steps so the modal never needs scrolling (js/auth/logistics-steps.js) --}}
-    <div class="lg-only lg-progress" id="logisticsProgress">
-        <div class="lg-progress-top">
-            <span class="lg-progress-count">Step <strong data-lg-number>1</strong> of 7</span>
-            <span class="lg-progress-title" data-lg-title>Your company</span>
-        </div>
-        <div class="lg-progress-bar" role="progressbar" aria-label="Logistics sign-up progress" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"><span data-lg-fill></span></div>
-        <p class="lg-progress-hint" data-lg-hint>The delivery company you'll run on cartzy.</p>
-    </div>
-
     <div class="stepper">
         <div class="step">
             <span class="step-label" id="label-step-1">Details</span>
@@ -147,12 +137,12 @@
                 </div>
             </div>
 
-            <div class="field-block lg-hide" style="margin-top: 18px;">
+            <div class="field-block" style="margin-top: 18px;">
                 <label class="field-heading">Your personal details</label>
                 <p class="field-subheading" style="margin-bottom: 0;">Enter your name and personal details</p>
             </div>
 
-            <div class="form-grid-2 mb-4" data-lg-page="2">
+            <div class="form-grid-2 mb-4">
                 <div>
                     <label class="field-label" for="first_name">First name <span style="color:#ef4444">*</span></label>
                     <div class="input-group">
@@ -203,7 +193,7 @@
                 </div>
             </div>
 
-            <div class="mb-4" data-lg-page="2">
+            <div class="mb-4">
                 <label class="field-label" for="phone">Mobile number</label>
                 <input type="hidden" name="phone_country_code" value="+63">
                 <div class="input-group registration-phone-group">
@@ -268,7 +258,7 @@
             </div>
 
             <!-- Logistics Partner Company & Service Area Fields (Shown for Logistics) -->
-            <div id="logisticsFieldsWrapper" data-lg-page="1" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }}; margin-bottom: 26px;">
+            <div id="logisticsFieldsWrapper" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }}; margin-bottom: 26px;">
                 <div class="mb-4">
                     <label class="field-label" for="business_name">Company name <span style="color:#ef4444">*</span></label>
                     <div class="input-group">
@@ -311,19 +301,8 @@
                 </div>
             </div>
 
-            @include('auth.partials.logistics-signup-steps')
             @include('auth.partials.seller-details')
             <button type="button" class="btn-primary btn-single btn-details-continue" style="margin-top: 26px;" onclick="nextStep(2)">Continue</button>
-            <div class="form-btn-row lg-only lg-nav">
-                <button type="button" class="btn-action-back" data-lg-back>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                    Back
-                </button>
-                <button type="button" class="btn-action-continue" data-lg-next>
-                    <span data-lg-next-label>Continue</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-                </button>
-            </div>
         </div>
 
         <!-- STEP 2: Sign-in (Your sign-in details) -->
@@ -503,27 +482,6 @@
 
 <style>
     #standardRoleWrapper { display: none !important; }
-    /* Logistics: 7 short steps (js/auth/logistics-steps.js adds .lg-steps and marks the current page) */
-    .su-step-form:not(.lg-steps) .lg-only { display: none !important; }
-    .su-step-form.lg-steps .stepper,
-    .su-step-form.lg-steps .lg-hide,
-    .su-step-form.lg-steps .btn-details-continue,
-    .su-step-form.lg-steps [data-lg-page]:not(.is-lg-current) { display: none !important; }
-    .lg-progress { margin: 0 0 16px; }
-    .lg-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
-    .lg-progress-count { color: #6b6478; font-size: .74rem; font-weight: 600; }
-    .lg-progress-count strong { color: #564b68; }
-    .lg-progress-title { color: #282133; font-size: .9rem; font-weight: 800; text-align: right; }
-    .lg-progress-bar { height: 6px; border-radius: 999px; background: #efe9f3; overflow: hidden; }
-    .lg-progress-bar span { display: block; height: 100%; width: 14%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
-    .lg-progress-hint { margin: 8px 0 0; color: #6b7280; font-size: .76rem; line-height: 1.45; }
-    .lg-input { padding-left: 14px !important; }
-    select.lg-input:disabled { background: #f5f2f7 !important; color: #91879b !important; }
-    .lg-input.seller-file-input { height: auto; padding: 10px !important; }
-    .lg-retry { margin: -4px 0 8px; padding: 0; border: 0; background: none; color: #6f6382; font: inherit; font-size: .78rem; font-weight: 700; text-decoration: underline; cursor: pointer; }
-    .lg-docs-hint { margin-top: 0; }
-    .lg-nav { margin-top: 18px; }
-    @media (prefers-reduced-motion: reduce) { .lg-progress-bar span { transition: none; } }
     .auth-foot.registration-partner-row {
         display: flex;
         flex-wrap: nowrap;
@@ -921,7 +879,6 @@
 </script>
 <script src="{{ asset('js/auth/signup-roles.js') }}?v={{ filemtime(public_path('js/auth/signup-roles.js')) }}" defer></script>
 <script src="{{ asset('js/auth/register.js') }}?v={{ file_exists(public_path('js/auth/register.js')) ? filemtime(public_path('js/auth/register.js')) : time() }}"></script>
-<script src="{{ asset('js/auth/logistics-steps.js') }}?v={{ filemtime(public_path('js/auth/logistics-steps.js')) }}"></script>
 <script src="{{ asset('js/buyer/address-modal.js') }}?v={{ filemtime(public_path('js/buyer/address-modal.js')) }}"></script>
 @endpush
 

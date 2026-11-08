@@ -50,7 +50,29 @@ class RiderRegistrationViewTest extends TestCase
             ->assertSee('Documents')
             ->assertSee('name="license_doc"', false)
             ->assertSee('name="or_cr_doc"', false)
-            ->assertSee('CONTINUE TO SIGN-IN DETAILS');
+            ->assertSee('id="riderProgress"', false)
+            ->assertSee('Step <strong data-rd-number>1</strong> of 7', false);
+    }
+
+    public function test_rider_and_courier_application_is_seven_short_steps(): void
+    {
+        $html = $this->get(route('register.rider', ['type' => 'first_mile']))->assertOk()->getContent();
+
+        // Steps 1-5 are the details sections, one at a time; steps 6 and 7 are sign-in and verify.
+        foreach ([1 => 'first_name', 2 => 'logistics_provider_id', 3 => 'vehicle_type', 4 => 'license_number', 5 => 'license_doc'] as $page => $field) {
+            $this->assertMatchesRegularExpression('/data-rd-page="'.$page.'".*?name="'.$field.'"/s', $html);
+        }
+        $this->assertStringContainsString('id="riderStepSignIn"', $html);
+        $this->assertStringContainsString('id="riderStepVerify"', $html);
+        $this->assertStringContainsString('onclick="riderNextPage()"', $html);
+        $this->assertStringContainsString('showRiderPage(1, false);', $html);
+    }
+
+    public function test_a_failed_application_reopens_on_the_step_with_the_problem(): void
+    {
+        $this->withSession(['errors' => (new \Illuminate\Support\ViewErrorBag)->put('default', new \Illuminate\Support\MessageBag(['license_number' => 'Invalid license number.']))])
+            ->get(route('register.rider'))->assertOk()
+            ->assertSee('showRiderPage(4, false);', false);
     }
 
     public function test_register_page_has_rider_and_courier_choices_in_same_tab(): void
