@@ -6,6 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
+import 'package:cartzy/buyer/account_settings_screen.dart';
+import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/buddy_service.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
@@ -157,5 +160,78 @@ void main() {
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 3));
+  });
+
+  testWidgets('Clicking Cozy card in Profile summons bear form; clicking Chat button opens chat; Cozy persists across Sale and Inbox tabs', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    BuddyLauncher.isDismissed = true;
+
+    await tester.pumpWidget(MaterialApp(
+      home: AccountSettingsScreen(
+        isLoggedIn: true,
+        userName: 'Jessie Buyer',
+        userEmail: 'jessie@example.com',
+        onBack: () {},
+        onLogout: () {},
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // Initially Cozy floating launcher is dismissed (only the small 42px card avatar is rendered).
+    expect(BuddyLauncher.isDismissed, isTrue);
+
+    // Scroll down to Cozy card in Profile
+    final cozyCard = find.byKey(const ValueKey('profile-cozy-card'));
+    await tester.ensureVisible(cozyCard);
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // Tap the Cozy card (e.g., on the "Need shopping advice..." text) -> summons bear form, does NOT open chat modal
+    await tester.tap(find.textContaining('Need shopping advice'));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    expect(BuddyLauncher.isDismissed, isFalse);
+    expect(find.text('Tap me to chat with Cozy! 💖'), findsOneWidget);
+    // Chat modal is NOT open yet
+    expect(find.byType(BuddyChatScreen), findsNothing);
+
+    // Tap the Chat button on the Cozy card -> opens BuddyChatScreen modal
+    final chatBtn = find.byKey(const ValueKey('profile-cozy-chat-btn'));
+    await tester.tap(chatBtn);
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(BuddyChatScreen), findsOneWidget);
+
+    // Close the chat modal
+    await tester.tap(find.byTooltip('Close'));
+    for (int i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(BuddyChatScreen), findsNothing);
+
+    // Switch to Sale tab (ProductListScreen) -> Cozy bear form is present on Sale tab
+    await tester.pumpWidget(const MaterialApp(
+      home: ProductListScreen(
+        initialCategory: 'Flash Deals',
+        title: 'Sale & Flash Deals',
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byType(BuddyLauncher), findsOneWidget);
+    expect(find.byType(BuddyBear), findsOneWidget);
+
+    // Switch to Inbox tab (InboxScreen) -> Cozy bear form is present on Inbox tab
+    await tester.pumpWidget(const MaterialApp(
+      home: InboxScreen(),
+    ));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.byType(BuddyLauncher), findsOneWidget);
+    expect(find.byType(BuddyBear), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
   });
 }

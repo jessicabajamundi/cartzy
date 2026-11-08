@@ -6,6 +6,7 @@ import 'package:cartzy/services/message_service.dart';
 import 'package:cartzy/services/follow_store_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/products/official_store_screen.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
 
@@ -187,26 +188,36 @@ class _InboxScreenState extends State<InboxScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF9F6F3),
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            // ── Top Header Bar ──
-            _buildHeader(unreadTotal),
+            Column(
+              children: [
+                // ── Top Header Bar ──
+                _buildHeader(unreadTotal),
 
-            // ── Segmented Tabs (Messages vs Followed Stores) ──
-            _buildTabSelector(unreadTotal, followedTotal),
+                // ── Segmented Tabs (Messages vs Followed Stores) ──
+                _buildTabSelector(unreadTotal, followedTotal),
 
-            // ── Search & Filter Bar ──
-            _buildSearchBar(),
+                // ── Search & Filter Bar ──
+                _buildSearchBar(),
 
-            // ── Tab Views ──
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildMessagesTab(),
-                  _buildFollowedStoresTab(),
-                ],
-              ),
+                // ── Tab Views ──
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildMessagesTab(),
+                      _buildFollowedStoresTab(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // ── Cozy Bear Floating Companion ──
+            ValueListenableBuilder<int>(
+              valueListenable: BuddyLauncher.summonTrigger,
+              builder: (context, _, __) =>
+                  const BuddyLauncher(aboveNav: false),
             ),
           ],
         ),
@@ -307,7 +318,13 @@ class _InboxScreenState extends State<InboxScreen>
               children: [
                 const Icon(Icons.chat_bubble_outline_rounded, size: 16),
                 const SizedBox(width: 6),
-                const Text('Messages'),
+                const Flexible(
+                  child: Text(
+                    'Messages',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 if (unreadTotal > 0) ...[
                   const SizedBox(width: 6),
                   Container(
@@ -336,7 +353,13 @@ class _InboxScreenState extends State<InboxScreen>
               children: [
                 const Icon(Icons.storefront_outlined, size: 16),
                 const SizedBox(width: 6),
-                const Text('Followed Stores'),
+                const Flexible(
+                  child: Text(
+                    'Followed Stores',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 if (followedTotal > 0) ...[
                   const SizedBox(width: 6),
                   Container(

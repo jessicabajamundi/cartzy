@@ -6,6 +6,8 @@ import 'package:cartzy/theme/cartzy_button_styles.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
+import 'package:cartzy/widgets/buddy_bear.dart';
 
 class GuestAccountScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -146,100 +148,258 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) => NotificationListener<ScrollNotification>(
-              onNotification: _onScrollNotification,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 90),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight - 90),
-                  child: Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 28),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Center(child: _AccountIllustration()),
-                          const SizedBox(height: 24),
-                          Text(
-                            'A LITTLE JOY IN EVERY FIND',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 10,
-                              letterSpacing: 1.8,
-                              fontWeight: FontWeight.w700,
-                              color: CartzyColors.rose700,
-                            ),
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) => NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.only(bottom: 90),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: constraints.maxHeight - 90),
+                      child: Center(
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 440),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 28, vertical: 28),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Center(child: _AccountIllustration()),
+                              const SizedBox(height: 24),
+                              Text(
+                                'A LITTLE JOY IN EVERY FIND',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 10,
+                                  letterSpacing: 1.8,
+                                  fontWeight: FontWeight.w700,
+                                  color: CartzyColors.rose700,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Welcome to Cartzy',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.playfairDisplay(
+                                  fontSize: 28,
+                                  height: 1.2,
+                                  fontWeight: FontWeight.w700,
+                                  color: CartzyColors.brand900,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Sign in to track your orders, save your favorites, and manage your Cartzy account.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 14,
+                                  height: 1.6,
+                                  color: CartzyColors.brandDeep,
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              ElevatedButton.icon(
+                                style: CartzyButtonStyles.primary.copyWith(
+                                  minimumSize:
+                                      const WidgetStatePropertyAll(Size(0, 50)),
+                                  shape:
+                                      const WidgetStatePropertyAll(StadiumBorder()),
+                                ),
+                                onPressed: widget.onLogin,
+                                icon: const Icon(Icons.login_rounded, size: 18),
+                                label: const Text('Log In'),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                style: CartzyButtonStyles.outline.copyWith(
+                                  foregroundColor: const WidgetStatePropertyAll(
+                                      CartzyColors.rose700),
+                                  backgroundColor: const WidgetStatePropertyAll(
+                                      CartzyColors.rose50Warm),
+                                  side: const WidgetStatePropertyAll(
+                                      BorderSide(color: CartzyColors.rose200)),
+                                  minimumSize:
+                                      const WidgetStatePropertyAll(Size(0, 50)),
+                                  shape:
+                                      const WidgetStatePropertyAll(StadiumBorder()),
+                                ),
+                                onPressed: widget.onSignUp,
+                                child: const Text('Create Account'),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: CartzyColors.brandDeep,
+                                  minimumSize: const Size(0, 48),
+                                ),
+                                child: const Text('Keep exploring'),
+                              ),
+                              const SizedBox(height: 20),
+                              InkWell(
+                                key: const ValueKey('guest-profile-cozy-card'),
+                                onTap: BuddyLauncher.summon,
+                                borderRadius: BorderRadius.circular(22),
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFFFFF7F2),
+                                        Color(0xFFFDECEE),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(22),
+                                    border: Border.all(
+                                        color: CartzyColors.rose200,
+                                        width: 1.2),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: CartzyColors.pinkBorder,
+                                              width: 1.5),
+                                        ),
+                                        child: const Center(
+                                          child: IgnorePointer(
+                                            child: BuddyBear(
+                                              size: 38,
+                                              mood: BuddyMood.wink,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Wrap(
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              spacing: 6,
+                                              runSpacing: 2,
+                                              children: [
+                                                Text(
+                                                  'Cozy',
+                                                  style: GoogleFonts
+                                                      .playfairDisplay(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: CartzyColors.navy,
+                                                  ),
+                                                ),
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        CartzyColors.rose50Warm,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            10),
+                                                    border: Border.all(
+                                                        color: CartzyColors
+                                                            .rose200,
+                                                        width: 0.8),
+                                                  ),
+                                                  child: Text(
+                                                    'AI Buddy',
+                                                    style: GoogleFonts.dmSans(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          CartzyColors.burgundy,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'Tap to bring out Cozy or chat now',
+                                              style: GoogleFonts.dmSans(
+                                                fontSize: 11.5,
+                                                color: CartzyColors.brandDeep,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      FilledButton(
+                                        key: const ValueKey(
+                                            'guest-profile-cozy-chat-btn'),
+                                        onPressed: () =>
+                                            BuddyChatScreen.showPopup(context),
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor:
+                                              CartzyColors.burgundy,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 9),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                                Icons
+                                                    .chat_bubble_outline_rounded,
+                                                size: 14),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Chat',
+                                              style: GoogleFonts.dmSans(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Welcome to Cartzy',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.playfairDisplay(
-                              fontSize: 28,
-                              height: 1.2,
-                              fontWeight: FontWeight.w700,
-                              color: CartzyColors.brand900,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Sign in to track your orders, save your favorites, and manage your Cartzy account.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 14,
-                              height: 1.6,
-                              color: CartzyColors.brandDeep,
-                            ),
-                          ),
-                          const SizedBox(height: 28),
-                          ElevatedButton.icon(
-                            style: CartzyButtonStyles.primary.copyWith(
-                              minimumSize:
-                                  const WidgetStatePropertyAll(Size(0, 50)),
-                              shape:
-                                  const WidgetStatePropertyAll(StadiumBorder()),
-                            ),
-                            onPressed: widget.onLogin,
-                            icon: const Icon(Icons.login_rounded, size: 18),
-                            label: const Text('Log In'),
-                          ),
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            style: CartzyButtonStyles.outline.copyWith(
-                              foregroundColor: const WidgetStatePropertyAll(
-                                  CartzyColors.rose700),
-                              backgroundColor: const WidgetStatePropertyAll(
-                                  CartzyColors.rose50Warm),
-                              side: const WidgetStatePropertyAll(
-                                  BorderSide(color: CartzyColors.rose200)),
-                              minimumSize:
-                                  const WidgetStatePropertyAll(Size(0, 50)),
-                              shape:
-                                  const WidgetStatePropertyAll(StadiumBorder()),
-                            ),
-                            onPressed: widget.onSignUp,
-                            child: const Text('Create Account'),
-                          ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: TextButton.styleFrom(
-                              foregroundColor: CartzyColors.brandDeep,
-                              minimumSize: const Size(0, 48),
-                            ),
-                            child: const Text('Keep exploring'),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+              // ── Cozy Bear Floating Companion ──
+              ValueListenableBuilder<int>(
+                valueListenable: BuddyLauncher.summonTrigger,
+                builder: (context, _, __) =>
+                    const BuddyLauncher(aboveNav: false),
+              ),
+            ],
           ),
         ),
       ),

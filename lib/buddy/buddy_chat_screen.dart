@@ -1250,9 +1250,7 @@ class _BuddyLauncherState extends State<BuddyLauncher>
                       key: _bearKey,
                       size: 78,
                       mood: _isOverDiscard ? BuddyMood.sad : BuddyMood.happy,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const BuddyChatScreen()),
-                      ),
+                      onTap: () => BuddyChatScreen.showPopup(context),
                     ),
                   ),
                 ),

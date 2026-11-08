@@ -68,6 +68,14 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     'Batangas Central Hub',
   ];
 
+  // ── Step 1: Courier type ──
+  // First Mile: seller's warehouse to the hub. Last Mile: hub to the buyer.
+  String _courierType = 'last_mile';
+  static const List<(String, String, String, IconData)> courierTypeOptions = [
+    ('first_mile', 'First Mile', 'Pick up parcels from sellers and bring them to the hub', Icons.warehouse_outlined),
+    ('last_mile', 'Last Mile', 'Deliver parcels from the hub to buyers', Icons.home_outlined),
+  ];
+
   // ── Step 1: Your vehicle ──
   String _selectedVehicle = '';
   static const List<String> vehicleOptions = [
@@ -569,6 +577,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       'password_confirmation': _passwordController.text,
       'otp': otp,
       'logistics_partner': _selectedLogisticsPartner,
+      'courier_type': _courierType,
       'vehicle_type': vehicleType,
       if (!_isNonMotorized) ...{
         'plate_no': _plateNumberController.text.trim().toUpperCase(),
@@ -861,6 +870,62 @@ class _RiderRegistrationState extends State<RiderRegistration> {
     );
   }
 
+  Widget _buildCourierTypeChoice() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'What kind of courier will you be? *',
+          style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF282133)),
+        ),
+        const SizedBox(height: 8),
+        for (final (value, label, description, icon) in courierTypeOptions) ...[
+          Semantics(
+            selected: _courierType == value,
+            button: true,
+            child: InkWell(
+              onTap: () => setState(() => _courierType = value),
+              borderRadius: BorderRadius.circular(12),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding: const EdgeInsets.all(13),
+                decoration: BoxDecoration(
+                  color: _courierType == value ? const Color(0xFFF6F4F8) : Colors.white,
+                  border: Border.all(
+                    color: _courierType == value ? const Color(0xFF6F6382) : const Color(0xFFE1DDE7),
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: const Color(0xFF6F6382)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(label, style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF282133))),
+                          const SizedBox(height: 2),
+                          Text(description, style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF6B7280))),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      _courierType == value ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                      color: const Color(0xFF6F6382),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ],
+    );
+  }
+
   Widget _buildSectionHeader(String title, [String? subtitle]) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1129,6 +1194,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             _logisticsPartnerError = false;
           }),
         ),
+        const SizedBox(height: 16),
+        _buildCourierTypeChoice(),
         const SizedBox(height: 28),
 
         // ── 3. Your vehicle ──

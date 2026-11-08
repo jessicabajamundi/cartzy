@@ -156,20 +156,6 @@ class _CartzyHomeState extends State<CartzyHome> {
     if (mounted) logout();
   }
 
-  /// From the buyer menu: sign out, then open the login screen set to Rider.
-  Future<void> switchToRiderLogin() async {
-    await AuthService.logout();
-    if (!mounted) return;
-    setState(() {
-      loggedInUser = null;
-      riderToken = null;
-      pendingVerificationEmail = '';
-      pendingBuyerRegistration = null;
-      pendingAccountType = AccountType.rider;
-    });
-    goTo('login');
-  }
-
   Future<void> confirmLogout() async {
     final userName = loggedInUser?['name']?.toString().trim();
     final displayName = (userName == null || userName.isEmpty)
@@ -368,7 +354,6 @@ class _CartzyHomeState extends State<CartzyHome> {
           onSaleClick: () => goTo('sale'),
           onInboxClick: () => goTo('guestInbox'),
           onProfileClick: () => goTo('guestAccount'),
-          onLoginAsRider: switchToRiderLogin,
         );
 
       case 'guestCart':
@@ -499,9 +484,7 @@ class _CartzyHomeState extends State<CartzyHome> {
           onSaleClick: () => goTo('sale'),
           onInboxClick: () => goTo('inbox'),
           onProfileClick: () => goTo('accountSettings'),
-          onVouchersClick: () => goTo('vouchers'),
           onLogout: performLogout,
-          onLoginAsRider: switchToRiderLogin,
         );
 
       // ========================================================

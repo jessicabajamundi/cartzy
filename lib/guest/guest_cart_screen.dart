@@ -7,6 +7,7 @@ import 'package:cartzy/guest/guest_wishlist_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
 
 class GuestCartScreen extends StatefulWidget {
   static void open(BuildContext context) {
@@ -143,94 +144,104 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) => NotificationListener<ScrollNotification>(
-              onNotification: _onScrollNotification,
-              child: SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 440),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 28, vertical: 28),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          const Center(child: _CartIllustration()),
-                          const SizedBox(height: 24),
-                          Text('GOOD FINDS START HERE',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 10,
-                                letterSpacing: 1.8,
-                                fontWeight: FontWeight.w700,
-                                color: CartzyColors.rose700,
-                              )),
-                          const SizedBox(height: 10),
-                          Text('Your next favorite awaits',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.playfairDisplay(
-                                fontSize: 28,
-                                height: 1.2,
-                                fontWeight: FontWeight.w700,
-                                color: CartzyColors.brand900,
-                              )),
-                          const SizedBox(height: 12),
-                          Text(
-                              'Make it yours. Log in to add your favorite finds to your cart and check out.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.dmSans(
-                                fontSize: 14,
-                                height: 1.6,
-                                color: CartzyColors.brandDeep,
-                              )),
-                          const SizedBox(height: 28),
-                          ElevatedButton.icon(
-                            style: CartzyButtonStyles.primary.copyWith(
-                              minimumSize:
-                                  const WidgetStatePropertyAll(Size(0, 50)),
-                              shape:
-                                  const WidgetStatePropertyAll(StadiumBorder()),
-                            ),
-                            onPressed: widget.onLogin,
-                            icon: const Icon(Icons.login_rounded, size: 18),
-                            label: const Text('Log In'),
+          child: Stack(
+            children: [
+              LayoutBuilder(
+                builder: (context, constraints) => NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                      child: Center(
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 440),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 28, vertical: 28),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Center(child: _CartIllustration()),
+                              const SizedBox(height: 24),
+                              Text('GOOD FINDS START HERE',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 10,
+                                    letterSpacing: 1.8,
+                                    fontWeight: FontWeight.w700,
+                                    color: CartzyColors.rose700,
+                                  )),
+                              const SizedBox(height: 10),
+                              Text('Your next favorite awaits',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.playfairDisplay(
+                                    fontSize: 28,
+                                    height: 1.2,
+                                    fontWeight: FontWeight.w700,
+                                    color: CartzyColors.brand900,
+                                  )),
+                              const SizedBox(height: 12),
+                              Text(
+                                  'Make it yours. Log in to add your favorite finds to your cart and check out.',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.dmSans(
+                                    fontSize: 14,
+                                    height: 1.6,
+                                    color: CartzyColors.brandDeep,
+                                  )),
+                              const SizedBox(height: 28),
+                              ElevatedButton.icon(
+                                style: CartzyButtonStyles.primary.copyWith(
+                                  minimumSize:
+                                      const WidgetStatePropertyAll(Size(0, 50)),
+                                  shape:
+                                      const WidgetStatePropertyAll(StadiumBorder()),
+                                ),
+                                onPressed: widget.onLogin,
+                                icon: const Icon(Icons.login_rounded, size: 18),
+                                label: const Text('Log In'),
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton(
+                                style: CartzyButtonStyles.outline.copyWith(
+                                  foregroundColor: const WidgetStatePropertyAll(
+                                      CartzyColors.rose700),
+                                  backgroundColor: const WidgetStatePropertyAll(
+                                      CartzyColors.rose50Warm),
+                                  side: const WidgetStatePropertyAll(
+                                      BorderSide(color: CartzyColors.rose200)),
+                                  minimumSize:
+                                      const WidgetStatePropertyAll(Size(0, 50)),
+                                  shape:
+                                      const WidgetStatePropertyAll(StadiumBorder()),
+                                ),
+                                onPressed: widget.onSignUp,
+                                child: const Text('Create Account'),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: widget.onHome,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: CartzyColors.brandDeep,
+                                  minimumSize: const Size(0, 48),
+                                ),
+                                child: const Text('Keep exploring'),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            style: CartzyButtonStyles.outline.copyWith(
-                              foregroundColor: const WidgetStatePropertyAll(
-                                  CartzyColors.rose700),
-                              backgroundColor: const WidgetStatePropertyAll(
-                                  CartzyColors.rose50Warm),
-                              side: const WidgetStatePropertyAll(
-                                  BorderSide(color: CartzyColors.rose200)),
-                              minimumSize:
-                                  const WidgetStatePropertyAll(Size(0, 50)),
-                              shape:
-                                  const WidgetStatePropertyAll(StadiumBorder()),
-                            ),
-                            onPressed: widget.onSignUp,
-                            child: const Text('Create Account'),
-                          ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: widget.onHome,
-                            style: TextButton.styleFrom(
-                              foregroundColor: CartzyColors.brandDeep,
-                              minimumSize: const Size(0, 48),
-                            ),
-                            child: const Text('Keep exploring'),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
+              // ── Cozy Bear Floating Companion ──
+              ValueListenableBuilder<int>(
+                valueListenable: BuddyLauncher.summonTrigger,
+                builder: (context, _, __) =>
+                    const BuddyLauncher(aboveNav: false),
+              ),
+            ],
           ),
         ),
       ),

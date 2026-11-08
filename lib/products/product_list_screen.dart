@@ -12,6 +12,7 @@ import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'product_details_screen.dart';
 
 class ProductItem {
@@ -379,10 +380,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _onScrollNotification,
-        child: Column(
-          children: [
+      body: Stack(
+        children: [
+          NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: Column(
+              children: [
           // Search bar
           Container(
             color: CartzyColors.surface,
@@ -569,6 +572,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ),
         ],
       ),
+      ),
+          // ── Cozy Bear Floating Companion ──
+          ValueListenableBuilder<int>(
+            valueListenable: BuddyLauncher.summonTrigger,
+            builder: (context, _, __) => BuddyLauncher(aboveNav: _isNavVisible),
+          ),
+        ],
       ),
       bottomNavigationBar: SafeArea(
         top: false,

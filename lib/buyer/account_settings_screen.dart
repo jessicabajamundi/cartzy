@@ -1160,9 +1160,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         ],
       ),
       body: SafeArea(
-        child: NotificationListener<ScrollNotification>(
-          onNotification: _onScrollNotification,
-          child: SingleChildScrollView(
+        child: Stack(
+          children: [
+            NotificationListener<ScrollNotification>(
+              onNotification: _onScrollNotification,
+              child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1536,7 +1538,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               // Featured Cozy AI Shopping Buddy Card
               InkWell(
-                onTap: () => BuddyChatScreen.showPopup(context),
+                key: const ValueKey('profile-cozy-card'),
+                onTap: BuddyLauncher.summon,
                 borderRadius: BorderRadius.circular(22),
                 child: Container(
                   width: double.infinity,
@@ -1579,9 +1582,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           ],
                         ),
                         child: const Center(
-                          child: BuddyBear(
-                            size: 42,
-                            mood: BuddyMood.wink,
+                          child: IgnorePointer(
+                            child: BuddyBear(
+                              size: 42,
+                              mood: BuddyMood.wink,
+                            ),
                           ),
                         ),
                       ),
@@ -1590,7 +1595,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 6,
+                              runSpacing: 2,
                               children: [
                                 Text(
                                   'Cozy',
@@ -1600,7 +1608,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                     color: CartzyColors.navy,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
@@ -1633,6 +1640,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       ),
                       const SizedBox(width: 8),
                       FilledButton(
+                        key: const ValueKey('profile-cozy-chat-btn'),
                         onPressed: () => BuddyChatScreen.showPopup(context),
                         style: FilledButton.styleFrom(
                           backgroundColor: CartzyColors.burgundy,
@@ -1757,7 +1765,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           ),
         ),
       ),
-    ),
+            // ── Cozy Bear Floating Companion ──
+            ValueListenableBuilder<int>(
+              valueListenable: BuddyLauncher.summonTrigger,
+              builder: (context, _, __) =>
+                  const BuddyLauncher(aboveNav: false),
+            ),
+          ],
+        ),
+      ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: AnimatedSlide(

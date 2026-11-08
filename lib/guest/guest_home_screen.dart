@@ -15,11 +15,8 @@ import 'package:cartzy/products/product_details_screen.dart';
 import 'package:cartzy/products/all_categories_screen.dart';
 import 'package:cartzy/search/search_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
-import 'package:cartzy/buyer/recently_viewed_screen.dart';
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
-import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/services/recently_viewed_service.dart';
-import 'package:cartzy/widgets/cartzy_menu_drawer.dart';
 
 class GuestHomeScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -29,8 +26,6 @@ class GuestHomeScreen extends StatefulWidget {
   final VoidCallback? onInboxClick;
   final VoidCallback? onProfileClick;
 
-  /// Opens the login screen set to the rider (courier) account.
-  final VoidCallback? onLoginAsRider;
 
   const GuestHomeScreen({
     super.key,
@@ -40,7 +35,6 @@ class GuestHomeScreen extends StatefulWidget {
     this.onSaleClick,
     this.onInboxClick,
     this.onProfileClick,
-    this.onLoginAsRider,
   });
 
   @override
@@ -55,37 +49,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
       GlobalKey<FlashDealsSectionState>();
   final GlobalKey<DailyDiscoverSectionState> _discoverKey =
       GlobalKey<DailyDiscoverSectionState>();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     super.initState();
     RecentlyViewedService.load();
-  }
-
-  void _openFlashDeals() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const ProductListScreen(
-          initialCategory: 'Flash Deals',
-          title: 'Flash Deals',
-        ),
-      ),
-    );
-  }
-
-  void _openRecentlyViewed() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (routeContext) => RecentlyViewedScreen(
-          onBack: () => Navigator.of(routeContext).pop(),
-          onViewCart: () {
-            Navigator.of(routeContext).pop();
-            _openCart();
-          },
-        ),
-      ),
-    );
   }
 
   bool _isNavVisible = true;
@@ -232,24 +200,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: CartzyColors.background,
-      drawerEdgeDragWidth: 24,
-      // Same menu as a signed-in buyer; account-only items ask to log in.
-      drawer: CartzyMenuDrawer(
-        isGuest: true,
-        onFlashDeals: _openFlashDeals,
-        onMyOrders: widget.onLogin,
-        onVouchers: widget.onLogin,
-        onRecentlyViewed: _openRecentlyViewed,
-        onMessages: widget.onLogin,
-        onCozy: BuddyLauncher.summon,
-        onWhatsNew: () =>
-            AppUpdateService.checkLocalPatchNotes(context, forceShow: true),
-        onLoginAsRider: widget.onLoginAsRider ?? widget.onLogin,
-        onLogin: widget.onLogin,
-        onSignUp: widget.onSignUp,
-      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -285,21 +236,6 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                               padding: const EdgeInsets.fromLTRB(10, 10, 6, 12),
                               child: Row(
                                 children: [
-                                  // HAMBURGER MENU
-                                  IconButton(
-                                    tooltip: 'Menu',
-                                    onPressed: () =>
-                                        _scaffoldKey.currentState?.openDrawer(),
-                                    style: IconButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: CartzyColors.burgundy,
-                                      minimumSize: const Size(44, 44),
-                                    ),
-                                    icon: const BannerActionIcon(
-                                        Icons.menu_rounded),
-                                  ),
-                                  const SizedBox(width: 4),
-
                                   // SEARCH BAR
                                   Expanded(
                                     child: TextField(
@@ -620,7 +556,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           ),
         ),
 
-            // ── Cozy Bear, shown when summoned from the menu ──
+            // ── Cozy Bear Floating Companion ──
             ValueListenableBuilder<int>(
               valueListenable: BuddyLauncher.summonTrigger,
               builder: (context, _, __) =>

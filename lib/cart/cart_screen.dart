@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
+import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/cart_service.dart';
@@ -385,9 +386,11 @@ class _CartScreenState extends State<CartScreen>
           ),
         ),
         child: SafeArea(
-          child: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(
                 parent: BouncingScrollPhysics(),
               ),
@@ -441,6 +444,14 @@ class _CartScreenState extends State<CartScreen>
                 ),
               ),
             ),
+              ),
+              // ── Cozy Bear Floating Companion ──
+              ValueListenableBuilder<int>(
+                valueListenable: BuddyLauncher.summonTrigger,
+                builder: (context, _, __) =>
+                    const BuddyLauncher(aboveNav: false),
+              ),
+            ],
           ),
         ),
       ),
