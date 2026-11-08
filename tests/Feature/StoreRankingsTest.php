@@ -95,8 +95,31 @@ class StoreRankingsTest extends TestCase
 
         $rankings = app(StoreRankings::class)->forSeller($mine);
 
-        $this->assertNull($rankings['mine']['rank']);
-        $this->assertSame(0, $rankings['mine']['sold']);
+        $this->assertSame(['Busy Shop', 'New Shop'], array_column($rankings['top'], 'name'));
+        $this->assertSame([1, null], array_column($rankings['top'], 'rank'));
+        $this->assertSame([4, 0], array_column($rankings['top'], 'sold'));
+        $this->assertTrue($rankings['top'][1]['is_mine']);
+        $this->assertNull($rankings['mine']);
+        $this->assertSame(1, $rankings['total']);
+    }
+
+    public function test_the_list_is_topped_up_to_ten_with_shops_that_have_no_deliveries_yet(): void
+    {
+        $this->sell($this->store('Busy Shop'), 4);
+        $this->store('Hidden Shop', 'suspended');
+        foreach (range(1, 12) as $i) {
+            $this->store(sprintf('Quiet Shop %02d', $i));
+        }
+
+        $rankings = app(StoreRankings::class)->forSeller(null);
+
+        $this->assertCount(10, $rankings['top']);
+        $this->assertSame('Busy Shop', $rankings['top'][0]['name']);
+        $this->assertSame(1, $rankings['top'][0]['rank']);
+        $this->assertSame(array_fill(0, 9, null), array_column(array_slice($rankings['top'], 1), 'rank'));
+        $this->assertSame('Quiet Shop 01', $rankings['top'][1]['name']);
+        $this->assertNotContains('Hidden Shop', array_column($rankings['top'], 'name'));
+        $this->assertSame(1, $rankings['total']);
     }
 
     public function test_dashboard_shows_rankings_instead_of_sales_performance_without_other_stores_earnings(): void

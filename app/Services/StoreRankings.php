@@ -20,8 +20,9 @@ class StoreRankings
     private const MY_PRODUCTS = 5;
 
     /**
-     * @return array{top: array<int, array>, mine: ?array, total: int, products: array<int, array>} "mine" is set only when
-     *     the store is outside the top list; "products" are this store's best sellers with their rank across all shops.
+     * @return array{top: array<int, array>, mine: ?array, total: int, products: array<int, array>} "top" lists up to ten
+     *     shops, topped up with unranked shops (no deliveries yet) when fewer have deliveries; "mine" is set only when
+     *     the store is not in that list; "products" are this store's best sellers with their rank across all shops.
      */
     public function forSeller(?Seller $shop): array
     {
@@ -31,12 +32,7 @@ class StoreRankings
             ->pluck('items_sold', 'store_id');
 
         $stores = Seller::publiclyVisible()->whereIn('id', $sold->keys())->get();
-        $ratings = Review::query()
-            ->join('products', 'products.id', '=', 'reviews.product_id')
-            ->whereIn('products.seller_id', $stores->pluck('id'))
-            ->groupBy('products.seller_id')
-            ->selectRaw('products.seller_id as store_id, AVG(reviews.rating) as average_rating')
-            ->pluck('average_rating', 'store_id');
+        $ratings = $this->ratings($stores->pluck('id')->all());
 
         // Ties go to the better-rated store, then alphabetically, so the order never shuffles between visits.
         $ranked = $stores
@@ -45,18 +41,51 @@ class StoreRankings
             ->values()
             ->map(fn (array $row, int $index) => ['rank' => $index + 1] + $row);
 
-        $mine = $ranked->firstWhere('is_mine', true);
+        $top = $ranked->take(self::TOP);
+        $top = $top->concat($this->unranked($top->count(), $sold->keys()->all(), $shop));
+
+        $mine = $top->firstWhere('is_mine', true) ?? $ranked->firstWhere('is_mine', true);
         if (!$mine && $shop) {
-            $rating = Review::whereHas('product', fn ($query) => $query->where('seller_id', $shop->id))->avg('rating');
-            $mine = ['rank' => null] + $this->row($shop, 0, $rating, $shop);
+            $mine = ['rank' => null] + $this->row($shop, 0, $this->ratings([$shop->id])[$shop->id] ?? null, $shop);
         }
 
         return [
-            'top' => $ranked->take(self::TOP)->all(),
-            'mine' => $mine && ($mine['rank'] === null || $mine['rank'] > self::TOP) ? $mine : null,
+            'top' => $top->values()->all(),
+            'mine' => $mine && !$top->contains('is_mine', true) ? $mine : null,
             'total' => $ranked->count(),
             'products' => $this->myBestSellers($shop),
         ];
+    }
+
+    /**
+     * Fills the rest of the top list with public shops that have not delivered anything yet, best rated first.
+     * They have no rank, so the ranking itself still only counts shops with deliveries.
+     */
+    private function unranked(int $listed, array $rankedIds, ?Seller $shop)
+    {
+        if ($listed >= self::TOP) {
+            return collect();
+        }
+
+        $stores = Seller::publiclyVisible()->whereNotIn('id', $rankedIds)->get();
+        $ratings = $this->ratings($stores->pluck('id')->all());
+
+        return $stores
+            ->map(fn (Seller $store) => ['rank' => null] + $this->row($store, 0, $ratings[$store->id] ?? null, $shop))
+            ->sort(fn (array $a, array $b) => [$b['rating'] ?? 0, $a['name']] <=> [$a['rating'] ?? 0, $b['name']])
+            ->take(self::TOP - $listed)
+            ->values();
+    }
+
+    /** Average product rating per store id. */
+    private function ratings(array $storeIds)
+    {
+        return Review::query()
+            ->join('products', 'products.id', '=', 'reviews.product_id')
+            ->whereIn('products.seller_id', $storeIds)
+            ->groupBy('products.seller_id')
+            ->selectRaw('products.seller_id as store_id, AVG(reviews.rating) as average_rating')
+            ->pluck('average_rating', 'store_id');
     }
 
     /** A rank counts every public product, so "#3 on Cartzy" means the third best seller of all shops. */

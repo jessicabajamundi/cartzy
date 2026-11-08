@@ -17,10 +17,10 @@
                 <div>
                     @if($myRank === 1)
                         <strong>Best shop on Cartzy</strong>
-                        <small>Your shop has the most items delivered of all {{ number_format($rankings['total']) }} {{ Str::plural('shop', $rankings['total']) }}.</small>
+                        <small>Your shop has the most items delivered of the {{ number_format($rankings['total']) }} {{ Str::plural('shop', $rankings['total']) }} with deliveries.</small>
                     @elseif($myRank)
                         <strong>#{{ number_format($myRank) }} on Cartzy</strong>
-                        <small>Your shop is ranked {{ number_format($myRank) }} of {{ number_format($rankings['total']) }} {{ Str::plural('shop', $rankings['total']) }}.</small>
+                        <small>Your shop is ranked {{ number_format($myRank) }} of the {{ number_format($rankings['total']) }} {{ Str::plural('shop', $rankings['total']) }} with deliveries.</small>
                     @else
                         <strong>Not ranked yet</strong>
                         <small>Deliver an order to join the ranking.</small>
