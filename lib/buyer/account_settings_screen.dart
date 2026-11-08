@@ -26,6 +26,7 @@ import 'package:cartzy/buyer/account_activity_screen.dart';
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
 import 'package:cartzy/buyer/terms_policies_screen.dart';
+import 'package:cartzy/services/app_update_service.dart';
 
 class AccountSettingsScreen extends StatefulWidget {
   final bool isLoggedIn;
@@ -762,124 +763,6 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // ==========================================
-  // CHANGE PASSWORD MODAL
-  // ==========================================
-  void _openChangePasswordModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Change Password',
-                    style: GoogleFonts.dmSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF231F20)),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
-                    onPressed: () => Navigator.pop(ctx),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              TextField(
-                controller: _currentPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Current Password',
-                  filled: true,
-                  fillColor: const Color(0xFFF9F7F8),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _newPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'New Password',
-                  filled: true,
-                  fillColor: const Color(0xFFF9F7F8),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Confirm New Password',
-                  filled: true,
-                  fillColor: const Color(0xFFF9F7F8),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: CartzyColors.navy,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () {
-                    _currentPasswordController.clear();
-                    _newPasswordController.clear();
-                    _confirmPasswordController.clear();
-                    Navigator.pop(ctx);
-                    showCartzyFlash(context, 'Password updated successfully!');
-                  },
-                  child: Text('Update Password',
-                      style: GoogleFonts.dmSans(
-                          fontSize: 15, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -1706,6 +1589,38 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       label: 'Complaints',
                       onTap: _openComplaintsModal,
                     ),
+                    const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: CartzyColors.creamSection,
+                        indent: 68),
+                    _buildMenuTile(
+                      icon: Icons.auto_awesome_rounded,
+                      label: 'Patch notes',
+                      allowGuest: true,
+                      badgeWidget: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: CartzyColors.rose50Warm,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: CartzyColors.rose200, width: 0.8),
+                        ),
+                        child: Text(
+                          'v${AppUpdateService.currentAppVersion}',
+                          style: GoogleFonts.dmSans(
+                            color: CartzyColors.burgundy,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      onTap: () => AppUpdateService.checkLocalPatchNotes(
+                        context,
+                        forceShow: true,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1999,10 +1914,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
     required String label,
     Widget? badgeWidget,
     bool showChevron = true,
+    bool allowGuest = false,
     required VoidCallback onTap,
   }) {
     return InkWell(
-      onTap: widget.isLoggedIn ? onTap : widget.onLogin,
+      onTap: (widget.isLoggedIn || allowGuest) ? onTap : widget.onLogin,
       borderRadius: BorderRadius.circular(14),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
@@ -2028,7 +1944,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
               ),
             ),
-            if (widget.isLoggedIn && badgeWidget != null) ...[
+            if ((widget.isLoggedIn || allowGuest) && badgeWidget != null) ...[
               badgeWidget,
               const SizedBox(width: 8),
             ],
