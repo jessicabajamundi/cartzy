@@ -1,0 +1,257 @@
+/* Printable waybill label (resources/views/partials/waybill-label.blade.php), shared by sellers and logistics. */
+
+/* PRINTABLE WAYBILL CARD (AIR WAYBILL) */
+.waybill-printable-card {
+    background: #ffffff;
+    border: 2px solid #111827;
+    border-radius: 12px;
+    padding: 24px;
+    color: #111827;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.awb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+.awb-tag {
+    font-size: 10px;
+    font-weight: 900;
+    background: #111827;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.1em;
+}
+.awb-logo {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 4px 0 2px 0;
+}
+.awb-logo span {
+    font-weight: 300;
+    color: #4b5563;
+}
+.awb-hub-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+    margin: 0;
+}
+.awb-qr-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.awb-routing {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    border: 1px solid #111827;
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+
+.awb-barcode-block {
+    text-align: center;
+    padding: 14px 10px;
+    border: 1.5px dashed #374151;
+    border-radius: 8px;
+    background: #fafafa;
+    margin-bottom: 16px;
+}
+.awb-barcode-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+.awb-tracking-text {
+    font-size: 13px;
+    letter-spacing: 0.05em;
+}
+
+.awb-parties-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border: 1.5px solid #111827;
+    margin-bottom: 16px;
+}
+.awb-party-box {
+    padding: 12px 14px;
+}
+.awb-party-box.sender {
+    border-right: 1.5px solid #111827;
+    background: #fbfbfb;
+}
+.awb-party-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 4px;
+}
+.awb-label {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+.awb-sublabel {
+    font-size: 10px;
+    color: #6b7280;
+}
+.awb-name {
+    font-size: 14px;
+    margin: 0 0 4px 0;
+}
+.awb-contact {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+.awb-address {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #374151;
+    margin: 0;
+}
+
+.awb-payment-strip {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    border: 1.5px solid #111827;
+    margin-bottom: 16px;
+}
+.awb-payment-box {
+    padding: 12px 16px;
+    border-right: 1.5px solid #111827;
+}
+.awb-payment-box.cod {
+    background: #fffbeb;
+}
+.awb-payment-box.prepaid {
+    background: #f0fdf4;
+}
+.payment-title {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+.payment-amount {
+    font-size: 22px;
+    font-weight: 900;
+    margin: 2px 0;
+}
+.payment-hint {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.awb-order-meta-box {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    font-size: 12px;
+    background: #fafafa;
+}
+.awb-order-meta-box span {
+    color: #6b7280;
+}
+
+.awb-items-table-wrap {
+    margin-bottom: 16px;
+    border: 1.5px solid #111827;
+}
+.awb-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.awb-table th {
+    background: #111827;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 8px 10px;
+}
+.awb-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.item-variant {
+    font-size: 11px;
+    color: #6b7280;
+}
+.awb-table tfoot td {
+    border-bottom: none;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+.awb-grand-total td {
+    font-size: 14px;
+    font-weight: 900;
+    border-top: 1.5px solid #111827;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.awb-footer-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed #9ca3af;
+}
+.awb-instructions {
+    font-size: 11px;
+    color: #374151;
+    line-height: 1.4;
+}
+.awb-instructions ol {
+    margin: 4px 0 0 16px;
+    padding: 0;
+}
+
+.awb-sign-boxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.sign-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 10px;
+    color: #6b7280;
+    height: 60px;
+}
+.sign-line {
+    width: 100%;
+    border-bottom: 1px solid #111827;
+    margin-bottom: 4px;
+}
+
+@media print {
+    .waybill-printable-card {
+        border: 2px solid #000000 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 12px !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .awb-barcode-container svg {
+        width: 320px !important;
+        height: 75px !important;
+    }
+}

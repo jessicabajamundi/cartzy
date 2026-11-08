@@ -242,6 +242,29 @@ class LogisticsPortalTest extends TestCase
         $this->assertNull($pickup->assigned_at);
     }
 
+    public function test_logistics_can_print_waybills_for_their_own_parcels_only(): void
+    {
+        $user = $this->getLogisticsUser();
+        [$first, $second, $other] = Shipment::where('logistics_provider_id', $user->logisticsProvider->id)
+            ->whereHas('sellerOrder')->take(3)->get()->all();
+        $first->update(['tracking_code' => 'WAYBILL-TEST-001']);
+        $second->update(['tracking_code' => 'WAYBILL-TEST-002']);
+        $elsewhere = LogisticsProvider::create(['user_id' => User::factory()->create(['role' => 'logistics'])->id, 'name' => 'Other Hub', 'slug' => 'other-hub', 'status' => 'approved']);
+        $other->update(['tracking_code' => 'WAYBILL-OTHER-HUB', 'logistics_provider_id' => $elsewhere->id]);
+
+        $this->actingAs($user)->get(route('logistics.waybills', ['ids' => "{$second->id},{$first->id},{$other->id}"]))
+            ->assertOk()
+            ->assertSeeInOrder(['WAYBILL-TEST-002', 'WAYBILL-TEST-001'])
+            ->assertSee('Print all 2')->assertSee('SHIP TO (BUYER / CONSIGNEE)')
+            ->assertDontSee('WAYBILL-OTHER-HUB');
+
+        $this->get(route('logistics.waybills', ['ids' => $other->id]))->assertNotFound();
+        $this->get(route('logistics.waybills'))->assertNotFound();
+
+        $this->get(route('logistics.hub'))->assertOk()->assertSee('Print waybills')->assertSee(route('logistics.waybills'), false);
+        $this->actingAs($first->sellerOrder->seller->user)->get(route('logistics.waybills', ['ids' => $first->id]))->assertRedirect();
+    }
+
     public function test_incoming_parcels_search_filter_and_receipt(): void
     {
         $user = $this->getLogisticsUser();

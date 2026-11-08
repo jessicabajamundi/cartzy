@@ -365,6 +365,7 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::get('/parcels', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'parcels'])->name('parcels');
     // Hub Desk: receive, sort and assign on one page (the old pages below redirect to its tabs)
     Route::get('/hub-desk', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'hub'])->name('hub');
+    Route::get('/waybills', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'waybills'])->name('waybills');
     Route::post('/hub-desk/process-all', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'processAll'])->name('hub.process-all');
     Route::post('/parcels/receive-all',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveAllParcels'])->name('parcels.receive-all');
     Route::post('/parcels/{id}/receive',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');

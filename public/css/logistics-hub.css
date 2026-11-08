@@ -34,6 +34,7 @@
 
 .hub-panel { border:1px solid #e6dfe8; border-radius:12px; background:#fff; overflow:hidden; }
 .hub-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 22px; border-bottom:1px solid #eee7ef; background:#fcfafd; }
+.hub-toolbar-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:10px; }
 .hub-hint { color:#756f7c; line-height:1.6; }
 .hub-notice { margin:0; padding:12px 22px; background:#fff7f3; color:#87584c; border-bottom:1px solid #f0dcd4; }
 .hub-notice a { font-weight:700; text-decoration:underline; }

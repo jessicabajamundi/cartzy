@@ -848,7 +848,43 @@ class LogisticsPortalController extends Controller
      * A parcel moves receive -> sort -> assign; parcels whose address names a delivery area
      * skip the sort step (auto-sorted on receipt).
      */
-    public const HUB_TABS = ['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
+    /**
+     * Printable waybills for this hub's parcels: ?ids=3,8,12 prints one label per page.
+     * Parcels that belong to another hub are left out.
+     */
+    public function waybills(Request $request)
+    {
+        $ids = collect(explode(',', (string) $request->query('ids', '')))
+            ->map(fn ($id) => (int) trim($id))->filter(fn ($id) => $id > 0)->unique()->take(100)->values();
+        abort_if($ids->isEmpty(), 404);
+
+        $shipments = Shipment::where('logistics_provider_id', $this->provider()->id)
+            ->whereIn('id', $ids)
+            ->whereHas('sellerOrder')
+            ->with(['logisticsProvider', 'sellerOrder.order.buyer', 'sellerOrder.items', 'sellerOrder.seller.user', 'sellerOrder.seller.pickupAddress'])
+            ->get()
+            ->sortBy(fn (Shipment $shipment) => $ids->search($shipment->id))
+            ->values();
+        abort_if($shipments->isEmpty(), 404);
+
+        $labels = $shipments->map(function (Shipment $shipment) {
+            $order = $shipment->sellerOrder->setRelation('shipment', $shipment);
+            $code = (string) $shipment->tracking_code;
+
+            return [
+                'order' => $order,
+                'barcodeSvg' => $code !== '' ? \App\Services\BarcodeService::generateBarcodeSvg($code, 320, 75) : '',
+                'qrSvg' => $code !== '' ? \App\Services\BarcodeService::generateQrSvg($code, 100) : '',
+            ];
+        });
+
+        return view('logistics.waybills', [
+            'labels' => $labels,
+            'back' => url()->previous() !== $request->fullUrl() ? url()->previous() : route('logistics.hub'),
+        ]);
+    }
+
+    public const HUB_TABS =['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
 
     public function hub(Request $request)
     {

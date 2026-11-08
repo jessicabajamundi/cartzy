@@ -57,11 +57,18 @@
     <div class="hub-panel">
         <div class="hub-toolbar">
             <p class="hub-hint">{{ $hints[$tab] }}</p>
-            @if($bulk && $bulk[0] > 0)
-                <form method="POST" action="{{ route($bulk[1]) }}" class="hub-confirm" data-confirm="{{ str_replace(':n', $bulk[0], $bulk[3]) }}">@csrf
-                    <button type="submit" class="hub-button primary">{{ $bulk[2] }} <span class="hub-pill">{{ $bulk[0] }}</span></button>
-                </form>
-            @endif
+            <div class="hub-toolbar-actions">
+                @if($parcels->count())
+                    {{-- Waybills for the parcels listed on this page, one per printed page --}}
+                    <a class="hub-button secondary" target="_blank" rel="noopener"
+                       href="{{ route('logistics.waybills', ['ids' => $parcels->pluck('id')->implode(',')]) }}">🖨 Print waybills <span class="hub-pill">{{ $parcels->count() }}</span></a>
+                @endif
+                @if($bulk && $bulk[0] > 0)
+                    <form method="POST" action="{{ route($bulk[1]) }}" class="hub-confirm" data-confirm="{{ str_replace(':n', $bulk[0], $bulk[3]) }}">@csrf
+                        <button type="submit" class="hub-button primary">{{ $bulk[2] }} <span class="hub-pill">{{ $bulk[0] }}</span></button>
+                    </form>
+                @endif
+            </div>
         </div>
         @if($tab === 'assign' && !$riders)
             <p class="hub-notice">No active riders right now. <a href="{{ route('logistics.riders') }}">Activate a rider</a> to assign deliveries.</p>
@@ -115,6 +122,8 @@
                             <small>{{ $parcel['assigned_at'] ? 'Assigned '.$parcel['assigned_at'] : '' }}</small>
                             <a class="hub-link" href="{{ route('logistics.monitoring', ['search' => $parcel['tracking_code']]) }}">Track →</a>
                         @endif
+                        <a class="hub-link" target="_blank" rel="noopener" href="{{ route('logistics.waybills', ['ids' => $parcel['id']]) }}"
+                           aria-label="Print waybill for {{ $parcel['tracking_code'] }}">Print waybill</a>
                     </div>
                 </li>
             @empty
