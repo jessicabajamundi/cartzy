@@ -39,7 +39,7 @@ class RiderAppPageTest extends TestCase
             ->assertOk()
             ->assertSee('Deliver with the', false)
             ->assertSee('Download the app (APK)')
-            ->assertSee('Android 7.0 or newer')
+            ->assertSee('Works on most Android phones')
             ->assertSee('Version 1.2.11')
             ->assertSee('Courier')
             ->assertSee('cartzy-mobile-v1.2.11.apk')
@@ -93,7 +93,7 @@ class RiderAppPageTest extends TestCase
 
         $this->withHeader('User-Agent', self::ANDROID_CHROME)->get('/')
             ->assertOk()
-            ->assertSee('Shop with the', false)
+            ->assertSee('CARTZY FOR ANDROID')
             ->assertSee('Download the app (APK)')
             ->assertSee('Courier')
             ->assertSee(route('rider.app.download'))
@@ -112,7 +112,7 @@ class RiderAppPageTest extends TestCase
         foreach ($agents as $agent) {
             $this->withHeader('User-Agent', $agent)->get('/')
                 ->assertOk()
-                ->assertDontSee('Shop with the', false);
+                ->assertDontSee('CARTZY FOR ANDROID');
         }
     }
 

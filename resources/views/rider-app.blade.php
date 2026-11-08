@@ -151,9 +151,9 @@
     <main class="ra-card">
         <div class="ra-icon"><img src="{{ asset('images/cartzy-app-icon.png') }}" alt="cartzy app icon" width="84" height="84"></div>
         @if($forEveryone)
-            <p class="ra-eyebrow">CARTZY ON YOUR PHONE</p>
-            <h1>Shop with the <em>cartzy</em> app</h1>
-            <p class="ra-lead">On Android phones, cartzy works in our app, not the website. Use it to shop, check out, track your orders and chat with shops. Riders use the same app for their deliveries.</p>
+            <p class="ra-eyebrow">CARTZY FOR ANDROID</p>
+            <h1>All of <em>cartzy</em>, in one app</h1>
+            <p class="ra-lead">Shopping on your phone is easier in the cartzy app. Find deals, check out in a few taps, track every order and chat with shops, all in one place. Riders use the same app for their deliveries.</p>
         @else
             <p class="ra-eyebrow">CARTZY RIDERS</p>
             <h1>Deliver with the <em>cartzy</em> app</h1>
@@ -164,7 +164,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
             Download the app (APK)
         </a>
-        <p class="ra-meta">Free · Android 7.0 or newer @if($release['version'])· Version {{ $release['version'] }}@endif</p>
+        <p class="ra-meta">Free · Works on most Android phones @if($release['version'])· Version {{ $release['version'] }}@endif</p>
 
         <ol class="ra-steps">
             <li><strong>Download</strong> the app with the button above.</li>
