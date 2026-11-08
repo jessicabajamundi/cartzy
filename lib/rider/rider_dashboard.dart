@@ -39,6 +39,28 @@ class _RiderDashboardState extends State<RiderDashboard> {
   bool _showWelcomeBanner = true;
   String _selectedNav = 'Dashboard';
 
+  /// Bottom nav: 0 Home, 1 History, 2 Earnings, 3 Profile.
+  int _tab = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  static const _tabNavNames = [
+    'Dashboard',
+    'Delivery History',
+    'Rider Earnings & Commissions',
+    'Account Management',
+  ];
+
+  /// Opens a bottom tab (also used by the side menu), closing the menu first.
+  void _selectTab(int index) {
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      _scaffoldKey.currentState!.closeDrawer();
+    }
+    setState(() {
+      _tab = index;
+      _selectedNav = _tabNavNames[index];
+    });
+  }
+
   // Sample pickup requests matching reference
   final List<Map<String, dynamic>> _pickupRequests = [
     {
@@ -450,7 +472,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   icon: Icons.dashboard_outlined,
                   title: 'Dashboard',
                   isSelected: _selectedNav == 'Dashboard',
-                  onTap: () => setState(() => _selectedNav = 'Dashboard'),
+                  onTap: () => _selectTab(0),
                 ),
                 _sidebarItem(
                   icon: Icons.inventory_2_outlined,
@@ -486,30 +508,13 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   icon: Icons.payments_outlined,
                   title: 'Rider Earnings & Commissions',
                   isSelected: _selectedNav == 'Rider Earnings & Commissions',
-                  onTap: () {
-                    setState(() => _selectedNav = 'Rider Earnings & Commissions');
-                    _push(
-                      RiderEarningsScreen(
-                        token: widget.token,
-                        onBack: () => Navigator.of(context).pop(),
-                      ),
-                    );
-                  },
+                  onTap: () => _selectTab(2),
                 ),
                 _sidebarItem(
                   icon: Icons.history_outlined,
                   title: 'Delivery History',
                   isSelected: _selectedNav == 'Delivery History',
-                  onTap: () {
-                    setState(() => _selectedNav = 'Delivery History');
-                    _push(
-                      RiderDeliveryHistoryScreen(
-                        token: widget.token,
-                        onBack: () => Navigator.of(context).pop(),
-                        onLogout: widget.onLogout,
-                      ),
-                    );
-                  },
+                  onTap: () => _selectTab(1),
                 ),
                 _sidebarItem(
                   icon: Icons.chat_bubble_outline,
@@ -531,16 +536,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   icon: Icons.person_outline,
                   title: 'Account Management',
                   isSelected: _selectedNav == 'Account Management',
-                  onTap: () {
-                    setState(() => _selectedNav = 'Account Management');
-                    _push(
-                      RiderAccountScreen(
-                        userId: widget.userId,
-                        onBack: () => Navigator.of(context).pop(),
-                        onLogout: widget.onLogout,
-                      ),
-                    );
-                  },
+                  onTap: () => _selectTab(3),
                 ),
               ],
             ),
@@ -1510,10 +1506,15 @@ class _RiderDashboardState extends State<RiderDashboard> {
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 900;
 
+        // Only the open tab is built, so a hidden screen is never laid out at
+        // zero width. The tab screens' back arrows return to Home.
         return Scaffold(
+          key: _scaffoldKey,
           backgroundColor: CartzyColors.background,
           drawer: isMobile ? Drawer(child: _buildSidebar()) : null,
-          body: SafeArea(
+          bottomNavigationBar: _buildBottomNav(),
+          body: [
+          SafeArea(
             child: Column(
               children: [
                 _buildTopBar(isMobile),
@@ -1543,8 +1544,122 @@ class _RiderDashboardState extends State<RiderDashboard> {
               ],
             ),
           ),
+              RiderDeliveryHistoryScreen(
+                token: widget.token,
+                onBack: () => _selectTab(0),
+                onLogout: widget.onLogout,
+              ),
+              RiderEarningsScreen(
+                token: widget.token,
+                onBack: () => _selectTab(0),
+              ),
+              RiderAccountScreen(
+                userId: widget.userId,
+                onBack: () => _selectTab(0),
+                onLogout: widget.onLogout,
+              ),
+          ][_tab],
         );
       },
+    );
+  }
+
+  // ── Bottom nav (same look as the buyer's) ───────────────────
+  Widget _buildBottomNav() {
+    const items = [
+      (Icons.home_rounded, 'Home'),
+      (Icons.history_rounded, 'History'),
+      (Icons.account_balance_wallet_outlined, 'Earnings'),
+      (Icons.person_outline_rounded, 'Profile'),
+    ];
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: const ShapeDecoration(
+          color: CartzyColors.surface,
+          shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
+          shadows: [
+            BoxShadow(
+              color: Color(0x148B3A3A),
+              blurRadius: 16,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            for (var i = 0; i < items.length; i++)
+              _RiderNavItem(
+                icon: items[i].$1,
+                label: items[i].$2,
+                selected: _tab == i,
+                onTap: () => _selectTab(i),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RiderNavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _RiderNavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? CartzyColors.burgundy : CartzyColors.gray;
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 22),
+                const SizedBox(height: 3),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.dmSans(
+                    fontSize: 11,
+                    color: color,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  height: 2,
+                  width: selected ? 16 : 0,
+                  decoration: BoxDecoration(
+                    color: CartzyColors.burgundy,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

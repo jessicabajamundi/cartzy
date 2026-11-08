@@ -226,9 +226,10 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 900;
-        final cardWidth = isWide
-            ? (constraints.maxWidth - 36) / 4
-            : (constraints.maxWidth - 12) / 2;
+        final cardWidth = (isWide
+                ? (constraints.maxWidth - 36) / 4
+                : (constraints.maxWidth - 12) / 2)
+            .clamp(0.0, double.infinity);
 
         return Wrap(
           spacing: 12,
