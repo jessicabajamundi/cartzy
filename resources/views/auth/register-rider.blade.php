@@ -64,7 +64,7 @@
                     <p class="field-subheading">Enter your name and personal details</p>
                 </div>
 
-                <div class="form-grid-2">
+                <div class="form-grid-2 name-row">
                     <div class="rider-field-group">
                         <label class="field-label" for="first_name">First name <span class="required-star">*</span></label>
                         <div class="input-group">

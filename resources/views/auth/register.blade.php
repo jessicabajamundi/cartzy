@@ -142,7 +142,7 @@
                 <p class="field-subheading" style="margin-bottom: 0;">Enter your name and personal details</p>
             </div>
 
-            <div class="form-grid-2 mb-4">
+            <div class="form-grid-2 name-row mb-4">
                 <div>
                     <label class="field-label" for="first_name">First name <span style="color:#ef4444">*</span></label>
                     <div class="input-group">

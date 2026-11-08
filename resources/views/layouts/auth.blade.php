@@ -432,7 +432,15 @@
             .auth-title { font-size: 1.75rem; }
             .auth-subtitle { font-size: 0.9rem; }
             .form-grid-2 { grid-template-columns: 1fr; }
+            /* First and last name share one row on web, including narrow browser windows. */
+            .form-grid-2.name-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
             .auth-logo-img { height: 48px; max-width: 200px; }
+        }
+
+        /* On phones the name fields stack, one per row. */
+        @media (max-width: 480px) {
+            .form-grid-2.name-row,
+            .rider-registration-container .form-grid-2.name-row { grid-template-columns: 1fr; }
         }
     </style>
     @hasSection('auth_modal')
