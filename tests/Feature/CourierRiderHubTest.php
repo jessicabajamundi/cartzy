@@ -90,6 +90,9 @@ class CourierRiderHubTest extends TestCase
         // Rider Hub pages now open in the app; the browser shows the download page.
         $this->actingAs($courier)->get(route('courier.pickups'))->assertRedirect(route('rider.app'));
 
+        // Collecting from the seller is a First Mile courier's job.
+        $courier->rider->update(['courier_type' => \App\Models\Rider::FIRST_MILE]);
+
         $acceptResponse = $this->actingAs($courier)->post(route('courier.pickups.accept', $pickup->id));
         $acceptResponse->assertRedirect();
 

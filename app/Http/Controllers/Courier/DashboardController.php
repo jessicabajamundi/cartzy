@@ -169,6 +169,9 @@ class DashboardController extends Controller
         $rider = $this->getOrCreateRider();
 
         $pickup = PickupRequest::findOrFail($id);
+        if (!$rider->isFirstMile()) {
+            return back()->with('error', 'Seller pickups are done by First Mile couriers. As a Last Mile courier you deliver parcels from the hub to buyers.');
+        }
 
         DB::transaction(function () use ($pickup, $rider, $courier) {
             $pickup->update([
@@ -183,9 +186,10 @@ class DashboardController extends Controller
                 ->get();
 
             foreach ($shipments as $shipment) {
+                // First mile: this courier collected it; the last-mile courier is assigned later at the hub.
                 $shipment->update([
-                    'rider_id' => $rider->id,
-                    'status'   => 'picked_up',
+                    'pickup_rider_id' => $rider->id,
+                    'status'          => 'picked_up',
                 ]);
 
                 $shipment->sellerOrder?->update(['status' => 'shipped']);
@@ -345,6 +349,13 @@ class DashboardController extends Controller
 
         $courier = Auth::user();
         $rider = $this->getOrCreateRider();
+        if (!$rider->isLastMile()) {
+            $message = 'Deliveries to buyers are done by Last Mile couriers. As a First Mile courier you bring parcels from sellers to the hub.';
+
+            return $request->wantsJson()
+                ? response()->json(['success' => false, 'message' => $message], 403)
+                : back()->with('error', $message);
+        }
 
         $photoPath = null;
         if ($request->hasFile('pod_photo') && $request->file('pod_photo')->isValid()) {

@@ -180,6 +180,7 @@ class LogisticsPortalTest extends TestCase
         $nearRider = Rider::create([
             'user_id'               => $riderUser->id,
             'logistics_provider_id' => $provider->id,
+            'courier_type'          => Rider::FIRST_MILE,
             'vehicle_type'          => 'Motorcycle',
             'plate_no'              => 'SC-9988',
             'status'                => 'approved',
@@ -220,7 +221,7 @@ class LogisticsPortalTest extends TestCase
         $user = $this->getLogisticsUser();
         $provider = $user->logisticsProvider;
 
-        $rider = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->firstOrFail();
+        $rider = Rider::where('logistics_provider_id', $provider->id)->firstMile()->where('status', 'approved')->firstOrFail();
         $pickup = PickupRequest::where('logistics_provider_id', $provider->id)->firstOrFail();
 
         // Assign specific rider
@@ -331,7 +332,7 @@ class LogisticsPortalTest extends TestCase
         $aResp = $this->actingAs($user)->get(route('logistics.assignments'));
         $aResp->assertStatus(200);
 
-        $rider = Rider::where('status', 'approved')->first();
+        $rider = Rider::lastMile()->where('status', 'approved')->first();
         if ($shipment && $rider) {
             $assignResp = $this->actingAs($user)->post(route('logistics.assignments.assign', $shipment->id), [
                 'rider_id' => $rider->id,

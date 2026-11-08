@@ -11,13 +11,13 @@
     $steps = [
         'receive'  => ['1', 'Receive', 'Parcels arriving at the hub'],
         'sort'     => ['2', 'Sort', 'Address had no known area'],
-        'assign'   => ['3', 'Assign rider', 'Sorted, waiting for a rider'],
+        'assign'   => ['3', 'Assign rider', 'Sorted, waiting for a Last Mile courier'],
         'assigned' => ['✓', 'Assigned', 'Waiting for rider pickup'],
     ];
     $hints = [
         'receive'  => 'Mark parcels received as they arrive. Each one is sorted automatically when its address names a delivery area.',
         'sort'     => 'These addresses didn’t match a delivery area. Check the suggestion or choose the closest area.',
-        'assign'   => 'The best rider for each parcel is already selected. Assign them all at once, or one at a time.',
+        'assign'   => 'Last Mile couriers deliver from the hub to the buyer. The best one for each parcel is already selected. Assign them all at once, or one at a time.',
         'assigned' => 'These parcels have a rider and are waiting to be picked up. Follow them in Delivery Monitoring.',
     ];
     $next = collect(['receive', 'sort', 'assign'])->first(fn ($key) => $key !== $tab && $counts[$key] > 0); // for the empty state
@@ -71,7 +71,7 @@
             </div>
         </div>
         @if($tab === 'assign' && !$riders)
-            <p class="hub-notice">No active riders right now. <a href="{{ route('logistics.riders') }}">Activate a rider</a> to assign deliveries.</p>
+            <p class="hub-notice">No active Last Mile couriers right now. <a href="{{ route('logistics.riders', ['type' => 'last_mile']) }}">Activate a Last Mile courier</a> to assign deliveries.</p>
         @endif
         <form class="hub-search" method="GET" action="{{ route('logistics.hub') }}" role="search">
             <input type="hidden" name="tab" value="{{ $tab }}">
@@ -112,7 +112,7 @@
                             <form method="POST" action="{{ route('logistics.assignments.assign', ['id' => $parcel['id']], false) }}" class="hub-inline hub-once">@csrf
                                 <label class="hub-sr" for="rider-{{ $parcel['id'] }}">Rider for {{ $parcel['tracking_code'] }}</label>
                                 <select id="rider-{{ $parcel['id'] }}" name="rider_id" required @disabled(!$riders)>
-                                    <option value="">{{ $riders ? 'Choose a rider' : 'No active riders' }}</option>
+                                    <option value="">{{ $riders ? 'Choose a Last Mile courier' : 'No active Last Mile couriers' }}</option>
                                     @foreach($riders as $rider)<option value="{{ $rider['id'] }}" @selected($rider['id'] === ($parcel['suggested_rider_id'] ?? null))>{{ $rider['name'] }} — {{ $rider['area'] }}{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? ' (best)' : '' }}</option>@endforeach
                                 </select>
                                 <button type="submit" class="hub-button primary" @disabled(!$riders)>Assign</button>

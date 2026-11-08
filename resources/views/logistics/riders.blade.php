@@ -16,25 +16,44 @@
     <div class="rider-panel">
         <form method="GET" action="{{ route('logistics.riders') }}" class="rider-search">
             <input type="hidden" name="filter" value="{{ $filter }}">
+            <input type="hidden" name="type" value="{{ $type }}">
             <div><label for="rider-search">Find a rider</label><input id="rider-search" type="search" name="search" value="{{ $search }}" placeholder="Name, email, phone, area or plate number"></div>
             <button class="rider-button rider-primary" type="submit">Search riders</button>
             @if($search !== '')<a class="rider-button" href="{{ route('logistics.riders', ['filter' => $filter]) }}">Clear search</a>@endif
         </form>
+        {{-- First Mile couriers collect from sellers; Last Mile couriers deliver to buyers --}}
+        <nav class="rider-type-filters" aria-label="Filter riders by courier type">
+            @foreach(['all' => ['All couriers', 'Everyone in your hub']] + \App\Models\Rider::COURIER_TYPES as $key => [$label, $hint])
+            <a href="{{ route('logistics.riders', ['type' => $key, 'filter' => $filter, 'search' => $search]) }}" @if($type === $key) aria-current="page" @endif title="{{ $hint }}"><span>{{ $label }}</span> <strong>{{ $typeCounts[$key] }}</strong></a>
+            @endforeach
+        </nav>
         <nav class="rider-filters" aria-label="Filter riders by status">
             @foreach(['all'=>'All riders','pending'=>'Pending','approved'=>'Approved','active'=>'Active','inactive'=>'Inactive','suspended'=>'Suspended','rejected'=>'Rejected'] as $key=>$label)
-            <a href="{{ route('logistics.riders', ['filter' => $key, 'search' => $search]) }}" @if($filter === $key) aria-current="page" @endif>{{ $label }} <span>{{ $counts[$key] }}</span></a>
+            <a href="{{ route('logistics.riders', ['filter' => $key, 'type' => $type, 'search' => $search]) }}" @if($filter === $key) aria-current="page" @endif>{{ $label }} <span>{{ $counts[$key] }}</span></a>
             @endforeach
         </nav>
         <div class="rider-results"><span>{{ $riders->total() }} {{ Str::plural('result', $riders->total()) }}@if($search !== '') for “{{ $search }}”@endif</span><span>Pending applications appear first</span></div>
         <div class="rider-table-wrap">
             <table class="rider-table">
                 <caption class="rider-sr-only">Riders and their contact information, vehicle, status and available actions</caption>
-                <thead><tr><th scope="col">Rider</th><th scope="col">Vehicle & area</th><th scope="col">Status</th><th scope="col">Performance</th><th scope="col">Actions</th></tr></thead>
+                <thead><tr><th scope="col">Rider</th><th scope="col">Courier type</th><th scope="col">Vehicle & area</th><th scope="col">Status</th><th scope="col">Performance</th><th scope="col">Actions</th></tr></thead>
                 <tbody>
                 @forelse($riders as $rider)
                     @php($state = $rider['status'] === 'approved' ? ($rider['is_active'] ? 'active' : 'inactive') : $rider['status'])
                     <tr>
                         <td data-label="Rider"><div class="rider-person"><span class="rider-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($rider['name'], 0, 1)) }}</span><div><strong>{{ $rider['name'] }}</strong><a href="mailto:{{ $rider['email'] }}">{{ $rider['email'] }}</a>@if($rider['phone'])<a href="tel:{{ $rider['phone'] }}">{{ $rider['phone'] }}</a>@else<small>No phone provided</small>@endif</div></div></td>
+                        <td data-label="Courier type">
+                            <form method="POST" action="{{ route('logistics.riders.type', $rider['id']) }}" class="rider-type-form">@csrf
+                                <label class="rider-sr-only" for="courier-type-{{ $rider['id'] }}">Courier type for {{ $rider['name'] }}</label>
+                                <select id="courier-type-{{ $rider['id'] }}" name="courier_type" class="rider-type-select is-{{ $rider['courier_type'] }}" onchange="this.form.submit()">
+                                    @foreach(\App\Models\Rider::COURIER_TYPES as $key => [$label])
+                                        <option value="{{ $key }}" @selected($rider['courier_type'] === $key)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                <noscript><button class="rider-button" type="submit">Save</button></noscript>
+                            </form>
+                            <small>{{ \App\Models\Rider::COURIER_TYPES[$rider['courier_type']][1] }}</small>
+                        </td>
                         <td data-label="Vehicle & area"><strong>{{ $rider['vehicle_type'] }} <span class="rider-plate">{{ $rider['plate_no'] }}</span></strong><small>{{ $rider['area'] }}</small></td>
                         <td data-label="Status"><span class="rider-badge rider-badge-{{ $state }}">{{ ucfirst($state) }}</span><small>Applied {{ $rider['applied_at'] }}</small>@if($rider['rejection_reason'])<details class="rider-reason"><summary>Rejection reason</summary><p>{{ $rider['rejection_reason'] }}</p></details>@endif</td>
                         <td data-label="Performance">@if($rider['status'] === 'approved')<strong>{{ $rider['rating'] !== null ? number_format($rider['rating'], 2).' / 5' : 'No rating yet' }}</strong><small>{{ $rider['deliveries_today'] }} deliveries today</small>@else<span class="rider-muted">Not available</span>@endif</td>
@@ -106,7 +125,7 @@
                         </div></td>
                     </tr>
                 @empty
-                    <tr><td colspan="5"><div class="rider-empty"><h3>No riders found</h3><p>Try another search or status to find the rider you need.</p><a class="rider-button" href="{{ route('logistics.riders') }}">View all riders</a></div></td></tr>
+                    <tr><td colspan="6"><div class="rider-empty"><h3>No riders found</h3><p>Try another search or status to find the rider you need.</p><a class="rider-button" href="{{ route('logistics.riders') }}">View all riders</a></div></td></tr>
                 @endforelse
                 </tbody>
             </table>

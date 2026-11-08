@@ -378,7 +378,11 @@ class LogisticsPortalController extends Controller
         $filter = $request->query('filter', 'all');
         $filter = in_array($filter, ['all', 'pending', 'approved', 'active', 'inactive', 'suspended', 'rejected'], true) ? $filter : 'all';
         $search = trim((string) $request->query('search', ''));
-        $base = Rider::where('logistics_provider_id', $provider->id);
+        $type = $request->query('type', 'all');
+        $type = array_key_exists((string) $type, Rider::COURIER_TYPES) ? $type : 'all';
+        $typeCounts = ['all' => Rider::where('logistics_provider_id', $provider->id)->count()]
+            + collect(Rider::COURIER_TYPES)->map(fn ($label, $key) => Rider::where('logistics_provider_id', $provider->id)->where('courier_type', $key)->count())->all();
+        $base = Rider::where('logistics_provider_id', $provider->id)->when($type !== 'all', fn ($query) => $query->where('courier_type', $type));
         $counts = [
             'all' => (clone $base)->count(),
             'pending' => (clone $base)->where('status', 'pending')->count(),
@@ -418,6 +422,7 @@ class LogisticsPortalController extends Controller
             return [
                 'id'               => $r->id,
                 'name'             => $r->user->name ?? 'Rider',
+                'courier_type'     => $r->courier_type ?: Rider::LAST_MILE,
                 'email'            => $r->user->email ?? 'N/A',
                 'phone'            => $r->user->phone ?? '',
                 'vehicle_type'     => $r->vehicle_type ?: 'Motorcycle',
@@ -432,7 +437,32 @@ class LogisticsPortalController extends Controller
             ];
         });
 
-        return view('logistics.riders', compact('hub', 'riders', 'filter', 'counts', 'search'));
+        return view('logistics.riders', compact('hub', 'riders', 'filter', 'counts', 'search', 'type', 'typeCounts'));
+    }
+
+    /** Make a rider a First Mile (seller to hub) or Last Mile (hub to buyer) courier. */
+    public function updateCourierType(Request $request, $id)
+    {
+        $provider = $this->provider();
+        $data = $request->validate(['courier_type' => ['required', \Illuminate\Validation\Rule::in(array_keys(Rider::COURIER_TYPES))]]);
+        $rider = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($id);
+        $name = $rider->user->name ?? 'The rider';
+
+        if ($rider->courier_type === $data['courier_type']) {
+            return back();
+        }
+
+        // Don't strand work: open pickups need their first-mile courier, parcels on the road need their last-mile courier.
+        if ($rider->isFirstMile() && PickupRequest::where('rider_id', $rider->id)->whereIn('status', ['pending', 'confirmed'])->exists()) {
+            return back()->with('error', "{$name} still has open pickups. Reassign them on Pickup requests first.");
+        }
+        if ($rider->isLastMile() && Shipment::where('rider_id', $rider->id)->whereIn('status', ['assigned', 'in_transit', 'out_for_delivery'])->exists()) {
+            return back()->with('error', "{$name} still has parcels to deliver. Wait until they are delivered or reassign them first.");
+        }
+
+        $rider->update(['courier_type' => $data['courier_type']]);
+
+        return back()->with('success', "{$name} is now a ".Rider::COURIER_TYPES[$data['courier_type']][0].' courier.');
     }
 
     public function updateRiderStatus(Request $request, $id)
@@ -519,8 +549,9 @@ class LogisticsPortalController extends Controller
             'dispatchable' => (clone $base)->whereNull('rider_id')->whereIn('status', ['pending', 'confirmed'])->count(),
         ];
 
-        // Retrieve active approved riders for area matching & assignment
+        // First-mile couriers collect from sellers, so only they are offered for pickups.
         $allRiders = Rider::where('logistics_provider_id', $provider->id)
+            ->firstMile()
             ->where('status', 'approved')
             ->with('user')
             ->orderByDesc('is_active')
@@ -627,6 +658,7 @@ class LogisticsPortalController extends Controller
 
         if ($request->filled('rider_id')) {
             $rider = Rider::where('logistics_provider_id', $provider->id)
+                ->firstMile()
                 ->where('status', 'approved')
                 ->find($request->input('rider_id'));
             if ($rider) {
@@ -641,7 +673,7 @@ class LogisticsPortalController extends Controller
         if ($pickup->seller_order_id && $pickup->sellerOrder?->shipment) {
             $shipment = $pickup->sellerOrder->shipment;
             if ($pickup->rider_id) {
-                $shipment->update(['rider_id' => $pickup->rider_id]);
+                $shipment->update(['pickup_rider_id' => $pickup->rider_id]);
             }
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
@@ -669,6 +701,9 @@ class LogisticsPortalController extends Controller
             ->where('status', 'approved')
             ->with('user')
             ->findOrFail($data['rider_id']);
+        if (!$rider->isFirstMile()) {
+            return back()->with('error', ($rider->user->name ?? 'This rider').' is a Last Mile courier. Choose a First Mile courier to collect from the seller.');
+        }
 
         $pickup->rider_id     = $rider->id;
         $pickup->status       = 'confirmed';
@@ -678,7 +713,7 @@ class LogisticsPortalController extends Controller
 
         if ($pickup->seller_order_id && $pickup->sellerOrder?->shipment) {
             $shipment = $pickup->sellerOrder->shipment;
-            $shipment->update(['rider_id' => $rider->id]);
+            $shipment->update(['pickup_rider_id' => $rider->id]);
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
                 'status'      => 'pickup_assigned',
@@ -722,29 +757,30 @@ class LogisticsPortalController extends Controller
         $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with('seller.user')->findOrFail($id);
 
         $riders = Rider::where('logistics_provider_id', $provider->id)
+            ->firstMile()
             ->where('status', 'approved')
             ->where('is_active', true)
             ->with('user')
             ->get();
 
         if ($riders->isEmpty()) {
-            return back()->with('error', 'No active riders available in hub. Please activate an approved rider first.');
+            return back()->with('error', self::NO_FIRST_MILE);
         }
 
         $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''));
         $best   = $ranked->first()['rider'];
         $this->dispatchPickup($pickup, $best);
 
-        return back()->with('success', "⚡ Nearest rider {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
+        return back()->with('success', "⚡ Nearest First Mile courier {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
     }
 
     /** Dispatch the nearest active rider to every pickup that doesn't have one yet. */
     public function dispatchAllPickups(Request $request)
     {
         $provider = $this->provider();
-        $riders = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        $riders = Rider::where('logistics_provider_id', $provider->id)->firstMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
         if ($riders->isEmpty()) {
-            return back()->with('error', 'No active riders available in hub. Please activate an approved rider first.');
+            return back()->with('error', self::NO_FIRST_MILE);
         }
         $waiting = PickupRequest::where('logistics_provider_id', $provider->id)->whereNull('rider_id')
             ->whereIn('status', ['pending', 'confirmed'])->with('seller.user')->get();
@@ -763,7 +799,7 @@ class LogisticsPortalController extends Controller
             }
         });
 
-        return back()->with('success', "⚡ {$waiting->count()} ".Str::plural('pickup', $waiting->count())." dispatched to the nearest riders.");
+        return back()->with('success', "⚡ {$waiting->count()} ".Str::plural('pickup', $waiting->count())." dispatched to the nearest First Mile couriers.");
     }
 
     /** Assign a rider to a pickup, log it on the shipment and notify the rider. */
@@ -777,7 +813,7 @@ class LogisticsPortalController extends Controller
 
         if ($pickup->seller_order_id && $pickup->sellerOrder?->shipment) {
             $shipment = $pickup->sellerOrder->shipment;
-            $shipment->update(['rider_id' => $best->id]);
+            $shipment->update(['pickup_rider_id' => $best->id]);
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
                 'status'      => 'pickup_assigned',
@@ -947,7 +983,11 @@ class LogisticsPortalController extends Controller
         ]);
     }
 
-    public const HUB_TABS =['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
+    private const NO_FIRST_MILE = 'No active First Mile couriers. Activate one, or change a rider to First Mile in Rider management.';
+
+    private const NO_LAST_MILE = 'No active Last Mile couriers. Activate one, or change a rider to Last Mile in Rider management.';
+
+    public const HUB_TABS = ['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
 
     public function hub(Request $request)
     {
@@ -979,7 +1019,8 @@ class LogisticsPortalController extends Controller
             'path' => $request->url(), 'query' => $request->query(),
         ]);
 
-        $riderModels = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        // Last-mile couriers take parcels from the hub to buyers, so only they are offered here.
+        $riderModels = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
         $riders = $riderModels->map(fn ($r) => ['id' => $r->id, 'name' => $r->user->name ?? 'Rider', 'area' => $r->area ?: 'General Area'])->all();
         if ($tab === 'assign' && $riderModels->isNotEmpty()) {
             // Pre-select the best rider so assigning one parcel is a single click.
@@ -1065,6 +1106,9 @@ class LogisticsPortalController extends Controller
 
         $shipment  = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
         $rider     = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($riderId);
+        if (!$rider->isLastMile()) {
+            return back()->with('error', ($rider->user->name ?? 'This rider').' is a First Mile courier. Choose a Last Mile courier to deliver to the buyer.');
+        }
         $this->assignShipment($shipment, $rider, 'Parcel assigned to rider '.($rider->user->name ?? 'Rider').'.');
 
         return back()->with('success', "{$shipment->tracking_code} assigned to ".($rider->user->name ?? 'the rider').'.');
@@ -1074,7 +1118,7 @@ class LogisticsPortalController extends Controller
     {
         $result = DB::transaction(fn () => $this->runAutoAssign($this->provider()));
         if ($result === null) {
-            return back()->with('error', 'No active riders available. Activate a rider first.');
+            return back()->with('error', self::NO_LAST_MILE);
         }
         [$assigned, $ridersUsed] = $result;
 
@@ -1099,7 +1143,7 @@ class LogisticsPortalController extends Controller
         if ($assign && $assign[0]) $parts[] = "{$assign[0]} assigned to riders";
         $message = $parts ? ucfirst(implode(', ', $parts)).'.' : 'Nothing was waiting to be processed.';
         if ($left) $message .= " {$left} ".Str::plural('parcel', $left).' need an area chosen in the Sort tab.';
-        if ($assign === null) $message .= ' No active riders, so nothing was assigned. Activate a rider first.';
+        if ($assign === null) $message .= ' No active Last Mile couriers, so nothing was assigned. Activate one first.';
 
         return redirect()->route('logistics.hub', ['tab' => $left ? 'sort' : 'assigned'])->with('success', $message);
     }
@@ -1133,7 +1177,7 @@ class LogisticsPortalController extends Controller
     /** @return array{0:int,1:int}|null [assigned, riders used], or null when there are no active riders. */
     private function runAutoAssign(LogisticsProvider $provider): ?array
     {
-        $riders = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        $riders = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
         if ($riders->isEmpty()) {
             return null;
         }

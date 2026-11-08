@@ -352,6 +352,7 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::get('/riders', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'riders'])->name('riders');
     Route::post('/riders/{id}/status', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'updateRiderStatus'])->name('riders.status');
     Route::post('/riders/{id}/toggle', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'toggleRiderActive'])->name('riders.toggle');
+    Route::post('/riders/{id}/courier-type', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'updateCourierType'])->name('riders.type');
     // Rider time in / time out: riders scan the hub's QR code (it changes every 25 seconds) in the Rider app
     Route::get('/attendance', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'attendance'])->name('attendance');
     Route::get('/attendance/qr', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'attendanceQr'])->name('attendance.qr');

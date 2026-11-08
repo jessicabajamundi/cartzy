@@ -71,7 +71,21 @@ class LogisticsDatabaseSeeder extends Seeder
         // 3. Seed sample riders into users & riders tables
         $sampleRiders = [
             [
+                'name'             => 'Dante Ramos',
+                'courier_type'     => 'first_mile',
+                'email'            => 'dante.rider@cartzy.ph',
+                'phone'            => '09175553210',
+                'vehicle_type'     => 'Van',
+                'plate_no'         => 'NFR-2208',
+                'status'           => 'approved',
+                'is_active'        => true,
+                'area'             => 'Laguna - Los Baños',
+                'rating'           => 4.90,
+                'deliveries_today' => 0,
+            ],
+            [
                 'name'             => 'Arnel Gomez',
+                'courier_type'     => 'last_mile',
                 'email'            => 'arnel.rider@cartzy.ph',
                 'phone'            => '09285559876',
                 'vehicle_type'     => 'Motorcycle',
@@ -84,6 +98,7 @@ class LogisticsDatabaseSeeder extends Seeder
             ],
             [
                 'name'             => 'Carlo Santos',
+                'courier_type'     => 'last_mile',
                 'email'            => 'carlo.rider@cartzy.ph',
                 'phone'            => '09178884455',
                 'vehicle_type'     => 'Motorcycle',
@@ -96,6 +111,7 @@ class LogisticsDatabaseSeeder extends Seeder
             ],
             [
                 'name'             => 'Rex Villanueva',
+                'courier_type'     => 'last_mile',
                 'email'            => 'rex.rider@cartzy.ph',
                 'phone'            => '09271112233',
                 'vehicle_type'     => 'Motorcycle',
@@ -108,6 +124,7 @@ class LogisticsDatabaseSeeder extends Seeder
             ],
             [
                 'name'             => 'Jose Mabuhay',
+                'courier_type'     => 'first_mile',
                 'email'            => 'jose.rider@cartzy.ph',
                 'phone'            => '09394445566',
                 'vehicle_type'     => 'Motorcycle',
@@ -120,6 +137,7 @@ class LogisticsDatabaseSeeder extends Seeder
             ],
             [
                 'name'             => 'Bong Aquino',
+                'courier_type'     => 'first_mile',
                 'email'            => 'bong.rider@cartzy.ph',
                 'phone'            => '09451234567',
                 'vehicle_type'     => 'Motorcycle',
@@ -132,6 +150,7 @@ class LogisticsDatabaseSeeder extends Seeder
             ],
             [
                 'name'             => 'Noel Torres',
+                'courier_type'     => 'first_mile',
                 'email'            => 'noel.rider@cartzy.ph',
                 'phone'            => '09119876543',
                 'vehicle_type'     => 'Bicycle',
@@ -162,6 +181,7 @@ class LogisticsDatabaseSeeder extends Seeder
                 ['user_id' => $u->id],
                 [
                     'logistics_provider_id' => $provider->id,
+                    'courier_type'          => $rData['courier_type'],
                     'vehicle_type'          => $rData['vehicle_type'],
                     'plate_no'              => $rData['plate_no'],
                     'status'                => $rData['status'],

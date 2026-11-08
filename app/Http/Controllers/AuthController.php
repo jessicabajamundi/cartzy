@@ -502,6 +502,7 @@ class AuthController extends Controller
         $courierRules = ($request->input('role') === User::ROLE_COURIER && ($request->has('logistics_provider_id') || $request->has('vehicle_type') || $request->hasFile('license_doc') || $request->hasFile('or_cr_doc'))) ? [
             'logistics_provider_id' => ['required', 'exists:logistics_providers,id'],
             'vehicle_type'          => ['required', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'courier_type'          => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no'              => [
                 Rule::requiredIf(fn () => !in_array($request->input('vehicle_type'), ['bicycle', 'ebike'], true)),
                 'nullable',
@@ -539,6 +540,7 @@ class AuthController extends Controller
         ] : [
             'logistics_provider_id' => ['nullable', 'exists:logistics_providers,id'],
             'vehicle_type'          => ['nullable', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'courier_type'          => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no'              => ['nullable', 'string', 'min:6', 'max:7', 'regex:/^[a-zA-Z0-9]+$/'],
             'license_number'        => ['nullable', 'string', 'size:13', 'regex:/^[A-Za-z][0-9]{2}-[0-9]{2}-[0-9]{6}$/'],
             'license_expiry'        => ['nullable', 'date'],
@@ -809,6 +811,7 @@ class AuthController extends Controller
                         ['user_id' => $user->id],
                         [
                             'logistics_provider_id' => $validated['logistics_provider_id'],
+                            'courier_type'          => $validated['courier_type'] ?? \App\Models\Rider::LAST_MILE,
                             'vehicle_type'          => $validated['vehicle_type'] ?? null,
                             'plate_no'              => !empty($validated['plate_no']) ? strtoupper(trim($validated['plate_no'])) : null,
                             'status'                => 'pending',

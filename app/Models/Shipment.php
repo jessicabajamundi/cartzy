@@ -13,6 +13,7 @@ class Shipment extends Model
         'seller_order_id',
         'logistics_provider_id',
         'rider_id',
+        'pickup_rider_id',
         'tracking_code',
         'status',
         'delivery_area',
@@ -48,9 +49,16 @@ class Shipment extends Model
         return $this->belongsTo(LogisticsProvider::class);
     }
 
+    /** The last-mile courier who delivers this parcel to the buyer. */
     public function rider()
     {
         return $this->belongsTo(Rider::class);
+    }
+
+    /** The first-mile courier who collected this parcel from the seller. */
+    public function pickupRider()
+    {
+        return $this->belongsTo(Rider::class, 'pickup_rider_id');
     }
 
     public function deliveryEvents()

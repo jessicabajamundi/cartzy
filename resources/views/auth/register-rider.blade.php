@@ -193,6 +193,23 @@
                     </div>
                     <p class="rider-field-error" id="error_logistics_provider_id"></p>
                 </div>
+
+                {{-- First Mile: seller's warehouse to the hub. Last Mile: hub to the buyer. --}}
+                <fieldset class="rider-field-group courier-type-field">
+                    <legend class="field-label">What kind of courier will you be? <span class="required-star">*</span></legend>
+                    <div class="courier-type-options">
+                        @foreach(\App\Models\Rider::COURIER_TYPES as $key => [$label, $description])
+                            <label class="courier-type-option">
+                                <input type="radio" name="courier_type" value="{{ $key }}" @checked(old('courier_type', \App\Models\Rider::LAST_MILE) === $key)>
+                                <span class="courier-type-card">
+                                    <strong>{{ $label }}</strong>
+                                    <small>{{ $description }}</small>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('courier_type')<p class="rider-field-error" style="display:block">{{ $message }}</p>@enderror
+                </fieldset>
             </div>
 
             <!-- Section 3: Your vehicle -->
@@ -774,6 +791,18 @@
     }
 
     /* Form Section - Compact Spacing */
+    .courier-type-field { margin: 18px 0 0; padding: 0; border: 0; min-width: 0; }
+    .courier-type-field legend { padding: 0; margin-bottom: 8px; }
+    .courier-type-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .courier-type-option { position: relative; display: block; cursor: pointer; }
+    .courier-type-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .courier-type-card { display: block; height: 100%; padding: 13px 15px; border: 1.5px solid #e1dde7; border-radius: 12px; background: #fff; transition: border-color .18s, background .18s, box-shadow .18s; }
+    .courier-type-card strong { display: block; margin-bottom: 3px; color: #282133; font-size: .9rem; }
+    .courier-type-card small { display: block; color: #6b7280; font-size: .76rem; line-height: 1.4; }
+    .courier-type-option:hover .courier-type-card { border-color: #a8a0b2; background: #faf8fc; }
+    .courier-type-option input:checked + .courier-type-card { border-color: #6f6382; background: #f6f4f8; box-shadow: 0 0 0 2px rgba(111, 99, 130, .2); }
+    .courier-type-option input:focus-visible + .courier-type-card { outline: 3px solid #6f6382; outline-offset: 2px; }
+    @media (max-width: 520px) { .courier-type-options { grid-template-columns: 1fr; } }
     .rider-form-section {
         margin-bottom: 10px;
     }

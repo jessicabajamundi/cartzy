@@ -320,6 +320,7 @@ class AuthController extends Controller
             'logistics_partner' => ['nullable', 'string', 'max:255'],
             'logistics_provider_id' => ['nullable', 'integer', 'exists:logistics_providers,id'],
             'vehicle_type' => ['required', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'courier_type' => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no' => [
                 Rule::requiredIf(fn () => !$nonMotorized),
                 'nullable', 'string', 'min:5', 'max:8', 'regex:/^[a-zA-Z0-9]+$/',
@@ -377,6 +378,7 @@ class AuthController extends Controller
             if ($providerId) {
                 \App\Models\Rider::firstOrCreate(['user_id' => $user->id], [
                     'logistics_provider_id' => $providerId,
+                    'courier_type' => $data['courier_type'] ?? \App\Models\Rider::LAST_MILE,
                     'vehicle_type' => $data['vehicle_type'],
                     'plate_no' => !empty($data['plate_no']) ? strtoupper(trim($data['plate_no'])) : null,
                     'status' => 'pending',

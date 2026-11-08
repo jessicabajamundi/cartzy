@@ -123,6 +123,11 @@ class RiderRegistrationViewTest extends TestCase
 
         $email = 'rider.applicant@example.com';
 
+        // The form asks what kind of courier they'll be (seller to hub, or hub to buyer).
+        $this->get(route('register.rider'))->assertOk()
+            ->assertSee('name="courier_type" value="first_mile"', false)
+            ->assertSee('name="courier_type" value="last_mile"', false);
+
         // 1. Request OTP
         $otpRes = $this->postJson(route('register.request_otp'), [
             'email' => $email,
@@ -150,6 +155,7 @@ class RiderRegistrationViewTest extends TestCase
             'birthday' => '1995-05-15',
             'role' => 'courier',
             'logistics_provider_id' => $provider->id,
+            'courier_type' => 'first_mile',
             'vehicle_type' => 'motorcycle',
             'plate_no' => 'ABC1234',
             'license_number' => 'N01-12-345678',
@@ -177,6 +183,7 @@ class RiderRegistrationViewTest extends TestCase
         $this->assertEquals('motorcycle', $rider->vehicle_type);
         $this->assertEquals('ABC1234', $rider->plate_no);
         $this->assertEquals('pending', $rider->status);
+        $this->assertEquals('first_mile', $rider->courier_type);
     }
 
     public function test_rider_registration_license_number_has_strict_attributes_and_placeholder(): void

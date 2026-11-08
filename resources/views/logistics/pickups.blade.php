@@ -8,11 +8,11 @@
     <header class="pickup-heading">
         <div>
             <p class="pickup-kicker">PARCEL DISPATCH &amp; OPERATIONS</p>
-            <h2>Pickup requests &amp; rider dispatch</h2>
-            <p>Smart area matching automatically suggests the closest available rider for each seller pickup.</p>
+            <h2>Pickup requests &amp; First Mile dispatch</h2>
+            <p>First Mile couriers collect parcels from the seller's warehouse and bring them to the hub. Smart area matching suggests the closest one for each pickup.</p>
         </div>
         @if($counts['dispatchable'] > 0)
-            <form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" onsubmit="if (!confirm('Dispatch the nearest active rider to {{ $counts['dispatchable'] }} waiting pickup(s)?')) return false; this.querySelector('button').disabled = true;">@csrf<button type="submit" class="btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
+            <form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" onsubmit="if (!confirm('Dispatch the nearest active First Mile courier to {{ $counts['dispatchable'] }} waiting pickup(s)?')) return false; this.querySelector('button').disabled = true;">@csrf<button type="submit" class="btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
         @else
             <span class="pickup-heading-icon">@include('seller.partials.icon', ['name' => 'truck', 'size' => 28])</span>
         @endif
@@ -271,8 +271,8 @@
                                 </div>
                             @else
                                 <div class="no-riders-warning">
-                                    <p>No active riders currently available in your hub fleet.</p>
-                                    <a href="{{ route('logistics.riders') }}">Activate or approve a rider &rarr;</a>
+                                    <p>No active First Mile couriers in your hub.</p>
+                                    <a href="{{ route('logistics.riders', ['type' => 'first_mile']) }}">Manage First Mile couriers &rarr;</a>
                                 </div>
                             @endif
                         </div>
@@ -386,8 +386,8 @@
 
                             @if($nearbyMatches->isEmpty() && $otherRiders->isEmpty())
                                 <div class="modal-empty-riders">
-                                    <p>No active riders available in hub.</p>
-                                    <a href="{{ route('logistics.riders') }}">Manage and activate riders &rarr;</a>
+                                    <p>No active First Mile couriers in your hub.</p>
+                                    <a href="{{ route('logistics.riders', ['type' => 'first_mile']) }}">Manage First Mile couriers &rarr;</a>
                                 </div>
                             @endif
                         </div>

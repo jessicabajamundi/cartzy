@@ -574,3 +574,16 @@
 
 }
 
+
+/* ── Courier type: First Mile (seller → hub) and Last Mile (hub → buyer) ── */
+.rider-type-filters { display:flex; flex-wrap:wrap; gap:8px; padding:14px 22px 4px; }
+.rider-type-filters a { display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border:1px solid #e1dbe5; border-radius:999px; background:#fff; color:#6f6779; font-size:12px; font-weight:700; text-decoration:none; }
+.rider-type-filters a:hover { background:#f6f2f8; }
+.rider-type-filters a strong { min-width:20px; padding:1px 6px; border-radius:999px; background:#f0edf2; font-size:11px; text-align:center; }
+.rider-type-filters a[aria-current] { border-color:#6f6382; background:#6f6382; color:#fff; }
+.rider-type-filters a[aria-current] strong { background:rgba(255,255,255,.22); color:#fff; }
+.rider-type-filters a:focus-visible, .rider-type-select:focus-visible { outline:2px solid #564b68; outline-offset:2px; }
+.rider-type-form { margin:0; }
+.rider-type-select { min-height:32px; padding:5px 26px 5px 10px; border:1px solid #dcd2e2; border-radius:999px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; }
+.rider-type-select.is-first_mile { background-color:#fbf1ee; border-color:#e8c9c0; color:#8c5a50; }
+.rider-type-select.is-last_mile { background-color:#f1eef6; border-color:#d9d0e4; color:#564b68; }
