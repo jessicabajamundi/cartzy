@@ -693,12 +693,42 @@ body.auth-modal-page {
 .auth-modal-page .lm-dialog-form .otp-boxes-wrapper { gap: 7px; }
 .auth-modal-page .lm-dialog-form .otp-input { height: 44px; font-size: 1.05rem; }
 
+/* Text sizes: a big title, everything else in the modal a step smaller */
+.auth-modal-page .lm-dialog-form .auth-title,
+.auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 2.15rem !important; margin-bottom: 6px !important; }
+.auth-modal-page .lm-dialog-form .auth-subtitle,
+.auth-modal-page .lm-dialog-form .rider-auth-subtitle { font-size: .74rem !important; }
+.auth-modal-page .lm-dialog-form .lm-role-badge { font-size: .66rem; }
+.auth-modal-page .lm-dialog-form .btn-google,
+.auth-modal-page .lm-dialog-form .btn-primary,
+.auth-modal-page .lm-dialog-form .btn-action-back,
+.auth-modal-page .lm-dialog-form .btn-action-continue { font-size: .8rem !important; }
+.auth-modal-page .lm-dialog-form .divider,
+.auth-modal-page .lm-dialog-form .step-label { font-size: .7rem !important; }
+.auth-modal-page .lm-dialog-form .field-heading,
+.auth-modal-page .lm-dialog-form .rider-section-heading { font-size: .84rem !important; }
+.auth-modal-page .lm-dialog-form .field-subheading,
+.auth-modal-page .lm-dialog-form .logistics-notice-box,
+.auth-modal-page .lm-dialog-form .rider-notice-text { font-size: .7rem !important; }
+.auth-modal-page .lm-dialog-form .field-label { font-size: .74rem !important; }
+.auth-modal-page .lm-dialog-form .auth-input,
+.auth-modal-page .lm-dialog-form .registration-phone-prefix { font-size: .8rem !important; }
+.auth-modal-page .lm-dialog-form #phone_hint,
+.auth-modal-page .lm-dialog-form #birthdayFieldWrapper p,
+.auth-modal-page .lm-dialog-form .rider-field-hint,
+.auth-modal-page .lm-dialog-form .rider-field-error { font-size: .66rem !important; }
+.auth-modal-page .lm-dialog-form .auth-input::placeholder { font-size: .8rem !important; }
+.auth-modal-page .lm-dialog-form .auth-foot { font-size: .74rem !important; }
+.auth-modal-page .lm-dialog-form .rd-progress-count { font-size: .68rem; }
+.auth-modal-page .lm-dialog-form .rd-progress-title { font-size: .8rem; }
+.auth-modal-page .lm-dialog-form .rd-progress-hint { font-size: .7rem; }
+
 /* Shorter laptop screens: a smaller gap for Cozy and a more compact header so step 1 still fits */
 @media (max-height: 820px) and (min-width: 521px) {
     .auth-modal-page .lm-dialog-form .lm-panel { padding-top: 16px; padding-bottom: 14px; }
     .auth-modal-page .lm-dialog-form .lm-logo { height: 22px; margin-bottom: 4px; }
     .auth-modal-page .lm-dialog-form .auth-title,
-    .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.45rem !important; }
+    .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.85rem !important; }
     .auth-modal-page .lm-dialog-form .auth-subtitle,
     .auth-modal-page .lm-dialog-form .rider-auth-subtitle { margin-bottom: 10px !important; }
     .auth-modal-page .lm-dialog-form .stepper { margin-bottom: 10px; }
@@ -719,5 +749,5 @@ body.auth-modal-page {
     /* On phones the names (and every other two-field row) stack */
     .auth-modal-page .lm-dialog-form .form-grid-2 { grid-template-columns: 1fr !important; gap: 0 !important; }
     .auth-modal-page .lm-dialog-form .auth-title,
-    .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.5rem !important; }
+    .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.8rem !important; }
 }

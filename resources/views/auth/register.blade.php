@@ -28,7 +28,7 @@
         </button>
     </div>
 
-    <h2 class="auth-title" id="authTitle">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Become a Logistics Partner' : 'Create your account' }}</h2>
+    <h2 class="auth-title" id="authTitle">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Become a Logistics Partner' : 'Create New Account' }}</h2>
     <p class="auth-subtitle" id="authSubtitle">{{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'Register your delivery company and manage your own riders on CARTZY.' : 'Join cartzy and discover your everyday favorites' }}</p>
 
     <!-- Logistics Partner Requirement Notice (shown only for logistics) -->

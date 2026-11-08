@@ -555,7 +555,7 @@ function selectRole(role) {
         if (birthdayFieldWrapper) birthdayFieldWrapper.style.display = role === 'seller' ? 'none' : 'block';
         if (logisticsFieldsWrapper) logisticsFieldsWrapper.style.display = 'none';
         if (logisticsNoticeBox) logisticsNoticeBox.style.display = 'none';
-        if (authTitle) authTitle.innerText = 'Create your account';
+        if (authTitle) authTitle.innerText = 'Create New Account';
         if (authSubtitle) authSubtitle.innerText = 'Join cartzy and discover your everyday favorites';
 
         if (linkLogisticsApply) {
