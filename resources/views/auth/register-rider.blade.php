@@ -437,12 +437,8 @@
                 </div>
             </div>
 
-            <!-- Back / Continue between steps 1-5 (step 5 continues to sign-in details) -->
+            <!-- Continue between steps 1-5 (step 5 continues to sign-in details) -->
             <div class="form-btn-row rd-nav">
-                <button type="button" class="btn-action-back" onclick="riderPrevPage()" data-signup-url="{{ route('register') }}" id="btnRiderBack">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                    Back
-                </button>
                 <button type="button" id="btnContinueToSignIn" class="btn-action-continue" onclick="riderNextPage()">
                     <span data-rd-next-label>Continue</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
@@ -644,6 +640,7 @@
     .rd-progress-bar span { display: block; height: 100%; width: 14.3%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
     .rd-progress-hint { margin: 8px 0 0; color: #6b7280; font-size: .76rem; line-height: 1.45; }
     .rd-nav { margin-top: 18px; }
+    .rd-nav .btn-action-continue { width: 100%; }
     @media (prefers-reduced-motion: reduce) { .rd-progress-bar span { transition: none; } }
     .auth-foot.rider-signup-links {
         display: flex;
@@ -2374,15 +2371,6 @@
         if (!validateRiderPage(riderPage)) return;
         if (riderPage < RIDER_LAST_PAGE) showRiderPage(riderPage + 1);
         else handleContinueToSignIn();
-    }
-
-    function riderPrevPage() {
-        if (riderPage > 1) {
-            showRiderPage(riderPage - 1);
-        } else {
-            // Step 1: back to "Sign up as..."
-            window.location.href = document.getElementById('btnRiderBack').dataset.signupUrl;
-        }
     }
 
     /** Checks the fields of one step; shows errors and focuses the first problem. */
