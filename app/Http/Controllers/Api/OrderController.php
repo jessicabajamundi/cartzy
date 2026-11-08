@@ -9,9 +9,14 @@ use App\Models\AdminDispute;
 use App\Models\OrderItem;
 use App\Models\Review;
 use App\Models\SellerOrder;
+use App\Models\Order;
 use App\Services\BuyerOrders;
+use App\Services\OrderPlacement;
 use App\Services\OrderTracking;
+use App\Services\ProductPricing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use RuntimeException;
 
 /**
  * Buyer "My Orders" for the mobile app: the same cards, rules and actions as the website dashboard.
@@ -55,6 +60,106 @@ class OrderController extends Controller
                 ->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values(),
             'contact_phone' => $defaultAddress?->phone ?? $user->phone,
         ]);
+    }
+
+    /**
+     * Place an order from the mobile cart: the same rules as the website checkout
+     * (prices and stock come from the database, stock is deducted, vouchers applied).
+     *
+     * `checkout_key` is a one-time id the app makes per Place Order tap, so a retried
+     * request returns the order already placed instead of creating a second one.
+     */
+    public function store(Request $request, OrderPlacement $placement, ProductPricing $pricing)
+    {
+        $data = $request->validate([
+            'checkout_key' => ['required', 'string', 'max:64'],
+            'payment_method' => ['required', 'string', 'in:COD'],
+            'address_id' => ['required', 'integer'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.product_id' => ['nullable', 'integer'],
+            'items.*.variant_id' => ['nullable', 'integer'],
+            'items.*.variation' => ['nullable', 'string', 'max:255'],
+            'items.*.name' => ['nullable', 'string', 'max:255'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000'], // real limit is the stock, checked when the order is placed
+        ], [
+            'address_id.required' => 'Add your delivery address before placing your order.',
+            'items.required' => 'Select at least one item to check out.',
+        ]);
+
+        $user = $request->user();
+        $cacheKey = "api-checkout:{$user->id}:{$data['checkout_key']}";
+
+        return Cache::lock($cacheKey.':lock', 30)->block(15, function () use ($data, $user, $cacheKey, $placement, $pricing) {
+            // Same tap sent twice (e.g. a retry after a slow network): answer with the first order.
+            if ($orderId = Cache::get($cacheKey)) {
+                $order = Order::find($orderId);
+                if ($order) {
+                    return response()->json($this->placedJson($order));
+                }
+            }
+
+            $address = Address::where('user_id', $user->id)->find($data['address_id']);
+            if (!$address) {
+                return response()->json(['message' => 'Please choose one of your saved delivery addresses.'], 422);
+            }
+
+            // Only real products can be ordered from the app; price and stock always come from the database.
+            $items = [];
+            foreach ($data['items'] as $line) {
+                $label = $line['name'] ?? 'An item in your cart';
+                if (empty($line['product_id']) && empty($line['variant_id'])) {
+                    return response()->json(['message' => "{$label} can't be ordered. Please remove it and add it to your cart again."], 422);
+                }
+                $item = [
+                    'id' => $line['product_id'] ?? null,
+                    'variant_id' => $line['variant_id'] ?? null,
+                    'variation' => $line['variation'] ?? null,
+                    'quantity' => (int) $line['quantity'],
+                ];
+                try {
+                    $variant = $pricing->variant($item);
+                } catch (RuntimeException $e) {
+                    return response()->json(['message' => "{$label}: {$e->getMessage()}"], 422);
+                }
+                if (!$variant) {
+                    return response()->json(['message' => "{$label} is no longer available. Please remove it from your cart."], 422);
+                }
+                $item['variant_id'] = $variant->id;
+                $items[] = $item;
+            }
+
+            try {
+                $order = $placement->place($user, $items, 'COD', $address->formatted_address, null, $address);
+            } catch (RuntimeException $e) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            Cache::put($cacheKey, $order->id, now()->addDay());
+
+            try {
+                \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+            } catch (\Throwable $e) {
+                // SQL dump sync is best-effort; never block a placed order.
+            }
+
+            return response()->json($this->placedJson($order), 201);
+        });
+    }
+
+    private function placedJson(Order $order): array
+    {
+        $order->loadMissing('sellerOrders');
+
+        return [
+            'message' => "Order {$order->reference} placed successfully! Your order is being prepared for dispatch.",
+            'order' => [
+                'id' => $order->id,
+                'reference' => $order->reference,
+                'total' => $order->total_minor / 100,
+                'payment_method' => 'COD',
+                'seller_order_ids' => $order->sellerOrders->pluck('id')->values(),
+            ],
+        ];
     }
 
     public function tracking(Request $request, int $id)

@@ -31,9 +31,14 @@ class OrderPlacement
     /**
      * @param  array{items?: ?int, shipping?: ?int, shops?: array<int, ?int>, shop_shipping?: array<int, ?int>}|null  $voucherIds
      *         Chosen voucher ids (shops / shop_shipping: seller id => shop voucher id); null applies the best vouchers automatically.
+     * @param  \App\Models\Address|null  $address  A saved address of this buyer to ship to (the mobile app picks one);
+     *         its recipient, phone and province are used. Null falls back to the default address when the text matches.
      */
-    public function place(User $buyer, array $cartItems, string $paymentMethod, string $deliveryAddress, ?array $voucherIds = null): Order
+    public function place(User $buyer, array $cartItems, string $paymentMethod, string $deliveryAddress, ?array $voucherIds = null, ?\App\Models\Address $address = null): Order
     {
+        if ($address && $address->user_id !== $buyer->id) {
+            throw new RuntimeException('Please choose one of your own saved addresses.');
+        }
         if (!$buyer->isBuyer()) {
             throw new RuntimeException('Purchases require a separate buyer account. Please sign in as a buyer.');
         }
@@ -41,9 +46,9 @@ class OrderPlacement
             throw new RuntimeException('Your cart is empty.');
         }
 
-        return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress, $voucherIds) {
-            $defaultAddress = \App\Models\Address::where('user_id', $buyer->id)->where('is_default', true)->first();
-            $useDefaultContact = $defaultAddress && $defaultAddress->formatted_address === $deliveryAddress;
+        return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress, $voucherIds, $address) {
+            $defaultAddress = $address ?? \App\Models\Address::where('user_id', $buyer->id)->where('is_default', true)->first();
+            $useDefaultContact = $defaultAddress && ($address !== null || $defaultAddress->formatted_address === $deliveryAddress);
             $provider = LogisticsProvider::query()->orderBy('id')->first();
 
             if (!$provider) {
