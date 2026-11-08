@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
-import 'package:cartzy/widgets/barcode_scanner_page.dart';
+import 'package:cartzy/rider/rider_parcel_scan.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:cartzy/services/mock_data.dart';
 import 'rider_pickup_dashboard.dart';
@@ -84,8 +84,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
     );
   }
 
+  /// Scan a waybill barcode or QR code to take the parcel (seller, buyer and hub are notified).
   void _openBarcodeScanner(String title) {
-    _push(BarcodeScannerPage(title: title));
+    RiderParcelScan.scanAndReport(context);
   }
 
   void _acceptPickup(int index) {

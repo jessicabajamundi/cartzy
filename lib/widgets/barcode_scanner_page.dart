@@ -13,7 +13,23 @@ class BarcodeScannerPage extends StatefulWidget {
 }
 
 class _BarcodeScannerPageState extends State<BarcodeScannerPage> {
-  final MobileScannerController _controller = MobileScannerController();
+  // Waybills carry both a Code 128 barcode and a QR code; read either, plus
+  // the other common parcel barcodes.
+  final MobileScannerController _controller = MobileScannerController(
+    formats: const [
+      BarcodeFormat.qrCode,
+      BarcodeFormat.code128,
+      BarcodeFormat.code39,
+      BarcodeFormat.code93,
+      BarcodeFormat.ean13,
+      BarcodeFormat.ean8,
+      BarcodeFormat.upcA,
+      BarcodeFormat.upcE,
+      BarcodeFormat.itf,
+      BarcodeFormat.codabar,
+      BarcodeFormat.dataMatrix,
+    ],
+  );
   bool _handled = false;
 
   @override

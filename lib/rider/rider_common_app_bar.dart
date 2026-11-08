@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cartzy/widgets/barcode_scanner_page.dart';
+import 'package:cartzy/rider/rider_parcel_scan.dart';
 
 class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -19,23 +19,8 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Size get preferredSize => const Size.fromHeight(64);
 
-  void _openScanner(BuildContext context) async {
-    final code = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        builder: (_) => const BarcodeScannerPage(
-          title: 'Scan Waybill Barcode',
-        ),
-      ),
-    );
-    if (code != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Waybill Scanned: $code'),
-          backgroundColor: const Color(0xFF2E7D32),
-        ),
-      );
-    }
-  }
+  /// Scan a waybill barcode or QR code to take the parcel (seller, buyer and hub are notified).
+  void _openScanner(BuildContext context) => RiderParcelScan.scanAndReport(context);
 
   @override
   Widget build(BuildContext context) {
