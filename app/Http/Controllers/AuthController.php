@@ -582,6 +582,13 @@ class AuthController extends Controller
             'postal_code'          => ['nullable', 'string', 'max:20'],
             'business_name'        => ['nullable', 'string', 'max:255'],
             'service_area'         => ['nullable', 'string', 'max:255'],
+            // Logistics sign-up: the hub's own address (separate names so they never clash with the seller's pickup address)
+            'hub_region'           => ['nullable', 'string', 'max:100'],
+            'hub_province'         => ['nullable', 'string', 'max:100'],
+            'hub_city'             => ['nullable', 'string', 'max:100'],
+            'hub_barangay'         => ['nullable', 'string', 'max:100'],
+            'hub_street_address'   => ['nullable', 'string', 'max:500'],
+            'hub_postal_code'      => ['nullable', 'regex:/^\d{4}$/'],
             'line_of_business'     => ['nullable', 'string', 'max:150'],
             'id_photo'             => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'dti_permit'           => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
@@ -655,6 +662,15 @@ class AuthController extends Controller
         $age = null;
         if (!empty($validated['birthday'])) {
             $age = max(0, (int) \Carbon\Carbon::parse($validated['birthday'])->age);
+        }
+
+        // A logistics partner's address is their hub's.
+        if ($validated['role'] === User::ROLE_LOGISTICS) {
+            foreach (['region', 'province', 'city', 'barangay', 'street_address', 'postal_code'] as $field) {
+                if (!empty($validated['hub_'.$field])) {
+                    $validated[$field] = $validated['hub_'.$field];
+                }
+            }
         }
 
         // Build composite address string
