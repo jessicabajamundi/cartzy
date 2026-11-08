@@ -16,7 +16,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
-/** Riders scan a waybill barcode or QR code to take a parcel; seller, buyer and hub are notified. */
+/**
+ * Riders scan a waybill barcode or QR code, see the parcel, then accept or decline it.
+ * Accepting hands it over and notifies seller, buyer and hub.
+ */
 class RiderParcelScanTest extends TestCase
 {
     use RefreshDatabase;
@@ -52,11 +55,26 @@ class RiderParcelScanTest extends TestCase
             'tracking_code' => 'CTZ-SCAN'.$sellerOrder->id, 'status' => 'unassigned', 'fee_minor' => 0, 'cod_amount_minor' => 10000]);
     }
 
-    private function scan(Rider $rider, string $code)
+    private function riderPost(string $action, Rider $rider, string $code, array $extra = [])
     {
         Sanctum::actingAs($rider->user);
 
-        return $this->postJson('/api/rider/parcels/scan', ['code' => $code]);
+        return $this->postJson("/api/rider/parcels/{$action}", ['code' => $code] + $extra);
+    }
+
+    private function scan(Rider $rider, string $code)
+    {
+        return $this->riderPost('scan', $rider, $code);
+    }
+
+    private function accept(Rider $rider, string $code)
+    {
+        return $this->riderPost('accept', $rider, $code);
+    }
+
+    private function decline(Rider $rider, string $code, ?string $reason = null)
+    {
+        return $this->riderPost('decline', $rider, $code, $reason ? ['reason' => $reason] : []);
     }
 
     /** @return array<int, string> user id => notification title */
@@ -71,12 +89,30 @@ class RiderParcelScanTest extends TestCase
         ];
     }
 
-    public function test_first_mile_scan_picks_up_the_parcel_and_notifies_seller_buyer_and_hub(): void
+    public function test_scanning_only_shows_the_parcel_and_changes_nothing(): void
     {
         $rider = $this->courier(Rider::FIRST_MILE);
         $parcel = $this->parcel();
 
         $this->scan($rider, $parcel->tracking_code)
+            ->assertOk()
+            ->assertJsonPath('stage', 'picked_up')
+            ->assertJsonPath('already', false)
+            ->assertJsonPath('parcel.tracking_code', $parcel->tracking_code)
+            ->assertJsonPath('parcel.seller_name', 'Laguna Gadgets');
+
+        $this->assertSame('unassigned', $parcel->fresh()->status);
+        $this->assertNull($parcel->fresh()->pickup_rider_id);
+        $this->assertSame(0, AppNotification::count());
+        $this->assertSame(0, DeliveryEvent::count());
+    }
+
+    public function test_first_mile_accept_picks_up_the_parcel_and_notifies_seller_buyer_and_hub(): void
+    {
+        $rider = $this->courier(Rider::FIRST_MILE);
+        $parcel = $this->parcel();
+
+        $this->accept($rider, $parcel->tracking_code)
             ->assertOk()
             ->assertJsonPath('stage', 'picked_up')
             ->assertJsonPath('already', false)
@@ -91,12 +127,12 @@ class RiderParcelScanTest extends TestCase
         $this->assertSame(['buyer' => ['Parcel picked up'], 'seller' => ['Parcel picked up'], 'hub' => ['Parcel picked up from seller']], $this->notified($parcel));
     }
 
-    public function test_last_mile_scan_at_the_hub_sends_it_out_for_delivery_and_notifies_everyone(): void
+    public function test_last_mile_accept_at_the_hub_sends_it_out_for_delivery_and_notifies_everyone(): void
     {
         $rider = $this->courier(Rider::LAST_MILE, 'Arnel Gomez');
         $parcel = $this->parcel(['status' => 'assigned', 'rider_id' => $rider->id, 'received_at' => now()->subHour()]);
 
-        $this->scan($rider, $parcel->tracking_code)->assertOk()->assertJsonPath('stage', 'out_for_delivery');
+        $this->accept($rider, $parcel->tracking_code)->assertOk()->assertJsonPath('stage', 'out_for_delivery');
 
         $this->assertSame('out_for_delivery', $parcel->fresh()->status);
         $notes = $this->notified($parcel);
@@ -106,12 +142,13 @@ class RiderParcelScanTest extends TestCase
         $this->assertStringContainsString('Arnel Gomez', AppNotification::where('user_id', $parcel->sellerOrder->order->buyer_id)->value('message'));
     }
 
-    public function test_qr_code_links_and_lowercase_codes_work_and_rescans_do_not_notify_twice(): void
+    public function test_qr_code_links_and_lowercase_codes_work_and_accepting_twice_does_not_notify_twice(): void
     {
         $rider = $this->courier(Rider::FIRST_MILE);
         $parcel = $this->parcel();
 
-        $this->scan($rider, 'https://cartzy.shop/track/'.strtolower($parcel->tracking_code))->assertOk()->assertJsonPath('already', false);
+        $this->accept($rider, 'https://cartzy.shop/track/'.strtolower($parcel->tracking_code))->assertOk()->assertJsonPath('already', false);
+        $this->accept($rider, $parcel->tracking_code)->assertOk()->assertJsonPath('already', true);
         $this->scan($rider, $parcel->tracking_code)->assertOk()->assertJsonPath('already', true);
 
         $this->assertSame(1, DeliveryEvent::where('shipment_id', $parcel->id)->count());
@@ -123,7 +160,7 @@ class RiderParcelScanTest extends TestCase
         $rider = $this->courier(Rider::FIRST_MILE);
         $parcel = $this->parcel();
 
-        $this->scan($rider, $parcel->sellerOrder->order->reference)->assertOk()->assertJsonPath('parcel.tracking_code', $parcel->tracking_code);
+        $this->accept($rider, $parcel->sellerOrder->order->reference)->assertOk()->assertJsonPath('parcel.tracking_code', $parcel->tracking_code);
     }
 
     public function test_wrong_stage_wrong_rider_and_finished_parcels_are_refused_without_notifying(): void
@@ -138,15 +175,58 @@ class RiderParcelScanTest extends TestCase
         $atHub = $this->parcel(['received_at' => now(), 'status' => 'assigned', 'rider_id' => $lastMile->id]);
         $delivered = $this->parcel(['received_at' => now(), 'status' => 'delivered', 'rider_id' => $lastMile->id]);
 
-        $this->scan($lastMile, $atSeller->tracking_code)->assertStatus(422)->assertJsonPath('message', "Parcel {$atSeller->tracking_code} hasn't reached the hub yet. A First Mile courier picks it up from the seller first.");
+        $this->accept($lastMile, $atSeller->tracking_code)->assertStatus(422)->assertJsonPath('message', "Parcel {$atSeller->tracking_code} hasn't reached the hub yet. A First Mile courier picks it up from the seller first.");
         $this->scan($firstMile, $atHub->tracking_code)->assertStatus(422);
         $this->scan($otherLastMile, $atHub->tracking_code)->assertStatus(422)->assertJsonPath('message', "Parcel {$atHub->tracking_code} is assigned to another rider.");
         $this->scan($otherHubRider, $atSeller->tracking_code)->assertStatus(422)->assertJsonPath('message', 'This parcel belongs to another logistics partner.');
-        $this->scan($lastMile, $delivered->tracking_code)->assertStatus(422);
+        $this->accept($lastMile, $delivered->tracking_code)->assertStatus(422);
         $this->scan($firstMile, 'CTZ-NOPE')->assertNotFound();
 
         $this->assertSame(0, AppNotification::count());
         $this->assertSame('unassigned', $atSeller->fresh()->status);
+    }
+
+    public function test_declining_a_parcel_at_the_seller_changes_nothing_and_tells_no_one(): void
+    {
+        $rider = $this->courier(Rider::FIRST_MILE);
+        $parcel = $this->parcel();
+
+        $this->decline($rider, $parcel->tracking_code)
+            ->assertOk()
+            ->assertJsonPath('released', false)
+            ->assertJsonPath('message', "You declined parcel {$parcel->tracking_code}. Nothing changed and no one was notified.");
+
+        $this->assertSame('unassigned', $parcel->fresh()->status);
+        $this->assertSame(0, AppNotification::count());
+    }
+
+    public function test_declining_a_parcel_the_hub_assigned_sends_it_back_and_tells_only_the_hub(): void
+    {
+        $rider = $this->courier(Rider::LAST_MILE, 'Arnel Gomez');
+        $parcel = $this->parcel(['status' => 'assigned', 'rider_id' => $rider->id, 'sort_status' => 'assigned',
+            'received_at' => now()->subHours(2), 'sorted_at' => now()->subHour(), 'assigned_at' => now()]);
+
+        $this->decline($rider, $parcel->tracking_code, 'Motorcycle flat tire')->assertOk()->assertJsonPath('released', true);
+
+        $parcel->refresh();
+        $this->assertNull($parcel->rider_id);
+        $this->assertSame('sorted', $parcel->sort_status);
+        $this->assertNull($parcel->assigned_at);
+        $notes = $this->notified($parcel);
+        $this->assertSame([], $notes['buyer']);
+        $this->assertSame([], $notes['seller']);
+        $this->assertSame(['Rider declined a parcel'], $notes['hub']);
+        $this->assertStringContainsString('Motorcycle flat tire', AppNotification::where('user_id', $this->hub->user_id)->value('message'));
+    }
+
+    public function test_a_parcel_already_accepted_cannot_be_declined(): void
+    {
+        $rider = $this->courier(Rider::FIRST_MILE);
+        $parcel = $this->parcel();
+        $this->accept($rider, $parcel->tracking_code)->assertOk();
+
+        $this->decline($rider, $parcel->tracking_code)->assertStatus(422);
+        $this->assertSame('picked_up', $parcel->fresh()->status);
     }
 
     public function test_only_approved_riders_can_scan(): void

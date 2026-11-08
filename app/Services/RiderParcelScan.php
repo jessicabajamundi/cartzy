@@ -8,37 +8,47 @@ use App\Models\Shipment;
 use Illuminate\Support\Facades\DB;
 
 /**
- * A rider scans a parcel's waybill (barcode or QR code). That hands the parcel
- * to the rider, and the seller, the buyer and the logistics hub are told.
+ * A rider scans a parcel's waybill (barcode or QR code), sees the parcel and
+ * then accepts or declines it.
  *
+ * Scanning ({@see preview}) changes nothing. Accepting hands the parcel to the
+ * rider and tells the seller, the buyer and the logistics hub:
  *  - First Mile courier, parcel still at the seller  -> picked up
  *  - Last Mile courier, parcel received at the hub   -> out for delivery
+ * Declining leaves the parcel where it is; if the hub had assigned it to this
+ * rider, it goes back to the hub to be reassigned and the hub is told.
  *
- * Scanning a parcel the rider already holds changes nothing and notifies no one.
+ * Accepting a parcel the rider already holds changes nothing and notifies no one.
  */
 class RiderParcelScan
 {
     /**
+     * What the rider sees right after scanning, before accepting or declining. Changes nothing.
+     *
+     * @return array{shipment: Shipment, stage: string, already: bool}
+     *
+     * @throws RiderParcelScanException when this rider can't take the parcel
+     */
+    public function preview(Rider $rider, string $rawCode): array
+    {
+        $shipment = $this->resolve($rider, $rawCode, lock: false);
+
+        return ['shipment' => $shipment, 'stage' => self::stageFor($rider), 'already' => $this->alreadyWithRider($rider, $shipment)];
+    }
+
+    /**
+     * The rider accepts the scanned parcel.
+     *
      * @return array{shipment: Shipment, stage: string, already: bool, message: string}
      *
      * @throws RiderParcelScanException when the parcel can't be handed to this rider
      */
-    public function scan(Rider $rider, string $rawCode): array
+    public function accept(Rider $rider, string $rawCode): array
     {
-        $code = self::normalize($rawCode);
-        if ($code === '') {
-            throw new RiderParcelScanException("That code doesn't look like a cartzy waybill.");
-        }
+        return DB::transaction(function () use ($rider, $rawCode) {
+            $shipment = $this->resolve($rider, $rawCode, lock: true);
 
-        return DB::transaction(function () use ($rider, $code) {
-            $shipment = $this->find($code);
-            if (!$shipment) {
-                throw new RiderParcelScanException("No parcel found for {$code}. Check that you scanned the cartzy waybill.", 404);
-            }
-
-            $this->guard($rider, $shipment);
-
-            $stage = $rider->isFirstMile() ? 'picked_up' : 'out_for_delivery';
+            $stage = self::stageFor($rider);
             if ($this->alreadyWithRider($rider, $shipment)) {
                 return ['shipment' => $shipment, 'stage' => $stage, 'already' => true,
                     'message' => "Parcel {$shipment->tracking_code} is already with you."];
@@ -76,6 +86,68 @@ class RiderParcelScan
     }
 
     /**
+     * The rider declines the scanned parcel. Nothing changes for the buyer or
+     * seller; a parcel the hub had assigned to this rider goes back for reassignment.
+     *
+     * @return array{shipment: Shipment, released: bool, message: string}
+     *
+     * @throws RiderParcelScanException when the parcel isn't one this rider could take
+     */
+    public function decline(Rider $rider, string $rawCode, ?string $reason = null): array
+    {
+        return DB::transaction(function () use ($rider, $rawCode, $reason) {
+            $shipment = $this->resolve($rider, $rawCode, lock: true);
+            if ($this->alreadyWithRider($rider, $shipment)) {
+                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is already with you, so it can't be declined here. Contact your hub.");
+            }
+
+            $assignedToMe = $rider->isLastMile() && $shipment->rider_id === $rider->id;
+            if ($assignedToMe) {
+                $shipment->update([
+                    'rider_id' => null,
+                    'status' => 'picked_up',
+                    'sort_status' => $shipment->sorted_at ? 'sorted' : 'unsorted',
+                    'assigned_at' => null,
+                ]);
+
+                if ($hubUserId = $shipment->logisticsProvider?->user_id) {
+                    $riderName = $rider->user?->name ?? 'A rider';
+                    $why = $reason ? " Reason: {$reason}" : '';
+                    NotificationService::notify($hubUserId, 'parcel_scan', 'Rider declined a parcel',
+                        "{$riderName} declined parcel {$shipment->tracking_code}. It's back in the hub queue to reassign.{$why}",
+                        route('logistics.notifications'));
+                }
+            }
+
+            return ['shipment' => $shipment, 'released' => $assignedToMe,
+                'message' => $assignedToMe
+                    ? "You declined parcel {$shipment->tracking_code}. It went back to the hub to be reassigned."
+                    : "You declined parcel {$shipment->tracking_code}. Nothing changed and no one was notified."];
+        });
+    }
+
+    private static function stageFor(Rider $rider): string
+    {
+        return $rider->isFirstMile() ? 'picked_up' : 'out_for_delivery';
+    }
+
+    /** Find the scanned parcel and make sure this rider may take it. */
+    private function resolve(Rider $rider, string $rawCode, bool $lock): Shipment
+    {
+        $code = self::normalize($rawCode);
+        if ($code === '') {
+            throw new RiderParcelScanException("That code doesn't look like a cartzy waybill.");
+        }
+        $shipment = $this->find($code, $lock);
+        if (!$shipment) {
+            throw new RiderParcelScanException("No parcel found for {$code}. Check that you scanned the cartzy waybill.", 404);
+        }
+        $this->guard($rider, $shipment);
+
+        return $shipment;
+    }
+
+    /**
      * Waybill barcodes hold the tracking code; a QR code may hold the code or a
      * link ending in it. Order references are accepted too.
      */
@@ -89,16 +161,17 @@ class RiderParcelScan
         return strtoupper(mb_substr($code, 0, 100));
     }
 
-    private function find(string $code): ?Shipment
+    private function find(string $code, bool $lock): ?Shipment
     {
-        $with = ['sellerOrder.order', 'sellerOrder.seller', 'sellerOrder.items', 'logisticsProvider'];
-        $shipment = Shipment::with($with)->where('tracking_code', $code)->lockForUpdate()->first();
+        $query = fn () => Shipment::with(['sellerOrder.order', 'sellerOrder.seller', 'sellerOrder.items', 'logisticsProvider'])
+            ->when($lock, fn ($q) => $q->lockForUpdate());
+        $shipment = $query()->where('tracking_code', $code)->first();
         if ($shipment) {
             return $shipment;
         }
 
         // An order reference only identifies a parcel when the order has one store.
-        $byOrder = Shipment::with($with)->whereHas('sellerOrder.order', fn ($q) => $q->where('reference', $code))->lockForUpdate()->get();
+        $byOrder = $query()->whereHas('sellerOrder.order', fn ($q) => $q->where('reference', $code))->get();
 
         return $byOrder->count() === 1 ? $byOrder->first() : null;
     }

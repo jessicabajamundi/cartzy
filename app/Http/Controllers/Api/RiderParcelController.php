@@ -3,16 +3,62 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Rider;
+use App\Models\Shipment;
 use App\Services\RiderParcelScan;
 use App\Services\RiderParcelScanException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-/** The rider app scans a waybill barcode or QR code to take a parcel. */
+/**
+ * The rider app scans a waybill barcode or QR code, shows the parcel, and the
+ * rider accepts or declines it. Only accepting hands it over and notifies people.
+ */
 class RiderParcelController extends Controller
 {
-    public function scan(Request $request, RiderParcelScan $scans)
+    public function __construct(private RiderParcelScan $scans) {}
+
+    /** Scanned: show the parcel. Changes nothing. */
+    public function scan(Request $request)
     {
-        $data = $request->validate(['code' => ['required', 'string', 'max:500']]);
+        return $this->handle($request, function (Rider $rider, string $code) {
+            $result = $this->scans->preview($rider, $code);
+
+            return [
+                'message' => $result['already']
+                    ? "Parcel {$result['shipment']->tracking_code} is already with you."
+                    : 'Check the parcel, then accept or decline it.',
+                'already' => $result['already'],
+                'stage' => $result['stage'],
+            ] + $this->parcelJson($result['shipment']);
+        });
+    }
+
+    public function accept(Request $request)
+    {
+        return $this->handle($request, function (Rider $rider, string $code) {
+            $result = $this->scans->accept($rider, $code);
+
+            return ['message' => $result['message'], 'already' => $result['already'], 'stage' => $result['stage']]
+                + $this->parcelJson($result['shipment']);
+        });
+    }
+
+    public function decline(Request $request)
+    {
+        $reason = $request->validate(['reason' => ['nullable', 'string', 'max:200']])['reason'] ?? null;
+
+        return $this->handle($request, function (Rider $rider, string $code) use ($reason) {
+            $result = $this->scans->decline($rider, $code, $reason);
+
+            return ['message' => $result['message'], 'released' => $result['released']] + $this->parcelJson($result['shipment']);
+        });
+    }
+
+    /** Checks the rider and the code, runs [$action], and turns refusals into a message for the rider. */
+    private function handle(Request $request, callable $action): JsonResponse
+    {
+        $code = $request->validate(['code' => ['required', 'string', 'max:500']])['code'];
 
         $rider = $request->user()->rider;
         if (!$rider || $rider->status !== 'approved') {
@@ -20,32 +66,29 @@ class RiderParcelController extends Controller
         }
 
         try {
-            $result = $scans->scan($rider, $data['code']);
+            return response()->json($action($rider, $code));
         } catch (RiderParcelScanException $e) {
             return response()->json(['message' => $e->getMessage()], $e->status());
         }
+    }
 
-        $shipment = $result['shipment'];
+    private function parcelJson(Shipment $shipment): array
+    {
         $sellerOrder = $shipment->sellerOrder;
-        $address = $sellerOrder->order?->shipping_address ?? [];
+        $order = $sellerOrder->order;
+        $address = $order?->shipping_address ?? [];
+        $isCod = $order?->payment_method === 'cod';
 
-        return response()->json([
-            'message' => $result['message'],
-            'already' => $result['already'],
-            'stage' => $result['stage'],
-            'parcel' => [
-                'tracking_code' => $shipment->tracking_code,
-                'order_reference' => $sellerOrder->order?->reference,
-                'status' => $shipment->status,
-                'seller_name' => $sellerOrder->seller?->name,
-                'recipient_name' => $address['recipient'] ?? null,
-                'recipient_address' => $address['address'] ?? null,
-                'items_count' => (int) $sellerOrder->items->sum('quantity'),
-                'is_cod' => $sellerOrder->order?->payment_method === 'cod',
-                'cod_amount' => $sellerOrder->order?->payment_method === 'cod'
-                    ? ($shipment->cod_amount_minor ?: $sellerOrder->buyerDueMinor()) / 100
-                    : 0,
-            ],
-        ]);
+        return ['parcel' => [
+            'tracking_code' => $shipment->tracking_code,
+            'order_reference' => $order?->reference,
+            'status' => $shipment->status,
+            'seller_name' => $sellerOrder->seller?->name,
+            'recipient_name' => $address['recipient'] ?? null,
+            'recipient_address' => $address['address'] ?? null,
+            'items_count' => (int) $sellerOrder->items->sum('quantity'),
+            'is_cod' => $isCod,
+            'cod_amount' => $isCod ? ($shipment->cod_amount_minor ?: $sellerOrder->buyerDueMinor()) / 100 : 0,
+        ]];
     }
 }
