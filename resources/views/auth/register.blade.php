@@ -193,6 +193,8 @@
                 </div>
             </div>
 
+            <!-- Mobile number and birthday share one row in the sign-up modal (auth-modal.css) -->
+            <div class="su-contact-row">
             <div class="mb-4">
                 <label class="field-label" for="phone">Mobile number</label>
                 <input type="hidden" name="phone_country_code" value="+63">
@@ -255,6 +257,7 @@
                     <p style="font-size: 0.78rem; color: #6b7280; margin: 0;">You must be at least 18 years old to register.</p>
                     <span id="birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: #059669;"></span>
                 </div>
+            </div>
             </div>
 
             <!-- Logistics Partner Company & Service Area Fields (Shown for Logistics) -->

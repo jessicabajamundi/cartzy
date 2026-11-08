@@ -230,13 +230,10 @@
                                     required
                                     onchange="handleVehicleTypeChange(this.value)">
                                 <option value="" disabled {{ old('vehicle_type') ? '' : 'selected' }}>Select vehicle</option>
-                                <option value="motorcycle" {{ old('vehicle_type') === 'motorcycle' ? 'selected' : '' }}>Motorcycle</option>
-                                <option value="bicycle" {{ old('vehicle_type') === 'bicycle' ? 'selected' : '' }}>Bicycle</option>
-                                <option value="ebike" {{ old('vehicle_type') === 'ebike' ? 'selected' : '' }}>E-bike</option>
-                                <option value="tricycle" {{ old('vehicle_type') === 'tricycle' ? 'selected' : '' }}>Tricycle</option>
-                                <option value="car" {{ old('vehicle_type') === 'car' ? 'selected' : '' }}>Car</option>
-                                <option value="van" {{ old('vehicle_type') === 'van' ? 'selected' : '' }}>Van</option>
-                                <option value="truck" {{ old('vehicle_type') === 'truck' ? 'selected' : '' }}>Truck</option>
+                                {{-- Couriers (first mile): car, van, truck. Riders (last mile): motorcycle, tricycle, e-bike. --}}
+                                @foreach(\App\Models\Rider::vehicleTypesFor($courierType) as $value => $label)
+                                    <option value="{{ $value }}" {{ old('vehicle_type') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
                             </select>
                             <svg class="rider-select-chevron" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -278,9 +275,11 @@
                     </div>
                 </div>
 
-                <p class="rider-field-hint" id="vehicle_rule_hint">
-                    Bicycle and e-bike riders don't need a plate, driver's license or OR/CR.
-                </p>
+                @if(array_key_exists('ebike', \App\Models\Rider::vehicleTypesFor($courierType)))
+                    <p class="rider-field-hint" id="vehicle_rule_hint">
+                        E-bike riders don't need a plate, driver's license or OR/CR.
+                    </p>
+                @endif
             </div>
 
             <!-- Section 4: Driver's license -->

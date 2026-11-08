@@ -159,8 +159,8 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Vehicle Classification</label>
                     <select name="vehicle_type" required class="w-full px-3.5 py-2 text-xs bg-[#FAF9FC] border border-[#ECE7EF] rounded-xl focus:outline-hidden focus:border-[#564B68] focus:bg-white">
-                        @foreach(['Motorcycle', 'Bicycle', 'E-bike', 'Tricycle', 'Car', 'Van', 'Truck'] as $type)
-                            <option value="{{ $type }}" {{ ($rider->vehicle_type ?? 'Motorcycle') === $type ? 'selected' : '' }}>
+                        @foreach(\App\Models\Rider::vehicleTypesFor($rider->courier_type) as $type)
+                            <option value="{{ $type }}" {{ strcasecmp(str_replace('-', '', $rider->vehicle_type ?? ''), str_replace('-', '', $type)) === 0 ? 'selected' : '' }}>
                                 {{ $type }}
                             </option>
                         @endforeach

@@ -11,6 +11,20 @@ class RiderRegistrationViewTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_courier_sign_up_only_offers_car_van_and_truck(): void
+    {
+        $this->get(route('register.rider', ['type' => 'first_mile']))
+            ->assertOk()
+            ->assertSee('Become a courier')
+            ->assertSee('<option value="car"', false)
+            ->assertSee('<option value="van"', false)
+            ->assertSee('<option value="truck"', false)
+            ->assertDontSee('<option value="motorcycle"', false)
+            ->assertDontSee('<option value="tricycle"', false)
+            ->assertDontSee('<option value="ebike"', false)
+            ->assertDontSee('<option value="bicycle"', false);
+    }
+
     public function test_rider_registration_page_loads_with_details_step_and_fields(): void
     {
         $user = User::factory()->create(['role' => 'logistics', 'status' => 'active']);
@@ -36,13 +50,14 @@ class RiderRegistrationViewTest extends TestCase
             ->assertSee('Express Delivery — Metro Manila')
             ->assertSee('Your vehicle')
             ->assertSee('name="vehicle_type"', false)
-            ->assertSee('Motorcycle')
-            ->assertSee('Bicycle')
-            ->assertSee('E-bike')
-            ->assertSee('Tricycle')
-            ->assertSee('Car')
-            ->assertSee('Van')
-            ->assertSee('Truck')
+            // Riders (last mile) ride: motorcycle, tricycle or e-bike only.
+            ->assertSee('<option value="motorcycle"', false)
+            ->assertSee('<option value="tricycle"', false)
+            ->assertSee('<option value="ebike"', false)
+            ->assertDontSee('<option value="bicycle"', false)
+            ->assertDontSee('<option value="car"', false)
+            ->assertDontSee('<option value="van"', false)
+            ->assertDontSee('<option value="truck"', false)
             ->assertSee('name="plate_no"', false)
             ->assertSee('Driver\'s license', false)
             ->assertSee('name="license_number"', false)
@@ -178,7 +193,7 @@ class RiderRegistrationViewTest extends TestCase
             'role' => 'courier',
             'logistics_provider_id' => $provider->id,
             'courier_type' => 'first_mile',
-            'vehicle_type' => 'motorcycle',
+            'vehicle_type' => 'van',
             'plate_no' => 'ABC1234',
             'license_number' => 'N01-12-345678',
             'license_expiry' => '2028-10-10',
@@ -202,7 +217,7 @@ class RiderRegistrationViewTest extends TestCase
         $rider = \App\Models\Rider::where('user_id', $riderUser->id)->first();
         $this->assertNotNull($rider);
         $this->assertEquals($provider->id, $rider->logistics_provider_id);
-        $this->assertEquals('motorcycle', $rider->vehicle_type);
+        $this->assertEquals('van', $rider->vehicle_type);
         $this->assertEquals('ABC1234', $rider->plate_no);
         $this->assertEquals('pending', $rider->status);
         $this->assertEquals('first_mile', $rider->courier_type);

@@ -511,7 +511,7 @@ class AuthController extends Controller
         ] : [];
         $courierRules = ($request->input('role') === User::ROLE_COURIER && ($request->has('logistics_provider_id') || $request->has('vehicle_type') || $request->hasFile('license_doc') || $request->hasFile('or_cr_doc'))) ? [
             'logistics_provider_id' => ['required', 'exists:logistics_providers,id'],
-            'vehicle_type'          => ['required', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'vehicle_type'          => ['required', 'string', Rule::in(array_keys(\App\Models\Rider::vehicleTypesFor($request->input('courier_type'))))],
             'courier_type'          => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no'              => [
                 Rule::requiredIf(fn () => !in_array($request->input('vehicle_type'), ['bicycle', 'ebike'], true)),
@@ -549,7 +549,7 @@ class AuthController extends Controller
             ],
         ] : [
             'logistics_provider_id' => ['nullable', 'exists:logistics_providers,id'],
-            'vehicle_type'          => ['nullable', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'vehicle_type'          => ['nullable', 'string', Rule::in(array_keys(\App\Models\Rider::vehicleTypesFor($request->input('courier_type'))))],
             'courier_type'          => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no'              => ['nullable', 'string', 'min:6', 'max:7', 'regex:/^[a-zA-Z0-9]+$/'],
             'license_number'        => ['nullable', 'string', 'size:13', 'regex:/^[A-Za-z][0-9]{2}-[0-9]{2}-[0-9]{6}$/'],

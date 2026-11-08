@@ -319,7 +319,7 @@ class AuthController extends Controller
             'otp' => ['required', 'digits:6'],
             'logistics_partner' => ['nullable', 'string', 'max:255'],
             'logistics_provider_id' => ['nullable', 'integer', 'exists:logistics_providers,id'],
-            'vehicle_type' => ['required', 'string', Rule::in(['motorcycle', 'bicycle', 'ebike', 'tricycle', 'car', 'van', 'truck'])],
+            'vehicle_type' => ['required', 'string', Rule::in(array_keys(\App\Models\Rider::vehicleTypesFor($request->input('courier_type'))))],
             'courier_type' => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no' => [
                 Rule::requiredIf(fn () => !$nonMotorized),

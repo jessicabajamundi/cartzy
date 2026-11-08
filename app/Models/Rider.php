@@ -23,6 +23,18 @@ class Rider extends Model
         self::LAST_MILE => ['Last Mile', 'Delivers parcels from the hub to buyers'],
     ];
 
+    /** Vehicles each courier type may use (value => label): couriers haul bigger loads, riders ride. */
+    public const VEHICLE_TYPES = [
+        self::FIRST_MILE => ['car' => 'Car', 'van' => 'Van', 'truck' => 'Truck'],
+        self::LAST_MILE => ['motorcycle' => 'Motorcycle', 'tricycle' => 'Tricycle', 'ebike' => 'E-bike'],
+    ];
+
+    /** The vehicle options for a courier type; anything unknown counts as last mile. */
+    public static function vehicleTypesFor(?string $courierType): array
+    {
+        return self::VEHICLE_TYPES[$courierType] ?? self::VEHICLE_TYPES[self::LAST_MILE];
+    }
+
     protected $fillable = [
         'user_id',
         'logistics_provider_id',

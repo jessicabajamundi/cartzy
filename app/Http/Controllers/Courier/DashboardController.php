@@ -686,7 +686,7 @@ class DashboardController extends Controller
 
         $validated = $request->validate([
             'phone'        => 'required|string|max:20',
-            'vehicle_type' => 'required|string|in:Motorcycle,Bicycle,E-bike,Tricycle,Car,Van,Truck',
+            'vehicle_type' => ['required', 'string', \Illuminate\Validation\Rule::in(array_values(\App\Models\Rider::vehicleTypesFor($rider->courier_type)))],
             'plate_no'     => 'nullable|string|max:15',
             'area'         => 'nullable|string|max:100',
         ]);
