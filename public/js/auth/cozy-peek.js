@@ -1,5 +1,5 @@
 /**
- * Cozy peeks at the login modal: every so often her head rises over an edge of the open dialog
+ * Cozy peeks at the login and sign-up modals: every so often her head rises over an edge of the open dialog
  * (top, left or right), her paws grip the edge and her eyes follow what you are doing.
  * After a few seconds she ducks back down, then pops up somewhere else. Clicking her makes her duck.
  * Skipped entirely for people who prefer reduced motion.
@@ -7,7 +7,7 @@
 (function () {
     'use strict';
 
-    var overlay = document.getElementById('login-modal');
+    var overlay = document.getElementById('login-modal') || document.getElementById('signup-modal');
     if (!overlay) return;
     var peek = overlay.querySelector('[data-lm-peek]');
     var paws = overlay.querySelector('[data-lm-peek-paws]');

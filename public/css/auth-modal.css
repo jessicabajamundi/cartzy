@@ -622,3 +622,38 @@ body.lm-page {
     .lm-submit-spinner { animation-duration: 1.6s; }
     .lm-google, .lm-google svg, .lm-role-badge, .lm-role-badge-switch svg { transition: none !important; }
 }
+
+
+/* ── Sign-up modal (layouts/auth with @section('auth_modal')) ──
+   The registration form keeps its own field styles (auth-split.css); these rules fit it to the dialog. */
+body.auth-modal-page {
+    display: block !important;
+    background: #F6E3DE !important;
+}
+.lm-dialog.lm-dialog-wide { max-width: 580px; }
+.lm-dialog-wide .lm-panel {
+    padding: 30px 36px 24px;
+    background:
+        radial-gradient(90% 30% at 0% 0%, rgba(111, 99, 130, .08), transparent 70%),
+        radial-gradient(80% 26% at 100% 0%, rgba(192, 139, 127, .1), transparent 70%),
+        #fff;
+}
+.auth-modal-page .lm-dialog-wide .auth-title {
+    font-size: 1.8rem !important;
+    margin-bottom: 4px !important;
+}
+.auth-modal-page .lm-dialog-wide .auth-subtitle {
+    font-size: .84rem !important;
+    margin-bottom: 18px !important;
+}
+.auth-modal-page .lm-dialog-wide .stepper { margin-bottom: 22px; }
+.auth-modal-page .lm-dialog-wide .auth-foot { margin-top: 18px; font-size: .86rem; }
+.auth-modal-page .lm-dialog-wide .auth-foot.registration-partner-row { margin-top: 10px; }
+
+@media (max-height: 640px) and (min-width: 521px) {
+    .lm-dialog-wide .lm-panel { padding: 24px 30px 18px; }
+}
+@media (max-width: 520px) {
+    .lm-dialog-wide .lm-panel { padding: 26px 20px 22px; }
+    .auth-modal-page .lm-dialog-wide .auth-title { font-size: 1.55rem !important; }
+}

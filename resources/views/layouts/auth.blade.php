@@ -435,10 +435,47 @@
             .auth-logo-img { height: 48px; max-width: 200px; }
         }
     </style>
-    @hasSection('auth_visual')
-        <link rel="stylesheet" href="{{ asset('css/auth-split.css') }}">
+    @hasSection('auth_modal')
+        {{-- Modal mode: the form sits in a dialog over a blurred backdrop, like the login modal --}}
+        <link rel="stylesheet" href="{{ asset('css/auth-split.css') }}?v={{ filemtime(public_path('css/auth-split.css')) }}">
+        <link rel="stylesheet" href="{{ asset('css/auth-modal.css') }}?v={{ filemtime(public_path('css/auth-modal.css')) }}">
+    @else
+        @hasSection('auth_visual')
+            <link rel="stylesheet" href="{{ asset('css/auth-split.css') }}">
+        @endif
     @endif
 </head>
+@hasSection('auth_modal')
+<body class="auth-split-page lm-page auth-modal-page">
+    <div class="lm-page-bg" aria-hidden="true"></div>
+
+    <main>
+        <div class="lm-overlay is-open is-standalone" id="@yield('auth_modal')-modal">
+            <div class="lm-backdrop"></div>
+
+            @include('auth.partials.cozy-peek')
+
+            <section class="lm-dialog lm-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+                <div class="lm-panel">
+                    <a href="{{ route('home') }}" class="lm-close" aria-label="Close and continue to the shop">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                    </a>
+                    <img class="lm-logo" src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy">
+
+                    @yield('auth_form')
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <p class="lm-page-footer">&copy; {{ date('Y') }} cartzy. All rights reserved.</p>
+
+    @stack('scripts')
+    <script src="{{ asset('js/auth/cozy-peek.js') }}?v={{ filemtime(public_path('js/auth/cozy-peek.js')) }}"></script>
+    @include('partials.prevent-back-cache')
+    @include('partials.logout-confirm')
+</body>
+@else
 <body class="@hasSection('auth_visual') auth-split-page @endif">
 
     @hasSection('auth_visual')
@@ -480,4 +517,5 @@
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
 </body>
+@endif
 </html>

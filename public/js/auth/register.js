@@ -301,7 +301,7 @@ async function nextStep(targetStep) {
 
     currentStep = targetStep;
     updateStepperUI();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollFormToTop();
 
     if (currentStep === 3) {
         setTimeout(() => {
@@ -311,11 +311,17 @@ async function nextStep(targetStep) {
     }
 }
 
+// In the sign-up modal the dialog panel scrolls, not the page.
+function scrollFormToTop() {
+    const panel = document.getElementById('registerForm')?.closest('.lm-panel');
+    (panel || window).scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Previous Step transition
 function prevStep(targetStep) {
     currentStep = targetStep;
     updateStepperUI();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollFormToTop();
 }
 
 // Toggle password visibility and the eye icon.

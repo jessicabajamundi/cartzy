@@ -1,7 +1,7 @@
 @extends('layouts.auth')
 
 @section('title', 'Sign Up | cartzy')
-@section('auth_visual', 'products')
+@section('auth_modal', 'signup')
 
 @section('auth_form')
 
