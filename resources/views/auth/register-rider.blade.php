@@ -79,7 +79,6 @@
                                    name="first_name"
                                    maxlength="50"
                                    class="auth-input rider-input rider-has-icon"
-                                   placeholder="First name"
                                    value="{{ old('first_name') }}"
                                    required
                                    autocomplete="given-name"
@@ -97,7 +96,6 @@
                                    maxlength="50"
                                    class="auth-input rider-input"
                                    style="padding-left: 16px !important;"
-                                   placeholder="Last name"
                                    value="{{ old('last_name') }}"
                                    required
                                    autocomplete="family-name"

@@ -160,7 +160,6 @@
                             aria-describedby="first_name_error"
                             aria-invalid="{{ $errors->has('first_name') ? 'true' : 'false' }}"
                             value="{{ old('first_name') }}"
-                            placeholder="First name"
                             class="auth-input"
                             required
                         >
@@ -183,7 +182,6 @@
                             aria-describedby="last_name_error"
                             aria-invalid="{{ $errors->has('last_name') ? 'true' : 'false' }}"
                             value="{{ old('last_name') }}"
-                            placeholder="Last name"
                             class="auth-input"
                             style="padding-left: 16px !important;"
                             required
