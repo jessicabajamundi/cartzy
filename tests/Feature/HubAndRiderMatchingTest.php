@@ -37,7 +37,7 @@ class HubAndRiderMatchingTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'seller', 'status' => 'active']);
         $address = Address::create(['user_id' => $user->id, 'label' => 'Shop', 'recipient' => 'Shop', 'phone' => '09170000000',
-            'line1' => '12 Rizal St'] + $place);
+            'line1' => '12 Rizal St', 'postal_code' => '4009'] + $place);
 
         return Seller::create(['user_id' => $user->id, 'name' => 'Laguna Gadgets', 'slug' => 'laguna-gadgets-'.$user->id,
             'status' => 'approved', 'pickup_address_id' => $address->id]);
@@ -137,15 +137,26 @@ class HubAndRiderMatchingTest extends TestCase
 
         $this->get(route('seller.courier'))->assertOk()->assertSee('Drop-off at hub')->assertSee('Bring this parcel to Sta Cruz Hub');
 
+        // The hub sees it in Receive, tagged.
+        $this->actingAs($hub->user)->get(route('logistics.hub', ['tab' => 'receive']))->assertOk()->assertSee('Seller drop-off');
+
         // A First Mile courier can't take it from the seller.
         $courier = $this->rider($hub, 'Dante', []);
         Sanctum::actingAs($courier->user);
         $this->postJson('/api/rider/parcels/accept', ['code' => $shipment->tracking_code])->assertStatus(422)
             ->assertJsonPath('message', fn ($m) => str_contains($m, 'dropping off'));
+        $this->assertNull($shipment->fresh()->pickup_rider_id);
+    }
 
-        // The hub sees it in Receive, tagged, and receives it as usual.
-        $this->actingAs($hub->user)->get(route('logistics.hub', ['tab' => 'receive']))->assertOk()->assertSee('Seller drop-off');
-        $this->post(route('logistics.parcels.receive', ['id' => $shipment->id]))->assertSessionHasNoErrors();
+    public function test_the_hub_receives_a_dropped_off_parcel_as_usual(): void
+    {
+        $hub = $this->hub('Sta Cruz Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $order = $this->packedOrder($seller);
+        $this->actingAs($seller->user)->post(route('seller.courier.schedule', $order), ['logistics_provider_id' => $hub->id, 'handover_method' => 'dropoff', 'pickup_date' => now()->toDateString()]);
+        $shipment = $order->fresh()->shipment;
+
+        $this->actingAs($hub->user)->post(route('logistics.parcels.receive', ['id' => $shipment->id]))->assertSessionHasNoErrors();
         $this->assertNotNull($shipment->fresh()->received_at);
     }
 
