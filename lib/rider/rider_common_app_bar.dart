@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cartzy/rider/rider_parcel_scan.dart';
 
 class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -18,9 +17,6 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
-
-  /// Scan a waybill barcode or QR code to take the parcel (seller, buyer and hub are notified).
-  void _openScanner(BuildContext context) => RiderParcelScan.scanAndReport(context);
 
   @override
   Widget build(BuildContext context) {
@@ -97,52 +93,6 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
 
             const Spacer(),
-
-            // Scan Waybill Barcode button
-            InkWell(
-              onTap: () => _openScanner(context),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isMobile ? 10 : 14,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF46333D),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF46333D).withValues(alpha: 0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.qr_code_scanner,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                    if (!isMobile) ...[
-                      const SizedBox(width: 7),
-                      Text(
-                        'Scan Waybill Barcode',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 10),
 
             // Online Badge
             Container(
