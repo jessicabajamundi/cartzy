@@ -11,6 +11,7 @@ import 'package:cartzy/auth/account_type_selection_screen.dart';
 import 'package:cartzy/auth/login_screen.dart';
 import 'package:cartzy/buyer/dashboard.dart';
 import 'package:cartzy/rider/rider_dashboard.dart';
+import 'package:cartzy/rider/courier_dashboard.dart';
 import 'package:cartzy/buyer/account_menu_screen.dart';
 import 'package:cartzy/buyer/account_settings_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
@@ -23,6 +24,7 @@ import 'package:cartzy/cart/cart_screen.dart';
 import 'package:cartzy/checkout/checkout_screen.dart';
 import 'package:cartzy/services/cart_service.dart';
 import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/auth/email_verification_screen.dart';
 import 'package:cartzy/widgets/access_denied_screen.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
@@ -154,6 +156,27 @@ class _CartzyHomeState extends State<CartzyHome> {
   Future<void> performLogout() async {
     await AuthService.logout();
     if (mounted) logout();
+  }
+
+  bool _courierTypeLoading = false;
+  bool _courierTypeFailed = false;
+
+  /// Asks the server whether this rider account is a First Mile courier or a
+  /// Last Mile rider, and remembers it in the saved session.
+  Future<void> _loadCourierType() async {
+    if (_courierTypeLoading) return;
+    _courierTypeLoading = true;
+    try {
+      final res = await ApiService.get('/auth/me', token: AuthService.token);
+      final type = (res['user'] as Map?)?['courier_type']?.toString();
+      if (!mounted) return;
+      setState(() => loggedInUser = {...?loggedInUser, 'courier_type': type ?? 'last_mile'});
+    } catch (_) {
+      // Offline: show the rider dashboard for now and ask again next time.
+      if (mounted) setState(() => _courierTypeFailed = true);
+    } finally {
+      _courierTypeLoading = false;
+    }
   }
 
   Future<void> confirmLogout() async {
@@ -575,6 +598,20 @@ class _CartzyHomeState extends State<CartzyHome> {
             attemptedPage: 'Rider Dashboard',
             userRole: 'BUYER',
             onReturn: () => goTo('dashboard'),
+          );
+        }
+        // First Mile couriers (car, van, truck) get the courier dashboard;
+        // Last Mile riders keep the rider dashboard.
+        final courierType = loggedInUser?['courier_type']?.toString();
+        if (courierType == null && !_courierTypeFailed) {
+          // Signed in before the app knew the courier type: ask the server once.
+          _loadCourierType();
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        if (courierType == 'first_mile') {
+          return CourierDashboard(
+            token: riderToken ?? AuthService.token ?? '',
+            onLogout: confirmLogout,
           );
         }
         return RiderDashboard(
