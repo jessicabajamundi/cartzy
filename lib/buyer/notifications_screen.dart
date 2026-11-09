@@ -13,7 +13,11 @@ import 'package:cartzy/buyer/vouchers_screen.dart';
 class NotificationsScreen extends StatefulWidget {
   final VoidCallback onBack;
 
-  const NotificationsScreen({super.key, required this.onBack});
+  /// Buyers jump to the order or voucher a notification is about. Riders
+  /// have no such screens, so for them a tap only marks it read.
+  final bool openLinkedScreens;
+
+  const NotificationsScreen({super.key, required this.onBack, this.openLinkedScreens = true});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -106,6 +110,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
       NotificationService.markAsRead(n.id);
     }
+
+    if (!widget.openLinkedScreens) return;
 
     // Direct routing if notification references an order
     if (n.orderReference != null && n.orderReference!.isNotEmpty) {

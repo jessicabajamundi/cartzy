@@ -5,6 +5,8 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/rider/rider_parcel_scan.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
 import 'package:cartzy/services/mock_data.dart';
+import 'package:cartzy/services/notification_service.dart';
+import 'package:cartzy/buyer/notifications_screen.dart';
 import 'rider_pickup_dashboard.dart';
 import 'rider_delivery_dashboard.dart';
 import 'rider_delivery_history_screen.dart';
@@ -50,6 +52,88 @@ class _RiderDashboardState extends State<RiderDashboard> {
     'Rider Earnings & Commissions',
     'Account Management',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // After the first frame: the count updates the bell, which can't change mid-build.
+    WidgetsBinding.instance.addPostFrameCallback((_) => NotificationService.fetchUnreadCount());
+  }
+
+  void _openNotifications() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+          builder: (routeContext) => NotificationsScreen(
+            onBack: () => Navigator.of(routeContext).pop(),
+            openLinkedScreens: false,
+          ),
+        ))
+        .then((_) => NotificationService.fetchUnreadCount());
+  }
+
+  /// Phone header: no white bar, just the page's beige, with the menu on the
+  /// left, the cartzy name in the middle and notifications on the right.
+  Widget _buildPhoneHeader() {
+    return SizedBox(
+      height: 60,
+      child: Row(
+        children: [
+          Builder(
+            builder: (ctx) => IconButton(
+              tooltip: 'Menu',
+              icon: const Icon(Icons.menu_rounded, color: Color(0xFF261E30), size: 26),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              'cartzy',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: 24,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5,
+                color: const Color(0xFF261E30),
+              ),
+            ),
+          ),
+          ValueListenableBuilder<int>(
+            valueListenable: NotificationService.unreadCountNotifier,
+            builder: (context, unread, _) => IconButton(
+              tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+              onPressed: _openNotifications,
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.notifications_none_rounded, color: Color(0xFF261E30), size: 26),
+                  if (unread > 0)
+                    Positioned(
+                      right: -4,
+                      top: -3,
+                      child: Container(
+                        constraints: const BoxConstraints(minWidth: 16),
+                        height: 16,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD1495B),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: CartzyColors.background, width: 1.5),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          unread > 99 ? '99+' : '$unread',
+                          style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// Opens a bottom tab (also used by the side menu), closing the menu first.
   void _selectTab(int index) {
@@ -107,6 +191,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
 
   // ── Top Bar ─────────────────────────────────────────────────
   Widget _buildTopBar(bool isMobile) {
+    if (isMobile) return _buildPhoneHeader();
     return Container(
       height: 64,
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 20),
