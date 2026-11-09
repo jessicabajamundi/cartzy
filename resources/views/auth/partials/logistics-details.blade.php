@@ -101,16 +101,16 @@
 </div>
 <style>
 #logisticsFieldsWrapper .lg-input { padding-left: 16px !important; width: 100%; }
-#logisticsFieldsWrapper select:disabled { background: #f5f2f0; color: #a39a92; }
-#logisticsFieldsWrapper .lg-file-input { height: auto; padding: 12px !important; background: #faf6f1; }
-.lg-file-input::file-selector-button { border: 1px solid #2a2420; background: #fff; color: #2a2420; border-radius: 6px; padding: 7px 12px; margin-right: 12px; font: inherit; font-weight: 600; cursor: pointer; }
+#logisticsFieldsWrapper select:disabled { background: #f5f2f7; color: #91879b; }
+#logisticsFieldsWrapper .lg-file-input { height: auto; padding: 12px !important; background: #f8f5fa; }
+.lg-file-input::file-selector-button { border: 1px solid #ddd3e6; background: #f5f0f9; color: #564b68; border-radius: 6px; padding: 7px 12px; margin-right: 12px; font: inherit; font-weight: 600; cursor: pointer; }
 .lg-regions { border: 0; margin: 0; padding: 0; min-width: 0; }
 .lg-region-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
-.lg-region { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 12px; border: 1px solid #eadfd3; border-radius: 8px; background: #fff; color: #2a2420; font-size: .8rem; line-height: 1.3; cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
-.lg-region:hover { border-color: #c9b39f; }
-.lg-region:has(input:checked) { border-color: #a8846a; background: #fbf6f1; }
+.lg-region { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 12px; border: 1px solid #e1dde7; border-radius: 8px; background: #fff; color: #282133; font-size: .8rem; line-height: 1.3; cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+.lg-region:hover { border-color: #c9bfd6; }
+.lg-region:has(input:checked) { border-color: #6f6382; background: #f6f2f9; }
 .lg-region:has(input:focus-visible) { outline: 2px solid #564b68; outline-offset: 2px; }
-.lg-region input { flex: none; width: 15px; height: 15px; margin: 0; accent-color: #8c6a52; }
+.lg-region input { flex: none; width: 15px; height: 15px; margin: 0; accent-color: #564b68; }
 .lg-regions[aria-invalid="true"] .lg-region { border-color: #fca5a5; }
 @media (max-width: 380px) { .lg-region-grid { grid-template-columns: 1fr; } }
 </style>

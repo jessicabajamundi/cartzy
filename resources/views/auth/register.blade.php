@@ -724,12 +724,12 @@
     .is-signup-stepped [data-signup-page] > .field-block:first-child { display: none; }
     /* Logistics sign-up: "STEP 4 OF 7", the step title and one bar segment per step */
     .su-steps { margin: 2px 0 16px; }
-    .su-steps-count { margin: 0 0 2px; color: #8a7f76; font-size: .66rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
-    .su-steps-title { margin: 0 0 10px; color: #2a2420; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
+    .su-steps-count { margin: 0 0 2px; color: #6b6478; font-size: .66rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+    .su-steps-title { margin: 0 0 10px; color: #282133; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
     .su-steps-bar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-    .su-steps-bar span { height: 4px; border-radius: 999px; background: #ece3da; transition: background-color .25s ease; }
-    .su-steps-bar span.is-done { background: #b08b70; }
-    .su-steps-bar span.is-current { background: #2a2420; }
+    .su-steps-bar span { height: 4px; border-radius: 999px; background: #efe9f3; transition: background-color .25s ease; }
+    .su-steps-bar span.is-done { background: #c08b7f; }
+    .su-steps-bar span.is-current { background: linear-gradient(90deg, #564b68, #6f6382); }
     @media (prefers-reduced-motion: reduce) { .su-steps-bar span { transition: none; } }
     .form-btn-row {
         display: flex;
