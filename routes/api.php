@@ -60,6 +60,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/decline', [\App\Http\Controllers\Api\RiderParcelController::class, 'decline']);
     });
 
+    // Notifications: buyers and riders each see their own (the bell in the rider app too).
+    Route::middleware('api.role:buyer,courier')->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->whereNumber('id');
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
+    });
+
     Route::middleware('api.role:buyer')->group(function () {
         Route::get('/addresses', [AddressController::class, 'index']);
         Route::get('/addresses/{userId}', [AddressController::class, 'index'])->whereNumber('userId');
@@ -84,13 +93,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/messages/thread', [MessageController::class, 'thread']);
         Route::post('/messages/send', [MessageController::class, 'send'])->middleware('throttle:60,1');
         Route::post('/messages/inquire', [MessageController::class, 'inquire'])->middleware('throttle:20,1');
-
-        // Buyer Notifications
-        Route::get('/notifications', [NotificationController::class, 'index']);
-        Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
-        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->whereNumber('id');
-        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
-        Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->whereNumber('id');
 
         // Buyer Wishlist
         Route::get('/wishlist', [WishlistController::class, 'index']);
