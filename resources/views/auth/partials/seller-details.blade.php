@@ -1,6 +1,6 @@
 <div id="sellerFieldsWrapper" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'seller' ? 'block' : 'none' }};">
     {{-- Seller sign-up steps 2-4 (step 1 is the personal details in register.blade.php) --}}
-    <div data-seller-page="2">
+    <div data-signup-page="2">
     <div class="field-block"><h3 class="field-heading">Your shop</h3></div>
     <div class="mb-4">
         <label class="field-label" for="shop_name">Shop name <span class="seller-required">*</span></label>
@@ -25,7 +25,7 @@
         <p class="seller-field-error" id="tin_number_error" role="alert">{{ $errors->first('tin_number') }}</p>
     </div>
     </div>
-    <div data-seller-page="3">
+    <div data-signup-page="3">
     <div class="field-block"><h3 class="field-heading">Pickup address</h3></div>
     <div class="psgc-address-form">
         <div class="form-grid-2 mb-4">
@@ -54,7 +54,7 @@
         </div>
     </div>
     </div>
-    <div data-seller-page="4">
+    <div data-signup-page="4">
     <div class="field-block"><h3 class="field-heading">Documents</h3></div>
     <p class="seller-field-hint">JPG, PNG or PDF, up to 5 MB each. Documents marked * are required.</p>
     <div class="form-grid-2 su-doc-grid">

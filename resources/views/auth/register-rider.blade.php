@@ -182,7 +182,7 @@
                             @if($providers && $providers->count() > 0)
                                 @foreach($providers as $provider)
                                     <option value="{{ $provider->id }}" {{ old('logistics_provider_id') == $provider->id ? 'selected' : '' }}>
-                                        {{ $provider->name }}
+                                        {{ $provider->name }}@if($provider->serviceRegionsSummary()) — {{ $provider->serviceRegionsSummary() }}@endif
                                     </option>
                                 @endforeach
                             @else

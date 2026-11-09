@@ -275,7 +275,7 @@
                         <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
                             @if($dtiUrl)
                                 <a href="{{ $dtiUrl }}" target="_blank" rel="noopener" class="text-link" style="display: inline-flex; align-items: center; gap: 4px;">
-                                    <span>📄 DTI Business Permit</span> ↗
+                                    <span>📄 {{ $user->role === 'logistics' ? "Mayor's / Business Permit" : 'DTI Business Permit' }}</span> ↗
                                 </a>
                             @endif
 
@@ -718,7 +718,7 @@
             let docCount = 0;
 
             if (data.dti_permit) {
-                docsList.innerHTML += `<li><a href="${data.dti_permit}" target="_blank" rel="noopener" class="text-link">DTI Business Registration Permit ↗</a></li>`;
+                docsList.innerHTML += `<li><a href="${data.dti_permit}" target="_blank" rel="noopener" class="text-link">${data.role === 'logistics' ? "Mayor's / Business Permit" : 'DTI Business Registration Permit'} ↗</a></li>`;
                 docCount++;
             }
             if (data.sec_certificate) {

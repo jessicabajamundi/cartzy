@@ -61,6 +61,15 @@
         <div class="su-seller-progress-bar" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1"><span data-sp-fill></span></div>
     </div>
 
+    <!-- Logistics partner sign-up runs in 7 steps: details, company, service areas, office address, documents, sign-in, verify -->
+    <div class="su-steps" id="logisticsProgress" hidden>
+        <p class="su-steps-count">Step <span data-lp-number>1</span> of 7</p>
+        <h3 class="su-steps-title" data-lp-title>Your details</h3>
+        <div class="su-steps-bar" role="progressbar" aria-label="Sign-up progress" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1">
+            @for ($i = 1; $i <= 7; $i++)<span data-lp-segment></span>@endfor
+        </div>
+    </div>
+
     <div class="stepper" id="signupStepper">
         <div class="step">
             <span class="step-label" id="label-step-1">Details</span>
@@ -146,8 +155,8 @@
                 </div>
             </div>
 
-            <!-- Seller step 1 of 6 (buyers see this section and nothing is split) -->
-            <div data-seller-page="1">
+            <!-- Step 1 for sellers (of 6) and logistics partners (of 7); buyers see this section and nothing is split -->
+            <div data-signup-page="1">
             <div class="field-block" style="margin-top: 18px;">
                 <label class="field-heading">Your personal details</label>
                 <p class="field-subheading" style="margin-bottom: 0;">Enter your name and personal details</p>
@@ -255,55 +264,12 @@
                     <span id="birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: #059669;"></span>
                 </div>
             </div>
-
-            <!-- Logistics Partner Company & Service Area Fields (Shown for Logistics) -->
-            <div id="logisticsFieldsWrapper" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }}; margin-bottom: 26px;">
-                <div class="mb-4">
-                    <label class="field-label" for="business_name">Company name <span style="color:#ef4444">*</span></label>
-                    <div class="input-group">
-                        <span class="input-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                            </svg>
-                        </span>
-                        <input
-                            type="text"
-                            name="business_name"
-                            id="business_name"
-                            value="{{ old('business_name') }}"
-                            placeholder="Company name"
-                            class="auth-input"
-                        >
-                    </div>
-                </div>
-
-                <div class="mb-2">
-                    <label class="field-label" for="service_area">Service area <span style="font-weight:400; color:#6b7280;">(optional)</span></label>
-                    <div class="input-group" style="margin-bottom: 6px !important;">
-                        <span class="input-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                        </span>
-                        <input
-                            type="text"
-                            name="service_area"
-                            id="service_area"
-                            value="{{ old('service_area', old('address')) }}"
-                            placeholder="e.g. Metro Manila, Cavite"
-                            class="auth-input"
-                        >
-                    </div>
-                    <p style="font-size: 0.78rem; color: #6b7280; margin-top: 4px; margin-bottom: 0;">Riders see this when choosing a partner to apply to.</p>
-                </div>
-            </div>
             </div>
 
             @include('auth.partials.seller-details')
+            @include('auth.partials.logistics-details')
             <button type="button" class="btn-primary btn-single btn-details-continue" style="margin-top: 26px;" onclick="nextStep(2)">Continue</button>
-            <!-- Seller steps 2-4: Back and Continue -->
+            <!-- Seller steps 2-4 and logistics steps 2-5: Back and Continue -->
             <div class="form-btn-row su-seller-nav" hidden>
                 <button type="button" class="btn-action-back" onclick="sellerBack()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -741,10 +707,11 @@
         background: linear-gradient(110deg, var(--brand-dark, #564B68) 0%, var(--rose-dark, #8C5A50) 100%) !important;
     }
     /* Seller sign-up: 6 steps, one section at a time */
-    [data-seller-page][hidden],
+    [data-signup-page][hidden],
     .su-seller-nav[hidden],
     .btn-details-continue[hidden],
-    .su-seller-progress[hidden] { display: none !important; }
+    .su-seller-progress[hidden],
+    .su-steps[hidden] { display: none !important; }
     .su-seller-progress { margin: 4px 0 16px; }
     .su-seller-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
     .su-seller-progress-count { color: #6b6478; font-size: .74rem; font-weight: 600; }
@@ -754,7 +721,16 @@
     .su-seller-progress-bar span { display: block; height: 100%; width: 16.7%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
     @media (prefers-reduced-motion: reduce) { .su-seller-progress-bar span { transition: none; } }
     /* The progress title names the section, so its heading is not repeated */
-    .is-seller-stepped [data-seller-page] > .field-block:first-child { display: none; }
+    .is-signup-stepped [data-signup-page] > .field-block:first-child { display: none; }
+    /* Logistics sign-up: "STEP 4 OF 7", the step title and one bar segment per step */
+    .su-steps { margin: 2px 0 16px; }
+    .su-steps-count { margin: 0 0 2px; color: #8a7f76; font-size: .66rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+    .su-steps-title { margin: 0 0 10px; color: #2a2420; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
+    .su-steps-bar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .su-steps-bar span { height: 4px; border-radius: 999px; background: #ece3da; transition: background-color .25s ease; }
+    .su-steps-bar span.is-done { background: #b08b70; }
+    .su-steps-bar span.is-current { background: #2a2420; }
+    @media (prefers-reduced-motion: reduce) { .su-steps-bar span { transition: none; } }
     .form-btn-row {
         display: flex;
         align-items: center;

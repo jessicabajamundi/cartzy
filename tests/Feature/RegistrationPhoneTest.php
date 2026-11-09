@@ -12,11 +12,13 @@ class RegistrationPhoneTest extends TestCase
 {
     use RefreshDatabase;
     use \Tests\Support\SellerSignupFields;
+    use \Tests\Support\LogisticsSignupFields;
 
     private function registration(string $role, string $phone): array
     {
         return [
             ...($role === 'seller' ? $this->sellerSignupFields() : []),
+            ...($role === 'logistics' ? $this->logisticsSignupFields() : []),
             'role' => $role,
             'name' => 'Maria Cruz',
             'first_name' => 'Maria',

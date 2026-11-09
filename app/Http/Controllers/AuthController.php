@@ -465,9 +465,36 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $this->normalizeRegistrationContact($request);
-        if ($request->input('role') === 'seller' && is_string($request->input('tin_number'))) {
+        if (in_array($request->input('role'), ['seller', 'logistics'], true) && is_string($request->input('tin_number'))) {
             $request->merge(['tin_number' => str_replace('-', '', trim($request->input('tin_number')))]);
         }
+        if (is_string($request->input('sec_registration_no'))) {
+            $request->merge(['sec_registration_no' => strtoupper(preg_replace('/\s+/', '', $request->input('sec_registration_no')))]);
+        }
+        $documentRule = ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'];
+        $logisticsRules = $request->input('role') === User::ROLE_LOGISTICS ? [
+            'phone' => ['required', ...$this->registrationPhoneRules()],
+            'business_name' => ['required', 'string', 'min:2', 'max:255', function ($attribute, $value, $fail) {
+                if (\App\Models\LogisticsProvider::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($value))])->exists()) {
+                    $fail('This company name is already used by another logistics partner.');
+                }
+            }],
+            'sec_registration_no' => ['required', 'regex:/\A[A-Z0-9][A-Z0-9-]{4,29}\z/'],
+            'tin_number' => ['required', 'regex:/\A[0-9]{12}\z/'],
+            'contact_position' => ['required', 'string', 'max:100'],
+            'service_regions' => ['required', 'array', 'min:1'],
+            'service_regions.*' => ['string', Rule::in(array_keys(\App\Models\LogisticsProvider::SERVICE_REGIONS))],
+            'office_region' => ['required', 'string', 'max:100'],
+            'office_province' => ['required', 'string', 'max:100'],
+            'office_city' => ['required', 'string', 'max:100'],
+            'office_barangay' => ['required', 'string', 'max:100'],
+            'office_street' => ['required', 'string', 'max:500'],
+            'office_postal_code' => ['required', 'regex:/\A[0-9]{4}\z/'],
+            'sec_certificate' => $documentRule,
+            'bir_certificate' => $documentRule,
+            'business_permit' => $documentRule,
+            'id_photo' => $documentRule,
+        ] : [];
         if (is_string($request->input('license_number'))) {
             $request->merge(['license_number' => strtoupper(trim($request->input('license_number')))]);
         }
@@ -586,12 +613,33 @@ class AuthController extends Controller
             'id_photo'             => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'dti_permit'           => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'role'                 => ['required', 'string', Rule::in([User::ROLE_BUYER, User::ROLE_SELLER, User::ROLE_COURIER, User::ROLE_LOGISTICS])],
-            'password'             => ['required', 'string', 'confirmed', in_array($request->input('role'), [User::ROLE_SELLER, User::ROLE_COURIER], true)
+            'password'             => ['required', 'string', 'confirmed', in_array($request->input('role'), [User::ROLE_SELLER, User::ROLE_COURIER, User::ROLE_LOGISTICS], true)
                 ? Password::min(8)->mixedCase()->numbers()->symbols() : Password::min(6)],
             'email_verification_otp' => ['required', 'string', 'min:6', 'max:6'],
             ...$sellerRules,
             ...$courierRules,
+            ...$logisticsRules,
         ], [
+            'business_name.required' => 'Please enter your company name.',
+            'sec_registration_no.required' => 'Please enter your SEC registration number.',
+            'sec_registration_no.regex' => 'Enter the SEC registration number as shown on your certificate, e.g. CS202012345.',
+            'tin_number.required' => 'Please enter your TIN.',
+            'tin_number.regex' => 'TIN must be 12 digits: 9-digit TIN and 3-digit branch code.',
+            'contact_position.required' => "Please enter the contact person's position.",
+            'service_regions.required' => 'Choose at least one region you deliver to.',
+            'service_regions.min' => 'Choose at least one region you deliver to.',
+            'office_region.required' => 'Please choose a region.',
+            'office_province.required' => 'Please choose a province.',
+            'office_city.required' => 'Please choose a city or municipality.',
+            'office_barangay.required' => 'Please choose a barangay.',
+            'office_street.required' => 'Please enter the street address.',
+            'office_postal_code.required' => 'Please enter the postal code.',
+            'office_postal_code.regex' => 'Postal code must be 4 digits.',
+            'sec_certificate.required' => 'Please upload your SEC Certificate.',
+            'bir_certificate.required' => 'Please upload your BIR Form 2303.',
+            'business_permit.required' => "Please upload your Mayor's / Business Permit.",
+            'business_permit.mimes' => 'Business permit must be a JPG, PNG, or PDF file.',
+            'business_permit.max' => 'Business permit must not exceed 5MB.',
             'name.required'        => 'Please enter your full name.',
             'first_name.required'  => 'Please enter your first name.',
             'last_name.required'   => 'Please enter your last name.',
@@ -614,7 +662,7 @@ class AuthController extends Controller
             'role.in'              => 'Invalid account type selected.',
             'password.required'    => 'Please provide a password.',
             'password.confirmed'   => 'The password confirmation does not match.',
-            'password.min'         => in_array($request->input('role'), [User::ROLE_SELLER, User::ROLE_COURIER], true)
+            'password.min'         => in_array($request->input('role'), [User::ROLE_SELLER, User::ROLE_COURIER, User::ROLE_LOGISTICS], true)
                 ? 'Password must be at least 8 characters long.' : 'Password must be at least 6 characters long.',
             'id_photo.mimes'       => 'ID must be a JPG, PNG, or PDF file.',
             'id_photo.max'         => 'ID file must not exceed 5MB.',
@@ -657,6 +705,14 @@ class AuthController extends Controller
             $age = max(0, (int) \Carbon\Carbon::parse($validated['birthday'])->age);
         }
 
+        // Logistics partners give an office address; it fills the same address fields as a seller's pickup address.
+        if ($validated['role'] === User::ROLE_LOGISTICS) {
+            foreach (['street_address' => 'office_street', 'region' => 'office_region', 'province' => 'office_province',
+                'city' => 'office_city', 'barangay' => 'office_barangay', 'postal_code' => 'office_postal_code'] as $field => $officeField) {
+                $validated[$field] = $validated[$officeField];
+            }
+        }
+
         // Build composite address string
         $street    = trim($validated['street_address'] ?? ($validated['address'] ?? ''));
         $barangay  = trim($validated['barangay'] ?? '');
@@ -682,9 +738,11 @@ class AuthController extends Controller
         }
 
         // Handle Business / DTI Permit upload
+        // Logistics partners upload a Mayor's / Business Permit; it is kept in the same column as a seller's DTI permit.
         $dtiPermitPath = null;
-        if ($request->hasFile('dti_permit') && $request->file('dti_permit')->isValid()) {
-            $dtiPermitPath = $request->file('dti_permit')->store('dti_permits', 'public');
+        $permitField = $validated['role'] === User::ROLE_LOGISTICS ? 'business_permit' : 'dti_permit';
+        if ($request->hasFile($permitField) && $request->file($permitField)->isValid()) {
+            $dtiPermitPath = $request->file($permitField)->store('dti_permits', 'public');
         }
 
         $secCertPath = null;
@@ -807,6 +865,9 @@ class AuthController extends Controller
                         'slug'          => $uniqueSlug,
                         'status'        => 'pending',
                         'contact_phone' => $user->phone,
+                        'sec_registration_no' => $validated['sec_registration_no'] ?? null,
+                        'contact_position'    => $validated['contact_position'] ?? null,
+                        'service_regions'     => array_values(array_unique($validated['service_regions'] ?? [])),
                     ]
                 );
 

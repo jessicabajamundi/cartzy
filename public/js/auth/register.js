@@ -1,5 +1,6 @@
 /**
  * Cartzy Authentication - 3-Step Registration Wizard (Cartzy Original Design)
+ * Sellers see it as 6 steps and logistics partners as 7: step 01 is split into sections (updateSignupPages).
  * Step 01: Details (First name, Last name, Mobile number, Birthday)
  * Step 02: Sign-in (Email, Password, Confirm password)
  * Step 03: Verify (6-digit OTP email verification)
@@ -28,7 +29,7 @@ function showRegistrationError(id, message, focus = false) {
 function validateRegistrationPhone(focus = false) {
     const value = document.getElementById('phone').value.trim();
     let message = '';
-    if (!value && document.getElementById('role_input').value === 'seller') message = 'Please enter your mobile number.';
+    if (!value && ['seller', 'logistics'].includes(document.getElementById('role_input').value)) message = 'Please enter your mobile number.';
     if (value) {
         if (!/^[0-9]+$/.test(value)) {
             message = 'Please enter digits only.';
@@ -81,7 +82,8 @@ async function checkPhoneAvailability(focus = false) {
 function validateRegistrationPasswords(focus = false) {
     const password = document.getElementById('register_password').value;
     const confirmation = document.getElementById('password_confirmation').value;
-    const seller = document.getElementById('role_input').value === 'seller';
+    // Sellers and logistics partners need a strong password.
+    const seller = ['seller', 'logistics'].includes(document.getElementById('role_input').value);
     let message = '';
     if (password.length < (seller ? 8 : 6)) {
         message = `Password must be at least ${seller ? 8 : 6} characters long.`;
@@ -219,7 +221,7 @@ function updateStepperUI() {
         updateOtpPreviewUI();
     }
 
-    updateSellerPages();
+    updateSignupPages();
 
     const line1 = document.getElementById('line-1');
     const line2 = document.getElementById('line-2');
@@ -242,17 +244,18 @@ function updateStepperUI() {
 // Next Step transition
 async function nextStep(targetStep) {
     if (otpRequestPending) return;
-    // Sellers go through the details one section at a time (steps 1-4 of 6) before the sign-in step.
-    if (currentStep === 1 && isSellerSignup() && sellerPage < SELLER_DETAIL_PAGES) {
+    // Sellers and logistics partners go through the details one section at a time before the sign-in step.
+    const stepped = steppedSignup();
+    if (currentStep === 1 && stepped && detailPage < stepped.detailPages) {
         // Ignore extra clicks while this step is still being checked (the phone check waits on the server).
-        if (sellerPageChecking) return;
-        sellerPageChecking = true;
+        if (detailPageChecking) return;
+        detailPageChecking = true;
         try {
-            if (!await validateSellerPage(sellerPage)) return;
+            if (!await validateDetailPage(detailPage)) return;
         } finally {
-            sellerPageChecking = false;
+            detailPageChecking = false;
         }
-        sellerPage = Math.min(sellerPage + 1, SELLER_DETAIL_PAGES);
+        detailPage = Math.min(detailPage + 1, stepped.detailPages);
         updateStepperUI();
         scrollFormToTop();
         return;
@@ -260,6 +263,7 @@ async function nextStep(targetStep) {
     // Validate Step 1
     if (currentStep === 1) {
         if (!validateSellerDetails(true)) return;
+        if (!validateLogisticsDetails(true)) return;
         if (!validateRegistrationBirthday(true)) return;
         if (!validateRegistrationNames(true)) return;
         if (!validateRegistrationPhone(true)) return;
@@ -282,20 +286,6 @@ async function nextStep(targetStep) {
             return;
         }
         lastNameEl.style.borderColor = '';
-
-        const role = document.getElementById('role_input')?.value || 'buyer';
-        if (role === 'logistics') {
-            const companyEl = document.getElementById('business_name');
-            const companyName = companyEl ? companyEl.value.trim() : '';
-            if (!companyName) {
-                if (companyEl) {
-                    companyEl.focus();
-                    companyEl.style.borderColor = '#ef4444';
-                }
-                return;
-            }
-            if (companyEl) companyEl.style.borderColor = '';
-        }
 
         // Combine full name
         const nameField = document.getElementById('name');
@@ -341,72 +331,116 @@ function prevStep(targetStep) {
     scrollFormToTop();
 }
 
-// ── Seller sign-up in 6 steps ──
-// Steps 1-4 are sections of the details panel (step-1), step 5 is sign-in (step-2) and step 6 is verify (step-3).
-const SELLER_STEP_TITLES = ['Your details', 'Your shop', 'Pickup address', 'Documents', 'Sign-in details', 'Verify your email'];
-const SELLER_DETAIL_PAGES = 4;
-let sellerPage = 1;
-let sellerPageChecking = false;
+// ── Sellers sign up in 6 steps, logistics partners in 7 ──
+// The first steps are sections of the details panel (step-1, marked data-signup-page),
+// then sign-in (step-2) and email verification (step-3).
+const STEPPED_SIGNUPS = {
+    seller: {
+        titles: ['Your details', 'Your shop', 'Pickup address', 'Documents', 'Sign-in details', 'Verify your email'],
+        detailPages: 4,
+        wrapper: 'sellerFieldsWrapper',
+        notice: 'sellerNoticeBox',
+    },
+    logistics: {
+        titles: ['Your details', 'Your company', 'Service areas', 'Office address', 'Business documents', 'Sign-in details', 'Verify your email'],
+        detailPages: 5,
+        wrapper: 'logisticsFieldsWrapper',
+        notice: 'logisticsNoticeBox',
+    },
+};
+let detailPage = 1;
+let detailPageChecking = false;
 
-function isSellerSignup() {
-    return document.getElementById('role_input')?.value === 'seller';
+function steppedSignup() {
+    return STEPPED_SIGNUPS[document.getElementById('role_input')?.value] || null;
 }
 
-async function validateSellerPage(page) {
+async function validateDetailPage(page) {
     if (page === 1) {
         return validateRegistrationNames(true) && validateRegistrationPhone(true) && await checkPhoneAvailability(true);
     }
-    return validateSellerDetails(true, page);
+    return validateSellerDetails(true, page) && validateLogisticsDetails(true, page);
 }
 
 function sellerBack() {
-    if (sellerPage <= 1) return;
-    sellerPage--;
+    if (detailPage <= 1) return;
+    detailPage--;
     updateStepperUI();
     scrollFormToTop();
 }
 window.sellerBack = sellerBack;
 
-// Show only the current seller section, and swap the 3-part stepper for "Step X of 6".
-function updateSellerPages() {
-    const seller = isSellerSignup();
+// Opens the sign-up step that holds a field, so a field on an earlier step can be shown and focused.
+function showDetailPageOf(input) {
+    const page = input?.closest('[data-signup-page]');
+    if (!page || !steppedSignup()) return;
+    currentStep = 1;
+    detailPage = Number(page.dataset.signupPage);
+    updateStepperUI();
+}
+
+// Show only the current section, and swap the 3-part stepper for the role's step progress.
+function updateSignupPages() {
+    const stepped = steppedSignup();
+    const role = document.getElementById('role_input')?.value;
     const onDetails = currentStep === 1;
-    document.getElementById('registerForm')?.classList.toggle('is-seller-stepped', seller);
+    const step = stepped ? (onDetails ? detailPage : stepped.detailPages + currentStep - 1) : 1;
+    document.getElementById('registerForm')?.classList.toggle('is-signup-stepped', !!stepped);
     // Lets short screens drop the logo and subtitle after the first step (auth-modal.css).
-    document.querySelector('.lm-dialog-form')?.classList.toggle('is-seller-later-step', seller && !(onDetails && sellerPage === 1));
-    document.querySelectorAll('[data-seller-page]').forEach(section => {
-        section.hidden = seller && Number(section.dataset.sellerPage) !== sellerPage;
+    document.querySelector('.lm-dialog-form')?.classList.toggle('is-signup-later-step', !!stepped && step > 1);
+    document.querySelectorAll('[data-signup-page]').forEach(section => {
+        section.hidden = !!stepped && Number(section.dataset.signupPage) !== detailPage;
     });
 
-    const progress = document.getElementById('sellerProgress');
     const stepper = document.getElementById('signupStepper');
-    if (progress) progress.hidden = !seller;
-    if (stepper) stepper.style.display = seller ? 'none' : '';
-    if (seller && progress) {
-        const step = onDetails ? sellerPage : SELLER_DETAIL_PAGES + currentStep - 1;
-        progress.querySelector('[data-sp-number]').textContent = step;
-        progress.querySelector('[data-sp-title]').textContent = SELLER_STEP_TITLES[step - 1];
-        progress.querySelector('[data-sp-fill]').style.width = (step / SELLER_STEP_TITLES.length * 100) + '%';
-        progress.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', step);
+    if (stepper) stepper.style.display = stepped ? 'none' : '';
+
+    // Sellers: "Step X of 6" with one bar.
+    const sellerProgress = document.getElementById('sellerProgress');
+    if (sellerProgress) {
+        sellerProgress.hidden = role !== 'seller';
+        if (role === 'seller') {
+            sellerProgress.querySelector('[data-sp-number]').textContent = step;
+            sellerProgress.querySelector('[data-sp-title]').textContent = stepped.titles[step - 1];
+            sellerProgress.querySelector('[data-sp-fill]').style.width = (step / stepped.titles.length * 100) + '%';
+            sellerProgress.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', step);
+        }
     }
 
-    // Page 1 keeps the full-width Continue; pages 2-4 get Back and Continue.
+    // Logistics partners: "STEP X OF 7", the step title and one bar segment per step.
+    const logisticsProgress = document.getElementById('logisticsProgress');
+    if (logisticsProgress) {
+        logisticsProgress.hidden = role !== 'logistics';
+        if (role === 'logistics') {
+            logisticsProgress.querySelector('[data-lp-number]').textContent = step;
+            logisticsProgress.querySelector('[data-lp-title]').textContent = stepped.titles[step - 1];
+            logisticsProgress.querySelectorAll('[data-lp-segment]').forEach((segment, index) => {
+                segment.classList.toggle('is-done', index + 1 < step);
+                segment.classList.toggle('is-current', index + 1 === step);
+            });
+            logisticsProgress.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', step);
+        }
+    }
+
+    // Page 1 keeps the full-width Continue; later detail pages get Back and Continue.
     const single = document.querySelector('.btn-details-continue');
     const nav = document.querySelector('.su-seller-nav');
-    const label = seller && sellerPage === SELLER_DETAIL_PAGES ? 'Continue to sign-in details' : 'Continue';
+    const label = stepped && detailPage === stepped.detailPages ? 'Continue to sign-in details' : 'Continue';
     if (single) {
-        single.hidden = seller && sellerPage > 1;
+        single.hidden = !!stepped && detailPage > 1;
         single.textContent = label;
     }
     if (nav) {
-        nav.hidden = !(seller && sellerPage > 1);
+        nav.hidden = !(stepped && detailPage > 1);
         const next = nav.querySelector('.su-seller-continue');
         if (next) next.textContent = label;
     }
 
     // The approval notice only on the first step, to keep the later steps short.
-    const notice = document.getElementById('sellerNoticeBox');
-    if (notice) notice.style.display = seller && onDetails && sellerPage === 1 ? 'block' : 'none';
+    Object.entries(STEPPED_SIGNUPS).forEach(([name, config]) => {
+        const notice = document.getElementById(config.notice);
+        if (notice) notice.style.display = role === name && step === 1 ? 'block' : 'none';
+    });
 }
 
 // Toggle password visibility and the eye icon.
@@ -662,10 +696,70 @@ function selectRole(role) {
             if (buyerOpt) buyerOpt.classList.add('selected');
         }
     }
-    sellerPage = 1;
+    detailPage = 1;
+    updateLogisticsDetails(role);
     updateSellerDetails(role);
 }
 window.selectRole = selectRole;
+
+// Logistics fields are required, and submitted, only on the logistics sign-up.
+function updateLogisticsDetails(role = document.getElementById('role_input').value) {
+    const logistics = role === 'logistics';
+    const wrapper = document.getElementById('logisticsFieldsWrapper');
+    if (!wrapper) return;
+    wrapper.querySelectorAll('[data-logistics-required], [data-logistics-document], [data-service-region]').forEach(input => {
+        if (!input.hasAttribute('data-service-region')) input.required = logistics;
+        // The location lists are enabled one by one by address-modal.js as each level loads.
+        const psgcManaged = input.tagName === 'SELECT' && /^office_(region|province|city|barangay)$/.test(input.id);
+        if (!psgcManaged) input.disabled = !logistics;
+    });
+}
+
+// Error and focus for a sign-up detail field (text, select or file).
+function detailFieldMessage(input) {
+    input.setCustomValidity('');
+    if (input.type === 'text') input.value = input.value.trim();
+    if (input.tagName === 'SELECT' && input.disabled) return 'Choose the preceding location first, or retry loading locations.';
+    if (input.required && !input.value) return 'Please complete this field.';
+    if (input.type === 'file' && input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > 5 * 1024 * 1024) return 'File must not exceed 5 MB.';
+        if (!/\.(jpe?g|png|pdf)$/i.test(file.name)) return 'Choose a JPG, PNG or PDF file.';
+    }
+    return input.checkValidity() ? '' : input.validationMessage;
+}
+
+function focusDetailField(input) {
+    showDetailPageOf(input);
+    input.focus();
+}
+
+function showServiceRegionError(message) {
+    const error = document.getElementById('service_regions_error');
+    if (error) error.textContent = message;
+    document.querySelector('#logisticsFieldsWrapper .lg-regions')?.setAttribute('aria-invalid', message ? 'true' : 'false');
+}
+
+// Checks the logistics fields; with a page (2-5), only the fields of that sign-up step.
+function validateLogisticsDetails(focus = false, page = null) {
+    if (document.getElementById('role_input').value !== 'logistics') return true;
+    let firstInvalid = null;
+    const scope = page ? `#logisticsFieldsWrapper [data-signup-page="${page}"]` : '#logisticsFieldsWrapper';
+    document.querySelectorAll(`${scope} [data-logistics-required], ${scope} [data-logistics-document], ${scope} .lg-regions`).forEach(input => {
+        if (input.classList.contains('lg-regions')) {
+            const boxes = input.querySelectorAll('[data-service-region]');
+            const chosen = Array.from(boxes).some(box => box.checked);
+            showServiceRegionError(chosen ? '' : 'Choose at least one region you deliver to.');
+            if (!chosen && !firstInvalid) firstInvalid = boxes[0];
+            return;
+        }
+        const message = detailFieldMessage(input);
+        showRegistrationError(input.id, message);
+        if (message && !firstInvalid) firstInvalid = input;
+    });
+    if (firstInvalid && focus) focusDetailField(firstInvalid);
+    return !firstInvalid;
+}
 
 function updateSellerDetails(role = document.getElementById('role_input').value) {
     const seller = role === 'seller';
@@ -673,7 +767,7 @@ function updateSellerDetails(role = document.getElementById('role_input').value)
     if (!wrapper) return;
     wrapper.style.display = seller ? 'block' : 'none';
     document.getElementById('sellerNoticeBox').style.display = seller ? 'block' : 'none';
-    document.getElementById('phone').required = seller;
+    document.getElementById('phone').required = seller || role === 'logistics';
     document.querySelector('.btn-details-continue').textContent = seller ? 'Continue to sign-in details' : 'Continue';
     wrapper.querySelectorAll('[data-seller-required]').forEach(input => {
         input.required = seller;
@@ -689,33 +783,21 @@ function updateSellerDetails(role = document.getElementById('role_input').value)
         input.required = seller && applies;
         input.disabled = !seller;
     });
-    updateSellerPages();
+    updateSignupPages();
 }
 
 // Checks the seller fields; with a page (2-4), only the fields of that sign-up step.
 function validateSellerDetails(focus = false, page = null) {
     if (document.getElementById('role_input').value !== 'seller') return true;
     let firstInvalid = null;
-    const scope = page ? `#sellerFieldsWrapper [data-seller-page="${page}"]` : '#sellerFieldsWrapper';
+    const scope = page ? `#sellerFieldsWrapper [data-signup-page="${page}"]` : '#sellerFieldsWrapper';
     document.querySelectorAll(`${scope} [data-seller-required], ${scope} [data-seller-document]`).forEach(input => {
         if (input.hasAttribute('data-seller-document') && input.disabled) return;
-        input.setCustomValidity('');
-        if (input.type === 'text') input.value = input.value.trim();
-        let message = '';
-        if (input.required && !input.value) {
-            message = 'Please complete this field.';
-        }
-        if (input.disabled && input.hasAttribute('data-seller-required')) message = 'Choose the preceding location first, or retry loading locations.';
-        if (!message && input.type === 'file' && input.files && input.files[0]) {
-            const file = input.files[0];
-            if (file.size > 5 * 1024 * 1024) message = 'File must not exceed 5 MB.';
-            else if (!/\.(jpe?g|png|pdf)$/i.test(file.name)) message = 'Choose a JPG, PNG or PDF file.';
-        }
-        if (!message && !input.checkValidity()) message = input.validationMessage;
+        const message = detailFieldMessage(input);
         showRegistrationError(input.id, message);
         if (message && !firstInvalid) firstInvalid = input;
     });
-    if (firstInvalid && focus) firstInvalid.focus();
+    if (firstInvalid && focus) focusDetailField(firstInvalid);
     return !firstInvalid;
 }
 
@@ -725,14 +807,14 @@ function formatRegistrationTin(value) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const tinInput = document.getElementById('tin_number');
-    if (tinInput) {
+    // The seller TIN and the logistics TIN format the same way (000-000-000-000).
+    document.querySelectorAll('#tin_number, [data-tin-input]').forEach(tinInput => {
         const formatTin = () => {
             const digitsBeforeCaret = tinInput.value.slice(0, tinInput.selectionStart ?? tinInput.value.length).replace(/\D/g, '').length;
             tinInput.value = formatRegistrationTin(tinInput.value);
             const caret = Math.min(tinInput.value.length, digitsBeforeCaret + Math.floor(Math.max(0, digitsBeforeCaret - 1) / 3));
             tinInput.setSelectionRange(caret, caret);
-            showRegistrationError('tin_number', '');
+            showRegistrationError(tinInput.id, '');
         };
         tinInput.value = formatRegistrationTin(tinInput.value);
         tinInput.addEventListener('input', formatTin);
@@ -754,9 +836,22 @@ document.addEventListener('DOMContentLoaded', function() {
             tinInput.setRangeText(pasted.replace(/\D/g, ''), tinInput.selectionStart, tinInput.selectionEnd, 'end');
             formatTin();
         });
-    }
+    });
     document.getElementById('seller_type')?.addEventListener('change', () => updateSellerDetails());
-    document.querySelectorAll('#sellerFieldsWrapper [data-seller-document]').forEach(input => {
+    // Logistics: SEC numbers are upper case; clear a field's error once it is changed.
+    const secInput = document.getElementById('sec_registration_no');
+    secInput?.addEventListener('input', () => {
+        const caret = secInput.selectionStart;
+        secInput.value = secInput.value.toUpperCase().replace(/\s+/g, '');
+        if (caret !== null) secInput.setSelectionRange(Math.min(caret, secInput.value.length), Math.min(caret, secInput.value.length));
+    });
+    document.querySelectorAll('#logisticsFieldsWrapper [data-logistics-required]').forEach(input => {
+        input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => showRegistrationError(input.id, ''));
+    });
+    document.querySelectorAll('#logisticsFieldsWrapper [data-service-region]').forEach(box => {
+        box.addEventListener('change', () => showServiceRegionError(''));
+    });
+    document.querySelectorAll('#sellerFieldsWrapper [data-seller-document], #logisticsFieldsWrapper [data-logistics-document]').forEach(input => {
         input.addEventListener('change', () => {
             let msg = '';
             if (input.files && input.files[0]) {
@@ -957,6 +1052,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 validateSellerDetails(true);
                 return;
             }
+            if (!validateLogisticsDetails()) {
+                e.preventDefault();
+                validateLogisticsDetails(true);
+                return;
+            }
             if (!validateRegistrationBirthday()) {
                 e.preventDefault();
                 currentStep = 1;
@@ -1023,15 +1123,16 @@ document.addEventListener('DOMContentLoaded', function() {
     selectRole(initialRole);
     if (['email', 'register_password', 'password_confirmation'].some(id => document.getElementById(id + '_error')?.textContent.trim())
         && !['first_name', 'last_name', 'phone', 'birthday'].some(id => document.getElementById(id + '_error')?.textContent.trim())
-        && !Array.from(document.querySelectorAll('#sellerFieldsWrapper .seller-field-error')).some(error => error.textContent.trim())) {
+        && !Array.from(document.querySelectorAll(`#${steppedSignup()?.wrapper || 'sellerFieldsWrapper'} .seller-field-error`)).some(error => error.textContent.trim())) {
         currentStep = 2;
     }
-    // A seller sent back with errors starts on the first step that has one.
-    if (currentStep === 1 && isSellerSignup()) {
+    // A seller or logistics partner sent back with errors starts on the first step that has one.
+    const steppedRole = steppedSignup();
+    if (currentStep === 1 && steppedRole) {
         const errored = ['first_name', 'last_name', 'phone'].some(id => document.getElementById(id + '_error')?.textContent.trim())
             ? null
-            : Array.from(document.querySelectorAll('#sellerFieldsWrapper .seller-field-error')).find(error => error.textContent.trim());
-        sellerPage = errored ? Number(errored.closest('[data-seller-page]')?.dataset.sellerPage || 1) : 1;
+            : Array.from(document.querySelectorAll(`#${steppedRole.wrapper} .seller-field-error`)).find(error => error.textContent.trim());
+        detailPage = errored ? Number(errored.closest('[data-signup-page]')?.dataset.signupPage || 1) : 1;
     }
     updateStepperUI();
     // Show the step holding the first field the browser rejects (later ones in the same submit are ignored).
@@ -1043,8 +1144,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const step = event.target.closest('[id^="step-"]');
         if (step) {
             currentStep = Number(step.id.replace('step-', ''));
-            const page = event.target.closest('[data-seller-page]');
-            if (page && isSellerSignup()) sellerPage = Number(page.dataset.sellerPage);
+            const page = event.target.closest('[data-signup-page]');
+            if (page && steppedSignup()) detailPage = Number(page.dataset.signupPage);
             updateStepperUI();
         }
     }, true);
