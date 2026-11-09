@@ -75,6 +75,44 @@ class PatchNotesDialog extends StatelessWidget {
     );
   }
 
+  /// Rider and courier changes only, newest version first. Buyer-side
+  /// changes are left out because riders never see those screens.
+  static const Map<String, List<String>> riderNotes = {
+    '1.2.13': [
+      'Scan Barcodes and QR Codes: Scan the barcode or the QR code on any cartzy waybill to pull up the parcel.',
+      'Accept or Decline: Check the parcel first, then accept or decline it. Accepting tells the seller, the buyer and the hub that the parcel is with you.',
+      'Declining Sends It Back: If the hub assigned the parcel to you and you decline, it goes back to the hub to be reassigned. You can add a reason.',
+      'Vehicles by Courier Type: At sign-up, couriers choose a car, van or truck, and riders choose a motorcycle, tricycle or e-bike.',
+      'Real Pickup Requests: The pickup list shows only real seller requests, with no sample pickups.',
+    ],
+    '1.2.12': [
+      'Bottom Navigation: Move between Home, History, Earnings and Profile from the bar at the bottom.',
+      'Hub Time In and Time Out: Scan the QR code at your hub to clock in and out.',
+      'First Mile or Last Mile: Choose at sign-up whether you pick up from sellers or deliver to buyers.',
+    ],
+  };
+
+  /// The newest rider notes for [currentVersion] or the version before it
+  /// that last changed something for riders.
+  static (String, List<String>) latestRiderNotes(String currentVersion) {
+    final current = currentVersion.replaceFirst('v', '');
+    final entry = riderNotes.entries.firstWhere(
+      (e) => _compareVersions(e.key, current) <= 0,
+      orElse: () => riderNotes.entries.first,
+    );
+    return (entry.key, entry.value);
+  }
+
+  static int _compareVersions(String a, String b) {
+    final x = a.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+    final y = b.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+    for (var i = 0; i < 3; i++) {
+      final d = (i < x.length ? x[i] : 0) - (i < y.length ? y[i] : 0);
+      if (d != 0) return d;
+    }
+    return 0;
+  }
+
   static List<String> defaultHighlights(String version) {
     if (version == '1.2.13' || version == 'v1.2.13') {
       return const [

@@ -1,3 +1,5 @@
+import 'package:cartzy/services/app_update_service.dart';
+import 'package:cartzy/widgets/patch_notes_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/auth_service.dart';
@@ -119,6 +121,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   _buildProfileHeaderCard(),
                   const SizedBox(height: 20),
                   _buildTwoColumnDetails(),
+                  const SizedBox(height: 20),
+                  _buildPatchNotesCard(),
                   const SizedBox(height: 20),
                   _buildSignOutCard(),
                 ],
@@ -736,6 +740,71 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
   }
 
   // ── Bottom Sign Out Card ─────────────────────────────────────
+  /// What changed in the app for riders and couriers.
+  Widget _buildPatchNotesCard() {
+    final (version, notes) = PatchNotesDialog.latestRiderNotes(AppUpdateService.currentAppVersion);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEFE8EA)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3ECF6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.auto_awesome_outlined, size: 20, color: Color(0xFF6F6382)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "What's new for riders & couriers",
+                      style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF261E30)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Version $version · ${notes.length} updates',
+                      style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF8A7780)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => PatchNotesDialog.showPatchNotes(context, version: version, highlights: notes),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF564B68),
+                side: const BorderSide(color: Color(0xFFE1DDE7)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              icon: const Icon(Icons.article_outlined, size: 16),
+              label: Text('See patch notes', style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSignOutCard() {
     return Container(
       width: double.infinity,
