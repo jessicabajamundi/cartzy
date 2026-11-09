@@ -35,6 +35,8 @@ class AuthController extends Controller
             'status' => $user->status,
             'email_verified' => $user->email_verified_at !== null,
             'birthday' => $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : null,
+            // Riders and couriers: first_mile opens the courier dashboard, last_mile the rider one.
+            'courier_type' => $user->role === User::ROLE_COURIER ? $user->rider?->courier_type : null,
         ];
     }
 
