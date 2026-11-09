@@ -91,9 +91,13 @@ class _CartzyHomeState extends State<CartzyHome> {
     if (restored && AuthService.isAuthenticated && mounted) {
       setState(() {
         loggedInUser = AuthService.currentUser;
-        if (AuthService.currentUser?['role'] == 'rider') {
+        if (AuthService.currentUser?['role'] == 'rider' ||
+            AuthService.currentUser?['role'] == 'courier') {
           riderToken = AuthService.token;
-          pendingAccountType = AccountType.rider;
+          pendingAccountType =
+              AuthService.currentUser?['courier_type'] == 'first_mile'
+                  ? AccountType.courier
+                  : AccountType.rider;
         } else {
           pendingAccountType = AccountType.buyer;
         }
@@ -280,10 +284,13 @@ class _CartzyHomeState extends State<CartzyHome> {
     Map<String, dynamic> user, {
     String? token,
   }) {
+    final isDeliveryRole =
+        accountType == AccountType.rider || accountType == AccountType.courier;
     setState(() {
       loggedInUser = Map<String, dynamic>.from(user);
+      pendingAccountType = accountType;
 
-      if (accountType == AccountType.rider) {
+      if (isDeliveryRole) {
         riderToken = token;
       } else {
         riderToken = null;
@@ -291,9 +298,9 @@ class _CartzyHomeState extends State<CartzyHome> {
     });
 
     // IMPORTANT:
-    // Rider → Rider Dashboard
+    // Rider / Courier → Rider / Courier Dashboard
     // Buyer → Buyer Dashboard
-    if (accountType == AccountType.rider) {
+    if (isDeliveryRole) {
       goTo('riderDashboard');
     } else {
       goTo('dashboard');
@@ -346,15 +353,20 @@ class _CartzyHomeState extends State<CartzyHome> {
               if (mounted) {
                 setState(() {
                   loggedInUser = AuthService.currentUser;
-                  if (AuthService.currentUser?['role'] == 'rider') {
+                  if (AuthService.currentUser?['role'] == 'rider' ||
+                      AuthService.currentUser?['role'] == 'courier') {
                     riderToken = AuthService.token;
-                    pendingAccountType = AccountType.rider;
+                    pendingAccountType =
+                        AuthService.currentUser?['courier_type'] == 'first_mile'
+                            ? AccountType.courier
+                            : AccountType.rider;
                   } else {
                     pendingAccountType = AccountType.buyer;
                   }
                 });
               }
-              if (AuthService.currentUser?['role'] == 'rider') {
+              if (AuthService.currentUser?['role'] == 'rider' ||
+                  AuthService.currentUser?['role'] == 'courier') {
                 goTo('riderDashboard');
               } else {
                 goTo('dashboard');
@@ -430,8 +442,15 @@ class _CartzyHomeState extends State<CartzyHome> {
           },
 
           onSignUp: (accountType) {
-            // Buyer registration (with role switcher inside)
-            goTo('buyerRegistration');
+            setState(() {
+              pendingAccountType = accountType;
+            });
+            if (accountType == AccountType.rider ||
+                accountType == AccountType.courier) {
+              goTo('riderRegistration');
+            } else {
+              goTo('buyerRegistration');
+            }
           },
 
           onBack: () {
@@ -481,9 +500,14 @@ class _CartzyHomeState extends State<CartzyHome> {
 
       case 'riderRegistration':
         return RiderRegistration(
+          initialCourierType: pendingAccountType == AccountType.courier
+              ? 'first_mile'
+              : 'last_mile',
           onRegistrationSubmitted: () {
             setState(() {
-              pendingAccountType = AccountType.rider;
+              if (pendingAccountType != AccountType.courier) {
+                pendingAccountType = AccountType.rider;
+              }
             });
 
             goTo('login');

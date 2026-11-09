@@ -78,6 +78,11 @@ class PatchNotesDialog extends StatelessWidget {
   /// Rider and courier changes only, newest version first. Buyer-side
   /// changes are left out because riders never see those screens.
   static const Map<String, List<String>> riderNotes = {
+    '1.2.14': [
+      'Separate Rider & Courier Login: Choose Buyer, Rider, or Courier directly on the login screen.',
+      'First Mile Courier Dashboard: Couriers see their assigned seller pickups, parcels in their vehicle, and parcels handed to the hub.',
+      'Redesigned Header: Clean beige header with menu drawer, Cartzy title, and live notification bell.',
+    ],
     '1.2.13': [
       'Scan Barcodes and QR Codes: Scan the barcode or the QR code on any cartzy waybill to pull up the parcel.',
       'Accept or Decline: Check the parcel first, then accept or decline it. Accepting tells the seller, the buyer and the hub that the parcel is with you.',
@@ -114,6 +119,14 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.14' || version == 'v1.2.14') {
+      return const [
+        'Dedicated Rider & Courier Login: Switch seamlessly between Buyer, Rider (Last Mile), and Courier (First Mile) on the login screen.',
+        'First Mile Courier Dashboard: Couriers now have a dedicated workspace for seller pickups, vehicle inventory, and hub handoffs.',
+        'Refined Rider & Courier Header: Redesigned beige header with menu drawer, centered Cartzy branding, and live notification bell.',
+        'Role-Aware Registration: Tapping Sign Up from Rider or Courier pre-selects your corresponding delivery role.',
+      ];
+    }
     if (version == '1.2.13' || version == 'v1.2.13') {
       return const [
         'Rider Barcode & QR Parcel Scanning: Couriers can now scan parcel waybills using barcode or camera to easily collect packages.',

@@ -36,12 +36,14 @@ class RiderRegistration extends StatefulWidget {
   final VoidCallback onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
   final VoidCallback? onSwitchToBuyerRegistration;
+  final String initialCourierType;
 
   const RiderRegistration({
     super.key,
     required this.onRegistrationSubmitted,
     required this.onBackToLogin,
     this.onSwitchToBuyerRegistration,
+    this.initialCourierType = 'last_mile',
   });
 
   @override
@@ -49,6 +51,11 @@ class RiderRegistration extends StatefulWidget {
 }
 
 class _RiderRegistrationState extends State<RiderRegistration> {
+  @override
+  void initState() {
+    super.initState();
+    _courierType = widget.initialCourierType == 'first_mile' ? 'first_mile' : 'last_mile';
+  }
   // ── Step tracking: 1 = Details, 2 = Sign-in, 3 = Verify ──
   int _currentStep = 1;
 

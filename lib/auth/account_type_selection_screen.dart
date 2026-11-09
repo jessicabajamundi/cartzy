@@ -81,14 +81,27 @@ class AccountTypeSelectionScreen extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // ==================================================
-                  // RIDER
+                  // RIDER (LAST MILE)
+                  // ==================================================
+
+                  _RoleCard(
+                    label: 'Rider',
+                    description: 'Deliver parcels from the hub to buyers',
+                    icon: Icons.two_wheeler_outlined,
+                    onTap: () => onSelected(AccountType.rider),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // ==================================================
+                  // COURIER (FIRST MILE)
                   // ==================================================
 
                   _RoleCard(
                     label: 'Courier',
-                    description: 'Pick up and deliver orders',
-                    icon: Icons.two_wheeler_outlined,
-                    onTap: () => onSelected(AccountType.rider),
+                    description: 'Pick up parcels from sellers for the hub',
+                    icon: Icons.local_shipping_outlined,
+                    onTap: () => onSelected(AccountType.courier),
                   ),
                 ],
               ),

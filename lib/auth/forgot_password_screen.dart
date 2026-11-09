@@ -226,7 +226,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _ResetStep.email => (
           Icons.lock_reset_rounded,
           'Forgot password?',
-          "Enter the email you use for your ${widget.role == 'rider' ? 'courier' : 'buyer'} account and we'll send you a reset code.",
+          "Enter the email you use for your ${widget.role == 'courier' ? 'courier' : widget.role == 'rider' ? 'rider' : 'buyer'} account and we'll send you a reset code.",
         ),
       _ResetStep.code => (
           Icons.mark_email_read_outlined,

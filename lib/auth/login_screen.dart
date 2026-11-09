@@ -7,7 +7,7 @@ import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/google_sign_in_service.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
 
-enum AccountType { buyer, rider, admin }
+enum AccountType { buyer, rider, courier, admin }
 
 class LoginScreen extends StatefulWidget {
   final AccountType initialAccountType;
@@ -123,7 +123,36 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       final user = Map<String, dynamic>.from(response['user'] as Map);
       final token = response['token']?.toString();
-      widget.onLogin(user['role'] == 'rider' ? AccountType.rider : AccountType.buyer, user, token: token);
+      final serverCourierType = user['courier_type']?.toString();
+      if (_accountType == AccountType.courier) {
+        if (serverCourierType != null && serverCourierType != 'first_mile') {
+          AuthService.clearSession();
+          _showRoleMismatch();
+          return;
+        }
+        user['courier_type'] = 'first_mile';
+        AuthService.setSession(user: user, token: token);
+        widget.onLogin(AccountType.courier, user, token: token);
+        return;
+      }
+      if (_accountType == AccountType.rider) {
+        if (serverCourierType == 'first_mile') {
+          AuthService.clearSession();
+          _showRoleMismatch();
+          return;
+        }
+        user['courier_type'] = serverCourierType ?? 'last_mile';
+        AuthService.setSession(user: user, token: token);
+        widget.onLogin(AccountType.rider, user, token: token);
+        return;
+      }
+      widget.onLogin(
+        user['role'] == 'rider'
+            ? (serverCourierType == 'first_mile' ? AccountType.courier : AccountType.rider)
+            : AccountType.buyer,
+        user,
+        token: token,
+      );
       return;
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -178,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = Map<String, dynamic>.from(response['user'] as Map);
       final token = response['token']?.toString();
       final userRole = (user['role'] == 'rider' || user['role'] == 'courier')
-          ? AccountType.rider
+          ? (user['courier_type'] == 'first_mile' ? AccountType.courier : AccountType.rider)
           : AccountType.buyer;
 
       widget.onLogin(userRole, user, token: token);
@@ -198,10 +227,18 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  String get _selectedRole => _accountType == AccountType.rider ? 'rider' : 'buyer';
+  String get _selectedRole => switch (_accountType) {
+        AccountType.courier => 'courier',
+        AccountType.rider => 'rider',
+        _ => 'buyer',
+      };
 
   void _showRoleMismatch() {
-    final selectedLabel = _accountType == AccountType.rider ? 'Courier' : 'Buyer';
+    final selectedLabel = switch (_accountType) {
+      AccountType.courier => 'Courier',
+      AccountType.rider => 'Rider',
+      _ => 'Buyer',
+    };
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Please use a $selectedLabel account to sign in here.')),
     );
@@ -293,7 +330,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                           child: Text(
-                            _accountType == AccountType.rider ? 'COURIER' : 'BUYER',
+                            switch (_accountType) {
+                              AccountType.courier => 'COURIER',
+                              AccountType.rider => 'RIDER',
+                              _ => 'BUYER',
+                            },
                             style: GoogleFonts.dmSans(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
@@ -320,7 +361,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 6),
                   Center(
                     child: Text(
-                      'Login to your account and continue shopping',
+                      switch (_accountType) {
+                        AccountType.courier => 'Login to your courier account to collect parcels',
+                        AccountType.rider => 'Login to your rider account to deliver parcels',
+                        _ => 'Login to your account and continue shopping',
+                      },
                       textAlign: TextAlign.center,
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
@@ -714,7 +759,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 9),
                       child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 13)),
                     ),
-                    _workspaceLink('Courier', AccountType.rider),
+                    _workspaceLink('Rider', AccountType.rider),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 9),
+                      child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 13)),
+                    ),
+                    _workspaceLink('Courier', AccountType.courier),
                   ],
                 ),
               ),
