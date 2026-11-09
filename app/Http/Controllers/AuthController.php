@@ -525,6 +525,10 @@ class AuthController extends Controller
         $courierRules = ($request->input('role') === User::ROLE_COURIER && ($request->has('logistics_provider_id') || $request->has('vehicle_type') || $request->hasFile('license_doc') || $request->hasFile('or_cr_doc'))) ? [
             'logistics_provider_id' => ['required', 'exists:logistics_providers,id'],
             'vehicle_type'          => ['required', 'string', Rule::in(array_keys(\App\Models\Rider::vehicleTypesFor($request->input('courier_type'))))],
+            // Home address: hubs match riders to nearby pickups and deliveries by barangay.
+            'province'              => ['required', 'string', 'max:100'],
+            'city'                  => ['required', 'string', 'max:100'],
+            'barangay'              => ['required', 'string', 'max:100'],
             'courier_type'          => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
             'plate_no'              => [
                 Rule::requiredIf(fn () => !in_array($request->input('vehicle_type'), ['bicycle', 'ebike'], true)),

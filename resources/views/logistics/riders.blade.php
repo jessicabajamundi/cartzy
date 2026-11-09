@@ -1,19 +1,40 @@
 @extends('layouts.logistics')
 @section('title', 'Rider Management | Logistics Hub | cartzy')
+@section('page_eyebrow', 'YOUR DELIVERY TEAM')
 @section('page_title', 'Rider Management')
+@section('page_description', 'Find a rider, review an application, or update courier availability.')
 @section('page_subtitle', 'Review applications and manage your delivery team')
+@section('page_actions')
+<span class="date-label">{{ $counts['all'] }} {{ Str::plural('rider', $counts['all']) }} in your hub</span>
+@endsection
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-riders.css') }}?v={{ filemtime(public_path('css/logistics-riders.css')) }}">
 @endpush
 @section('content')
 <section class="rider-workspace" aria-label="Rider management">
-    <div class="rider-heading"><div><span class="rider-eyebrow">YOUR DELIVERY TEAM</span><h2>Rider directory</h2><p>Find a rider, review an application, or update availability.</p></div><span class="rider-total">{{ $counts['all'] }} {{ Str::plural('rider', $counts['all']) }} in your hub</span></div>
-    <div class="rider-metrics">
-        @foreach(['pending' => ['Awaiting review', 'Applications that need your attention'], 'active' => ['Active riders', 'Approved and marked active'], 'inactive' => ['Inactive riders', 'Approved and currently inactive']] as $key => [$label, $detail])
-        <a class="rider-metric rider-metric-{{ $key }}" href="{{ route('logistics.riders', ['filter' => $key]) }}"><span>{{ $label }} <span aria-hidden="true">↗</span></span><strong>{{ $counts[$key] }}</strong><small>{{ $detail }}</small></a>
+    <div class="stats-grid dashboard-stats">
+        <a class="stat-card" href="{{ route('logistics.riders', ['filter' => 'all']) }}">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'users'])</span>
+                <span>Directory</span>
+            </div>
+            <span>Total fleet</span>
+            <strong>{{ $counts['all'] }}</strong>
+            <small>All riders registered in your hub</small>
+        </a>
+        @foreach(['pending' => ['Awaiting review', 'Needs Action', 'Applications that need your attention', 'file'], 'active' => ['Active riders', 'On Duty', 'Approved and marked active', 'truck'], 'inactive' => ['Inactive riders', 'Off Duty', 'Approved and currently inactive', 'clock']] as $key => [$label, $tag, $detail, $icon])
+        <a class="stat-card rider-metric rider-metric-{{ $key }}" href="{{ route('logistics.riders', ['filter' => $key]) }}">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => $icon])</span>
+                <span>{{ $tag }}</span>
+            </div>
+            <span>{{ $label }} <span aria-hidden="true">↗</span></span>
+            <strong>{{ $counts[$key] }}</strong>
+            <small>{{ $detail }}</small>
+        </a>
         @endforeach
     </div>
-    <div class="rider-panel">
+    <div class="panel rider-panel">
         <form method="GET" action="{{ route('logistics.riders') }}" class="rider-search">
             <input type="hidden" name="filter" value="{{ $filter }}">
             <input type="hidden" name="type" value="{{ $type }}">

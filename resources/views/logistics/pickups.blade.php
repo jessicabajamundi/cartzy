@@ -1,59 +1,57 @@
 @extends('layouts.logistics')
 @section('title', 'Pickup Requests | Logistics Hub | cartzy')
+@section('page_eyebrow', 'PARCEL DISPATCH & OPERATIONS')
 @section('page_title', 'Parcel Pickup Requests')
+@section('page_description', 'First Mile couriers collect parcels from the seller warehouse and bring them to the hub. Smart area matching suggests the closest courier for each pickup.')
 @section('page_subtitle', 'Confirm schedules and request nearby riders for merchant collection')
+@if($counts['dispatchable'] > 0)
+@section('page_actions')
+<form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" onsubmit="if (!confirm('Dispatch the nearest active First Mile courier to {{ $counts['dispatchable'] }} waiting pickup(s)?')) return false; this.querySelector('button').disabled = true;">@csrf<button type="submit" class="button btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
+@endsection
+@endif
 
 @section('content')
 <div class="pickup-workspace">
-    <header class="pickup-heading">
-        <div>
-            <p class="pickup-kicker">PARCEL DISPATCH &amp; OPERATIONS</p>
-            <h2>Pickup requests &amp; First Mile dispatch</h2>
-            <p>First Mile couriers collect parcels from the seller's warehouse and bring them to the hub. Smart area matching suggests the closest one for each pickup.</p>
-        </div>
-        @if($counts['dispatchable'] > 0)
-            <form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" onsubmit="if (!confirm('Dispatch the nearest active First Mile courier to {{ $counts['dispatchable'] }} waiting pickup(s)?')) return false; this.querySelector('button').disabled = true;">@csrf<button type="submit" class="btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
-        @else
-            <span class="pickup-heading-icon">@include('seller.partials.icon', ['name' => 'truck', 'size' => 28])</span>
-        @endif
-    </header>
-
     {{-- Overview Metrics Cards --}}
-    <div class="pickup-overview" aria-label="Pickup totals">
-        <a href="{{ route('logistics.pickups', ['status' => 'pending']) }}" class="pickup-metric {{ $filter === 'pending' ? 'is-active-filter' : '' }} is-rose">
-            <div>
-                <span>Awaiting confirmation</span>
-                <strong>{{ $counts['pending'] }}</strong>
-                <small>Needs schedule review</small>
+    <div class="stats-grid dashboard-stats pickup-overview" aria-label="Pickup totals">
+        <a href="{{ route('logistics.pickups', ['status' => 'pending']) }}" class="stat-card pickup-metric {{ $filter === 'pending' ? 'is-active-filter' : '' }} is-rose">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'box'])</span>
+                <span>Schedule</span>
             </div>
-            <span class="pickup-metric-icon">@include('seller.partials.icon', ['name' => 'box', 'size' => 21])</span>
+            <span>Awaiting confirmation</span>
+            <strong>{{ $counts['pending'] }}</strong>
+            <small>Needs schedule review</small>
         </a>
 
-        <a href="{{ route('logistics.pickups', ['status' => 'unassigned']) }}" class="pickup-metric {{ $filter === 'unassigned' ? 'is-active-filter' : '' }} is-amber">
-            <div>
-                <span>Needs a rider</span>
-                <strong>{{ $counts['unassigned'] }}</strong>
-                <small>Ready for rider dispatch</small>
+        <a href="{{ route('logistics.pickups', ['status' => 'unassigned']) }}" class="stat-card pickup-metric {{ $filter === 'unassigned' ? 'is-active-filter' : '' }} is-amber">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'users'])</span>
+                <span>Dispatch</span>
             </div>
-            <span class="pickup-metric-icon">@include('seller.partials.icon', ['name' => 'user', 'size' => 21])</span>
+            <span>Needs a rider</span>
+            <strong>{{ $counts['unassigned'] }}</strong>
+            <small>Ready for rider dispatch</small>
         </a>
 
-        <a href="{{ route('logistics.pickups', ['status' => 'assigned']) }}" class="pickup-metric {{ $filter === 'assigned' ? 'is-active-filter' : '' }} is-emerald">
-            <div>
-                <span>Rider dispatched</span>
-                <strong>{{ $counts['assigned'] }}</strong>
-                <small>Assigned to collection route</small>
+        <a href="{{ route('logistics.pickups', ['status' => 'assigned']) }}" class="stat-card pickup-metric {{ $filter === 'assigned' ? 'is-active-filter' : '' }} is-emerald">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'truck'])</span>
+                <span>Active</span>
             </div>
-            <span class="pickup-metric-icon">@include('seller.partials.icon', ['name' => 'truck', 'size' => 21])</span>
+            <span>Rider dispatched</span>
+            <strong>{{ $counts['assigned'] }}</strong>
+            <small>Assigned to collection route</small>
         </a>
 
-        <a href="{{ route('logistics.pickups', ['status' => 'all']) }}" class="pickup-metric {{ $filter === 'all' ? 'is-active-filter' : '' }}">
-            <div>
-                <span>Total requests</span>
-                <strong>{{ $counts['all'] }}</strong>
-                <small>All hub pickup orders</small>
+        <a href="{{ route('logistics.pickups', ['status' => 'all']) }}" class="stat-card pickup-metric {{ $filter === 'all' ? 'is-active-filter' : '' }}">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'chart'])</span>
+                <span>All-time</span>
             </div>
-            <span class="pickup-metric-icon">@include('seller.partials.icon', ['name' => 'chart', 'size' => 21])</span>
+            <span>Total requests</span>
+            <strong>{{ $counts['all'] }}</strong>
+            <small>All hub pickup orders</small>
         </a>
     </div>
 
@@ -232,7 +230,7 @@
                                                 </div>
                                                 <h4 class="suggestion-rider-name">
                                                     {{ $nearestRider['name'] }}
-                                                    <span class="suggestion-area">({{ $nearestRider['area'] }})</span>
+                                                    <span class="suggestion-area">({{ $nearestRider['home'] ? '🏠 '.$nearestRider['home'] : $nearestRider['area'] }})</span>
                                                 </h4>
                                             </div>
                                         </div>
@@ -307,35 +305,45 @@
                         <div class="modal-filter-bar">
                             <label class="modal-search-label" for="rider-search-{{ $pickup['id'] }}">Find a rider</label>
                             <input id="rider-search-{{ $pickup['id'] }}" type="search" class="modal-rider-search" placeholder="Search by name, area or vehicle..." data-filter-target="rider-list-{{ $pickup['id'] }}">
-                            <span class="modal-filter-hint">Ranked by proximity to this seller's pickup location</span>
+                            <span class="modal-filter-hint">Grouped by where riders live, closest to this seller's pickup address first</span>
                         </div>
 
                         <div class="modal-rider-list" id="rider-list-{{ $pickup['id'] }}">
                             @php
-                                $nearbyMatches = collect($pickup['ranked_riders'] ?? [])->filter(fn($r) => $r['is_nearby']);
-                                $otherRiders   = collect($pickup['ranked_riders'] ?? [])->reject(fn($r) => $r['is_nearby']);
+                                // Grouped by where each rider lives compared with the seller's pickup address.
+                                $rankedList = collect($pickup['ranked_riders'] ?? []);
+                                $riderGroups = [
+                                    'Lives in the same barangay' => $rankedList->where('home_level', 'barangay'),
+                                    'Lives in the same city' => $rankedList->where('home_level', 'city'),
+                                    'Lives in the same province' => $rankedList->where('home_level', 'province'),
+                                    'Nearby by service area' => $rankedList->filter(fn ($r) => !$r['home_level'] && $r['is_nearby']),
+                                    'Other riders' => $rankedList->filter(fn ($r) => !$r['home_level'] && !$r['is_nearby']),
+                                ];
+                                $nearbyMatches = $rankedList->filter(fn ($r) => $r['is_nearby']);
+                                $otherRiders = $rankedList->reject(fn ($r) => $r['is_nearby']);
                             @endphp
 
-                            @if($nearbyMatches->isNotEmpty())
+                            @foreach($riderGroups as $groupLabel => $groupRiders)
+                                @continue($groupRiders->isEmpty())
                                 <div class="rider-group-heading">
-                                    <span>Recommended nearby ({{ $nearbyMatches->count() }})</span>
+                                    <span>{{ $groupLabel }} ({{ $groupRiders->count() }})</span>
                                 </div>
-                                @foreach($nearbyMatches as $r)
-                                    <div class="modal-rider-item is-nearby-item" data-rider-search="{{ mb_strtolower($r['name'].' '.$r['area'].' '.$r['vehicle_type']) }}">
+                                @foreach($groupRiders as $r)
+                                    <div class="modal-rider-item {{ $r['is_nearby'] ? 'is-nearby-item' : '' }}" data-rider-search="{{ mb_strtolower($r['name'].' '.$r['area'].' '.$r['vehicle_type'].' '.($r['home'] ?? '')) }}">
                                         <div class="rider-item-left">
                                             <span class="rider-badge-icon" aria-hidden="true">{{ mb_strtoupper(mb_substr($r['name'], 0, 1)) }}</span>
                                             <div>
                                                 <div class="rider-item-name-row">
                                                     <strong>{{ $r['name'] }}</strong>
-                                                    <span class="area-match-tag">{{ $r['match_badge'] }}</span>
+                                                    <span class="area-match-tag {{ $r['is_nearby'] ? '' : 'is-other' }}">{{ $r['is_nearby'] ? $r['match_badge'] : $r['area'] }}</span>
                                                     @if($r['is_active'])
                                                         <span class="online-indicator">Online</span>
                                                     @endif
                                                 </div>
                                                 <div class="rider-item-meta">
+                                                    <span>🏠 {{ $r['home'] ?? 'No home address yet' }}</span>
                                                     <span>📍 {{ $r['area'] }}</span>
                                                     <span>{{ $r['vehicle_type'] }} ({{ $r['plate_no'] }})</span>
-                                                    <span>★ {{ number_format($r['rating'], 2) }}</span>
                                                     <span>{{ $r['deliveries_today'] }} deliveries today</span>
                                                 </div>
                                             </div>
@@ -344,45 +352,13 @@
                                         <form method="POST" action="{{ route('logistics.pickups.assign', $pickup['id']) }}">
                                             @csrf
                                             <input type="hidden" name="rider_id" value="{{ $r['id'] }}">
-                                            <button type="submit" class="btn-select-rider">
+                                            <button type="submit" class="btn-select-rider {{ $r['is_nearby'] ? '' : 'secondary' }}">
                                                 <span>Dispatch &rarr;</span>
                                             </button>
                                         </form>
                                     </div>
                                 @endforeach
-                            @endif
-
-                            @if($otherRiders->isNotEmpty())
-                                <div class="rider-group-heading">
-                                    <span>Fleet Riders ({{ $otherRiders->count() }})</span>
-                                </div>
-                                @foreach($otherRiders as $r)
-                                    <div class="modal-rider-item" data-rider-search="{{ mb_strtolower($r['name'].' '.$r['area'].' '.$r['vehicle_type']) }}">
-                                        <div class="rider-item-left">
-                                            <span class="rider-badge-icon" aria-hidden="true">{{ mb_strtoupper(mb_substr($r['name'], 0, 1)) }}</span>
-                                            <div>
-                                                <div class="rider-item-name-row">
-                                                    <strong>{{ $r['name'] }}</strong>
-                                                    <span class="area-match-tag is-other">{{ $r['area'] }}</span>
-                                                </div>
-                                                <div class="rider-item-meta">
-                                                    <span>{{ $r['vehicle_type'] }} ({{ $r['plate_no'] }})</span>
-                                                    <span>★ {{ number_format($r['rating'], 2) }}</span>
-                                                    <span>{{ $r['deliveries_today'] }} deliveries</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <form method="POST" action="{{ route('logistics.pickups.assign', $pickup['id']) }}">
-                                            @csrf
-                                            <input type="hidden" name="rider_id" value="{{ $r['id'] }}">
-                                            <button type="submit" class="btn-select-rider secondary">
-                                                <span>Dispatch &rarr;</span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endforeach
-                            @endif
+                            @endforeach
 
                             @if($nearbyMatches->isEmpty() && $otherRiders->isEmpty())
                                 <div class="modal-empty-riders">

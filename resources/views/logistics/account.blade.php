@@ -1,7 +1,12 @@
 @extends('layouts.logistics')
 @section('title', 'Account Management | Logistics Hub | cartzy')
+@section('page_eyebrow', 'LOGISTICS ACCOUNT')
 @section('page_title', 'Account Management')
+@section('page_description', 'Manage your registration details, business documents, and hub credentials.')
 @section('page_subtitle', 'Manage your registration details, business information, and credentials')
+@section('page_actions')
+<a href="{{ route('logistics.dashboard') }}" class="button subtle">Back to dashboard</a>
+@endsection
 @section('content')
 @php
     $nameParts = explode(' ', $hub->name ?? '', 2);
@@ -9,23 +14,43 @@
     $idStatus = $hub->id_status ?? 'unverified';
 @endphp
 <div class="hub-account">
-    <div class="page-heading">
-        <div class="page-identity">
-            <span class="page-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($hub->business_name ?: $hub->name, 0, 1)) }}</span>
-            <div>
-                <p class="eyebrow">Logistics account</p>
-                <h2>{{ $hub->business_name ?: $hub->name }}</h2>
-                <p class="muted">{{ $hub->email }}</p>
+    <section class="stats-grid dashboard-stats" aria-label="Account overview">
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'user'])</span>
+                <span>Access</span>
             </div>
+            <span>Account status</span>
+            <strong>{{ ucfirst($hub->status) }}</strong>
+            <small><span class="badge {{ $hub->status === 'active' ? 'good' : 'warning' }}">{{ $hub->status === 'active' ? 'Can sign in' : 'Restricted' }}</span></small>
         </div>
-        <a href="{{ route('logistics.dashboard') }}" class="button subtle">Back to dashboard</a>
-    </div>
-
-    <section class="stats-grid" aria-label="Account overview">
-        <div class="stat-card"><span>Account status</span><strong>{{ ucfirst($hub->status) }}</strong><small><span class="badge {{ $hub->status === 'active' ? 'good' : 'warning' }}">{{ $hub->status === 'active' ? 'Can sign in' : 'Restricted' }}</span></small></div>
-        <div class="stat-card"><span>Registration</span><strong>{{ ucfirst($registration) }}</strong><small>Decisions are sent to your email</small></div>
-        <div class="stat-card"><span>ID verification</span><strong>{{ ucfirst($idStatus) }}</strong><small>A replacement ID is marked pending review</small></div>
-        <div class="stat-card"><span>Member since</span><strong>{{ $hub->created_at?->format('M j, Y') ?? '—' }}</strong><small>{{ $hub->city ?: 'Hub location not set' }}</small></div>
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'file'])</span>
+                <span>Partner</span>
+            </div>
+            <span>Registration</span>
+            <strong>{{ ucfirst($registration) }}</strong>
+            <small>Subject to administrator approval &middot; decisions sent by email</small>
+        </div>
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'shield'])</span>
+                <span>Compliance</span>
+            </div>
+            <span>ID verification</span>
+            <strong>{{ ucfirst($idStatus) }}</strong>
+            <small>A replacement ID is marked pending review</small>
+        </div>
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'truck'])</span>
+                <span>Hub</span>
+            </div>
+            <span>Member since</span>
+            <strong>{{ $hub->created_at?->format('M j, Y') ?? '—' }}</strong>
+            <small>{{ $hub->city ?: 'Hub location not set' }}</small>
+        </div>
     </section>
 
     <form id="logistics-account-form" data-errors="{{ $errors->toJson() }}" method="POST" action="{{ route('logistics.account.update') }}" enctype="multipart/form-data" class="psgc-address-form">

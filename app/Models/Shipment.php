@@ -9,6 +9,12 @@ class Shipment extends Model
 {
     use HasFactory;
 
+    /** A First Mile courier collects the parcel from the seller. */
+    public const PICKUP = 'pickup';
+
+    /** The seller brings the parcel to the hub; no courier is sent. */
+    public const DROPOFF = 'dropoff';
+
     protected $fillable = [
         'seller_order_id',
         'logistics_provider_id',
@@ -16,6 +22,7 @@ class Shipment extends Model
         'pickup_rider_id',
         'tracking_code',
         'status',
+        'handover_method',
         'delivery_area',
         'sort_status',
         'weight_kg',
@@ -38,6 +45,11 @@ class Shipment extends Model
         'sorted_at'        => 'datetime',
         'assigned_at'      => 'datetime',
     ];
+
+    public function isDropoff(): bool
+    {
+        return $this->handover_method === self::DROPOFF;
+    }
 
     public function sellerOrder()
     {

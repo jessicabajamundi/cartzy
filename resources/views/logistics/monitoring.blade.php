@@ -1,19 +1,31 @@
 @extends('layouts.logistics')
 @section('title', 'Delivery Monitoring | Logistics Hub | cartzy')
+@section('page_eyebrow', 'PARCEL OPERATIONS / DELIVERY OVERVIEW')
 @section('page_title', 'Delivery Monitoring')
+@section('page_description', 'Find a parcel, check its progress across your delivery areas, and follow up with the assigned rider.')
 @section('page_subtitle', 'Check delivery progress and follow up on parcels that need attention')
+@section('page_actions')
+<a class="button subtle monitor-button" href="{{ route('logistics.monitoring', request()->only('status','search','page')) }}"><span aria-hidden="true">↻</span> Refresh status</a>
+@endsection
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-monitoring.css') }}?v={{ filemtime(public_path('css/logistics-monitoring.css')) }}">
 @endpush
 @section('content')
 <section class="delivery-monitor" aria-label="Delivery monitoring">
-    <header class="monitor-heading"><div><span class="monitor-eyebrow">DELIVERY OVERVIEW</span><h2>Every delivery, easy to follow.</h2><p>Find a parcel, check its progress, and follow up with the rider.</p></div><div class="monitor-refresh"><a class="monitor-button" href="{{ route('logistics.monitoring', request()->only('status','search','page')) }}"><span aria-hidden="true">↻</span> Refresh status</a><small>Refresh to see the latest updates</small></div></header>
-    <div class="monitor-metrics">
-        @foreach(['failed'=>['Needs attention','Failed deliveries to follow up'], 'out_for_delivery'=>['Out for delivery','On the way to the recipient'], 'in_transit'=>['In transit','Moving to the next destination'], 'delivered'=>['Delivered','Completed deliveries']] as $key=>[$title,$detail])
-        <a class="monitor-metric {{ $key }}" href="{{ route('logistics.monitoring', ['status'=>$key]) }}"><span>{{ $title }} <span aria-hidden="true">↗</span></span><strong>{{ $counts[$key] }}</strong><small>{{ $detail }}</small></a>
+    <div class="stats-grid dashboard-stats monitor-metrics">
+        @foreach(['failed'=>['Needs attention','Alert','Failed deliveries to follow up','shield'], 'out_for_delivery'=>['Out for delivery','Active','On the way to the recipient','truck'], 'in_transit'=>['In transit','Moving','Moving to the next destination','activity'], 'delivered'=>['Delivered','Completed','Completed deliveries','box']] as $key=>[$title,$tag,$detail,$icon])
+        <a class="stat-card monitor-metric {{ $key }}" href="{{ route('logistics.monitoring', ['status'=>$key]) }}">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => $icon])</span>
+                <span>{{ $tag }}</span>
+            </div>
+            <span>{{ $title }} <span aria-hidden="true">↗</span></span>
+            <strong>{{ $counts[$key] }}</strong>
+            <small>{{ $detail }}</small>
+        </a>
         @endforeach
     </div>
-    <div class="monitor-panel">
+    <div class="panel monitor-panel">
         <form method="GET" action="{{ route('logistics.monitoring') }}" class="monitor-search"><input type="hidden" name="status" value="{{ $filter }}"><div><label for="delivery-search">Find a delivery</label><input type="search" name="search" id="delivery-search" value="{{ $search }}" placeholder="Tracking number, recipient, rider or area"></div><button class="monitor-button primary" type="submit">Search deliveries</button>@if($search !== '')<a href="{{ route('logistics.monitoring', ['status'=>$filter]) }}" class="monitor-clear">Clear search</a>@endif</form>
         <nav class="monitor-tabs" aria-label="Delivery status">@foreach($labels as $key=>$label)<a href="{{ route('logistics.monitoring', ['status'=>$key,'search'=>$search]) }}" @if($filter === $key) aria-current="page" @endif>{{ $label }} <span>{{ $counts[$key] }}</span></a>@endforeach</nav>
         <div class="monitor-results"><span>{{ $parcels->total() }} {{ Str::plural('delivery', $parcels->total()) }}@if($search !== '') matching “{{ $search }}”@endif</span><span><i aria-hidden="true"></i> Failed deliveries appear first</span></div>

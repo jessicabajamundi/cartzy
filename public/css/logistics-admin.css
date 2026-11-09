@@ -67,39 +67,50 @@ body.logistics-admin .hub-chat-label { border-color: var(--line); background: va
 }
 
 /* ---------- Metric boxes -> admin stat cards ---------- */
-body.logistics-admin :is(.operations-metrics, .pickup-overview, .rider-metrics, .monitor-metrics) { gap: 15px; margin-bottom: 22px; border: 0; background: transparent; border-radius: 0; overflow: visible; }
-body.logistics-admin :is(.operations-metric, .pickup-metric, .rider-metric, .monitor-metric, .notice-summary) {
-    padding: 20px; background: var(--surface); border: 1px solid var(--line); border-top: 1px solid var(--line); border-radius: 13px;
-    box-shadow: 0 3px 8px #34243f03; color: var(--ink);
+body.logistics-admin :is(.operations-metrics, .pickup-overview, .rider-metrics, .monitor-metrics, .hub-steps) { gap: 15px; margin-bottom: 22px; border: 0; background: transparent; border-radius: 0; overflow: visible; }
+body.logistics-admin .stats-grid .stat-card {
+    display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; text-align: left;
+    padding: 20px; background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--focus-ring); border-radius: 13px;
+    box-shadow: 0 3px 8px #34243f03; color: var(--ink); gap: 9px;
 }
-body.logistics-admin .operations-metric + .operations-metric { border-left: 1px solid var(--line); }
-body.logistics-admin :is(.operations-metric, .pickup-metric, .rider-metric, .monitor-metric):hover { background: var(--surface); border-color: var(--focus); box-shadow: 0 4px 18px var(--shadow); }
-body.logistics-admin :is(.operations-metric, .pickup-metric, .rider-metric, .monitor-metric) strong { font-size: clamp(24px, 2.2vw, 32px); font-weight: 650; letter-spacing: -1.2px; line-height: 1.25; color: var(--ink); }
-body.logistics-admin :is(.operations-metric, .pickup-metric, .rider-metric, .monitor-metric) :is(small, .operations-metric-detail) { font-size: 10px; color: var(--muted); }
-body.logistics-admin :is(.operations-metric-label, .pickup-metric span, .rider-metric > span, .monitor-metric > span) { font-size: 11px; font-weight: 500; color: var(--muted); }
-body.logistics-admin .pickup-metric :is(.is-rose, .is-amber, .is-emerald), body.logistics-admin .pickup-metric.is-rose, body.logistics-admin .pickup-metric.is-amber, body.logistics-admin .pickup-metric.is-emerald { background: var(--surface); border-color: var(--line); }
-body.logistics-admin .pickup-metric.is-rose strong, body.logistics-admin .pickup-metric.is-amber strong { color: var(--rose-ink); }
-body.logistics-admin .pickup-metric.is-active-filter { border-color: var(--accent); box-shadow: inset 0 -3px var(--accent); }
-body.logistics-admin .pickup-metric-icon { background: var(--accent-light); color: var(--accent); border-radius: 10px; }
-body.logistics-admin .operations-metric:nth-child(4) strong { color: var(--rose-ink); }
-body.logistics-admin .notice-summary { background: var(--surface); }
-body.logistics-admin .notice-summary-icon { background: var(--accent-light); border-color: var(--line); color: var(--accent); border-radius: 12px; }
+body.logistics-admin .dashboard-stats .stat-card:nth-child(even) {
+    background: linear-gradient(145deg, #fff 65%, var(--rose-soft)); border-color: var(--rose-border); border-top: 3px solid var(--rose-border);
+}
+body.logistics-admin .stats-grid .stat-card .metric-heading {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 8px; width: 100%;
+}
+body.logistics-admin .stats-grid .stat-card .metric-heading > span:last-child {
+    font-size: 9px; font-weight: 600; color: var(--muted); background: #f7f5fa; border-radius: 5px; padding: 3px 7px;
+}
+body.logistics-admin .dashboard-stats .stat-card:nth-child(even) .metric-heading > span:last-child {
+    background: var(--rose-soft); color: var(--rose-ink);
+}
+body.logistics-admin .stats-grid .stat-card > span { font-size: 11px; font-weight: 500; color: var(--muted); }
+body.logistics-admin .stats-grid .stat-card strong { font-size: clamp(24px, 2.2vw, 32px); font-weight: 650; letter-spacing: -1.2px; line-height: 1.25; color: var(--ink); margin: 0; }
+body.logistics-admin .stats-grid .stat-card small { font-size: 10px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 11px; margin-top: auto; line-height: 1.6; width: 100%; }
+body.logistics-admin .stats-grid .stat-card[href]:hover { border-color: var(--focus); box-shadow: 0 6px 18px #51336e0d; transform: none; }
+body.logistics-admin .stats-grid .stat-card:is(.is-active-filter, [aria-current="page"]) {
+    border-color: var(--accent); border-top: 3px solid var(--accent); box-shadow: 0 6px 18px #51336e14;
+}
 
 /* ---------- Panels / cards -> admin panel ---------- */
-body.logistics-admin :is(.operations-panel, .operations-filter-card, .pickup-card, .rider-panel, .monitor-panel, .notice-inbox, .hub-chat, .hub-panel, .hub-dashboard-panel) {
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--lg-radius); box-shadow: var(--lg-card);
+body.logistics-admin :is(.operations-panel, .operations-filter-card, .pickup-card, .rider-panel, .monitor-panel, .notice-inbox, .hub-chat, .hub-panel, .hub-dashboard-panel, .att-qr-card, .att-panel) {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 13px; box-shadow: 0 3px 8px #34243f03;
 }
+body.logistics-admin .operations-filter-card { padding: 16px 21px; margin-bottom: 22px; }
 body.logistics-admin .pickup-card.is-pending { border-left: 1px solid var(--line); box-shadow: var(--lg-card), inset 3px 0 var(--rose-ink); }
 body.logistics-admin .pickup-card:hover { box-shadow: 0 6px 22px #28213312; }
-body.logistics-admin :is(.operations-panel-heading, .hub-chat-thread-head, .notice-toolbar, .hub-toolbar) { border-color: var(--line); }
+body.logistics-admin :is(.operations-panel-heading, .hub-chat-thread-head, .notice-toolbar, .hub-toolbar, .att-qr-top, .att-panel-head) { border-color: var(--line); }
 body.logistics-admin .operations-panel-heading h3 { font-size: 15px; font-weight: 650; color: var(--ink); }
 body.logistics-admin :is(.pickup-toolbar, .rider-search, .monitor-search, .hub-search) { background: var(--canvas); border-color: var(--line); }
 body.logistics-admin :is(.nearest-suggestion-box, .unassigned-dispatch-card, .assigned-rider-card) { background: var(--canvas); border: 1px solid var(--line); border-radius: 12px; }
 body.logistics-admin :is(.pickup-card-footer, .hub-chat-compose-area, .hub-chat-sidebar-foot) { border-color: var(--line); background: var(--surface); }
 body.logistics-admin :is(.rider-dialog, .modal-dialog-content) { border: 1px solid var(--line); border-radius: var(--lg-radius); box-shadow: 0 20px 60px var(--overlay); color: var(--ink); }
 body.logistics-admin .modal-header { background: var(--canvas); border-color: var(--line); }
-body.logistics-admin :is(.modal-rider-item, .hub-row) { border-color: var(--line); }
+body.logistics-admin :is(.modal-rider-item, .hub-row, .att-on-shift li) { border-color: var(--line); }
 body.logistics-admin .modal-rider-item:hover { background: var(--canvas); border-color: var(--focus); }
+body.logistics-admin .att-countdown-bar { background: var(--accent-light); }
+body.logistics-admin .att-countdown-bar span { background: var(--accent); }
 
 /* ---------- Buttons -> admin .button ---------- */
 body.logistics-admin :is(.operations-button, .operations-filter-submit-btn, .btn-dispatch-nearest, .btn-select-rider, .rider-primary, .monitor-button.primary, .notice-button, .hub-button.primary, .hub-primary-button, .pickup-search button, .monitor-search button, .rider-search button[type="submit"]) {

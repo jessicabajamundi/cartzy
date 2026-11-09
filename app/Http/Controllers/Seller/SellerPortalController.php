@@ -240,41 +240,135 @@ class SellerPortalController extends Controller
         return back()->with('success', 'Cancellation request '.$data['decision'].'.');
     }
 
-    public function courier(Request $request)
+    public function courier(Request $request, \App\Services\HubRecommender $hubs)
     {
         $request->validate(['status' => ['nullable', Rule::in(['ready_to_ship', 'shipped'])]]);
+        $pickupAddress = $this->pickupLocation($this->shop());
+        $providers = LogisticsProvider::where('status', 'approved')->with('user')->orderBy('name')->get();
+
         return $this->page('courier', [
             'orders' => $this->ordersQuery()->whereIn('status', ['ready_to_ship', 'shipped'])
                 ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
-                ->with(['order.buyer', 'shipment.logisticsProvider', 'shipment.rider.user'])->latest()->paginate(15)->withQueryString(),
-            'providers' => LogisticsProvider::where('status', 'approved')->orderBy('name')->get(),
+                ->with(['order.buyer', 'shipment.logisticsProvider.user', 'shipment.rider.user', 'shipment.pickupRider.user'])->latest()->paginate(15)->withQueryString(),
+            'providers' => $providers,
+            // Closest hub first, by the seller's pickup address.
+            'rankedProviders' => $hubs->rank($providers, $pickupAddress),
+            'pickupAddress' => $pickupAddress,
         ]);
     }
 
+    /**
+     * The seller picks a hub and how the parcel gets there: a First Mile
+     * courier picks it up (creates a pickup request for the hub to dispatch),
+     * or the seller drops it off at the hub (no courier is sent; the hub
+     * receives it when it arrives).
+     */
     public function schedulePickup(Request $request, int $id)
     {
-        $data = $request->validate(['logistics_provider_id' => ['required', 'integer', Rule::exists('logistics_providers', 'id')->where('status', 'approved')], 'pickup_date' => 'required|date_format:Y-m-d|after_or_equal:today', 'notes' => 'nullable|string|max:1000']);
-        DB::transaction(function () use ($id, $data) {
+        $data = $request->validate([
+            'logistics_provider_id' => ['required', 'integer', Rule::exists('logistics_providers', 'id')->where('status', 'approved')],
+            'handover_method' => ['nullable', Rule::in([Shipment::PICKUP, Shipment::DROPOFF])],
+            'pickup_date' => 'required|date_format:Y-m-d|after_or_equal:today',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+        $method = $data['handover_method'] ?? Shipment::PICKUP;
+        $shop = $this->shop();
+        $provider = LogisticsProvider::with('user')->findOrFail($data['logistics_provider_id']);
+        $pickupFrom = \App\Support\PlaceMatcher::describe($this->pickupLocation($shop), withStreet: true);
+
+        DB::transaction(function () use ($id, $data, $method, $shop, $provider, $pickupFrom) {
             $order = $this->ordersQuery()->lockForUpdate()->findOrFail($id);
             abort_unless($order->status === 'ready_to_ship', 422, 'Pack the order before requesting pickup.');
             abort_if($order->cancellation_status === 'pending', 422, 'Review the cancellation request before scheduling pickup.');
             $shipment = $order->shipment;
             abort_if($shipment && $shipment->status !== 'unassigned', 422, 'This shipment has already been assigned to a courier.');
-            $order->update(['logistics_provider_id' => $data['logistics_provider_id'], 'note' => 'Requested pickup: '.$data['pickup_date'].(! empty($data['notes']) ? "\n".$data['notes'] : '')]);
-            $shipment = Shipment::updateOrCreate(['seller_order_id' => $order->id], [
-                'logistics_provider_id' => $data['logistics_provider_id'], 'tracking_code' => $shipment?->tracking_code ?? 'CTZ-'.Str::upper(Str::random(12)),
-                'status' => 'unassigned', 'fee_minor' => $order->courierFeeMinor(),
-                'cod_amount_minor' => $shipment?->cod_amount_minor ?? ($order->order->payment_method === 'cod' ? $order->buyerDueMinor() : 0),
+            abort_if($shipment?->received_at !== null, 422, 'The hub already received this parcel.');
+
+            $isDropoff = $method === Shipment::DROPOFF;
+            $hubAddress = \App\Services\HubRecommender::location($provider);
+            $dateText = \Illuminate\Support\Carbon::parse($data['pickup_date'])->format('M j, Y');
+            $order->update([
+                'logistics_provider_id' => $provider->id,
+                'note' => ($isDropoff ? "Drop-off at {$provider->name} on {$dateText}" : "Requested pickup: {$dateText}")
+                    .(!empty($data['notes']) ? "\n".$data['notes'] : ''),
             ]);
+            $shipment = Shipment::updateOrCreate(['seller_order_id' => $order->id], [
+                'logistics_provider_id' => $provider->id, 'tracking_code' => $shipment?->tracking_code ?? 'CTZ-'.Str::upper(Str::random(12)),
+                'status' => 'unassigned', 'handover_method' => $method, 'fee_minor' => $order->courierFeeMinor(),
+                'cod_amount_minor' => $shipment?->cod_amount_minor ?? ($order->order->payment_method === 'cod' ? $order->buyerDueMinor() : 0),
+                // A new choice of hub or method starts the First Mile over.
+                'pickup_rider_id' => null,
+            ]);
+
+            // The hub's Pickups list: one request per seller order, only when a courier must go.
+            $open = \App\Models\PickupRequest::where('seller_order_id', $order->id)->whereIn('status', ['pending', 'confirmed']);
+            if ($isDropoff) {
+                $open->update(['status' => 'cancelled', 'rider_id' => null]);
+            } else {
+                $existing = $open->first();
+                $values = [
+                    'logistics_provider_id' => $provider->id, 'seller_id' => $shop->id, 'parcel_count' => 1,
+                    'weight_kg' => $shipment->weight_kg ?: 1, 'pickup_date' => $data['pickup_date'],
+                    'address' => $pickupFrom ?? '',
+                    'notes' => $data['notes'] ?? null,
+                ];
+                if ($existing) {
+                    // Moving to another hub drops the old hub's rider.
+                    $existing->update($values + ($existing->logistics_provider_id !== $provider->id ? ['rider_id' => null, 'status' => 'pending'] : []));
+                } else {
+                    \App\Models\PickupRequest::create($values + ['seller_order_id' => $order->id, 'status' => 'pending']);
+                }
+            }
+
+            $event = $isDropoff ? 'dropoff_requested' : 'pickup_requested';
             $shipment->deliveryEvents()->create([
-                'status' => 'pickup_requested', 'user_id' => Auth::id(),
-                'attempt' => ((int) $shipment->deliveryEvents()->where('status', 'pickup_requested')->max('attempt')) + 1,
-                'note' => 'Seller requested pickup on '.$data['pickup_date'].'. Awaiting courier confirmation.',
+                'status' => $event, 'user_id' => Auth::id(),
+                'attempt' => \App\Models\DeliveryEvent::nextAttempt($shipment->id, $event),
+                'note' => $isDropoff
+                    ? "Seller will drop off the parcel at {$provider->name}".($hubAddress ? " ({$hubAddress})" : '')." on {$dateText}."
+                    : "Seller requested pickup on {$dateText}. Awaiting courier confirmation.",
                 'occurred_at' => now(),
             ]);
+
+            if ($provider->user_id) {
+                \App\Services\NotificationService::notify($provider->user_id, 'parcel_scan',
+                    $isDropoff ? 'Seller drop-off coming' : 'New pickup request',
+                    $isDropoff
+                        ? "{$shop->name} will drop off parcel {$shipment->tracking_code} at your hub on {$dateText}. Receive it when it arrives."
+                        : "{$shop->name} requested a pickup on {$dateText} for parcel {$shipment->tracking_code}.",
+                    $isDropoff ? route('logistics.hub', ['tab' => 'receive']) : route('logistics.pickups'));
+            }
         });
 
-        return back()->with('success', 'Pickup request saved. Awaiting courier assignment and collection.');
+        if ($method === Shipment::DROPOFF) {
+            $where = \App\Services\HubRecommender::location($provider);
+
+            return back()->with('success', "Drop-off saved. Bring the parcel to {$provider->name}".($where ? " at {$where}" : '').'. The hub was notified.');
+        }
+
+        return back()->with('success', 'Pickup request sent to '.$provider->name.'. They will assign a courier.'
+            .($pickupFrom ? '' : ' Add your pickup address in your shop settings so the courier knows where to go.'));
+    }
+
+    /**
+     * Where couriers collect this shop's parcels: the shop's pickup address,
+     * else the owner's default saved address, else the address on their account.
+     */
+    private function pickupLocation(?Seller $shop): \App\Models\Address|\App\Models\User|null
+    {
+        if (!$shop) {
+            return null;
+        }
+        if ($shop->pickupAddress) {
+            return $shop->pickupAddress;
+        }
+        $saved = \App\Models\Address::where('user_id', $shop->user_id)->orderByDesc('is_default')->orderBy('id')->first();
+        if ($saved) {
+            return $saved;
+        }
+        $user = $shop->user;
+
+        return $user && (trim((string) $user->city) !== '' || trim((string) $user->province) !== '') ? $user : null;
     }
 
     public function deliveries()

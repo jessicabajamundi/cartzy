@@ -44,6 +44,7 @@ class CourierDashboardController extends Controller
                 'vehicle_label' => Rider::vehicleTypesFor($rider->courier_type)[$rider->vehicle_type] ?? ($rider->vehicle_type ? ucfirst($rider->vehicle_type) : null),
                 'plate_no' => $rider->plate_no ?: null,
                 'area' => $rider->area ?: null,
+                'home_address' => AuthController::homeAddress($rider->user),
                 'hub' => $rider->logisticsProvider?->name,
                 'status' => $rider->status,
                 'is_active' => (bool) $rider->is_active,

@@ -70,7 +70,7 @@ class RiderParcelScan
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
                 'status' => $stage,
-                'attempt' => max(1, (int) $shipment->attempts),
+                'attempt' => DeliveryEvent::nextAttempt($shipment->id, $stage),
                 'user_id' => $rider->user_id,
                 'note' => $note,
                 'occurred_at' => now(),
@@ -192,6 +192,9 @@ class RiderParcelScan
         if ($rider->isFirstMile()) {
             if ($atHub) {
                 throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is already at the hub. Last Mile couriers deliver it from here.");
+            }
+            if ($shipment->isDropoff()) {
+                throw new RiderParcelScanException("The seller is dropping off parcel {$shipment->tracking_code} at the hub, so no pickup is needed.");
             }
             if ($shipment->pickup_rider_id && $shipment->pickup_rider_id !== $rider->id) {
                 throw new RiderParcelScanException("Parcel {$shipment->tracking_code} was picked up by another rider.");

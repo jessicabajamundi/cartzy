@@ -1,13 +1,17 @@
 @extends('layouts.logistics')
 @section('title', 'Messages | Logistics Hub | cartzy')
+@section('page_eyebrow', 'TEAM COMMUNICATION')
 @section('page_title', 'Chat / Messaging')
+@section('page_description', 'Stay connected with sellers, riders, and your platform administration team.')
 @section('page_subtitle', 'Stay connected with sellers, riders, and your platform team')
+@section('page_actions')
+<span class="date-label">Your hub inbox ({{ count($contacts) }})</span>
+@endsection
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-chat.css') }}?v={{ filemtime(public_path('css/logistics-chat.css')) }}">
 @endpush
 @section('content')
-<div class="hub-chat-heading"><div><span class="hub-chat-eyebrow">TEAM COMMUNICATION</span><h2>Good conversations. Smooth deliveries.</h2><p>Keep pickups, deliveries, and updates in one place.</p></div><span class="hub-chat-label">Your hub inbox</span></div>
-<section class="hub-chat" aria-label="Messaging workspace">
+<section class="panel hub-chat" aria-label="Messaging workspace">
     <aside class="hub-chat-sidebar" aria-label="Conversations">
         <div class="hub-chat-sidebar-head"><h2>Conversations <span>{{ count($contacts) }}</span></h2><label for="conversation-search" class="hub-chat-sr">Search conversations</label><div class="hub-chat-search"><span aria-hidden="true">⌕</span><input id="conversation-search" type="search" placeholder="Search a name or message…" autocomplete="off"></div><div class="hub-chat-filters" role="group" aria-label="Filter conversations"><button type="button" data-chat-filter="all" aria-pressed="true">All</button><button type="button" data-chat-filter="Rider" aria-pressed="false">Riders</button><button type="button" data-chat-filter="Seller" aria-pressed="false">Sellers</button><button type="button" data-chat-filter="Admin" aria-pressed="false">Admin</button></div></div>
         <div class="hub-chat-contacts">

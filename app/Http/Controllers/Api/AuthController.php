@@ -37,7 +37,17 @@ class AuthController extends Controller
             'birthday' => $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : null,
             // Riders and couriers: first_mile opens the courier dashboard, last_mile the rider one.
             'courier_type' => $user->role === User::ROLE_COURIER ? $user->rider?->courier_type : null,
+            // Riders' home address; hubs match them to nearby work by barangay.
+            'home_address' => $user->role === User::ROLE_COURIER ? self::homeAddress($user) : null,
         ];
+    }
+
+    /** @return array{barangay: ?string, city: ?string, province: ?string}|null */
+    public static function homeAddress(User $user): ?array
+    {
+        $home = array_map(fn ($v) => trim((string) $v) ?: null, ['barangay' => $user->barangay, 'city' => $user->city, 'province' => $user->province]);
+
+        return array_filter($home) ? $home : null;
     }
 
     public function login(Request $request)
@@ -60,6 +70,20 @@ class AuthController extends Controller
                 'message' => 'This account is not a '.$data['role'].' account.',
                 'account_role' => $user->role === User::ROLE_COURIER ? 'rider' : $user->role,
             ], 403);
+        }
+        if (isset($data['role']) && $user->role === User::ROLE_COURIER && $user->rider) {
+            if ($data['role'] === 'courier' && $user->rider->courier_type !== \App\Models\Rider::FIRST_MILE) {
+                return response()->json([
+                    'message' => 'This account is a Rider account, not a Courier account.',
+                    'account_role' => 'rider',
+                ], 403);
+            }
+            if ($data['role'] === 'rider' && $user->rider->courier_type === \App\Models\Rider::FIRST_MILE) {
+                return response()->json([
+                    'message' => 'This account is a Courier account, not a Rider account.',
+                    'account_role' => 'courier',
+                ], 403);
+            }
         }
         if ($user->status === 'pending' && !$user->isSeller()) {
             return response()->json(['message' => 'Your account registration is still pending admin verification.'], 403);
@@ -337,6 +361,10 @@ class AuthController extends Controller
             ],
             'license_doc' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'or_cr_doc' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            // Home address, so the hub can match the rider to nearby work. Optional only so older app versions can still sign up.
+            'province' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'barangay' => ['nullable', 'string', 'max:100'],
         ], [
             'phone.regex' => 'Enter an 11-digit mobile number starting with 09.',
             'birthday.before_or_equal' => 'You must be at least 18 years old to register.',
@@ -375,6 +403,9 @@ class AuthController extends Controller
                 'status' => 'pending',
                 'email_verified_at' => now(),
                 'password' => Hash::make($data['password']),
+                'province' => trim((string) ($data['province'] ?? '')) ?: null,
+                'city' => trim((string) ($data['city'] ?? '')) ?: null,
+                'barangay' => trim((string) ($data['barangay'] ?? '')) ?: null,
             ]);
 
             if ($providerId) {

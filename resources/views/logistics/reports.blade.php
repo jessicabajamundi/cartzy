@@ -1,24 +1,25 @@
 @extends('layouts.logistics')
 
 @section('title', 'Reports | Logistics Hub | cartzy')
+@section('page_eyebrow', 'LOGISTICS / REPORTS')
 @section('page_title', 'Reports')
+@section('page_description', 'Hub performance, rider rankings, and delivery areas for the selected dates.')
 @section('page_subtitle', 'Hub performance metrics, rider rankings, and area breakdowns')
+@section('page_actions')
+<span class="date-label">{{ \Illuminate\Support\Carbon::parse($dateFrom)->format('M j, Y') }} – {{ \Illuminate\Support\Carbon::parse($dateTo)->format('M j, Y') }}</span>
+@endsection
 
 @section('content')
 @php
     $kpis = [
-        ['Total parcels handled', number_format($reportData['total_parcels_handled']), 'Received in this period', 'box'],
-        ['Delivered on time', number_format($reportData['delivered_on_time']), 'Completed deliveries', 'truck'],
-        ['Failed deliveries', number_format($reportData['failed_deliveries']), 'Need a follow-up attempt', 'shield'],
-        ['Success rate', $reportData['success_rate'].'%', 'Delivered ÷ handled', 'chart'],
-        ['Avg. delivery time', $reportData['avg_delivery_days'].' days', 'From receipt to delivery', 'activity'],
+        ['Total parcels handled', 'Volume', number_format($reportData['total_parcels_handled']), 'Received in this period', 'box'],
+        ['Delivered on time', 'Completed', number_format($reportData['delivered_on_time']), 'Completed deliveries', 'truck'],
+        ['Failed deliveries', 'Attention', number_format($reportData['failed_deliveries']), 'Need a follow-up attempt', 'shield'],
+        ['Success rate', 'Efficiency', $reportData['success_rate'].'%', 'Delivered ÷ handled', 'chart'],
+        ['Avg. delivery time', 'Speed', $reportData['avg_delivery_days'].' days', 'From receipt to delivery', 'activity'],
     ];
     $rateClass = fn ($rate) => $rate >= 95 ? 'good' : ($rate >= 90 ? 'warning' : 'danger');
 @endphp
-<div class="page-heading">
-    <div><p class="eyebrow">LOGISTICS / REPORTS</p><h1>Reports</h1><p class="muted">Hub performance, rider rankings and delivery areas for the selected dates.</p></div>
-    <span class="date-label">{{ \Illuminate\Support\Carbon::parse($dateFrom)->format('M j, Y') }} – {{ \Illuminate\Support\Carbon::parse($dateTo)->format('M j, Y') }}</span>
-</div>
 
 <section class="panel">
     <form method="GET" action="{{ route('logistics.reports') }}" class="filters">
@@ -29,10 +30,14 @@
     </form>
 </section>
 
-<div class="stats-grid reports-kpis">
-    @foreach($kpis as [$label, $value, $hint, $icon])
+<div class="stats-grid dashboard-stats reports-kpis">
+    @foreach($kpis as [$label, $tag, $value, $hint, $icon])
         <div class="stat-card">
-            <div class="metric-heading"><span>{{ $label }}</span>@include('admin.partials.icon', ['name' => $icon])</div>
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => $icon])</span>
+                <span>{{ $tag }}</span>
+            </div>
+            <span>{{ $label }}</span>
             <strong>{{ $value }}</strong>
             <small>{{ $hint }}</small>
         </div>

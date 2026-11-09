@@ -299,10 +299,36 @@ class LogisticsPortalController extends Controller
             ];
         }
 
+        $coverage = $this->hubCoverage($provider);
+
         return view('logistics.dashboard', compact(
             'hub', 'stats', 'recentPickups', 'recentParcels', 'chartData', 'notifications',
-            'startDate', 'endDate', 'activePreset', 'filterLabel', 'isToday'
+            'startDate', 'endDate', 'activePreset', 'filterLabel', 'isToday', 'coverage'
         ));
+    }
+
+    /**
+     * Where this hub is and what it covers: its office address, the regions it
+     * serves, and where its approved riders live (their home barangay and city).
+     */
+    private function hubCoverage(LogisticsProvider $provider): array
+    {
+        $riders = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')
+            ->with('user:id,barangay,city,province')->get();
+        $areas = $riders->filter(fn (Rider $r) => trim((string) $r->user?->city) !== '')
+            ->groupBy(fn (Rider $r) => \App\Support\PlaceMatcher::describe($r->user))
+            ->map(fn ($group, $label) => [
+                'label' => $label,
+                'first_mile' => $group->filter->isFirstMile()->count(),
+                'last_mile' => $group->filter->isLastMile()->count(),
+            ])->sortByDesc(fn ($a) => $a['first_mile'] + $a['last_mile'])->values();
+
+        return [
+            'location' => \App\Services\HubRecommender::location($provider),
+            'regions' => collect($provider->service_regions ?? [])->map(fn ($key) => LogisticsProvider::SERVICE_REGIONS[$key] ?? $key)->values()->all(),
+            'rider_areas' => $areas->all(),
+            'riders_without_area' => $riders->count() - $areas->sum(fn ($a) => $a['first_mile'] + $a['last_mile']),
+        ];
     }
 
     /**
@@ -559,7 +585,7 @@ class LogisticsPortalController extends Controller
             ->get();
 
         $query = PickupRequest::where('logistics_provider_id', $provider->id)
-            ->with(['seller.user', 'rider.user']);
+            ->with(['seller.user', 'seller.pickupAddress', 'rider.user']);
 
         if ($search !== '') {
             $query->where(function ($query) use ($search) {
@@ -583,7 +609,7 @@ class LogisticsPortalController extends Controller
 
         $pickups = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
             ->orderBy('pickup_date')->orderBy('id')->paginate(15)->withQueryString()->through(function ($p) use ($allRiders) {
-                $rankedRiders = $this->rankRidersForPickup($allRiders, (string) ($p->address ?? ''));
+                $rankedRiders = $this->rankRidersForPickup($allRiders, (string) ($p->address ?? ''), self::pickupPlace($p));
                 $topNearby    = $rankedRiders->first();
 
                 return [
@@ -625,6 +651,8 @@ class LogisticsPortalController extends Controller
                         'score'            => $topNearby['score'],
                         'match_badge'      => $topNearby['match_badge'],
                         'is_nearby'        => $topNearby['is_nearby'],
+                        'home'             => $topNearby['home'],
+                        'home_level'       => $topNearby['home_level'],
                     ] : null,
                     'ranked_riders' => $rankedRiders->take(12)->map(function ($r) {
                         return [
@@ -640,6 +668,8 @@ class LogisticsPortalController extends Controller
                             'score'            => $r['score'],
                             'match_badge'      => $r['match_badge'],
                             'is_nearby'        => $r['is_nearby'],
+                            'home'             => $r['home'],
+                            'home_level'       => $r['home_level'],
                         ];
                     })->values()->toArray(),
                 ];
@@ -678,7 +708,7 @@ class LogisticsPortalController extends Controller
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
                 'status'      => 'pickup_confirmed',
-                'attempt'     => 1,
+                'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'pickup_confirmed'),
                 'user_id'     => Auth::id(),
                 'note'        => 'Pickup schedule confirmed by Hub' . ($pickup->rider_id ? ' (Rider assigned).' : '.'),
                 'occurred_at' => now(),
@@ -691,7 +721,7 @@ class LogisticsPortalController extends Controller
     public function assignPickupRider(Request $request, $id)
     {
         $provider = $this->provider();
-        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with('seller.user')->findOrFail($id);
+        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with(['seller.user', 'seller.pickupAddress'])->findOrFail($id);
 
         $data = $request->validate([
             'rider_id' => ['required', 'integer', 'exists:riders,id'],
@@ -717,7 +747,7 @@ class LogisticsPortalController extends Controller
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
                 'status'      => 'pickup_assigned',
-                'attempt'     => 1,
+                'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'pickup_assigned'),
                 'user_id'     => Auth::id(),
                 'note'        => "Rider {$rider->user->name} dispatched for pickup by Hub.",
                 'occurred_at' => now(),
@@ -754,7 +784,7 @@ class LogisticsPortalController extends Controller
     public function autoAssignPickupRider(Request $request, $id)
     {
         $provider = $this->provider();
-        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with('seller.user')->findOrFail($id);
+        $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with(['seller.user', 'seller.pickupAddress'])->findOrFail($id);
 
         $riders = Rider::where('logistics_provider_id', $provider->id)
             ->firstMile()
@@ -767,7 +797,7 @@ class LogisticsPortalController extends Controller
             return back()->with('error', self::NO_FIRST_MILE);
         }
 
-        $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''));
+        $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''), self::pickupPlace($pickup));
         $best   = $ranked->first()['rider'];
         $this->dispatchPickup($pickup, $best);
 
@@ -783,7 +813,7 @@ class LogisticsPortalController extends Controller
             return back()->with('error', self::NO_FIRST_MILE);
         }
         $waiting = PickupRequest::where('logistics_provider_id', $provider->id)->whereNull('rider_id')
-            ->whereIn('status', ['pending', 'confirmed'])->with('seller.user')->get();
+            ->whereIn('status', ['pending', 'confirmed'])->with(['seller.user', 'seller.pickupAddress'])->get();
         if ($waiting->isEmpty()) {
             return back()->with('success', 'Every pickup request already has a rider.');
         }
@@ -791,7 +821,7 @@ class LogisticsPortalController extends Controller
         $load = [];
         DB::transaction(function () use ($waiting, $riders, &$load) {
             foreach ($waiting as $pickup) {
-                $best = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''))
+                $best = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''), self::pickupPlace($pickup))
                     ->map(fn ($r) => $r + ['adjusted' => $r['score'] - 8 * ($load[$r['rider']->id] ?? 0)])
                     ->sortByDesc('adjusted')->first()['rider'];
                 $load[$best->id] = ($load[$best->id] ?? 0) + 1;
@@ -817,7 +847,7 @@ class LogisticsPortalController extends Controller
             DeliveryEvent::create([
                 'shipment_id' => $shipment->id,
                 'status'      => 'pickup_assigned',
-                'attempt'     => 1,
+                'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'pickup_assigned'),
                 'user_id'     => Auth::id(),
                 'note'        => "Nearest rider {$best->user->name} auto-dispatched by Hub.",
                 'occurred_at' => now(),
@@ -853,25 +883,49 @@ class LogisticsPortalController extends Controller
     /**
      * Rank riders for a pickup address based on proximity/area matching, activity, workload and rating
      */
-    protected function rankRidersForPickup($riders, string $address)
+    /**
+     * Riders ranked for an address, closest first. $place is the structured
+     * address when there is one (a seller's pickup address); otherwise the
+     * address text is searched for the rider's home barangay, city and province.
+     */
+    protected function rankRidersForPickup($riders, string $address, ?array $place = null)
     {
-        return collect($riders)->map(function ($rider) use ($address) {
-            $analysis = $this->scoreRiderForAddress($rider, $address);
+        return collect($riders)->map(function ($rider) use ($address, $place) {
+            $analysis = $this->scoreRiderForAddress($rider, $address, $place);
             return [
                 'rider'       => $rider,
                 'score'       => $analysis['score'],
                 'match_type'  => $analysis['match_type'],
                 'match_badge' => $analysis['match_badge'],
                 'is_nearby'   => $analysis['is_nearby'],
+                'home'        => $analysis['home'],
+                'home_level'  => $analysis['home_level'],
             ];
         })->sortByDesc('score')->values();
+    }
+
+    /** The seller's pickup address as a place, for matching riders by barangay. */
+    private static function pickupPlace(PickupRequest $pickup): ?array
+    {
+        $address = $pickup->seller?->pickupAddress;
+
+        return $address ? \App\Support\PlaceMatcher::placeOf($address) : null;
     }
 
     /**
      * Compute proximity match score for rider's assigned area and pickup address
      */
-    protected function scoreRiderForAddress(Rider $rider, string $address): array
+    protected function scoreRiderForAddress(Rider $rider, string $address, ?array $place = null): array
     {
+        // Where the rider lives (asked at sign-up). Same barangay beats same city beats same province.
+        $home = \App\Support\PlaceMatcher::placeOf($rider->user);
+        $homeMatch = ['level' => null, 'score' => 0];
+        if ($home['city'] !== '' || $home['province'] !== '') {
+            $homeMatch = $place && \App\Support\PlaceMatcher::known($place)
+                ? \App\Support\PlaceMatcher::compare($home, $place)
+                : \App\Support\PlaceMatcher::compareToText($home, $address);
+        }
+
         $cleanAddress = mb_strtolower(preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $address));
         $riderArea    = (string) ($rider->area ?? '');
         $cleanArea    = mb_strtolower(preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $riderArea));
@@ -907,10 +961,23 @@ class LogisticsPortalController extends Controller
             }
         }
 
+        $score += $homeMatch['score'];
+
         $matchType = 'standard';
         $matchBadge = 'Available in Fleet';
+        $homeName = $homeMatch['level'] ? match ($homeMatch['level']) {
+            'barangay' => $rider->user?->barangay,
+            'city' => $rider->user?->city,
+            default => $rider->user?->province,
+        } : null;
 
-        if ($hasCityMatch && $hasProvinceMatch) {
+        if ($homeMatch['level'] === 'barangay') {
+            $matchType  = 'home_barangay';
+            $matchBadge = '🏠 Lives in '.$homeName;
+        } elseif ($homeMatch['level'] === 'city' && !($hasCityMatch && $hasProvinceMatch)) {
+            $matchType  = 'home_city';
+            $matchBadge = '🏠 Lives in '.$homeName;
+        } elseif ($hasCityMatch && $hasProvinceMatch) {
             $matchType  = 'exact_area';
             $matchBadge = '📍 Direct Area Match';
         } elseif ($hasCityMatch) {
@@ -938,7 +1005,9 @@ class LogisticsPortalController extends Controller
             'score'       => round($score, 1),
             'match_type'  => $matchType,
             'match_badge' => $matchBadge,
-            'is_nearby'   => ($hasCityMatch || $hasProvinceMatch),
+            'is_nearby'   => ($hasCityMatch || $hasProvinceMatch || $homeMatch['level'] !== null),
+            'home'        => \App\Support\PlaceMatcher::describe($rider->user),
+            'home_level'  => $homeMatch['level'],
         ];
     }
 
@@ -1021,7 +1090,10 @@ class LogisticsPortalController extends Controller
 
         // Last-mile couriers take parcels from the hub to buyers, so only they are offered here.
         $riderModels = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
-        $riders = $riderModels->map(fn ($r) => ['id' => $r->id, 'name' => $r->user->name ?? 'Rider', 'area' => $r->area ?: 'General Area'])->all();
+        // Grouped by home barangay in the picker; riders without a home address come last.
+        $riders = $riderModels->map(fn ($r) => ['id' => $r->id, 'name' => $r->user->name ?? 'Rider', 'area' => $r->area ?: 'General Area',
+            'home' => \App\Support\PlaceMatcher::describe($r->user)])
+            ->sortBy(fn ($r) => [$r['home'] === null ? 1 : 0, $r['home'] ?? '', $r['name']])->values()->all();
         if ($tab === 'assign' && $riderModels->isNotEmpty()) {
             // Pre-select the best rider so assigning one parcel is a single click.
             $parcels->setCollection($parcels->getCollection()->map(fn ($p) => $p + [
@@ -1199,7 +1271,7 @@ class LogisticsPortalController extends Controller
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
             'status'      => 'assigned_to_rider',
-            'attempt'     => 1,
+            'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'assigned_to_rider'),
             'user_id'     => Auth::id(),
             'note'        => $note,
             'occurred_at' => now(),
@@ -1752,7 +1824,7 @@ class LogisticsPortalController extends Controller
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
             'status'      => 'sorted',
-            'attempt'     => 1,
+            'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'sorted'),
             'user_id'     => Auth::id(),
             'note'        => $note,
             'occurred_at' => now(),
@@ -1775,7 +1847,7 @@ class LogisticsPortalController extends Controller
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
             'status'      => 'received_at_hub',
-            'attempt'     => 1,
+            'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'received_at_hub'),
             'user_id'     => Auth::id(),
             'note'        => 'Parcel scanned and received at sorting hub.',
             'occurred_at' => now(),
@@ -1854,6 +1926,7 @@ class LogisticsPortalController extends Controller
                 'payment_method'      => $method,
                 'cod_amount'          => $codAmount,
                 'status'              => $s->received_at ? 'received' : 'pending_receipt',
+                'handover_method'     => $s->handover_method ?: 'pickup',
                 'sort_status'         => $s->sort_status ?: 'unsorted',
                 'delivery_area'       => $s->delivery_area,
                 'suggested_area'      => $this->suggestDeliveryArea($recipientAddress),

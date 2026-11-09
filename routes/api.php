@@ -64,6 +64,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/decline', [\App\Http\Controllers\Api\RiderParcelController::class, 'decline']);
     });
 
+    // Riders and couriers set their home barangay, used to match them to nearby work.
+    Route::put('/rider/home-address', [\App\Http\Controllers\Api\RiderHomeAddressController::class, 'update'])
+        ->middleware(['api.role:courier', 'throttle:20,1']);
+
+    // Last Mile rider's delivery queue: list, delivered, not delivered. Saved on the server.
+    Route::middleware(['api.role:courier', 'throttle:60,1'])->prefix('rider/deliveries')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\RiderDeliveryController::class, 'index']);
+        Route::post('/{id}/deliver', [\App\Http\Controllers\Api\RiderDeliveryController::class, 'deliver'])->whereNumber('id');
+        Route::post('/{id}/fail', [\App\Http\Controllers\Api\RiderDeliveryController::class, 'fail'])->whereNumber('id');
+    });
+
     // Notifications: buyers and riders each see their own (the bell in the rider app too).
     Route::middleware('api.role:buyer,courier')->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);

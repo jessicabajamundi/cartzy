@@ -152,6 +152,100 @@
                     </div>
                     <p class="rider-field-error" id="error_birthday"></p>
                 </div>
+
+                {{-- Home address: the hub matches riders to pickups and deliveries in their own barangay. --}}
+                <div class="rider-field-group" data-home-address>
+                    <span class="field-label">Home address <span class="required-star">*</span></span>
+                    <p class="rider-field-hint" style="margin-top:0">Your hub gives you pickups and deliveries near where you live.</p>
+                    <div class="form-grid-2">
+                        <div>
+                            <label class="field-label" for="home_province">Province</label>
+                            <select id="home_province" name="province" class="auth-input rider-input" required data-old="{{ old('province') }}">
+                                <option value="">Loading provinces…</option>
+                            </select>
+                            <p class="rider-field-error" id="error_home_province"></p>
+                        </div>
+                        <div>
+                            <label class="field-label" for="home_city">City / municipality</label>
+                            <select id="home_city" name="city" class="auth-input rider-input" required disabled data-old="{{ old('city') }}">
+                                <option value="">Choose a province first</option>
+                            </select>
+                            <p class="rider-field-error" id="error_home_city"></p>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px">
+                        <label class="field-label" for="home_barangay">Barangay</label>
+                        <select id="home_barangay" name="barangay" class="auth-input rider-input" required disabled data-old="{{ old('barangay') }}">
+                            <option value="">Choose a city first</option>
+                        </select>
+                        <p class="rider-field-error" id="error_home_barangay"></p>
+                    </div>
+                </div>
+                <script>
+                (() => {
+                    // Same PSGC list as the buyer address book, so names match sellers' addresses.
+                    const API = 'https://psgc.gitlab.io/api';
+                    const NCR = '130000000';
+                    const box = document.querySelector('[data-home-address]');
+                    const province = document.getElementById('home_province');
+                    const city = document.getElementById('home_city');
+                    const barangay = document.getElementById('home_barangay');
+                    const get = (url) => fetch(API + url).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+
+                    function fill(select, items, placeholder) {
+                        select.innerHTML = '';
+                        select.add(new Option(placeholder, ''));
+                        items.sort((a, b) => a.name.localeCompare(b.name)).forEach((item) => {
+                            const option = new Option(item.name, item.name);
+                            option.dataset.code = item.code;
+                            select.add(option);
+                        });
+                        select.disabled = false;
+                        if (select.dataset.old) {
+                            select.value = select.dataset.old;
+                            select.dataset.old = '';
+                            if (select.value) select.dispatchEvent(new Event('change'));
+                        }
+                    }
+
+                    // If the list can't load, let the rider type the names instead.
+                    function typeInstead() {
+                        [[province, 'Province'], [city, 'City / municipality'], [barangay, 'Barangay']].forEach(([select, label]) => {
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.id = select.id;
+                            input.name = select.name;
+                            input.className = select.className;
+                            input.required = true;
+                            input.maxLength = 100;
+                            input.placeholder = label;
+                            input.value = select.dataset.old || '';
+                            select.replaceWith(input);
+                        });
+                    }
+
+                    province.addEventListener('change', () => {
+                        city.disabled = barangay.disabled = true;
+                        city.innerHTML = '<option value="">Loading…</option>';
+                        barangay.innerHTML = '<option value="">Choose a city first</option>';
+                        const code = province.selectedOptions[0]?.dataset.code;
+                        if (!code) { city.innerHTML = '<option value="">Choose a province first</option>'; return; }
+                        const url = code === NCR ? `/regions/${NCR}/cities-municipalities/` : `/provinces/${code}/cities-municipalities/`;
+                        get(url).then((items) => fill(city, items, 'Choose a city / municipality')).catch(typeInstead);
+                    });
+                    city.addEventListener('change', () => {
+                        barangay.disabled = true;
+                        barangay.innerHTML = '<option value="">Loading…</option>';
+                        const code = city.selectedOptions[0]?.dataset.code;
+                        if (!code) { barangay.innerHTML = '<option value="">Choose a city first</option>'; return; }
+                        get(`/cities-municipalities/${code}/barangays/`).then((items) => fill(barangay, items, 'Choose a barangay')).catch(typeInstead);
+                    });
+
+                    get('/provinces/')
+                        .then((items) => fill(province, items.concat([{ name: 'Metro Manila', code: NCR }]), 'Choose a province'))
+                        .catch(typeInstead);
+                })();
+                </script>
             </div>
 
             <!-- Section 2: Where you'll deliver -->
@@ -2458,6 +2552,9 @@
             }
 
             checkField('birthday', 'Please select your birthday.');
+            checkField('home_province', 'Please choose your province.');
+            checkField('home_city', 'Please choose your city or municipality.');
+            checkField('home_barangay', 'Please choose your barangay.');
         } else if (page === 2) {
             checkField('logistics_provider_id', 'Please choose a logistics partner.');
         } else if (page === 3) {

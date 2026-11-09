@@ -1,6 +1,8 @@
 @extends('layouts.logistics')
 @section('title', 'Time In / Time Out | Logistics Hub | cartzy')
+@section('page_eyebrow', 'RIDER ATTENDANCE')
 @section('page_title', 'Time in / time out')
+@section('page_description', 'Riders open the Cartzy Rider app, tap Time in / out, and scan this code. The first scan times them in, the next one times them out.')
 @section('page_subtitle', 'Riders scan the hub QR code in the Rider app')
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-attendance.css') }}?v={{ filemtime(public_path('css/logistics-attendance.css')) }}">
@@ -11,68 +13,96 @@
 @endphp
 @section('content')
 <section class="att-workspace" aria-label="Rider time in and time out">
-    <div class="att-heading">
-        <div>
-            <span class="att-eyebrow">RIDER ATTENDANCE</span>
-            <h2>Time in / time out</h2>
-            <p>Riders open the cartzy Rider app, tap <strong>Time in / out</strong> and scan this code. The first scan times them in, the next one times them out.</p>
+    <div class="stats-grid dashboard-stats three">
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'users'])</span>
+                <span>Live</span>
+            </div>
+            <span>Riders on shift</span>
+            <strong>{{ $onShift->count() }}</strong>
+            <small>Currently timed in at {{ $provider->name }}</small>
+        </div>
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'clock'])</span>
+                <span>{{ $isToday ? 'Today' : $date->format('M j') }}</span>
+            </div>
+            <span>Recorded shifts</span>
+            <strong>{{ $shifts->count() }}</strong>
+            <small>{{ $date->format('l, M j, Y') }}</small>
+        </div>
+        <div class="stat-card">
+            <div class="metric-heading">
+                <span class="metric-icon">@include('admin.partials.icon', ['name' => 'shield'])</span>
+                <span>Security</span>
+            </div>
+            <span>Dynamic QR refresh</span>
+            <strong>{{ $windowSeconds }}s</strong>
+            <small>Rotates automatically to prevent screenshot reuse</small>
         </div>
     </div>
 
-    <div class="att-grid">
+    <div class="two-columns att-grid">
         {{-- The QR code changes every 25 seconds, so a photo or screenshot of it stops working --}}
-        <div class="att-qr-card" id="att-qr-card" data-qr-url="{{ route('logistics.attendance.qr') }}" data-seconds-left="{{ $secondsLeft }}" data-window="{{ $windowSeconds }}" data-version="{{ $version }}">
-            <div class="att-qr-top">
+        <div class="panel att-qr-card" id="att-qr-card" data-qr-url="{{ route('logistics.attendance.qr') }}" data-seconds-left="{{ $secondsLeft }}" data-window="{{ $windowSeconds }}" data-version="{{ $version }}">
+            <header class="panel-header att-qr-top">
                 <div>
-                    <span class="att-eyebrow">SCAN TO TIME IN / OUT</span>
-                    <h3>{{ $provider->name }}</h3>
+                    <span class="eyebrow">SCAN TO TIME IN / OUT</span>
+                    <h2>{{ $provider->name }}</h2>
+                    <p>Point the Rider mobile app scanner at this code.</p>
                 </div>
-                <button type="button" class="att-button" id="att-fullscreen" aria-pressed="false">⛶ Full screen</button>
+                <button type="button" class="button subtle att-button" id="att-fullscreen" aria-pressed="false">⛶ Full screen</button>
+            </header>
+            <div class="padded" style="display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px;">
+                <div class="att-qr" id="att-qr" role="img" aria-label="Time in and time out QR code for {{ $provider->name }}">{!! $qrSvg !!}</div>
+                <div class="att-countdown" aria-hidden="true" style="width: 100%; max-width: 300px;">
+                    <div class="att-countdown-bar"><span id="att-countdown-fill"></span></div>
+                    <p>New code in <strong id="att-countdown-text">{{ $secondsLeft }}s</strong></p>
+                </div>
+                <p class="att-qr-note">This code changes every {{ $windowSeconds }} seconds. Photos and screenshots of it won't work.</p>
+                <p class="att-status" id="att-status" role="status" aria-live="polite"></p>
             </div>
-            <div class="att-qr" id="att-qr" role="img" aria-label="Time in and time out QR code for {{ $provider->name }}">{!! $qrSvg !!}</div>
-            <div class="att-countdown" aria-hidden="true">
-                <div class="att-countdown-bar"><span id="att-countdown-fill"></span></div>
-                <p>New code in <strong id="att-countdown-text">{{ $secondsLeft }}s</strong></p>
-            </div>
-            <p class="att-qr-note">This code changes every {{ $windowSeconds }} seconds. Photos and screenshots of it won't work.</p>
-            <p class="att-status" id="att-status" role="status" aria-live="polite"></p>
         </div>
 
         <div class="att-side">
-            <div class="att-panel">
-                <div class="att-panel-head">
-                    <h3>On shift now</h3>
-                    <span class="att-pill" id="att-on-shift-count">{{ $onShift->count() }}</span>
-                </div>
+            <div class="panel att-panel">
+                <header class="panel-header att-panel-head">
+                    <div>
+                        <h2>On shift now</h2>
+                        <p>Active riders currently clocked in</p>
+                    </div>
+                    <span class="badge good att-pill" id="att-on-shift-count">{{ $onShift->count() }}</span>
+                </header>
                 <ul class="att-on-shift">
                     @forelse($onShift as $shift)
                         <li>
-                            <span class="att-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($shift->rider->user->name ?? 'R', 0, 1)) }}</span>
+                            <span class="avatar att-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($shift->rider->user->name ?? 'R', 0, 1)) }}</span>
                             <span class="att-on-shift-name"><strong>{{ $shift->rider->user->name ?? 'Rider' }}</strong><small>{{ $shift->rider->area ?: 'General area' }}</small></span>
                             <span class="att-on-shift-time">In {{ $fmtTime($shift->time_in_at) }}<small>{{ $fmtWorked($shift->workedMinutes()) }}</small></span>
                         </li>
                     @empty
-                        <li class="att-empty">No riders are timed in right now.</li>
+                        <li class="empty att-empty"><strong>No riders are timed in right now.</strong><p>Riders will appear here as soon as they scan the hub QR code.</p></li>
                     @endforelse
                 </ul>
             </div>
         </div>
     </div>
 
-    <div class="att-panel att-log">
-        <div class="att-panel-head">
+    <div class="panel att-panel att-log">
+        <header class="panel-header att-panel-head">
             <div>
-                <h3>Attendance log</h3>
-                <small>{{ $isToday ? 'Today, ' : '' }}{{ $date->format('l, M j, Y') }} · {{ $shifts->count() }} {{ Str::plural('shift', $shifts->count()) }}</small>
+                <h2>Attendance log</h2>
+                <p>{{ $isToday ? 'Today, ' : '' }}{{ $date->format('l, M j, Y') }} · {{ $shifts->count() }} {{ Str::plural('shift', $shifts->count()) }}</p>
             </div>
             <form method="GET" action="{{ route('logistics.attendance') }}" class="att-date">
                 <label for="att-date">Day</label>
                 <input type="date" id="att-date" name="date" value="{{ $date->format('Y-m-d') }}" max="{{ now($tz)->format('Y-m-d') }}" onchange="this.form.submit()">
-                <noscript><button type="submit" class="att-button">Show</button></noscript>
-                @unless($isToday)<a class="att-link" href="{{ route('logistics.attendance') }}">Today</a>@endunless
+                <noscript><button type="submit" class="button subtle att-button">Show</button></noscript>
+                @unless($isToday)<a class="button subtle att-link" href="{{ route('logistics.attendance') }}">Today</a>@endunless
             </form>
-        </div>
-        <div class="att-table-wrap">
+        </header>
+        <div class="table-scroll att-table-wrap">
             <table class="att-table">
                 <thead>
                     <tr><th scope="col">Rider</th><th scope="col">Time in</th><th scope="col">Time out</th><th scope="col">Hours worked</th></tr>
@@ -85,13 +115,13 @@
                             <td>{{ $fmtTime($shift->time_in_at) }}</td>
                             <td>
                                 @if($shift->time_out_at){{ $fmtTime($shift->time_out_at) }}
-                                @elseif($stale)<span class="att-tag warn">No time out</span>
-                                @else<span class="att-tag live">On shift</span>@endif
+                                @elseif($stale)<span class="badge warning att-tag warn">No time out</span>
+                                @else<span class="badge good att-tag live">On shift</span>@endif
                             </td>
                             <td>{{ $stale ? '—' : $fmtWorked($shift->workedMinutes()) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="att-empty">No rider timed in on this day.</td></tr>
+                        <tr><td colspan="4" class="empty att-empty">No rider timed in on this day.</td></tr>
                     @endforelse
                 </tbody>
             </table>

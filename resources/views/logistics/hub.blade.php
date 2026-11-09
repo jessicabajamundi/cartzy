@@ -1,7 +1,17 @@
 @extends('layouts.logistics')
 @section('title', 'Hub Desk | Logistics Hub | cartzy')
+@section('page_eyebrow', 'PARCEL OPERATIONS / HUB DESK')
 @section('page_title', 'Hub Desk')
+@section('page_description', 'Receive, sort by delivery area, and assign Last Mile couriers in one unified workspace.')
 @section('page_subtitle', 'Receive, sort and assign parcels in one place')
+@section('page_actions')
+@if($processable > 0)
+    <form method="POST" action="{{ route('logistics.hub.process-all') }}" class="hub-confirm" data-confirm="Receive, sort and assign every waiting parcel now?">@csrf
+        <button type="submit" class="button hub-button primary large">⚡ Process all ({{ $processable }})</button>
+    </form>
+@endif
+<a class="button subtle hub-button secondary" href="{{ route('logistics.monitoring') }}">Monitor deliveries @include('admin.partials.icon', ['name' => 'arrow'])</a>
+@endsection
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-hub.css') }}?v={{ filemtime(public_path('css/logistics-hub.css')) }}">
 @endpush
@@ -9,10 +19,10 @@
 @php
     $deliveryAreas = \App\Http\Controllers\Logistics\LogisticsPortalController::DELIVERY_AREAS;
     $steps = [
-        'receive'  => ['1', 'Receive', 'Parcels arriving at the hub'],
-        'sort'     => ['2', 'Sort', 'Address had no known area'],
-        'assign'   => ['3', 'Assign rider', 'Sorted, waiting for a Last Mile courier'],
-        'assigned' => ['✓', 'Assigned', 'Waiting for rider pickup'],
+        'receive'  => ['Step 1', 'Receive', 'Parcels arriving at the hub', 'box'],
+        'sort'     => ['Step 2', 'Sort', 'Address had no known area', 'file'],
+        'assign'   => ['Step 3', 'Assign rider', 'Sorted, waiting for a Last Mile courier', 'users'],
+        'assigned' => ['Step 4', 'Assigned', 'Waiting for rider pickup', 'truck'],
     ];
     $hints = [
         'receive'  => 'Mark parcels received as they arrive. Each one is sorted automatically when its address names a delivery area.',
@@ -28,33 +38,21 @@
     ][$tab] ?? null;
 @endphp
 <section class="hub-desk" aria-label="Hub desk">
-    <header class="hub-heading">
-        <div>
-            <span class="hub-eyebrow">HUB DESK</span>
-            <h2>Receive, sort and assign in one place.</h2>
-            <p>Most parcels only need one click: <strong>Process all</strong> receives them, sorts them by address and gives each one the best rider.</p>
-        </div>
-        <div class="hub-heading-actions">
-            @if($processable > 0)
-                <form method="POST" action="{{ route('logistics.hub.process-all') }}" class="hub-confirm" data-confirm="Receive, sort and assign every waiting parcel now?">@csrf
-                    <button type="submit" class="hub-button primary large">⚡ Process all <span class="hub-pill">{{ $processable }}</span></button>
-                </form>
-            @endif
-            <a class="hub-button secondary" href="{{ route('logistics.monitoring') }}">Monitor deliveries <span aria-hidden="true">→</span></a>
-        </div>
-    </header>
-
-    <nav class="hub-steps" aria-label="Parcel steps">
-        @foreach($steps as $key => [$number, $label, $caption])
-            <a href="{{ route('logistics.hub', ['tab' => $key]) }}" class="hub-step {{ $counts[$key] > 0 && $key !== 'assigned' ? 'has-work' : '' }}" @if($tab === $key) aria-current="page" @endif>
-                <span class="hub-step-number" aria-hidden="true">{{ $number }}</span>
-                <span class="hub-step-text"><strong>{{ $label }}</strong><small>{{ $caption }}</small></span>
-                <span class="hub-step-count" aria-label="{{ $counts[$key] }} parcels">{{ $counts[$key] }}</span>
+    <nav class="stats-grid dashboard-stats hub-steps" aria-label="Parcel steps">
+        @foreach($steps as $key => [$stepTag, $label, $caption, $icon])
+            <a href="{{ route('logistics.hub', ['tab' => $key]) }}" class="stat-card hub-step {{ $counts[$key] > 0 && $key !== 'assigned' ? 'has-work' : '' }}" @if($tab === $key) aria-current="page" @endif>
+                <div class="metric-heading">
+                    <span class="metric-icon">@include('admin.partials.icon', ['name' => $icon])</span>
+                    <span>{{ $stepTag }}</span>
+                </div>
+                <span>{{ $label }}</span>
+                <strong aria-label="{{ $counts[$key] }} parcels">{{ $counts[$key] }}</strong>
+                <small>{{ $caption }}</small>
             </a>
         @endforeach
     </nav>
 
-    <div class="hub-panel">
+    <div class="panel hub-panel">
         <div class="hub-toolbar">
             <p class="hub-hint">{{ $hints[$tab] }}</p>
             <div class="hub-toolbar-actions">
@@ -89,6 +87,7 @@
                             <strong class="hub-code">{{ $parcel['tracking_code'] }}</strong>
                             @if($parcel['payment_method'] === 'COD')<span class="hub-tag cod">COD ₱{{ number_format($parcel['cod_amount'], 2) }}</span>@else<span class="hub-tag">Prepaid</span>@endif
                             @if($parcel['delivery_area'])<span class="hub-tag area">{{ $parcel['delivery_area'] }}</span>@endif
+                            @if($tab === 'receive' && ($parcel['handover_method'] ?? 'pickup') === 'dropoff')<span class="hub-tag area">Seller drop-off</span>@endif
                         </div>
                         <p class="hub-recipient"><strong>{{ $parcel['recipient_name'] }}</strong> · {{ $parcel['recipient_address'] }}</p>
                         <small class="hub-meta">From {{ $parcel['seller_name'] }} · {{ $parcel['items'] }}</small>
@@ -113,7 +112,11 @@
                                 <label class="hub-sr" for="rider-{{ $parcel['id'] }}">Rider for {{ $parcel['tracking_code'] }}</label>
                                 <select id="rider-{{ $parcel['id'] }}" name="rider_id" required @disabled(!$riders)>
                                     <option value="">{{ $riders ? 'Choose a Last Mile courier' : 'No active Last Mile couriers' }}</option>
-                                    @foreach($riders as $rider)<option value="{{ $rider['id'] }}" @selected($rider['id'] === ($parcel['suggested_rider_id'] ?? null))>{{ $rider['name'] }} — {{ $rider['area'] }}{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? ' (best)' : '' }}</option>@endforeach
+                                    @foreach(collect($riders)->groupBy(fn ($r) => $r['home'] ?? 'No home address yet') as $home => $group)
+                                        <optgroup label="🏠 {{ $home }}">
+                                            @foreach($group as $rider)<option value="{{ $rider['id'] }}" @selected($rider['id'] === ($parcel['suggested_rider_id'] ?? null))>{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? '★ ' : '' }}{{ $rider['name'] }} — {{ $rider['area'] }}{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? ' (best)' : '' }}</option>@endforeach
+                                        </optgroup>
+                                    @endforeach
                                 </select>
                                 <button type="submit" class="hub-button primary" @disabled(!$riders)>Assign</button>
                             </form>

@@ -93,11 +93,24 @@
         </div>
     </header>
     <main id="main-content" class="logistics-content">
+        <div class="page-heading">
+            <div>
+                <p class="eyebrow">@yield('page_eyebrow', 'CARTZY / LOGISTICS HUB')</p>
+                <h1>@yield('page_title', 'Logistics Hub Dashboard')</h1>
+                <p class="muted">@yield('page_description', $__env->yieldContent('page_subtitle', 'Manage your hub operations, riders, and deliveries.'))</p>
+            </div>
+            @hasSection('page_actions')
+                <div class="actions">@yield('page_actions')</div>
+            @else
+                <span class="date-label">{{ now()->timezone('Asia/Manila')->format('D, M j, Y') }}</span>
+            @endif
+        </div>
         @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
+        @if(session('info'))<div class="notice" role="status">{{ session('info') }}</div>@endif
         @if(session('error'))<div class="notice danger" role="alert">{{ session('error') }}</div>@endif
         @if(isset($errors) && $errors->any())<div class="notice danger" role="alert"><strong>Please check the following:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
         @yield('content')
-        <footer class="page-footer">Cartzy logistics hub <span>@yield('page_subtitle', 'Sorting & fulfillment center')</span></footer>
+        <footer class="page-footer">Cartzy logistics hub <span>@yield('page_subtitle', 'All figures reflect recorded hub activity in Philippine Standard Time.')</span></footer>
     </main>
 </div>
 
