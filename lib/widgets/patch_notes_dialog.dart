@@ -76,6 +76,15 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.13' || version == 'v1.2.13') {
+      return const [
+        'Rider Barcode & QR Parcel Scanning: Couriers can now scan parcel waybills using barcode or camera to easily collect packages.',
+        'Parcel Accept & Decline Actions: Review parcel details immediately after scanning and accept or decline before adding to inventory.',
+        'Courier Vehicle Selection: Couriers choose Car, Van, or Truck; standard riders choose Motorcycle, Tricycle, or E-bike during registration.',
+        'Dynamic Pickup Dashboard: Hardcoded mock pickups removed across all rider accounts with clean empty states.',
+        'Profile Patch Notes: Access full update history and patch notes anytime directly from the Profile Help section.',
+      ];
+    }
     if (version == '1.2.12' || version == 'v1.2.12') {
       return const [
         'Cozy Bear Companion Across All Tabs: Summon Cozy from your Profile card and bring her along across Home, Cart, Sale, Inbox, and Profile.',
