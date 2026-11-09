@@ -553,6 +553,8 @@ async function sendAutomaticOtp() {
         if (!response.ok || !data.success) {
             const field = data.errors?.phone ? 'phone' : 'email';
             currentStep = field === 'phone' ? 1 : 2;
+            // The mobile number is on the first step for sellers and logistics partners.
+            if (field === 'phone') detailPage = 1;
             updateStepperUI();
             showRegistrationError(field, data.errors?.[field]?.[0] || data.message || 'Unable to send verification code. Please try again.', true);
             return false;

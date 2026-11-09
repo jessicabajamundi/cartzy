@@ -37,6 +37,11 @@ return [
 
     'mailers' => [
 
+        // HTTPS relay through Google Apps Script, for hosts that block SMTP (Render free plan).
+        'relay' => [
+            'transport' => 'relay',
+        ],
+
         'smtp' => [
             'transport' => 'smtp',
             'scheme' => env('MAIL_SCHEME'),

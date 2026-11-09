@@ -284,25 +284,11 @@ class AuthController extends Controller
             return;
         }
 
-        // Option A: Google Apps Script HTTPS Relay (port 443)
-        $webhookUrl = trim((string) config('services.mail_webhook.url', ''));
-        if ($webhookUrl !== '') {
-            $html = view($view, $data)->render();
-            $fromName = (string) config('mail.from.name', 'Cartzy');
-
-            $response = Http::timeout(15)
-                ->withOptions(['allow_redirects' => true])
-                ->acceptJson()
-                ->post($webhookUrl, [
-                    'to' => $to,
-                    'subject' => $subject,
-                    'html' => $html,
-                    'name' => $fromName,
-                ]);
-
-            if (!$response->successful() && !$response->redirect()) {
-                throw new \RuntimeException('Google Apps Script relay error (' . $response->status() . '): ' . $response->body());
-            }
+        // Option A: Google Apps Script HTTPS relay (port 443), see App\Mail\RelayTransport and scripts/mail-relay.gs.
+        if (trim((string) config('services.mail_webhook.url', '')) !== '') {
+            Mail::mailer('relay')->send($view, $data, function ($message) use ($to, $subject) {
+                $message->to($to)->subject($subject);
+            });
             return;
         }
 

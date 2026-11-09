@@ -24,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // MAIL_MAILER=relay sends every email over HTTPS through the Apps Script relay (App\Mail\RelayTransport).
+        \Illuminate\Support\Facades\Mail::extend('relay', fn () => new \App\Mail\RelayTransport(
+            (string) config('services.mail_webhook.url'),
+            (string) config('services.mail_webhook.secret'),
+        ));
+
         // Each Cozy message costs an AI call, and the endpoint is open to guests.
         RateLimiter::for('buddy', fn (Request $request) => [
             Limit::perMinute(15)->by('buddy-min:'.$request->ip()),

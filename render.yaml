@@ -80,6 +80,9 @@ services:
         sync: false
       - key: MAIL_WEBHOOK_URL
         sync: false
+      # Same value as SECRET in scripts/mail-relay.gs. With MAIL_MAILER=relay, all email goes through the relay.
+      - key: MAIL_WEBHOOK_SECRET
+        sync: false
 
       - key: GOOGLE_CLIENT_ID
         sync: false

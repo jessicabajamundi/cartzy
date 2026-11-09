@@ -24,6 +24,8 @@ return [
 
     'mail_webhook' => [
         'url' => env('MAIL_WEBHOOK_URL'),
+        // Must match SECRET in scripts/mail-relay.gs so only this app can send through the relay.
+        'secret' => env('MAIL_WEBHOOK_SECRET'),
     ],
 
     'ses' => [
