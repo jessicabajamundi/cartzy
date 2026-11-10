@@ -168,6 +168,15 @@ class PsgcApi {
   // GET PROVINCES BY REGION
   // ==========================================================
 
+  /// Every province, plus Metro Manila (which has no provinces in PSGC).
+  static Future<List<PsgcProvince>> getAllProvinces() async {
+    final data = await _fetch('$_baseUrl/provinces.json') as List<dynamic>;
+    final list = data.map((json) => PsgcProvince.fromJson(json)).toList()
+      ..add(PsgcProvince(code: '130000000', name: 'Metro Manila'));
+    list.sort((a, b) => a.name.compareTo(b.name));
+    return list;
+  }
+
   static Future<List<PsgcProvince>> getProvincesByRegion(String regionCode) async {
     // In Philippine PSGC, NCR has no provinces, only cities under region 130000000.
     if (regionCode == '130000000' || regionCode.toUpperCase() == 'NCR') {

@@ -2,14 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'package:cartzy/services/mock_data.dart';
-import 'rider_order_detail.dart';
+import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/services/rider_delivery_service.dart';
 
+/// Hand a parcel to the buyer. The rider scans (or types) the parcel's waybill,
+/// then confirms; the server checks the code and saves "delivered".
+/// Pops true when delivered, false when marked as not delivered.
 class RiderDeliverProcess extends StatefulWidget {
-  final RiderOrder order;
+  final RiderDelivery delivery;
   final String? token;
 
-  const RiderDeliverProcess({super.key, required this.order, this.token});
+  /// Test hooks; the app uses [RiderDeliveryService].
+  final Future<String> Function(RiderDelivery delivery, String code, String receivedBy, String note)? markDelivered;
+  final Future<String> Function(RiderDelivery delivery, String reason)? markFailed;
+  final bool showCamera;
+
+  const RiderDeliverProcess({
+    super.key,
+    required this.delivery,
+    this.token,
+    this.markDelivered,
+    this.markFailed,
+    this.showCamera = true,
+  });
 
   @override
   State<RiderDeliverProcess> createState() => _RiderDeliverProcessState();
@@ -21,18 +36,20 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
   late final TextEditingController _trackingController;
   late final TextEditingController _receiverController;
   final TextEditingController _noteController = TextEditingController();
-  bool _isVerified = true;
+  bool _isVerified = false;
   bool _isCompleting = false;
   bool _barcodeHandled = false;
   String? _verificationMessage;
+  String? _error;
 
-  String get _trackingNumber => 'CTZY-RD-${widget.order.id}';
+  RiderDelivery get _d => widget.delivery;
+  String get _trackingNumber => _d.trackingCode;
 
   @override
   void initState() {
     super.initState();
-    _trackingController = TextEditingController(text: _trackingNumber);
-    _receiverController = TextEditingController(text: widget.order.buyerName);
+    _trackingController = TextEditingController();
+    _receiverController = TextEditingController(text: _d.recipientName ?? '');
   }
 
   @override
@@ -43,16 +60,21 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
     super.dispose();
   }
 
+  static String _plain(String v) => v.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
   void _verifyTracking(String value) {
-    final entered = value.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
-    final expected = _trackingNumber.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
-    final orderReference = 'ORD-MTR-${widget.order.id}'.replaceAll(RegExp(r'[^A-Z0-9]'), '');
-    final verified = entered == expected || entered == orderReference || entered == widget.order.id.toString();
+    // A QR code may hold a link ending in the code, so look for the code inside it.
+    final entered = _plain(value);
+    final expected = _plain(_trackingNumber);
+    final reference = _d.orderReference == null ? null : _plain(_d.orderReference!);
+    final verified = expected.isNotEmpty &&
+        (entered == expected || entered.endsWith(expected) || (reference != null && (entered == reference || entered.endsWith(reference))));
     setState(() {
+      _error = null;
       _isVerified = verified;
       _verificationMessage = verified
           ? 'Waybill verified for this delivery.'
-          : 'Tracking number does not match this delivery.';
+          : "That code doesn't match this parcel. Scan the waybill on it.";
     });
   }
 
@@ -60,44 +82,74 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
     if (_barcodeHandled || capture.barcodes.isEmpty) return;
     final value = capture.barcodes.first.rawValue;
     if (value == null || value.isEmpty) return;
-    _barcodeHandled = true;
     _trackingController.text = value;
     _verifyTracking(value);
+    // Keep scanning after a wrong code; stop once the right parcel is found.
+    _barcodeHandled = _isVerified;
   }
 
   Future<void> _completeDelivery() async {
     if (!_isVerified || _isCompleting) return;
-    setState(() => _isCompleting = true);
-    await Future<void>.delayed(const Duration(milliseconds: 350));
+    setState(() {
+      _isCompleting = true;
+      _error = null;
+    });
+    try {
+      final save = widget.markDelivered ??
+          (d, code, by, note) => RiderDeliveryService.markDelivered(d, code: code, receivedBy: by, note: note);
+      await save(_d, _trackingController.text.trim(), _receiverController.text, _noteController.text);
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isCompleting = false;
+        _error = e is ApiException ? e.message : "Couldn't reach the server, so the delivery wasn't saved. Try again.";
+      });
+    }
+  }
 
-    MockData.activeDeliveries.removeWhere((order) => order.id == widget.order.id);
-    MockData.completedDeliveries.insert(
-      0,
-      RiderOrder(
-        id: widget.order.id,
-        status: 'completed',
-        buyerName: widget.order.buyerName,
-        buyerPhone: widget.order.buyerPhone,
-        deliveryAddress: widget.order.deliveryAddress,
-        itemsSummary: widget.order.itemsSummary,
-        totalAmount: widget.order.totalAmount,
-        createdAt: widget.order.createdAt,
-        storePartner: widget.order.storePartner,
-        paymentMethod: widget.order.paymentMethod,
-        riderPayout: widget.order.riderPayout,
-        completedAt: DateTime.now().toIso8601String(),
+  static const _failReasons = ['Buyer not home', 'Buyer refused the parcel', 'Wrong or incomplete address', "Can't reach the buyer's phone"];
+
+  Future<void> _markNotDelivered() async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text("Why couldn't you deliver it?", style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700)),
+        children: [
+          for (final r in _failReasons)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(r),
+              child: Text(r, style: GoogleFonts.dmSans(fontSize: 13)),
+            ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel', style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF8A7780))),
+          ),
+        ],
       ),
     );
-    MockData.completedDeliveryCount += 1;
-
-    if (!mounted) return;
-    setState(() => _isCompleting = false);
-    Navigator.of(context).pop(true);
+    if (reason == null || !mounted) return;
+    setState(() {
+      _isCompleting = true;
+      _error = null;
+    });
+    try {
+      await (widget.markFailed ?? RiderDeliveryService.markFailed)(_d, reason);
+      if (!mounted) return;
+      Navigator.of(context).pop(false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isCompleting = false;
+        _error = e is ApiException ? e.message : "Couldn't reach the server. Nothing was saved; try again.";
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isCod = widget.order.paymentMethod.toUpperCase() == 'COD';
+    final isCod = _d.isCod;
     return Scaffold(
       backgroundColor: const Color(0xFFEEE9EB),
       body: SafeArea(
@@ -126,8 +178,10 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildScannerPreview(),
-                              const SizedBox(height: 12),
+                              if (widget.showCamera) ...[
+                                _buildScannerPreview(),
+                                const SizedBox(height: 12),
+                              ],
                               _buildTrackingLookup(),
                               if (_verificationMessage != null) ...[
                                 const SizedBox(height: 5),
@@ -167,9 +221,21 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                                       ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                       : const Icon(Icons.check, size: 15),
                                   label: Text(
-                                    _isCompleting ? 'CONFIRMING DELIVERY…' : 'CONFIRM DELIVERY (NOTIFY SELLER & BUYER)',
+                                    _isCompleting ? 'SAVING…' : (_isVerified ? 'CONFIRM DELIVERY (NOTIFY SELLER & BUYER)' : 'SCAN THE WAYBILL FIRST'),
                                     style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700),
                                   ),
+                                ),
+                              ),
+                              if (_error != null) ...[
+                                const SizedBox(height: 8),
+                                Text(_error!, style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFFB54747))),
+                              ],
+                              const SizedBox(height: 4),
+                              Center(
+                                child: TextButton(
+                                  onPressed: _isCompleting ? null : _markNotDelivered,
+                                  child: Text("Couldn't deliver it",
+                                      style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFFB54747))),
                                 ),
                               ),
                             ],
@@ -254,7 +320,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                 right: 8,
                 bottom: 8,
                 child: Text(
-                  'Place the Code 128 Barcode or Tracking Code inside the box',
+                  'Point the camera at the waybill barcode or QR code',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.dmSans(fontSize: 8, color: Colors.white, shadows: const [Shadow(blurRadius: 4, color: Colors.black)]),
                 ),
@@ -275,7 +341,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                 child: TextField(
                   controller: _trackingController,
                   textCapitalization: TextCapitalization.characters,
-                  decoration: _inputDecoration('CTZY-RD-000000'),
+                  decoration: _inputDecoration(_trackingNumber),
                   style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF352B3D)),
                   onSubmitted: _verifyTracking,
                 ),
@@ -316,18 +382,18 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                 _statusBadge(_isVerified ? 'PARCEL VERIFIED' : 'AWAITING VERIFICATION', _isVerified),
                 const Spacer(),
                 _statusBadge(
-                  isCod ? 'COLLECT COD ₱${widget.order.totalAmount.toStringAsFixed(2)}' : 'PAID ONLINE (₱0.00)',
+                  isCod ? 'COLLECT COD ₱${_d.codAmount.toStringAsFixed(2)}' : 'PAID ONLINE (₱0.00)',
                   !isCod,
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(widget.order.buyerName, style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF352B3D))),
+            Text(_d.recipientName ?? 'Buyer', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF352B3D))),
             const SizedBox(height: 2),
-            Text(widget.order.deliveryAddress, style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF67616D))),
+            Text(_d.recipientAddress ?? 'No address on the order', style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF67616D))),
             const SizedBox(height: 2),
             Text('Tracking: $_trackingNumber', style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF67616D))),
-            Text('Items: ${widget.order.itemsSummary}', maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF67616D))),
+            Text('Items: ${_d.itemsSummary ?? _d.itemsCount}', maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF67616D))),
             const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Divider(height: 1, color: Color(0xFFE8E1E5))),
           ],
         ),

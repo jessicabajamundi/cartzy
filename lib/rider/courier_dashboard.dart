@@ -1,4 +1,6 @@
+import 'package:cartzy/rider/rider_home_address.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/buyer/notifications_screen.dart';
@@ -342,6 +344,35 @@ class _CourierDashboardState extends State<CourierDashboard> {
       Text('To change these details, contact your hub.', style: _sub),
       const SizedBox(height: 16),
       _Card(
+        child: Row(
+          children: [
+            const Icon(Icons.home_outlined, color: CartzyColors.brandDeep),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Home address', style: _title),
+                  const SizedBox(height: 2),
+                  Text(
+                    c.homeAddress?.label ?? 'Not added yet. Add it so your hub can send you pickups near home.',
+                    style: _sub,
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final saved = await showHomeAddressSheet(context, initial: c.homeAddress);
+                if (saved != null && mounted) _load();
+              },
+              child: Text(c.homeAddress == null ? 'Add' : 'Change', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 12),
+      _Card(
         onTap: _showPatchNotes,
         child: Row(
           children: [
@@ -407,61 +438,146 @@ class _CourierDashboardState extends State<CourierDashboard> {
   }
 
   Widget _buildBottomNav() {
-    const items = [
-      (Icons.home_rounded, 'Home'),
-      (Icons.inventory_2_outlined, 'Pickups'),
-      (Icons.history_rounded, 'History'),
-      (Icons.person_outline_rounded, 'Profile'),
+    const leftItems = [
+      (Icons.home_rounded, 'Home', 0),
+      (Icons.inventory_2_outlined, 'Pickups', 1),
     ];
+    const rightItems = [
+      (Icons.history_rounded, 'History', 2),
+      (Icons.person_outline_rounded, 'Profile', 3),
+    ];
+
+    Widget navItem(IconData icon, String label, int index) {
+      final selected = _tab == index;
+      return Expanded(
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: label,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => setState(() => _tab = index),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 22, color: selected ? CartzyColors.burgundy : CartzyColors.gray),
+                  const SizedBox(height: 3),
+                  Text(
+                    label,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                      color: selected ? CartzyColors.burgundy : CartzyColors.gray,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    height: 2,
+                    width: selected ? 16 : 0,
+                    color: CartzyColors.burgundy,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return SafeArea(
       top: false,
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: const ShapeDecoration(
-          color: CartzyColors.surface,
-          shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
-          shadows: [BoxShadow(color: Color(0x148B3A3A), blurRadius: 16, offset: Offset(0, 4))],
-        ),
-        child: Row(
+        height: 64,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
           children: [
-            for (var i = 0; i < items.length; i++)
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  selected: _tab == i,
-                  label: items[i].$2,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => setState(() => _tab = i),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(items[i].$1, size: 22, color: _tab == i ? CartzyColors.burgundy : CartzyColors.gray),
-                          const SizedBox(height: 3),
-                          Text(
-                            items[i].$2,
-                            style: GoogleFonts.dmSans(
-                              fontSize: 11,
-                              fontWeight: _tab == i ? FontWeight.w600 : FontWeight.w400,
-                              color: _tab == i ? CartzyColors.burgundy : CartzyColors.gray,
+            // Nav bar background pill
+            Container(
+              height: 56,
+              decoration: const ShapeDecoration(
+                color: CartzyColors.surface,
+                shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
+                shadows: [
+                  BoxShadow(color: Color(0x148B3A3A), blurRadius: 16, offset: Offset(0, 4)),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  for (final it in leftItems) navItem(it.$1, it.$2, it.$3),
+                  // Centered gap for GCash-style floating scanner button
+                  const SizedBox(width: 58),
+                  for (final it in rightItems) navItem(it.$1, it.$2, it.$3),
+                ],
+              ),
+            ),
+
+            // GCash-style floating elevated circular scanner button
+            Positioned(
+              top: 0,
+              child: Semantics(
+                button: true,
+                label: 'Scan parcel waybill barcode or QR',
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _scanParcel();
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF8B3A3A),
+                              Color(0xFF6B2525),
+                            ],
+                          ),
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x408B3A3A),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
                             ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.qr_code_scanner_rounded,
+                            color: Colors.white,
+                            size: 24,
                           ),
-                          const SizedBox(height: 2),
-                          AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            height: 2,
-                            width: _tab == i ? 16 : 0,
-                            color: CartzyColors.burgundy,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Scan',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: CartzyColors.burgundy,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),

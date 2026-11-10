@@ -1,3 +1,4 @@
+import 'package:cartzy/rider/rider_home_address.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -111,6 +112,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   bool _contactNoError = false;
   String? _contactNoErrorMessage;
   bool _birthdayError = false;
+  HomeAddress? _homeAddress;
+  bool _homeAddressError = false;
   String? _birthdayErrorMessage;
   bool _logisticsPartnerError = false;
   bool _vehicleError = false;
@@ -396,7 +399,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       }
     });
 
+    final homeMissing = !(_homeAddress?.isComplete ?? false);
+    if (homeMissing != _homeAddressError) setState(() => _homeAddressError = homeMissing);
+
     if (_govIdImageError ||
+        homeMissing ||
         _firstNameError ||
         _lastNameError ||
         _contactNoError ||
@@ -578,6 +585,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       'email': email,
       'phone': phone,
       'birthday': _toIsoDate(_birthday),
+      ...?_homeAddress?.toFields(),
       'password': _passwordController.text,
       'password_confirmation': _passwordController.text,
       'otp': otp,
@@ -1186,6 +1194,20 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           isError: _birthdayError,
           errorMessage: _birthdayErrorMessage ?? 'Please enter your birthday.',
           helperText: 'Riders must be at least 18 years old.',
+        ),
+        const SizedBox(height: 16),
+        Text('Home address *', style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 2),
+        Text('Your hub gives you pickups and deliveries near where you live.',
+            style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFF6B6275))),
+        const SizedBox(height: 10),
+        HomeAddressFields(
+          initial: _homeAddress,
+          showError: _homeAddressError,
+          onChanged: (value) {
+            _homeAddress = value;
+            if (_homeAddressError && value.isComplete) setState(() => _homeAddressError = false);
+          },
         ),
         const SizedBox(height: 28),
 

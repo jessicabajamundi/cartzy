@@ -1,3 +1,4 @@
+import 'package:cartzy/rider/rider_home_address.dart';
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 
@@ -64,6 +65,7 @@ class CourierProfile {
   final String? status;
   final bool isActive;
   final String? memberSince;
+  final HomeAddress? homeAddress;
 
   const CourierProfile({
     required this.name,
@@ -77,6 +79,7 @@ class CourierProfile {
     this.status,
     this.isActive = false,
     this.memberSince,
+    this.homeAddress,
   });
 
   factory CourierProfile.fromJson(Map<String, dynamic> json) => CourierProfile(
@@ -91,6 +94,7 @@ class CourierProfile {
         status: _str(json['status']),
         isActive: json['is_active'] == true,
         memberSince: _str(json['member_since']),
+        homeAddress: HomeAddress.fromJson(json['home_address']),
       );
 
   String get firstName => name.trim().split(RegExp(r'\s+')).first;

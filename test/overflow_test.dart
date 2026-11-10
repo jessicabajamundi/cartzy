@@ -34,6 +34,7 @@ import 'package:cartzy/rider/rider_dashboard.dart';
 import 'package:cartzy/rider/rider_delivery_dashboard.dart';
 import 'package:cartzy/rider/rider_delivery_history_screen.dart';
 import 'package:cartzy/rider/rider_delivery_process.dart';
+import 'package:cartzy/services/rider_delivery_service.dart';
 import 'package:cartzy/rider/rider_earnings_dashboard.dart';
 import 'package:cartzy/rider/rider_order_detail.dart';
 import 'package:cartzy/rider/rider_pickup_dashboard.dart';
@@ -49,6 +50,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void _n() {}
+
+RiderDelivery _delivery({bool out = false}) => RiderDelivery(
+      id: out ? 2 : 1,
+      trackingCode: 'CTZ-OVERFLOW-LONG-TRACKING-CODE-${out ? 2 : 1}',
+      orderReference: 'ORD-2026-000123',
+      status: out ? 'out_for_delivery' : 'assigned',
+      recipientName: 'Maria Clara Santos de los Reyes',
+      recipientPhone: '09171234567',
+      recipientAddress: 'Block 12 Lot 34, Very Long Subdivision Name, Barangay Bubukal, Santa Cruz, Laguna 4009',
+      sellerName: 'Laguna Gadgets and Accessories Official Store',
+      itemsCount: 3,
+      itemsSummary: '2x Wireless Earbuds Pro Max, 1x USB-C Fast Charging Cable 2m',
+      isCod: true,
+      codAmount: 250,
+    );
 
 RiderOrder _order() => RiderOrder(
       id: 1024,
@@ -143,11 +159,14 @@ final screens = <String, Widget Function()>{
       myUserId: 1,
       otherUserId: 2,
       otherUserName: 'Maria Clara Dela Cruz-Santos'),
-  'RiderDeliveryDashboard': () =>
-      const RiderDeliveryDashboard(token: 't', onBack: _n),
+  'RiderDeliveryDashboard': () => RiderDeliveryDashboard(
+        token: 't',
+        onBack: _n,
+        loadQueue: () async => RiderDeliveryQueue(deliveries: [_delivery(), _delivery(out: true)], codToCollect: 500),
+      ),
   'RiderDeliveryHistory': () =>
       const RiderDeliveryHistoryScreen(token: 't', onBack: _n),
-  'RiderDeliverProcess': () => RiderDeliverProcess(order: _order(), token: 't'),
+  'RiderDeliverProcess': () => RiderDeliverProcess(delivery: _delivery(out: true), token: 't'),
   'RiderEarnings': () => const RiderEarningsScreen(token: 't', onBack: _n),
   'RiderPickupDashboard': () =>
       const RiderPickupDashboard(token: 't', onBack: _n),

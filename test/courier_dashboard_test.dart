@@ -111,6 +111,7 @@ void main() {
     expect(find.text('Van'), findsOneWidget);
     expect(find.text('Not set'), findsNWidgets(4)); // phone, plate number, area, member since
     expect(find.text('123ABC'), findsNothing);
+    await tester.scrollUntilVisible(find.text('Log out'), 200, scrollable: find.byType(Scrollable).first);
     expect(find.text('Log out'), findsWidgets);
   });
 
@@ -119,5 +120,22 @@ void main() {
 
     expect(find.text("Can't load your dashboard"), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
+  });
+
+  testWidgets('center scanner button sits between Pickups and History and has Scan label', (tester) async {
+    await pump(tester, () async => CourierDashboardData.fromJson(_json()));
+
+    final scanButton = find.byWidgetPredicate((w) => w is Semantics && w.properties.label == 'Scan parcel waybill barcode or QR');
+    expect(scanButton, findsOneWidget);
+    expect(find.text('Scan'), findsOneWidget);
+    expect(find.descendant(of: scanButton, matching: find.byIcon(Icons.qr_code_scanner_rounded)), findsOneWidget);
+
+    final pickups = tester.getCenter(find.text('Pickups'));
+    final scan = tester.getCenter(find.text('Scan'));
+    final history = tester.getCenter(find.text('History'));
+
+    // Scan button is horizontally located between Pickups and History
+    expect(pickups.dx < scan.dx, isTrue);
+    expect(scan.dx < history.dx, isTrue);
   });
 }

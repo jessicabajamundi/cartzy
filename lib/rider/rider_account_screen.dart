@@ -1,3 +1,4 @@
+import 'package:cartzy/rider/rider_home_address.dart';
 import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
 import 'package:flutter/material.dart';
@@ -121,6 +122,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   _buildProfileHeaderCard(),
                   const SizedBox(height: 20),
                   _buildTwoColumnDetails(),
+                  const SizedBox(height: 20),
+                  _buildHomeAddressCard(),
                   const SizedBox(height: 20),
                   _buildPatchNotesCard(),
                   const SizedBox(height: 20),
@@ -741,6 +744,49 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
 
   // ── Bottom Sign Out Card ─────────────────────────────────────
   /// What changed in the app for riders and couriers.
+  /// Where the rider lives; the hub matches them to nearby work by barangay.
+  Widget _buildHomeAddressCard() {
+    final home = HomeAddress.fromJson(AuthService.currentUser?['home_address']);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEFE8EA)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.home_outlined, color: Color(0xFF6F6382)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Home address', style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w700, color: const Color(0xFF261E30))),
+                const SizedBox(height: 2),
+                Text(
+                  home?.label ?? 'Not added yet. Add it so your hub can send you deliveries near home.',
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF8A7780)),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              final saved = await showHomeAddressSheet(context, initial: home);
+              if (saved == null || !mounted) return;
+              AuthService.currentUser?['home_address'] = saved.toFields();
+              setState(() {});
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Home address saved.')));
+            },
+            child: Text(home == null ? 'Add' : 'Change', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPatchNotesCard() {
     final (version, notes) = PatchNotesDialog.latestRiderNotes(AppUpdateService.currentAppVersion);
 
