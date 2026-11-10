@@ -57,8 +57,9 @@ jobs:
 
       - name: Prepare Release Artifacts
         run: |
+          VERSION="${{ steps.version_step.outputs.version }}"
+          cp build/app/outputs/flutter-apk/app-release.apk "cartzy-mobile-v${VERSION}.apk"
           cp build/app/outputs/flutter-apk/app-release.apk cartzy.apk
-          cp build/app/outputs/flutter-apk/app-release.apk app-release.apk
 
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
@@ -70,8 +71,8 @@ jobs:
           make_latest: true
           generate_release_notes: true
           files: |
+            cartzy-mobile-v${{ steps.version_step.outputs.version }}.apk
             cartzy.apk
-            app-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
