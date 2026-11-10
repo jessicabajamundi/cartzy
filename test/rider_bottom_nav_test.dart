@@ -59,4 +59,20 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('rider bottom nav has a center Scan button between History and Earnings', (tester) async {
+    await pumpRider(tester);
+
+    final scanButton = find.byWidgetPredicate((w) => w is Semantics && w.properties.label == 'Scan parcel waybill barcode or QR');
+    expect(scanButton, findsOneWidget);
+    expect(find.descendant(of: scanButton, matching: find.text('Scan')), findsOneWidget);
+    expect(find.descendant(of: scanButton, matching: find.byIcon(Icons.qr_code_scanner_rounded)), findsOneWidget);
+
+    final history = tester.getCenter(navLabel('History'));
+    final scan = tester.getCenter(find.descendant(of: scanButton, matching: find.text('Scan')));
+    final earnings = tester.getCenter(navLabel('Earnings'));
+
+    expect(history.dx < scan.dx, isTrue);
+    expect(scan.dx < earnings.dx, isTrue);
+  });
 }

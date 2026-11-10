@@ -492,8 +492,8 @@ class _CourierDashboardState extends State<CourierDashboard> {
     return SafeArea(
       top: false,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-        height: 64,
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        height: 72,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
@@ -513,7 +513,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                 children: [
                   for (final it in leftItems) navItem(it.$1, it.$2, it.$3),
                   // Centered gap for GCash-style floating scanner button
-                  const SizedBox(width: 58),
+                  const SizedBox(width: 60),
                   for (final it in rightItems) navItem(it.$1, it.$2, it.$3),
                 ],
               ),
@@ -534,8 +534,8 @@ class _CourierDashboardState extends State<CourierDashboard> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: const LinearGradient(
@@ -546,11 +546,11 @@ class _CourierDashboardState extends State<CourierDashboard> {
                               Color(0xFF6B2525),
                             ],
                           ),
-                          border: Border.all(color: Colors.white, width: 2.5),
+                          border: Border.all(color: Colors.white, width: 3),
                           boxShadow: const [
                             BoxShadow(
-                              color: Color(0x408B3A3A),
-                              blurRadius: 10,
+                              color: Color(0x4D8B3A3A),
+                              blurRadius: 12,
                               offset: Offset(0, 4),
                             ),
                           ],
@@ -559,7 +559,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                           child: Icon(
                             Icons.qr_code_scanner_rounded,
                             color: Colors.white,
-                            size: 24,
+                            size: 26,
                           ),
                         ),
                       ),

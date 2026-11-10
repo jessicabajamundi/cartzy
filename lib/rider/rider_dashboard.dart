@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -1686,39 +1687,119 @@ class _RiderDashboardState extends State<RiderDashboard> {
     );
   }
 
-  // ── Bottom nav (same look as the buyer's) ───────────────────
+  // ── Bottom nav (with GCash-style center scanner button) ───────────────────
   Widget _buildBottomNav() {
-    const items = [
-      (Icons.home_rounded, 'Home'),
-      (Icons.history_rounded, 'History'),
-      (Icons.account_balance_wallet_outlined, 'Earnings'),
-      (Icons.person_outline_rounded, 'Profile'),
+    const leftItems = [
+      (Icons.home_rounded, 'Home', 0),
+      (Icons.history_rounded, 'History', 1),
     ];
+    const rightItems = [
+      (Icons.account_balance_wallet_outlined, 'Earnings', 2),
+      (Icons.person_outline_rounded, 'Profile', 3),
+    ];
+
+    Widget navItem(IconData icon, String label, int index) {
+      return _RiderNavItem(
+        icon: icon,
+        label: label,
+        selected: _tab == index,
+        onTap: () => _selectTab(index),
+      );
+    }
+
     return SafeArea(
       top: false,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: const ShapeDecoration(
-          color: CartzyColors.surface,
-          shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
-          shadows: [
-            BoxShadow(
-              color: Color(0x148B3A3A),
-              blurRadius: 16,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        height: 72,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.bottomCenter,
           children: [
-            for (var i = 0; i < items.length; i++)
-              _RiderNavItem(
-                icon: items[i].$1,
-                label: items[i].$2,
-                selected: _tab == i,
-                onTap: () => _selectTab(i),
+            // Nav bar background pill
+            Container(
+              height: 56,
+              decoration: const ShapeDecoration(
+                color: CartzyColors.surface,
+                shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
+                shadows: [
+                  BoxShadow(
+                    color: Color(0x148B3A3A),
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
+                  ),
+                ],
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  for (final it in leftItems) navItem(it.$1, it.$2, it.$3),
+                  // Centered gap for GCash-style floating scanner button
+                  const SizedBox(width: 60),
+                  for (final it in rightItems) navItem(it.$1, it.$2, it.$3),
+                ],
+              ),
+            ),
+
+            // GCash-style floating elevated circular scanner button
+            Positioned(
+              top: 0,
+              child: Semantics(
+                button: true,
+                label: 'Scan parcel waybill barcode or QR',
+                child: GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _openBarcodeScanner('Scan Parcel');
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF8B3A3A),
+                              Color(0xFF6B2525),
+                            ],
+                          ),
+                          border: Border.all(color: Colors.white, width: 3),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x4D8B3A3A),
+                              blurRadius: 12,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.qr_code_scanner_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Scan',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: CartzyColors.burgundy,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
