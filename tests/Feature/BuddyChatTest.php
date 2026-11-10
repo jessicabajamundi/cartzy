@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CatalogController;
 use App\Models\{Category, LogisticsProvider, Product, ProductVariant, Seller, User};
 use App\Services\{BuddyChat, BuyerOrders, OrderPlacement};
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
@@ -432,5 +433,106 @@ class BuddyChatTest extends TestCase
         $this->assertStringContainsString('"hub_name":"My Hub"', $result);
         $this->assertStringContainsString('"parcels_in_hub":0', $result);
         $this->assertNotNull($provider);
+    }
+
+    public function test_gemini_provider_is_called_when_gemini_key_is_set(): void
+    {
+        config(['services.gemini.key' => 'test-gemini-key']);
+        config(['services.groq.key' => null]);
+        config(['services.anthropic.key' => null]);
+
+        Http::fake([
+            'https://generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'role' => 'model',
+                            'parts' => [
+                                ['text' => json_encode(['reply' => 'Hi from Gemini!', 'mood' => 'happy', 'suggestions' => ['Find bags'], 'product_ids' => []])],
+                            ],
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $this->postJson('/api/buddy/chat', $this->say('Hello Gemini'))
+            ->assertOk()
+            ->assertJsonPath('reply', 'Hi from Gemini!')
+            ->assertJsonPath('mood', 'happy');
+
+        Http::assertSent(fn ($req) => str_contains($req->url(), 'generativelanguage.googleapis.com'));
+    }
+
+    public function test_groq_provider_is_called_when_groq_key_is_set(): void
+    {
+        config(['services.gemini.key' => null]);
+        config(['services.groq.key' => 'test-groq-key']);
+        config(['services.anthropic.key' => null]);
+
+        Http::fake([
+            'https://api.groq.com/*' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => json_encode(['reply' => 'Hi from Groq!', 'mood' => 'excited', 'suggestions' => ['Show shoes'], 'product_ids' => []]),
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $this->postJson('/api/buddy/chat', $this->say('Hello Groq'))
+            ->assertOk()
+            ->assertJsonPath('reply', 'Hi from Groq!')
+            ->assertJsonPath('mood', 'excited');
+
+        Http::assertSent(fn ($req) => str_contains($req->url(), 'api.groq.com'));
+    }
+
+    public function test_gemini_rate_limit_falls_back_to_groq(): void
+    {
+        config(['services.gemini.key' => 'test-gemini-key']);
+        config(['services.groq.key' => 'test-groq-key']);
+        config(['services.anthropic.key' => null]);
+
+        Http::fake([
+            'https://generativelanguage.googleapis.com/*' => Http::response(['error' => 'Resource exhausted'], 429),
+            'https://api.groq.com/*' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => json_encode(['reply' => 'Fallback to Groq succeeded!', 'mood' => 'wink', 'suggestions' => [], 'product_ids' => []]),
+                        ],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $this->postJson('/api/buddy/chat', $this->say('Help please'))
+            ->assertOk()
+            ->assertJsonPath('reply', 'Fallback to Groq succeeded!')
+            ->assertJsonPath('mood', 'wink');
+
+        Http::assertSent(fn ($req) => str_contains($req->url(), 'generativelanguage.googleapis.com'));
+        Http::assertSent(fn ($req) => str_contains($req->url(), 'api.groq.com'));
+    }
+
+    public function test_all_provider_failures_fall_back_to_offline_reply(): void
+    {
+        config(['services.gemini.key' => 'test-gemini-key']);
+        config(['services.groq.key' => 'test-groq-key']);
+        config(['services.anthropic.key' => null]);
+
+        Http::fake([
+            'https://generativelanguage.googleapis.com/*' => Http::response(['error' => 'Server error'], 500),
+            'https://api.groq.com/*' => Http::response(['error' => 'Service unavailable'], 503),
+        ]);
+
+        $this->postJson('/api/buddy/chat', $this->say('Hello'))
+            ->assertOk()
+            ->assertJsonStructure(['reply', 'mood', 'suggestions', 'products']);
     }
 }

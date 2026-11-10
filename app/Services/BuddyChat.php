@@ -6,6 +6,7 @@ use Anthropic\Client;
 use App\Http\Controllers\Api\CatalogController;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -151,17 +152,7 @@ PROMPT;
         $this->workspaceMode = null;
         $this->workspaceUser = null;
 
-        if (!config('services.anthropic.key')) {
-            return $this->offlineReply((string) end($history)['content'], $user);
-        }
-
-        try {
-            return $this->converse($history, $user, $productId);
-        } catch (\Throwable $e) {
-            Log::warning('Buddy chat failed: '.$e->getMessage());
-
-            return $this->offlineReply((string) end($history)['content'], $user);
-        }
+        return $this->dispatchToProviders($history, $user, $productId);
     }
 
     /**
@@ -177,17 +168,348 @@ PROMPT;
         $this->workspaceMode = $mode;
         $this->workspaceUser = $user;
 
-        if (!config('services.anthropic.key')) {
-            return $this->workspaceOfflineReply((string) end($history)['content']);
+        return $this->dispatchToProviders($history, $user, null);
+    }
+
+    /**
+     * Tries AI providers in priority order: Gemini -> Groq -> Anthropic (Claude) -> Offline fallback.
+     */
+    private function dispatchToProviders(array $history, ?User $user, ?int $productId): array
+    {
+        $lastMessage = (string) end($history)['content'];
+
+        if (filled(config('services.gemini.key'))) {
+            try {
+                return $this->converseWithGemini($history, $user, $productId);
+            } catch (\Throwable $e) {
+                Log::warning('Gemini buddy chat failed, trying next provider: '.$e->getMessage());
+            }
         }
 
-        try {
-            return $this->converse($history, $user, null);
-        } catch (\Throwable $e) {
-            Log::warning('Workspace buddy chat failed: '.$e->getMessage());
-
-            return $this->workspaceOfflineReply((string) end($history)['content']);
+        if (filled(config('services.groq.key'))) {
+            try {
+                return $this->converseWithGroq($history, $user, $productId);
+            } catch (\Throwable $e) {
+                Log::warning('Groq buddy chat failed, trying next provider: '.$e->getMessage());
+            }
         }
+
+        if (filled(config('services.anthropic.key'))) {
+            try {
+                return $this->converse($history, $user, $productId);
+            } catch (\Throwable $e) {
+                Log::warning('Anthropic buddy chat failed, falling back to offline: '.$e->getMessage());
+            }
+        }
+
+        return $this->workspaceMode
+            ? $this->workspaceOfflineReply($lastMessage)
+            : $this->offlineReply($lastMessage, $user);
+    }
+
+    private function fullSystemPrompt(?User $user, ?int $productId): string
+    {
+        return $this->systemPrompt()."\n\n".$this->visitorContext($user, $productId)."\n\n"
+            ."CRITICAL: You must always respond with a valid JSON object matching this schema:\n"
+            .json_encode(self::OUTPUT_SCHEMA, JSON_PRETTY_PRINT)."\n"
+            ."Do not wrap in markdown tags or backticks. Return valid JSON only.";
+    }
+
+    /**
+     * Multi-turn tool calling conversation with Google Gemini (REST generateContent API).
+     */
+    protected function converseWithGemini(array $history, ?User $user, ?int $productId): array
+    {
+        $apiKey = (string) config('services.gemini.key');
+        $model = (string) (config('services.gemini.model') ?: 'gemini-3-flash-preview');
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+
+        $systemText = $this->fullSystemPrompt($user, $productId);
+
+        $contents = [];
+        foreach ($history as $m) {
+            $contents[] = [
+                'role' => $m['role'] === 'assistant' ? 'model' : 'user',
+                'parts' => [['text' => (string) $m['content']]],
+            ];
+        }
+
+        $tools = [];
+        $declarations = [];
+        foreach ($this->tools() as $tool) {
+            $schema = $this->toGeminiSchema($tool['inputSchema'] ?? ['type' => 'object', 'properties' => new \stdClass()]);
+            $declarations[] = [
+                'name' => $tool['name'],
+                'description' => $tool['description'],
+                'parameters' => $schema,
+            ];
+        }
+        if (!empty($declarations)) {
+            $tools[] = ['functionDeclarations' => $declarations];
+        }
+
+        for ($round = 0; $round <= self::MAX_TOOL_ROUNDS; $round++) {
+            set_time_limit(120);
+
+            $payload = [
+                'systemInstruction' => ['parts' => [['text' => $systemText]]],
+                'contents' => $contents,
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'maxOutputTokens' => 2048,
+                ],
+            ];
+            if (!empty($tools)) {
+                $payload['tools'] = $tools;
+            }
+
+            $response = Http::timeout(60)->post($url, $payload);
+
+            if (!$response->successful()) {
+                throw new \RuntimeException("Gemini API error {$response->status()}: ".$response->body());
+            }
+
+            $data = $response->json();
+            $candidate = $data['candidates'][0] ?? null;
+            if (!$candidate) {
+                throw new \RuntimeException('Gemini returned no candidates: '.$response->body());
+            }
+
+            $modelContent = $candidate['content'] ?? [];
+            $parts = $modelContent['parts'] ?? [];
+
+            $functionCalls = [];
+            foreach ($parts as $part) {
+                if (isset($part['functionCall'])) {
+                    $functionCalls[] = $part['functionCall'];
+                }
+            }
+
+            if (!empty($functionCalls)) {
+                // Keep model parts unchanged to preserve thought signatures
+                $contents[] = [
+                    'role' => 'model',
+                    'parts' => $parts,
+                ];
+
+                $responseParts = [];
+                foreach ($functionCalls as $call) {
+                    $toolName = (string) ($call['name'] ?? '');
+                    $toolArgs = (array) ($call['args'] ?? []);
+                    try {
+                        $toolResult = $this->runTool($toolName, $toolArgs, $user);
+                    } catch (\Throwable $e) {
+                        Log::info("Gemini tool {$toolName} failed: ".$e->getMessage());
+                        $toolResult = ['error' => 'That lookup failed or the item is not available.'];
+                    }
+
+                    $responseParts[] = [
+                        'functionResponse' => [
+                            'name' => $toolName,
+                            'response' => [
+                                'content' => $toolResult,
+                            ],
+                        ],
+                    ];
+                }
+
+                $contents[] = [
+                    'role' => 'user',
+                    'parts' => $responseParts,
+                ];
+
+                continue;
+            }
+
+            $text = collect($parts)->pluck('text')->filter()->join("\n");
+            $parsed = $this->parseJsonReply($text);
+            if ($parsed !== null) {
+                return $parsed;
+            }
+
+            return $this->stumped();
+        }
+
+        return $this->stumped();
+    }
+
+    /**
+     * Multi-turn tool calling conversation with Groq (OpenAI-compatible chat completions API).
+     */
+    protected function converseWithGroq(array $history, ?User $user, ?int $productId): array
+    {
+        $apiKey = (string) config('services.groq.key');
+        $model = (string) (config('services.groq.model') ?: 'qwen/qwen3.8-27b');
+        $url = 'https://api.groq.com/openai/v1/chat/completions';
+
+        $systemText = $this->fullSystemPrompt($user, $productId);
+
+        $messages = [
+            ['role' => 'system', 'content' => $systemText],
+        ];
+        foreach ($history as $m) {
+            $messages[] = [
+                'role' => $m['role'],
+                'content' => (string) $m['content'],
+            ];
+        }
+
+        $tools = [];
+        foreach ($this->tools() as $tool) {
+            $schema = (array) ($tool['inputSchema'] ?? ['type' => 'object', 'properties' => new \stdClass()]);
+            if (empty($schema['properties'])) {
+                $schema['properties'] = new \stdClass();
+            }
+            $tools[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['name'],
+                    'description' => $tool['description'],
+                    'parameters' => $schema,
+                ],
+            ];
+        }
+
+        for ($round = 0; $round <= self::MAX_TOOL_ROUNDS; $round++) {
+            set_time_limit(120);
+
+            $payload = [
+                'model' => $model,
+                'messages' => $messages,
+                'temperature' => 0.7,
+                'max_tokens' => 2048,
+            ];
+            if (!empty($tools)) {
+                $payload['tools'] = $tools;
+            } else {
+                $payload['response_format'] = ['type' => 'json_object'];
+            }
+
+            $response = Http::timeout(60)
+                ->withToken($apiKey)
+                ->post($url, $payload);
+
+            if (!$response->successful()) {
+                throw new \RuntimeException("Groq API error {$response->status()}: ".$response->body());
+            }
+
+            $data = $response->json();
+            $choice = $data['choices'][0] ?? null;
+            if (!$choice) {
+                throw new \RuntimeException('Groq returned no choices: '.$response->body());
+            }
+
+            $msg = $choice['message'] ?? [];
+            $toolCalls = $msg['tool_calls'] ?? [];
+
+            if (!empty($toolCalls)) {
+                $messages[] = $msg;
+
+                foreach ($toolCalls as $call) {
+                    $toolName = (string) ($call['function']['name'] ?? '');
+                    $toolArgs = json_decode((string) ($call['function']['arguments'] ?? '{}'), true) ?: [];
+
+                    try {
+                        $toolResult = $this->runTool($toolName, $toolArgs, $user);
+                    } catch (\Throwable $e) {
+                        Log::info("Groq tool {$toolName} failed: ".$e->getMessage());
+                        $toolResult = ['error' => 'That lookup failed or the item is not available.'];
+                    }
+
+                    $messages[] = [
+                        'role' => 'tool',
+                        'tool_call_id' => $call['id'],
+                        'name' => $toolName,
+                        'content' => json_encode($toolResult, JSON_UNESCAPED_UNICODE),
+                    ];
+                }
+
+                continue;
+            }
+
+            $text = (string) ($msg['content'] ?? '');
+            $parsed = $this->parseJsonReply($text);
+            if ($parsed !== null) {
+                return $parsed;
+            }
+
+            return $this->stumped();
+        }
+
+        return $this->stumped();
+    }
+
+    /**
+     * Converts a JSON Schema into uppercase Gemini types (e.g. OBJECT, STRING, INTEGER).
+     */
+    private function toGeminiSchema(array|object $schema): array
+    {
+        $arr = (array) $schema;
+        if (isset($arr['type']) && is_string($arr['type'])) {
+            $arr['type'] = strtoupper($arr['type']);
+        }
+        if (isset($arr['properties'])) {
+            $props = (array) $arr['properties'];
+            $newProps = [];
+            foreach ($props as $key => $prop) {
+                $newProps[$key] = $this->toGeminiSchema($prop);
+            }
+            $arr['properties'] = empty($newProps) ? new \stdClass() : $newProps;
+        }
+        if (isset($arr['items'])) {
+            $arr['items'] = $this->toGeminiSchema($arr['items']);
+        }
+
+        return $arr;
+    }
+
+    /**
+     * Extracts and validates the JSON reply payload from text.
+     */
+    private function parseJsonReply(?string $text): ?array
+    {
+        if (blank($text)) {
+            return null;
+        }
+
+        $decoded = json_decode($text, true);
+        if (is_array($decoded) && filled($decoded['reply'] ?? null)) {
+            return $this->formatReply($decoded);
+        }
+
+        if (preg_match('/```(?:json)?\s*(\{.*?\})\s*```/s', $text, $matches)) {
+            $decoded = json_decode($matches[1], true);
+            if (is_array($decoded) && filled($decoded['reply'] ?? null)) {
+                return $this->formatReply($decoded);
+            }
+        }
+
+        $firstBrace = strpos($text, '{');
+        $lastBrace = strrpos($text, '}');
+        if ($firstBrace !== false && $lastBrace !== false && $lastBrace > $firstBrace) {
+            $slice = substr($text, $firstBrace, $lastBrace - $firstBrace + 1);
+            $decoded = json_decode($slice, true);
+            if (is_array($decoded) && filled($decoded['reply'] ?? null)) {
+                return $this->formatReply($decoded);
+            }
+        }
+
+        return [
+            'reply' => trim($text),
+            'mood' => 'happy',
+            'suggestions' => [],
+            'products' => [],
+        ];
+    }
+
+    private function formatReply(array $data): array
+    {
+        return [
+            'reply' => (string) $data['reply'],
+            'mood' => in_array($data['mood'] ?? null, self::MOODS, true) ? $data['mood'] : 'happy',
+            'suggestions' => array_slice(array_values(array_filter((array) ($data['suggestions'] ?? []), 'is_string')), 0, 3),
+            'products' => $this->cards((array) ($data['product_ids'] ?? [])),
+        ];
     }
 
     private function systemPrompt(): string
@@ -356,6 +678,19 @@ PROMPT;
                 ],
             ],
             [
+                'name' => 'search_product',
+                'description' => 'Alias for search_products. Search the live Cartzy catalog.',
+                'inputSchema' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'query' => ['type' => 'string', 'description' => 'One or two keywords, such as "mug".'],
+                        'category' => ['type' => 'string', 'description' => 'Optional exact category name from list_categories.'],
+                        'sort' => ['type' => 'string', 'enum' => ['newest', 'price_asc', 'price_desc']],
+                        'max_price' => ['type' => 'number', 'description' => 'Optional highest price in pesos, when the person gave a budget.'],
+                    ],
+                ],
+            ],
+            [
                 'name' => 'product_details',
                 'description' => 'Get one product\'s description, variants with stock, rating and recent reviews.',
                 'inputSchema' => [
@@ -465,8 +800,8 @@ PROMPT;
         }
 
         return match ($name) {
-            'search_products' => $this->searchProducts($input),
-            'product_details' => $this->productDetails((int) ($input['product_id'] ?? 0)),
+            'search_products', 'search_product' => $this->searchProducts($input),
+            'product_details', 'get_product_details' => $this->productDetails((int) ($input['product_id'] ?? 0)),
             'list_categories' => ['categories' => collect($this->catalog->categories()->getData(true)['categories'])->pluck('name')->all()],
             'my_orders' => $this->myOrders($user),
             'track_order' => $this->trackOrder($user, (int) ($input['seller_order_id'] ?? 0)),
