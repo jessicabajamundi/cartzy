@@ -458,7 +458,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
             borderRadius: BorderRadius.circular(8),
             onTap: () => setState(() => _tab = index),
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -493,14 +493,14 @@ class _CourierDashboardState extends State<CourierDashboard> {
       top: false,
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        height: 72,
+        height: 84,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
           children: [
-            // Nav bar background pill
+            // Nav bar background pill (thickened to 68px, matching buyer's nav)
             Container(
-              height: 56,
+              height: 68,
               decoration: const ShapeDecoration(
                 color: CartzyColors.surface,
                 shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
@@ -508,12 +508,12 @@ class _CourierDashboardState extends State<CourierDashboard> {
                   BoxShadow(color: Color(0x148B3A3A), blurRadius: 16, offset: Offset(0, 4)),
                 ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: Row(
                 children: [
                   for (final it in leftItems) navItem(it.$1, it.$2, it.$3),
                   // Centered gap for GCash-style floating scanner button
-                  const SizedBox(width: 60),
+                  const SizedBox(width: 62),
                   for (final it in rightItems) navItem(it.$1, it.$2, it.$3),
                 ],
               ),
@@ -534,8 +534,8 @@ class _CourierDashboardState extends State<CourierDashboard> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 52,
-                        height: 52,
+                        width: 54,
+                        height: 54,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: const LinearGradient(
@@ -546,7 +546,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                               Color(0xFF6B2525),
                             ],
                           ),
-                          border: Border.all(color: Colors.white, width: 3),
+                          border: Border.all(color: Colors.white, width: 3.5),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x4D8B3A3A),
@@ -567,7 +567,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                       Text(
                         'Scan',
                         style: GoogleFonts.dmSans(
-                          fontSize: 10,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w700,
                           color: CartzyColors.burgundy,
                           letterSpacing: 0.2,

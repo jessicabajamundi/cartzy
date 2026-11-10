@@ -78,6 +78,9 @@ class PatchNotesDialog extends StatelessWidget {
   /// Rider and courier changes only, newest version first. Buyer-side
   /// changes are left out because riders never see those screens.
   static const Map<String, List<String>> riderNotes = {
+    '1.2.17': [
+      'Refined Navigation Bar: Increased height and thickness of the rider and courier bottom navigation bar to match the buyer app experience.',
+    ],
     '1.2.16': [
       'Elevated GCash-Style Scanner: Centered, elevated floating Scan button on both Courier and Rider navigation bars for faster parcel and waybill scanning.',
     ],
@@ -126,6 +129,11 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.17' || version == 'v1.2.17') {
+      return const [
+        'Polished Bottom Navigation Bar: Increased thickness and height of the courier and rider navigation bars to perfectly match the buyer app.',
+      ];
+    }
     if (version == '1.2.16' || version == 'v1.2.16') {
       return const [
         'Enhanced Navigation Scanner: Elevated GCash-style floating circular scanner button on both Courier (First Mile) and Rider (Last Mile) navigation bars.',
