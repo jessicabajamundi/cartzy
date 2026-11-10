@@ -78,6 +78,10 @@ class PatchNotesDialog extends StatelessWidget {
   /// Rider and courier changes only, newest version first. Buyer-side
   /// changes are left out because riders never see those screens.
   static const Map<String, List<String>> riderNotes = {
+    '1.2.15': [
+      'GCash-Style Center Scanner Button: Tap the floating Scan button between Pickups and History to instantly scan waybill barcodes and QRs.',
+      'Smooth Workflow: Scanned parcels immediately pull up details for one-tap accept or decline.',
+    ],
     '1.2.14': [
       'Separate Rider & Courier Login: Choose Buyer, Rider, or Courier directly on the login screen.',
       'First Mile Courier Dashboard: Couriers see their assigned seller pickups, parcels in their vehicle, and parcels handed to the hub.',
@@ -119,6 +123,12 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
+    if (version == '1.2.15' || version == 'v1.2.15') {
+      return const [
+        'GCash-Style Rider Scanner: Elevated circular scanner button right between Pickups and History on the courier dashboard for quick waybill scanning.',
+        'Cozy AI Upgrade: Enhanced multi-provider AI fallback (Gemini & Groq) keeps your shopping buddy responsive around the clock.',
+      ];
+    }
     if (version == '1.2.14' || version == 'v1.2.14') {
       return const [
         'Dedicated Rider & Courier Login: Switch seamlessly between Buyer, Rider (Last Mile), and Courier (First Mile) on the login screen.',
