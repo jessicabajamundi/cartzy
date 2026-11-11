@@ -17,6 +17,9 @@ class StoreController extends Controller
 
     private function publicSeller(string $slug): Seller
     {
+        if (auth()->check() && auth()->user()->role === 'admin') {
+            return Seller::with(['user', 'pickupAddress'])->where('slug', $slug)->firstOrFail();
+        }
         return Seller::publiclyVisible()->with(['user', 'pickupAddress'])->where('slug', $slug)->firstOrFail();
     }
 

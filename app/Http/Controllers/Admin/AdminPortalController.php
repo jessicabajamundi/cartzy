@@ -33,7 +33,7 @@ class AdminPortalController extends Controller
                 ->orWhereIn('id_status', ['pending', 'verified', 'rejected']));
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $stats = [
             'sales' => (clone $this->earnedOrders())->sum('subtotal_minor') / 100,
@@ -47,10 +47,9 @@ class AdminPortalController extends Controller
             'couriers' => User::where('role', 'courier')->count(),
             'products' => Product::count(),
         ];
-        $registrations = $this->applicants()->latest()->limit(5)->get();
-        $orders = SellerOrder::with(['order.buyer', 'seller'])->latest()->limit(6)->get();
-        $activity = DB::table('admin_audit_logs')->latest()->limit(6)->get();
-        return view('admin.dashboard', compact('stats', 'registrations', 'orders', 'activity'));
+        $stores = Seller::with(['user', 'pickupAddress'])->withCount('products')->latest('id')->paginate(10)->withQueryString();
+        $activity = DB::table('admin_audit_logs')->latest('id')->limit(8)->get();
+        return view('admin.dashboard', compact('stats', 'stores', 'activity'));
     }
 
     public function products(Request $request)

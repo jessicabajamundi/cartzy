@@ -43,13 +43,97 @@
     </div>
     @endforeach
 </div>
-<div class="two-columns">
-<section class="panel"><header class="panel-header"><div><h2>Recent registrations</h2><p>Latest identity and account submissions</p></div><a class="text-link" href="{{ route('admin.registrations') }}">View all →</a></header>
-<div class="table-scroll"><table><thead><tr><th>Applicant</th><th>Role</th><th>ID review</th></tr></thead><tbody>
-@forelse($registrations as $user)<tr><td><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></td><td>{{ ucfirst($user->role) }}</td><td><span class="badge {{ $user->id_status === 'verified' ? 'good' : '' }}">{{ ucfirst($user->id_status) }}</span></td></tr>
-@empty<tr><td colspan="3"><div class="empty"><strong>No registrations yet</strong><p>Applications will appear here when submitted.</p></div></td></tr>@endforelse
-</tbody></table></div></section>
-<section class="panel"><header class="panel-header"><div><h2>Recent activity</h2><p>Recorded administrator actions</p></div></header>@include('admin.partials.activity')</section>
-</div>
-<section class="panel"><header class="panel-header"><div><h2>Latest orders</h2><p>Recent orders across your marketplace</p></div><a class="text-link" href="{{ route('admin.reports') }}">Open reports →</a></header>@include('admin.partials.orders')</section>
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <h2>Registered stores</h2>
+            <p>All registered merchant storefronts across your marketplace</p>
+        </div>
+        <span class="muted">{{ $stores->total() }} total {{ \Illuminate\Support\Str::plural('store', $stores->total()) }}</span>
+    </header>
+    <div class="table-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Store</th>
+                    <th>Owner</th>
+                    <th>Products</th>
+                    <th>Status</th>
+                    <th>Registered</th>
+                    <th style="text-align: right;">Storefront</th>
+                </tr>
+            </thead>
+            <tbody>
+            @forelse($stores as $store)
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            @if($store->logoUrl())
+                                <img src="{{ $store->logoUrl() }}" alt="{{ $store->name }}" style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover; border: 1px solid var(--line);">
+                            @else
+                                <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--accent-light, #FAF8FC); color: var(--accent, #6F6382); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; border: 1px solid var(--line);">
+                                    {{ strtoupper(substr($store->name, 0, 1)) }}
+                                </div>
+                            @endif
+                            <div>
+                                <strong>{{ $store->name }}</strong>
+                                @if($store->slug)
+                                    <small class="muted" style="display: block;">/store/{{ $store->slug }}</small>
+                                @endif
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>{{ $store->user?->name ?? 'Unknown owner' }}</strong>
+                        <small class="muted" style="display: block;">{{ $store->user?->email ?? 'No email' }}</small>
+                    </td>
+                    <td>
+                        <span>{{ number_format($store->products_count ?? 0) }} {{ \Illuminate\Support\Str::plural('item', $store->products_count ?? 0) }}</span>
+                    </td>
+                    <td>
+                        <span class="badge {{ $store->status === 'approved' ? 'good' : ($store->status === 'pending' ? 'warning' : '') }}">
+                            {{ ucfirst($store->status ?? ($store->user?->status ?? 'pending')) }}
+                        </span>
+                    </td>
+                    <td class="nowrap">
+                        {{ $store->created_at ? $store->created_at->timezone('Asia/Manila')->format('M j, Y') : 'N/A' }}
+                    </td>
+                    <td style="text-align: right;">
+                        @if($store->slug)
+                            <a href="{{ route('store.show', $store->slug) }}" target="_blank" rel="noopener" class="button subtle" style="padding: 4px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <span>View Store</span>
+                                @include('admin.partials.icon', ['name' => 'arrow'])
+                            </a>
+                        @else
+                            <span class="muted" style="font-size: 11px;">No storefront</span>
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6">
+                        <div class="empty">
+                            <span class="icon">@include('admin.partials.icon', ['name' => 'box'])</span>
+                            <strong>No registered stores found</strong>
+                            <p>Stores will appear here as soon as sellers complete registration.</p>
+                        </div>
+                    </td>
+                </tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+    @include('admin.partials.pagination', ['paginator' => $stores])
+</section>
+
+<section class="panel">
+    <header class="panel-header">
+        <div>
+            <h2>Recent activity</h2>
+            <p>Recorded administrator actions and events</p>
+        </div>
+        <a class="text-link" href="{{ route('admin.activity-logs') }}">View all activity →</a>
+    </header>
+    @include('admin.partials.activity')
+</section>
 @endsection
