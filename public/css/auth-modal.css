@@ -766,3 +766,111 @@ body.auth-modal-page {
     .auth-modal-page .lm-dialog-form .auth-title,
     .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.8rem !important; }
 }
+
+/* ── Logistics Terms & Conditions box (Step 6 / Sign-in details) ── */
+.logistics-terms-box {
+    background: #FAF8FC;
+    border: 1.5px solid #E7E2EC;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 16px 0 18px;
+    text-align: left;
+}
+.logistics-terms-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.logistics-terms-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--lm-ink, #282133);
+}
+.logistics-terms-pdf-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--lm-rose-dark, #8C5A50);
+    text-decoration: none;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: #F8ECE8;
+    transition: background 0.18s, color 0.18s;
+}
+.logistics-terms-pdf-link:hover {
+    background: #F1EDF6;
+    color: var(--lm-lavender-dark, #564B68);
+    text-decoration: underline;
+}
+.logistics-terms-viewer {
+    max-height: 160px;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #ECE7F2;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.76rem;
+    color: #4B5563;
+    line-height: 1.55;
+}
+.logistics-terms-viewer::-webkit-scrollbar {
+    width: 6px;
+}
+.logistics-terms-viewer::-webkit-scrollbar-thumb {
+    background: #D1CAD9;
+    border-radius: 4px;
+}
+.logistics-terms-viewer h4 {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #1F2937;
+    margin: 12px 0 4px;
+}
+.logistics-terms-viewer h4:first-child {
+    margin-top: 0;
+}
+.logistics-terms-viewer h5 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #374151;
+    margin: 8px 0 3px;
+}
+.logistics-terms-viewer p {
+    margin: 0 0 6px;
+}
+.logistics-terms-viewer ul {
+    margin: 0 0 8px 18px;
+    padding: 0;
+}
+.logistics-terms-viewer li {
+    margin-bottom: 3px;
+}
+.logistics-terms-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+.logistics-terms-checkbox-label input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+    accent-color: var(--lm-lavender, #6F6382);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.logistics-terms-checkbox-label span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #1F2937;
+    line-height: 1.45;
+}

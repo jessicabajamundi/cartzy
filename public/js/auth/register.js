@@ -301,6 +301,8 @@ async function nextStep(targetStep) {
 
         if (!validateRegistrationPasswords(true)) return;
 
+        if (!validateLogisticsTerms(true)) return;
+
         // Send OTP automatically when transitioning to Step 3
         if (!await sendAutomaticOtp()) return;
         startOtpTimer();
@@ -708,13 +710,54 @@ window.selectRole = selectRole;
 function updateLogisticsDetails(role = document.getElementById('role_input').value) {
     const logistics = role === 'logistics';
     const wrapper = document.getElementById('logisticsFieldsWrapper');
-    if (!wrapper) return;
-    wrapper.querySelectorAll('[data-logistics-required], [data-logistics-document], [data-service-region]').forEach(input => {
-        if (!input.hasAttribute('data-service-region')) input.required = logistics;
-        // The location lists are enabled one by one by address-modal.js as each level loads.
-        const psgcManaged = input.tagName === 'SELECT' && /^office_(region|province|city|barangay)$/.test(input.id);
-        if (!psgcManaged) input.disabled = !logistics;
-    });
+    if (wrapper) {
+        wrapper.querySelectorAll('[data-logistics-required], [data-logistics-document], [data-service-region]').forEach(input => {
+            if (!input.hasAttribute('data-service-region')) input.required = logistics;
+            // The location lists are enabled one by one by address-modal.js as each level loads.
+            const psgcManaged = input.tagName === 'SELECT' && /^office_(region|province|city|barangay)$/.test(input.id);
+            if (!psgcManaged) input.disabled = !logistics;
+        });
+    }
+    const termsWrapper = document.getElementById('logisticsTermsWrapper');
+    if (termsWrapper) {
+        termsWrapper.style.display = logistics ? 'block' : 'none';
+        const termsCheckbox = document.getElementById('logistics_terms_agreed');
+        if (termsCheckbox) termsCheckbox.required = logistics;
+        if (!logistics) {
+            const error = document.getElementById('logistics_terms_error');
+            if (error) error.hidden = true;
+        }
+    }
+}
+
+// Step 6 (for logistics): user must agree to Terms & Conditions and Privacy Policy to proceed.
+function validateLogisticsTerms(focus = false) {
+    const role = document.getElementById('role_input')?.value;
+    if (role !== 'logistics') return true;
+
+    const checkbox = document.getElementById('logistics_terms_agreed');
+    const error = document.getElementById('logistics_terms_error');
+    if (!checkbox) return true;
+
+    if (!checkbox.checked) {
+        if (error) {
+            error.textContent = 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.';
+            error.hidden = false;
+        }
+        checkbox.setAttribute('aria-invalid', 'true');
+        if (focus) {
+            checkbox.focus();
+            checkbox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        return false;
+    }
+
+    if (error) {
+        error.textContent = '';
+        error.hidden = true;
+    }
+    checkbox.setAttribute('aria-invalid', 'false');
+    return true;
 }
 
 // Error and focus for a sign-up detail field (text, select or file).
@@ -977,6 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ['register_password', 'password_confirmation'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', () => validateRegistrationPasswords());
     });
+    document.getElementById('logistics_terms_agreed')?.addEventListener('change', () => validateLogisticsTerms());
     const phoneInput = document.getElementById('phone');
     phoneInput?.addEventListener('beforeinput', event => {
         if (event.inputType === 'insertText' && event.data && /[^0-9]/.test(event.data)) {
@@ -1181,6 +1225,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 validateRegistrationPasswords(true);
                 return;
             }
+            if (!validateLogisticsTerms()) {
+                e.preventDefault();
+                currentStep = 2;
+                updateStepperUI();
+                validateLogisticsTerms(true);
+                return;
+            }
             if (!validateRegistrationPhone()) {
                 e.preventDefault();
                 currentStep = 1;
@@ -1231,7 +1282,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const initialRole = document.getElementById('role_input')?.value || 'buyer';
     selectRole(initialRole);
-    if (['email', 'register_password', 'password_confirmation'].some(id => document.getElementById(id + '_error')?.textContent.trim())
+    if (['email', 'register_password', 'password_confirmation', 'logistics_terms', 'terms_agreed'].some(id => document.getElementById(id + '_error')?.textContent.trim())
         && !['first_name', 'last_name', 'phone', 'birthday'].some(id => document.getElementById(id + '_error')?.textContent.trim())
         && !Array.from(document.querySelectorAll(`#${steppedSignup()?.wrapper || 'sellerFieldsWrapper'} .seller-field-error`)).some(error => error.textContent.trim())) {
         currentStep = 2;

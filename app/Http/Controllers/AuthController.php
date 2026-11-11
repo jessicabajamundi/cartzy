@@ -480,6 +480,7 @@ class AuthController extends Controller
             'bir_certificate' => $documentRule,
             'business_permit' => $documentRule,
             'id_photo' => $documentRule,
+            'terms_agreed' => ['accepted'],
         ] : [];
         if (is_string($request->input('license_number'))) {
             $request->merge(['license_number' => strtoupper(trim($request->input('license_number')))]);
@@ -630,6 +631,7 @@ class AuthController extends Controller
             'business_permit.required' => "Please upload your Mayor's / Business Permit.",
             'business_permit.mimes' => 'Business permit must be a JPG, PNG, or PDF file.',
             'business_permit.max' => 'Business permit must not exceed 5MB.',
+            'terms_agreed.accepted' => 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.',
             'name.required'        => 'Please enter your full name.',
             'first_name.required'  => 'Please enter your first name.',
             'last_name.required'   => 'Please enter your last name.',

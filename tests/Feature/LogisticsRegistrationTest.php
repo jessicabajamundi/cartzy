@@ -64,9 +64,10 @@ class LogisticsRegistrationTest extends TestCase
         $this->post(route('register'), $this->application([
             'sec_registration_no' => '', 'tin_number' => '12345', 'contact_position' => '',
             'service_regions' => [], 'office_postal_code' => '41', 'business_permit' => null, 'id_photo' => null,
+            'terms_agreed' => null,
         ]))->assertSessionHasErrors([
             'sec_registration_no', 'tin_number', 'contact_position', 'service_regions',
-            'office_postal_code', 'business_permit', 'id_photo',
+            'office_postal_code', 'business_permit', 'id_photo', 'terms_agreed',
         ]);
 
         $this->post(route('register'), $this->application(['service_regions' => ['ATLANTIS']]))
@@ -97,6 +98,8 @@ class LogisticsRegistrationTest extends TestCase
             ->assertSee('name="office_region"', false)
             ->assertSee("Mayor's / Business Permit")
             ->assertSee('Valid ID of Authorized Representative')
+            ->assertSee('Logistics Terms &amp; Privacy Policy', false)
+            ->assertSee('name="terms_agreed"', false)
             ->assertSee('js/auth/register.js')
             ->assertDontSee('name="service_area"', false)
             ->assertDontSee('window.selectRole = function(role)', false);

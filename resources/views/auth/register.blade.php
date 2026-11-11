@@ -383,6 +383,243 @@
                 <p id="password-entry-note" style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
             </div>
 
+            {{-- Logistics partner Step 6: Terms & Conditions and Privacy Policy --}}
+            <div id="logisticsTermsWrapper" class="logistics-terms-box" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }};">
+                <div class="logistics-terms-header">
+                    <span class="logistics-terms-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: #6F6382;" aria-hidden="true">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        Logistics Terms &amp; Privacy Policy
+                    </span>
+                    <a href="{{ asset('docs/Cartzy-Logistics-Terms-and-Conditions.pdf') }}" target="_blank" rel="noopener" class="logistics-terms-pdf-link" title="Open complete document in PDF format">
+                        <span>Open PDF</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px;" aria-hidden="true">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                    </a>
+                </div>
+
+                <div class="logistics-terms-viewer" tabindex="0" role="region" aria-label="Logistics Terms and Conditions and Privacy Policy document">
+                    <h4 style="text-align: center; text-transform: uppercase; color: #111827; margin-bottom: 2px;">Cartzy</h4>
+                    <p style="text-align: center; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: #6B7280; margin-bottom: 12px;">Terms &amp; Conditions and Privacy Policy</p>
+
+                    <h4 style="color: #6F6382; border-bottom: 1px solid #ECE7F2; padding-bottom: 4px; margin-bottom: 8px;">LOGISTICS TERMS &amp; CONDITIONS</h4>
+
+                    <h5>1. Introduction</h5>
+                    <p>Welcome to Cartzy. These Terms &amp; Conditions apply to all individuals authorized to access and use a Logistics account on the Cartzy platform. By registering for or using a Logistics account, you agree to follow the responsibilities, procedures, and policies established by Cartzy.</p>
+
+                    <h5>2. Logistics Registration and Account Verification</h5>
+                    <ul>
+                        <li>Logistics personnel must provide accurate, complete, and up-to-date information during registration.</li>
+                        <li>Required identification, employment, business, or authorization documents must be submitted when requested.</li>
+                        <li>Logistics personnel must use only the account assigned or authorized to them.</li>
+                        <li>Account credentials must be kept confidential and must not be shared with unauthorized individuals.</li>
+                        <li>Any change to registration or contact information must be reported and updated promptly.</li>
+                        <li>Cartzy may verify submitted information before granting or continuing account access.</li>
+                    </ul>
+
+                    <h5>3. Logistics Responsibilities</h5>
+                    <p>Logistics personnel are expected to:</p>
+                    <ul>
+                        <li>Monitor and manage orders assigned to their logistics role or facility.</li>
+                        <li>Coordinate order processing, sorting, dispatch, and delivery handoffs as applicable.</li>
+                        <li>Ensure that orders are routed to the correct delivery area, Rider, or logistics destination.</li>
+                        <li>Keep order statuses and operational records accurate and up to date.</li>
+                        <li>Communicate professionally with sellers, Riders, customers, and Cartzy personnel.</li>
+                        <li>Report delays, missing parcels, damaged packages, system issues, and other operational concerns promptly.</li>
+                        <li>Follow Cartzy procedures and applicable laws, regulations, and safety requirements.</li>
+                    </ul>
+
+                    <h5>4. Order Processing and Package Handling</h5>
+                    <ul>
+                        <li>Verify available order details before processing or handing over a package.</li>
+                        <li>Handle packages carefully and store them in an appropriate, secure area while under logistics control.</li>
+                        <li>Do not open, use, replace, alter, or tamper with packages.</li>
+                        <li>Keep order labels, tracking details, and destination information readable and matched to the correct package.</li>
+                        <li>Sort and dispatch packages according to Cartzy instructions and operational procedures.</li>
+                        <li>Document and report any discrepancy between a package and its order record.</li>
+                        <li>Do not release packages to an unauthorized person or destination.</li>
+                    </ul>
+
+                    <h5>5. Rider and Delivery Coordination</h5>
+                    <ul>
+                        <li>Assign or coordinate delivery handoffs only through authorized Cartzy procedures.</li>
+                        <li>Before releasing a package, confirm the relevant order and Rider or authorized recipient details.</li>
+                        <li>Record delivery assignments, handoff times, and package status updates accurately.</li>
+                        <li>Do not pressure Riders to violate traffic laws or safety requirements.</li>
+                        <li>Escalate delivery delays, failed handoffs, and route or address concerns through the proper channel.</li>
+                        <li>Receive, record, and handle undelivered or returned packages according to Cartzy instructions.</li>
+                    </ul>
+
+                    <h5>6. Order Status, Records, and Documentation</h5>
+                    <ul>
+                        <li>Order statuses must reflect the actual progress of processing, sorting, dispatch, and handoff.</li>
+                        <li>Do not falsely mark an order as processed, dispatched, received, or completed.</li>
+                        <li>Proof of handoff, incident reports, and other required records must be accurate and submitted when required.</li>
+                        <li>Do not alter, delete, or conceal operational records to misrepresent an event.</li>
+                        <li>Report system errors or incorrect records so they can be reviewed and corrected.</li>
+                    </ul>
+
+                    <h5>7. Facilities, Equipment, and Inventory Control</h5>
+                    <ul>
+                        <li>Use Cartzy facilities, equipment, and supplies only for authorized work purposes.</li>
+                        <li>Protect packages and other items under your control against loss, damage, and unauthorized access.</li>
+                        <li>Limit facility access to authorized personnel.</li>
+                        <li>Promptly report shortages, damaged items, equipment issues, or security concerns.</li>
+                        <li>Follow applicable workplace, fire, and occupational safety procedures.</li>
+                    </ul>
+
+                    <h5>8. Prohibited Activities</h5>
+                    <p>Logistics personnel are strictly prohibited from:</p>
+                    <ul>
+                        <li>Stealing, misappropriating, damaging, opening, or tampering with packages.</li>
+                        <li>Falsifying order statuses, tracking information, handoff records, or incident reports.</li>
+                        <li>Releasing packages to unauthorized persons or changing delivery destinations without approval.</li>
+                        <li>Using another person's account or allowing another person to use their account.</li>
+                        <li>Sharing customer, seller, Rider, or business information without authorization.</li>
+                        <li>Requesting or accepting unauthorized payments, gifts, or benefits in connection with platform operations.</li>
+                        <li>Harassing, threatening, discriminating against, or disrespecting platform users or personnel.</li>
+                        <li>Using Cartzy systems, facilities, or information for illegal or unauthorized activities.</li>
+                    </ul>
+
+                    <h5>9. Fees, Transactions, and Financial Records</h5>
+                    <ul>
+                        <li>Any logistics fees, service charges, reimbursements, or payments must follow Cartzy's approved rates and procedures.</li>
+                        <li>Do not collect unauthorized charges from customers, sellers, or Riders.</li>
+                        <li>Financial and transaction records must be accurate and supported by required documentation.</li>
+                        <li>Report disputes or suspected irregularities through Cartzy's official support or reporting channels.</li>
+                        <li>Changes to applicable fees or payment procedures will be communicated through official channels, subject to applicable rules.</li>
+                    </ul>
+
+                    <h5>10. Complaints, Incidents, and Performance Monitoring</h5>
+                    <ul>
+                        <li>Cartzy may review logistics activity, order records, processing times, handoff records, and reported incidents.</li>
+                        <li>Promptly report complaints, missing or damaged packages, suspected fraud, and operational disruptions.</li>
+                        <li>Cartzy may investigate concerns and request relevant records or explanations.</li>
+                        <li>Personnel may submit an explanation or dispute through the appropriate Cartzy support channel.</li>
+                        <li>Repeated performance issues or policy violations may result in corrective action or account restrictions.</li>
+                    </ul>
+
+                    <h5>11. Account Suspension and Termination</h5>
+                    <p>Cartzy may temporarily suspend or permanently terminate a Logistics account, subject to applicable law and review procedures, for reasons including:</p>
+                    <ul>
+                        <li>Violation of these Terms &amp; Conditions or other Cartzy policies.</li>
+                        <li>Providing false, misleading, or incomplete registration or operational information.</li>
+                        <li>Unauthorized access, account sharing, or misuse of platform systems.</li>
+                        <li>Package theft, tampering, intentional mishandling, or unauthorized release.</li>
+                        <li>Falsifying records or engaging in fraud, harassment, or illegal activities.</li>
+                        <li>Unauthorized disclosure or misuse of personal, seller, Rider, or customer information.</li>
+                    </ul>
+
+                    <h5>12. Changes to the Terms &amp; Conditions</h5>
+                    <p>Cartzy may update these Terms &amp; Conditions when necessary. Important changes will be communicated through the platform or other official channels. Continued use of the Logistics account after changes take effect indicates acceptance of the updated terms, subject to applicable law.</p>
+
+                    <h4 style="color: #6F6382; border-bottom: 1px solid #ECE7F2; padding-bottom: 4px; margin-top: 16px; margin-bottom: 8px;">LOGISTICS PRIVACY POLICY</h4>
+
+                    <h5>1. Introduction</h5>
+                    <p>Cartzy respects the privacy of its Logistics personnel and is committed to protecting personal information. This Privacy Policy explains how Cartzy collects, uses, stores, and shares information when a Logistics account is created or used.</p>
+
+                    <h5>2. Information We Collect</h5>
+                    <p>Cartzy may collect the following information, as applicable:</p>
+                    <ul>
+                        <li><strong>Personal Information:</strong> Full name, date of birth, address, phone number, and email address.</li>
+                        <li><strong>Identity and Authorization Information:</strong> Government-issued identification and documents used to verify identity, role, or authorization.</li>
+                        <li><strong>Account Information:</strong> Login details, account activity, access logs, and security records.</li>
+                        <li><strong>Operational Information:</strong> Assigned facility or work area, order processing activity, sorting and dispatch records, and handoff details.</li>
+                        <li><strong>Location Information:</strong> Location data when needed for an authorized logistics function and when the relevant feature or permission is enabled.</li>
+                        <li><strong>Communication Information:</strong> Messages, support requests, complaints, incident reports, and other communications submitted through Cartzy.</li>
+                        <li><strong>Transaction Information:</strong> Relevant fee, payment, reimbursement, and transaction records, when applicable.</li>
+                    </ul>
+
+                    <h5>3. How We Use Your Information</h5>
+                    <p>Cartzy may use Logistics information to:</p>
+                    <ul>
+                        <li>Create, verify, and manage Logistics accounts and access permissions.</li>
+                        <li>Coordinate order processing, sorting, dispatch, and delivery operations.</li>
+                        <li>Maintain accurate order, package, and handoff records.</li>
+                        <li>Communicate operational updates, announcements, and service notices.</li>
+                        <li>Review complaints, investigate incidents, and resolve disputes.</li>
+                        <li>Protect platform users, facilities, systems, and transactions.</li>
+                        <li>Monitor platform performance and improve logistics services.</li>
+                        <li>Meet applicable legal, regulatory, accounting, and recordkeeping requirements.</li>
+                    </ul>
+
+                    <h5>4. Sharing of Information</h5>
+                    <p>Cartzy may share information necessary for legitimate platform operations with:</p>
+                    <ul>
+                        <li><strong>Customers:</strong> Limited order or delivery-related information when needed to coordinate an order.</li>
+                        <li><strong>Sellers:</strong> Relevant order status, pickup, dispatch, or delivery coordination information.</li>
+                        <li><strong>Riders:</strong> Information necessary to coordinate package handoffs and deliveries.</li>
+                        <li><strong>Authorized Cartzy Personnel:</strong> Information required to administer accounts, investigate issues, and operate the platform.</li>
+                        <li><strong>Service Providers:</strong> Authorized third parties that support hosting, communications, security, or platform operations.</li>
+                        <li><strong>Payment Providers:</strong> Relevant information when processing authorized payments or reimbursements.</li>
+                        <li><strong>Government Authorities:</strong> Information when required by law or a valid legal request.</li>
+                    </ul>
+                    <p>Cartzy does not sell Logistics personnel's personal information. Information is shared only as described in this Policy or as otherwise permitted or required by law.</p>
+
+                    <h5>5. Location and Activity Privacy</h5>
+                    <ul>
+                        <li>Cartzy may process location information when necessary for an enabled logistics feature or an authorized operational purpose.</li>
+                        <li>System activity and access logs may be recorded to protect accounts, investigate incidents, and maintain platform security.</li>
+                        <li>Access to location or device features may be managed through relevant device or application settings.</li>
+                        <li>Disabling a required permission may limit the availability of certain platform functions.</li>
+                    </ul>
+
+                    <h5>6. Data Security</h5>
+                    <p>Cartzy uses reasonable organizational, technical, and physical safeguards designed to protect personal information from unauthorized access, loss, misuse, alteration, or disclosure. No online system can guarantee absolute security. Personnel must also protect their login credentials and promptly report suspected account compromise.</p>
+
+                    <h5>7. Data Retention</h5>
+                    <p>Cartzy retains personal and operational information only for as long as reasonably necessary for the purposes described in this Policy, including service delivery, security, recordkeeping, dispute resolution, and legal compliance. Certain records may be retained longer when required or permitted by law.</p>
+
+                    <h5>8. Privacy Rights</h5>
+                    <p>Subject to applicable privacy laws and lawful limitations, Logistics personnel may:</p>
+                    <ul>
+                        <li>Request access to their personal information.</li>
+                        <li>Request correction of inaccurate or incomplete information.</li>
+                        <li>Request deletion, blocking, or restriction of information when legally permitted.</li>
+                        <li>Withdraw consent where processing is based on consent, subject to legal and operational limitations.</li>
+                        <li>Raise questions or complaints about the handling of personal information.</li>
+                    </ul>
+                    <p>Privacy-related requests may be submitted through Cartzy's official support or privacy contact channels.</p>
+
+                    <h5>9. Third-Party Services</h5>
+                    <p>Cartzy may use third-party services for hosting, communications, maps, location features, payment processing, security, and other platform functions. Where applicable, those providers may process information under their own privacy terms and applicable data protection requirements.</p>
+
+                    <h5>10. Changes to the Privacy Policy</h5>
+                    <p>Cartzy may update this Privacy Policy when necessary. Significant changes will be communicated through the platform or official communication channels. The updated version will apply from its stated effective date, subject to applicable law.</p>
+
+                    <h5>11. Contact and Support</h5>
+                    <p>For questions, concerns, or requests about Logistics accounts, platform operations, or personal information, personnel may contact Cartzy through its official support channels.</p>
+
+                    <h4 style="color: #6F6382; border-bottom: 1px solid #ECE7F2; padding-bottom: 4px; margin-top: 16px; margin-bottom: 8px;">LOGISTICS AGREEMENT</h4>
+                    <p>By registering for or using a Logistics account on Cartzy, I confirm that:</p>
+                    <ul>
+                        <li>I have read and understood the Logistics Terms &amp; Conditions and Privacy Policy.</li>
+                        <li>I agree to follow Cartzy's logistics procedures, account rules, and platform policies.</li>
+                        <li>I will handle packages and operational records responsibly and accurately.</li>
+                        <li>I will protect customer, seller, Rider, and other personal information from unauthorized use or disclosure.</li>
+                        <li>I understand how Cartzy may collect, use, store, and share my personal information as explained in this Privacy Policy.</li>
+                    </ul>
+                </div>
+
+                <label class="logistics-terms-checkbox-label" for="logistics_terms_agreed">
+                    <input type="checkbox" id="logistics_terms_agreed" name="terms_agreed" value="1" @checked(old('terms_agreed'))>
+                    <span>
+                        I have read and agree to the Cartzy Logistics Terms &amp; Conditions and Privacy Policy <span style="color:#ef4444">*</span>
+                    </span>
+                </label>
+                <p id="logistics_terms_error" class="seller-field-error" role="alert" style="color: #ef4444; font-size: 12.5px; margin-top: 5px; font-weight: 500;" @unless($errors->has('terms_agreed')) hidden @endunless>
+                    {{ $errors->first('terms_agreed') ?: 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.' }}
+                </p>
+            </div>
+
             <p class="field-subheading" style="margin-bottom: 20px;">We'll send a six-digit verification code to this email address to finish creating your Cartzy account.</p>
 
             <div class="form-btn-row">

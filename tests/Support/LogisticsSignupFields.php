@@ -21,6 +21,7 @@ trait LogisticsSignupFields
             'bir_certificate' => UploadedFile::fake()->create('bir.pdf', 20, 'application/pdf'),
             'business_permit' => UploadedFile::fake()->create('permit.pdf', 20, 'application/pdf'),
             'id_photo' => UploadedFile::fake()->create('id.pdf', 20, 'application/pdf'),
+            'terms_agreed' => '1',
         ];
     }
 }
