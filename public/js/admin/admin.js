@@ -87,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 archiveDialog.querySelector('[autofocus]').focus();
                 return;
             }
-            if (!window.confirm(form.dataset.confirm)) event.preventDefault();
         });
     });
 });

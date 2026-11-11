@@ -102,7 +102,7 @@
                         <form method="POST" action="{{ route('seller.vouchers.toggle', $voucher) }}">@csrf<button class="button small secondary" type="submit">{{ $voucher->is_active ? 'Pause' : 'Resume' }}</button></form>
                     @endunless
                     @if($used === 0)
-                        <form method="POST" action="{{ route('seller.vouchers.destroy', $voucher) }}" onsubmit="return confirm('Delete the voucher “{{ addslashes($voucher->name) }}”? This can\'t be undone.')">@csrf @method('DELETE')<button class="button small text sv-delete" type="submit">Delete</button></form>
+                        <form method="POST" action="{{ route('seller.vouchers.destroy', $voucher) }}" data-confirm="Delete the voucher “{{ addslashes($voucher->name) }}”? This can't be undone.">@csrf @method('DELETE')<button class="button small text sv-delete" type="submit">Delete</button></form>
                     @endif
                 </div>
                 @endif

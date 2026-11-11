@@ -173,5 +173,6 @@ document.addEventListener('keydown', event => {
     <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
 @endif
 @include('partials.logout-confirm')
+@include('partials.confirm-modal')
 </body>
 </html>

@@ -494,10 +494,7 @@
         box.dispatchEvent(new Event('change', { bubbles: true }));
     });
 
-    // Confirm before deleting; disable buttons while saving.
-    document.querySelectorAll('form[data-confirm]').forEach(form => form.addEventListener('submit', event => {
-        if (!window.confirm(form.dataset.confirm)) event.preventDefault();
-    }));
+    // Disable buttons while saving.
     document.querySelectorAll('#product-details-form, [data-options-form]').forEach(form => form.addEventListener('submit', event => {
         if (event.defaultPrevented) return;
         const button = form.querySelector('button[type="submit"]');

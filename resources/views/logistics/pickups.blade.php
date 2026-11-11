@@ -6,7 +6,7 @@
 @section('page_subtitle', 'Confirm schedules and request nearby riders for merchant collection')
 @if($counts['dispatchable'] > 0)
 @section('page_actions')
-<form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" onsubmit="if (!confirm('Dispatch the nearest active First Mile courier to {{ $counts['dispatchable'] }} waiting pickup(s)?')) return false; this.querySelector('button').disabled = true;">@csrf<button type="submit" class="button btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
+<form method="POST" action="{{ route('logistics.pickups.dispatch-all') }}" class="ops-bulk" data-confirm="Dispatch the nearest active First Mile courier to {{ $counts['dispatchable'] }} waiting pickup(s)?">@csrf<button type="submit" class="button btn-dispatch-nearest">⚡ Dispatch nearest riders to all ({{ $counts['dispatchable'] }})</button></form>
 @endsection
 @endif
 
@@ -199,7 +199,7 @@
                                     <button type="button" class="btn-change-rider" data-open-modal="rider-modal-{{ $pickup['id'] }}" title="Change or reassign rider">
                                         Change Rider
                                     </button>
-                                    <form method="POST" action="{{ route('logistics.pickups.unassign', $pickup['id']) }}" onsubmit="return confirm('Remove rider assignment from this pickup?');">
+                                    <form method="POST" action="{{ route('logistics.pickups.unassign', $pickup['id']) }}" data-confirm="Remove rider assignment from this pickup?">
                                         @csrf
                                         <button type="submit" class="btn-unassign-rider" title="Unassign rider">
                                             Remove

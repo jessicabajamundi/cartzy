@@ -19,7 +19,7 @@
                         <form method="POST" action="{{ route('account.addresses.default', $entry->id) }}">@csrf<button class="settings-text-button" type="submit">Set as default</button></form>
                         <span class="text-gray-300">·</span>
                     @endunless
-                    <form method="POST" action="{{ route('account.addresses.delete', $entry->id) }}" onsubmit="return confirm('Are you sure you want to delete this address?');">
+                    <form method="POST" action="{{ route('account.addresses.delete', $entry->id) }}" data-confirm="Are you sure you want to delete this address?">
                         @csrf
                         @method('DELETE')
                         <button class="text-xs font-semibold text-rose-600 hover:text-rose-800 cursor-pointer" type="submit">Delete address</button>

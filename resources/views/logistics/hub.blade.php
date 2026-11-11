@@ -147,7 +147,6 @@
 // Bulk buttons ask once; every form disables its button while submitting so nothing is sent twice.
 document.querySelectorAll('.hub-desk form[method="POST"]').forEach(form => {
     form.addEventListener('submit', event => {
-        if (form.dataset.confirm && !confirm(form.dataset.confirm)) { event.preventDefault(); return; }
         if (form.dataset.submitting) { event.preventDefault(); return; }
         form.dataset.submitting = 'true';
         form.querySelector('button[type="submit"]').disabled = true;

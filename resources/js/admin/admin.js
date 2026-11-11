@@ -20,9 +20,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.matchMedia('(min-width: 901px)').addEventListener('change', (event) => {
         if (event.matches) setOpen(false);
     });
-    document.querySelectorAll('form[data-confirm]').forEach((form) => {
-        form.addEventListener('submit', (event) => {
-            if (!window.confirm(form.dataset.confirm)) event.preventDefault();
-        });
-    });
 });

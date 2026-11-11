@@ -649,5 +649,6 @@
     </script>
     @stack('scripts')
 @include('partials.logout-confirm')
+@include('partials.confirm-modal')
 </body>
 </html>

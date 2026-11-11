@@ -482,6 +482,7 @@
     <script src="{{ asset('js/auth/cozy-peek.js') }}?v={{ filemtime(public_path('js/auth/cozy-peek.js')) }}"></script>
     @include('partials.prevent-back-cache')
     @include('partials.logout-confirm')
+    @include('partials.confirm-modal')
 </body>
 @else
 <body class="@hasSection('auth_visual') auth-split-page @endif">
@@ -524,6 +525,7 @@
     @stack('scripts')
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
+@include('partials.confirm-modal')
 </body>
 @endif
 </html>

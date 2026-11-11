@@ -228,5 +228,6 @@
     @endguest
     @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
+@include('partials.confirm-modal')
 </body>
 </html>

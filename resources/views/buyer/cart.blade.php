@@ -15,7 +15,7 @@
                 <p>Review your picks and make them yours.</p>
             </div>
             @if(count($cart) > 0)
-                <form action="{{ route('cart.clear') }}" method="POST" onsubmit="return confirm('Are you sure you want to clear your entire cart?');">
+                <form action="{{ route('cart.clear') }}" method="POST" data-confirm="Are you sure you want to clear your entire cart?">
                     @csrf
                     <button type="submit" class="text-xs sm:text-sm font-semibold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer">
                         Clear All Items

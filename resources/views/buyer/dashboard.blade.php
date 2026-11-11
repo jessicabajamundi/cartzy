@@ -468,8 +468,17 @@
     });
 })();
 
-window.removeFromWishlist = function (ref, trigger) {
-    if (!confirm('Remove this product from your wishlist?')) return;
+window.removeFromWishlist = async function (ref, trigger) {
+    if (typeof window.appConfirm === 'function') {
+        const ok = await window.appConfirm('Remove this product from your wishlist?', {
+            title: 'Remove from Wishlist',
+            kind: 'delete',
+            btnText: 'Yes, remove'
+        });
+        if (!ok) return;
+    } else if (!confirm('Remove this product from your wishlist?')) {
+        return;
+    }
     const card = trigger?.closest('.wishlist-card');
     const buttons = card ? card.querySelectorAll('.wishlist-remove, .wishlist-delete') : [];
     buttons.forEach(b => { b.disabled = true; });

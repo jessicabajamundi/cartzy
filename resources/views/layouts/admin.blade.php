@@ -96,5 +96,6 @@
 <script src="{{ asset('js/buddy.js') }}?v={{ filemtime(public_path('js/buddy.js')) }}"></script>
 @include('partials.prevent-back-cache')
 @include('partials.logout-confirm')
+@include('partials.confirm-modal')
 </body>
 </html>
