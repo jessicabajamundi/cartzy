@@ -105,7 +105,7 @@
                 <span class="date-label">{{ now()->timezone('Asia/Manila')->format('D, M j, Y') }}</span>
             @endif
         </div>
-        @if(session('success'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
+        @if(session('success') && !str_starts_with(strtolower(session('success')), 'welcome'))<div class="notice success" role="status">{{ session('success') }}</div>@endif
         @if(session('info'))<div class="notice" role="status">{{ session('info') }}</div>@endif
         @if(session('error'))<div class="notice danger" role="alert">{{ session('error') }}</div>@endif
         @if(isset($errors) && $errors->any())<div class="notice danger" role="alert"><strong>Please check the following:</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif

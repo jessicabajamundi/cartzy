@@ -221,8 +221,7 @@ class AuthController extends Controller
                 ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'password']);
 
                 // Redirect to role-specific dashboard or intended URL
-                return redirect()->intended(route($user->getDashboardRoute()))
-                    ->with('success', 'Welcome back, ' . ($user->name ?? 'User') . '!');
+                return redirect()->intended(route($user->getDashboardRoute()));
             }
         } catch (\Exception $e) {
             // Fallback if DB connection fails
@@ -1150,8 +1149,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
             ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google']);
 
-            return redirect()->intended(route($user->getDashboardRoute()))
-                ->with('success', 'Welcome, ' . ($user->name ?? $portals[$user->role]['label']) . '! Signed in successfully with Google.');
+            return redirect()->intended(route($user->getDashboardRoute()));
 
         } catch (\Exception $e) {
             Log::error('Google Auth Processing Error: ' . $e->getMessage());

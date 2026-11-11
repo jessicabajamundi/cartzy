@@ -10,7 +10,7 @@
     <section class="overview-banner">
         <div class="overview-copy">
             <span class="eyebrow"><span class="welcome-dot" aria-hidden="true"></span> YOUR HUB, AT A GLANCE</span>
-            <h2>Welcome back, {{ auth()->user()->name }}.</h2>
+            <h2>{{ $hub->business_name ?? $hub->name ?? auth()->user()->name }}</h2>
             <p>{{ $hub->business_name ?? $hub->name }} &mdash; a little oversight for smoother pickups, sorting, and deliveries.<br>Everything you need to keep your Cartzy hub moving.</p>
             <a class="button" href="{{ route('logistics.monitoring') }}">Monitor deliveries @include('admin.partials.icon', ['name' => 'arrow'])</a>
         </div>
