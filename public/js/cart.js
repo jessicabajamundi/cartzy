@@ -4,6 +4,15 @@
  */
 
 // ─── Toast Notification ────────────────────────────────────────────────────
+window.dismissToast = function() {
+    const toast = document.getElementById('cart-toast');
+    if (!toast) return;
+    clearTimeout(window._toastTimer);
+    toast.style.transform = 'translateY(120px)';
+    toast.style.opacity = '0';
+    toast.style.pointerEvents = 'none';
+};
+
 window.showToast = function(message, type = 'success') {
     let toast = document.getElementById('cart-toast');
     if (!toast) {
@@ -27,13 +36,13 @@ window.showToast = function(message, type = 'success') {
     const icon = type === 'success'
         ? '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
         : '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
-    toast.innerHTML = `<div style="position:relative;overflow:hidden;background:${bg};color:#fff;border-radius:12px;padding:12px 18px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.28);min-width:240px;max-width:360px"><div style="display:flex;align-items:center;gap:10px;width:100%">${icon}<span>${message}</span></div><div style="position:absolute;bottom:0;left:0;height:3px;background:rgba(255,255,255,0.75);animation:toastProgress 5s linear forwards;"></div></div>`;
+    toast.innerHTML = `<div style="position:relative;overflow:hidden;background:${bg};color:#fff;border-radius:12px;padding:12px 14px 14px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:14px;box-shadow:0 8px 32px rgba(0,0,0,0.28);min-width:250px;max-width:380px;pointer-events:auto"><div style="display:flex;align-items:center;gap:10px;flex:1">${icon}<span>${message}</span></div><button type="button" onclick="window.dismissToast()" style="background:transparent;border:none;color:rgba(255,255,255,0.7);cursor:pointer;padding:4px;margin-left:4px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;flex-shrink:0;transition:all 0.15s" onmouseover="this.style.color='#fff';this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.color='rgba(255,255,255,0.7)';this.style.backgroundColor='transparent'" aria-label="Close notification"><svg style="width:14px;height:14px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button><div style="position:absolute;bottom:0;left:0;height:3px;background:rgba(255,255,255,0.75);animation:toastProgress 5s linear forwards;"></div></div>`;
     toast.style.transform = 'translateY(0)';
     toast.style.opacity = '1';
+    toast.style.pointerEvents = 'auto';
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => {
-        toast.style.transform = 'translateY(120px)';
-        toast.style.opacity = '0';
+        window.dismissToast();
     }, 5000);
 };
 
