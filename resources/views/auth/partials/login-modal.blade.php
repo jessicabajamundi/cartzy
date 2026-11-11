@@ -239,3 +239,70 @@
         </div>
     </section>
 </div>
+
+@if(session('account_removed'))
+    <dialog id="account-removed-modal" class="account-removed-dialog" open aria-labelledby="account-removed-title" aria-describedby="account-removed-reason">
+        <div class="account-removed-card">
+            <button type="button" class="account-removed-close" data-dismiss-account-removed aria-label="Close dialog">&times;</button>
+            <div class="account-removed-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                </svg>
+            </div>
+            <h2 id="account-removed-title">Account Removed</h2>
+            <p class="account-removed-sub">
+                @if(session('removed_user_name'))
+                    Hello <strong>{{ session('removed_user_name') }}</strong>, this account has been removed by platform administration.
+                @else
+                    This account has been removed by platform administration.
+                @endif
+            </p>
+
+            <div class="account-removed-reason-card">
+                <span class="account-removed-reason-label">Reason for removal:</span>
+                <p id="account-removed-reason" class="account-removed-reason-text">
+                    {{ session('removal_reason') ?? 'Account policy violation or terms non-compliance.' }}
+                </p>
+            </div>
+
+            <p class="account-removed-help">
+                Access to this account has been disabled. If you have questions or believe this was done in error, please reach out to our platform support team.
+            </p>
+
+            <div class="account-removed-actions">
+                <button type="button" class="account-removed-btn" data-dismiss-account-removed autofocus>Understood</button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rmModal = document.getElementById('account-removed-modal');
+            if (rmModal) {
+                if (typeof rmModal.showModal === 'function' && !rmModal.open) {
+                    rmModal.showModal();
+                }
+                document.querySelectorAll('[data-dismiss-account-removed]').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (typeof rmModal.close === 'function') rmModal.close();
+                        rmModal.remove();
+                    });
+                });
+                rmModal.addEventListener('click', function (e) {
+                    const rect = rmModal.getBoundingClientRect();
+                    if (
+                        e.clientX < rect.left ||
+                        e.clientX > rect.right ||
+                        e.clientY < rect.top ||
+                        e.clientY > rect.bottom
+                    ) {
+                        if (typeof rmModal.close === 'function') rmModal.close();
+                        rmModal.remove();
+                    }
+                });
+            }
+        });
+    </script>
+@endif

@@ -63,6 +63,9 @@ class User extends Authenticatable
         'role',
         'avatar',
         'status',
+        'status_reason',
+        'removal_reason',
+        'removed_at',
         'is_suspended',
     ];
 
@@ -88,6 +91,7 @@ class User extends Authenticatable
             'id_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_suspended' => 'boolean',
+            'removed_at' => 'datetime',
         ];
     }
 
@@ -133,6 +137,16 @@ class User extends Authenticatable
     public function isBuyer(): bool
     {
         return $this->role === self::ROLE_BUYER;
+    }
+
+    public function isRemoved(): bool
+    {
+        return $this->status === 'removed';
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->status === 'archived';
     }
 
     /**

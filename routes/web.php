@@ -107,6 +107,7 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
         // 3. Manage User Accounts
         Route::get('/users', [AdminPortalController::class, 'users'])->name('users');
         Route::post('/users/{id}/status', [AdminPortalController::class, 'updateUserStatus'])->name('users.status');
+        Route::post('/users/{id}/archive', [AdminPortalController::class, 'archiveUser'])->name('users.archive');
 
         // 4. Monitor Seller Compliance
         Route::get('/compliance', [AdminPortalController::class, 'compliance'])->name('compliance');
@@ -120,6 +121,7 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
         Route::post('/archive/products/{id}/archive', [AdminPortalController::class, 'archiveProduct'])->name('archive.products.archive');
         Route::delete('/archive/products/{id}/force', [AdminPortalController::class, 'forceDeleteProduct'])->name('archive.products.force');
         Route::post('/archive/users/{id}/restore', [AdminPortalController::class, 'restoreArchivedUser'])->name('archive.users.restore');
+        Route::post('/archive/users/{id}/remove', [AdminPortalController::class, 'removeArchivedUser'])->name('archive.users.remove');
         Route::post('/archive/registrations/{id}/restore', [AdminPortalController::class, 'restoreArchivedRegistration'])->name('archive.registrations.restore');
         Route::post('/archive/disputes/{id}/reopen', [AdminPortalController::class, 'reopenArchivedDispute'])->name('archive.disputes.reopen');
 

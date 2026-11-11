@@ -16,11 +16,11 @@
 
     <a href="{{ route('admin.archive', ['tab' => 'users']) }}" class="stat-card" style="text-decoration: none; border-top-color: {{ $tab === 'users' ? 'var(--rose-gold)' : 'var(--line)' }};">
         <div class="metric-heading">
-            <span>Suspended Accounts</span>
+            <span>Archived Accounts</span>
             <span class="badge {{ $counts['users'] > 0 ? 'danger' : '' }}">{{ $counts['users'] }} users</span>
         </div>
         <strong>{{ number_format($counts['users']) }}</strong>
-        <small>Suspended & deactivated accounts</small>
+        <small>Archived & removed user accounts</small>
     </a>
 
     <a href="{{ route('admin.archive', ['tab' => 'registrations']) }}" class="stat-card" style="text-decoration: none; border-top-color: {{ $tab === 'registrations' ? 'var(--rose-gold)' : 'var(--line)' }};">
@@ -52,7 +52,7 @@
         </a>
         <a href="{{ route('admin.archive', ['tab' => 'users']) }}" class="archive-tab {{ $tab === 'users' ? 'active' : '' }}">
             @include('admin.partials.icon', ['name' => 'users'])
-            <span>Suspended Accounts</span>
+            <span>Archived Accounts</span>
             <span class="tab-badge">{{ $counts['users'] }}</span>
         </a>
         <a href="{{ route('admin.archive', ['tab' => 'registrations']) }}" class="archive-tab {{ $tab === 'registrations' ? 'active' : '' }}">
@@ -205,7 +205,9 @@
             </label>
             <label>Status
                 <select name="status">
-                    <option value="">All suspended/deactivated</option>
+                    <option value="">All statuses</option>
+                    <option value="archived" @selected(request('status') === 'archived')>Archived</option>
+                    <option value="removed" @selected(request('status') === 'removed')>Removed</option>
                     <option value="suspended" @selected(request('status') === 'suspended')>Suspended</option>
                     <option value="deactivated" @selected(request('status') === 'deactivated')>Deactivated</option>
                 </select>
@@ -244,9 +246,30 @@
                             @endif
                         </td>
                         <td>
-                            <span class="badge danger">{{ ucfirst($user->status) }}</span>
-                            @if($user->is_suspended)
-                                <small style="color: var(--rose-ink); font-weight: 600;">Access Blocked</small>
+                            @if($user->status === 'removed')
+                                <span class="badge danger" style="background: #fce9e9; color: #b42332;">Removed</span>
+                                @if($user->removal_reason)
+                                    <small style="display: block; color: var(--rose-ink); margin-top: 3px;" title="{{ $user->removal_reason }}">
+                                        <strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($user->removal_reason, 40) }}
+                                    </small>
+                                @endif
+                                @if($user->removed_at)
+                                    <small class="muted" style="display: block; margin-top: 2px;">{{ $user->removed_at->format('M j, Y') }}</small>
+                                @endif
+                            @elseif($user->status === 'archived')
+                                <span class="badge" style="background: #e2e8f0; color: #475569;">Archived</span>
+                                @if($user->status_reason)
+                                    <small class="muted" style="display: block; margin-top: 3px;" title="{{ $user->status_reason }}">
+                                        <strong>Note:</strong> {{ \Illuminate\Support\Str::limit($user->status_reason, 40) }}
+                                    </small>
+                                @endif
+                            @else
+                                <span class="badge danger">{{ ucfirst($user->status) }}</span>
+                                @if($user->status_reason)
+                                    <small class="muted" style="display: block; margin-top: 3px;" title="{{ $user->status_reason }}">
+                                        <strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($user->status_reason, 40) }}
+                                    </small>
+                                @endif
                             @endif
                         </td>
                         <td class="nowrap">
@@ -257,13 +280,22 @@
                             <small>{{ $user->updated_at?->format('g:i A') }}</small>
                         </td>
                         <td>
-                            <div style="display: flex; justify-content: flex-end;">
+                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
                                 <form method="POST" action="{{ route('admin.archive.users.restore', $user->id) }}" data-confirm="Reactivate and restore this account to active status?">
                                     @csrf
-                                    <button type="submit" class="button" style="min-height: 34px; padding: 6px 14px; font-size: 11px;">
-                                        @include('admin.partials.icon', ['name' => 'refresh']) Reactivate Account
+                                    <button type="submit" class="button" style="min-height: 32px; padding: 5px 12px; font-size: 11px;">
+                                        @include('admin.partials.icon', ['name' => 'refresh']) Reactivate
                                     </button>
                                 </form>
+                                @if($user->status !== 'removed')
+                                    <button type="button" class="button" style="min-height: 32px; padding: 5px 12px; font-size: 11px; background: #b42332; border-color: #b42332; color: #fff;"
+                                        data-trigger-remove-user
+                                        data-user-id="{{ $user->id }}"
+                                        data-user-name="{{ $user->name }}"
+                                        data-action-url="{{ route('admin.archive.users.remove', $user->id) }}">
+                                        @include('admin.partials.icon', ['name' => 'trash']) Remove
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -447,4 +479,103 @@
     @endif
 </section>
 @include('admin.partials.archive-confirm')
+
+{{-- Modal dialog for removing an archived user with reason input --}}
+<dialog id="remove-user-modal" aria-labelledby="remove-user-title" aria-describedby="remove-user-desc">
+    <div class="user-status-modal-content">
+        <button type="button" class="icon-button user-status-modal-close" data-close-remove-modal aria-label="Close dialog">&times;</button>
+        <div class="user-status-modal-badge danger" style="background: #fce9e9; color: #b42332;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </div>
+        <h2 id="remove-user-title" style="margin: 8px 0 6px; font-size: 20px;">Remove Account</h2>
+        <p id="remove-user-desc" style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">
+            Input the reason why this account is being removed. This reason will be displayed to the user if they try to log in.
+        </p>
+
+        <form id="remove-user-form" method="POST" action="">
+            @csrf
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink); text-align: left; margin-bottom: 22px;">
+                <span>Reason for removal <strong style="color: #b91c1c;">*</strong></span>
+                <textarea name="removal_reason" id="remove-reason-input" rows="4" required placeholder="Type the reason why this account is being removed..." style="width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: vertical; line-height: 1.5;"></textarea>
+            </label>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="button subtle" data-close-remove-modal>Cancel</button>
+                <button type="submit" class="button" style="background: #b42332; border-color: #b42332; color: #fff;">Confirm Removal</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+@push('styles')
+<style>
+    #remove-user-modal {
+        width: min(500px, calc(100vw - 32px));
+        max-height: calc(100dvh - 32px);
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: var(--surface, #fff);
+        color: var(--ink);
+        box-shadow: 0 24px 80px rgba(40, 33, 51, 0.25);
+    }
+    #remove-user-modal::backdrop {
+        background: rgba(40, 33, 51, 0.55);
+        backdrop-filter: blur(3px);
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('remove-user-modal');
+        if (!modal) return;
+
+        const form = document.getElementById('remove-user-form');
+        const titleEl = document.getElementById('remove-user-title');
+        const descEl = document.getElementById('remove-user-desc');
+        const reasonInput = document.getElementById('remove-reason-input');
+
+        document.querySelectorAll('[data-trigger-remove-user]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const userName = this.dataset.userName || 'User';
+                const actionUrl = this.dataset.actionUrl;
+
+                form.action = actionUrl;
+                reasonInput.value = '';
+                titleEl.textContent = `Remove Account — ${userName}`;
+                descEl.textContent = `Enter the reason why ${userName}'s account is being removed. This reason will pop up on their screen if they attempt to log in.`;
+
+                if (typeof modal.showModal === 'function') {
+                    modal.showModal();
+                } else {
+                    modal.setAttribute('open', '');
+                }
+                setTimeout(() => reasonInput.focus(), 80);
+            });
+        });
+
+        document.querySelectorAll('[data-close-remove-modal]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (typeof modal.close === 'function') modal.close();
+                else modal.removeAttribute('open');
+            });
+        });
+
+        modal.addEventListener('click', function (e) {
+            const rect = modal.getBoundingClientRect();
+            if (
+                e.clientX < rect.left ||
+                e.clientX > rect.right ||
+                e.clientY < rect.top ||
+                e.clientY > rect.bottom
+            ) {
+                if (typeof modal.close === 'function') modal.close();
+                else modal.removeAttribute('open');
+            }
+        });
+    });
+</script>
+@endpush
 @endsection

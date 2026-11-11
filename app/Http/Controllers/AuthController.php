@@ -197,6 +197,30 @@ class AuthController extends Controller
                     ])->onlyInput('email');
                 }
 
+                if ($user->status === 'removed') {
+                    ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Account removed']);
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return back()->with('account_removed', true)
+                        ->with('removal_reason', $user->removal_reason ?? 'Your account was removed by the administrator.')
+                        ->with('removed_user_name', $user->name)
+                        ->withErrors([
+                            'email' => 'This account has been removed by platform administration.',
+                        ])->onlyInput('email');
+                }
+
+                if ($user->status === 'archived') {
+                    ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Account archived']);
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+                    return back()->withErrors([
+                        'email' => 'Your account is currently archived. Please contact platform support for assistance.',
+                    ])->onlyInput('email');
+                }
+
                 if ($user->status === 'rejected') {
                     ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Account rejected']);
                     Auth::logout();
@@ -208,12 +232,14 @@ class AuthController extends Controller
                 }
 
                 if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
-                    ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Account suspended']);
+                    $statusLabel = $user->status === 'deactivated' ? 'deactivated' : 'suspended';
+                    ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Account '.$statusLabel]);
                     Auth::logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
+                    $reasonNotice = !empty($user->status_reason) ? ' Reason: '.$user->status_reason : '';
                     return back()->withErrors([
-                        'email' => 'Your account is suspended. Please contact platform support for assistance.',
+                        'email' => "Your account is {$statusLabel}.{$reasonNotice} Please contact platform support for assistance.",
                     ])->onlyInput('email');
                 }
 
@@ -1114,11 +1140,31 @@ class AuthController extends Controller
                 ])->with('portal_hint', $correct ? ['label' => $correct['label'], 'url' => route($correct['route'])] : null);
             }
 
+            if ($user->status === 'removed') {
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account removed']);
+                return redirect()->route($portalRoute)
+                    ->with('account_removed', true)
+                    ->with('removal_reason', $user->removal_reason ?? 'Your account was removed by the administrator.')
+                    ->with('removed_user_name', $user->name)
+                    ->withErrors([
+                        'email' => 'This account has been removed by platform administration.',
+                    ]);
+            }
+
+            if ($user->status === 'archived') {
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account archived']);
+                return redirect()->route($portalRoute)->withErrors([
+                    'email' => 'Your account is currently archived. Please contact platform support for assistance.',
+                ]);
+            }
+
             // Ensure account is not suspended/rejected/pending
             if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
-                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account suspended']);
+                $statusLabel = $user->status === 'deactivated' ? 'deactivated' : 'suspended';
+                ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'google', 'description' => 'Account '.$statusLabel]);
+                $reasonNotice = !empty($user->status_reason) ? ' Reason: '.$user->status_reason : '';
                 return redirect()->route($portalRoute)->withErrors([
-                    'email' => 'Your account is suspended. Please contact platform support for assistance.',
+                    'email' => "Your account is {$statusLabel}.{$reasonNotice} Please contact platform support for assistance.",
                 ]);
             }
 

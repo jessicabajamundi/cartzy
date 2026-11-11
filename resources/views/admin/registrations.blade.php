@@ -87,6 +87,7 @@
                 <option value="seller" @selected(request('role') === 'seller')>Seller (Merchant Store)</option>
                 <option value="courier" @selected(request('role') === 'courier')>Courier (Delivery Rider)</option>
                 <option value="logistics" @selected(request('role') === 'logistics')>Logistics (Hub Operator)</option>
+                <option value="buyer" @selected(request('role') === 'buyer')>Buyer (Customer)</option>
             </select>
         </label>
 

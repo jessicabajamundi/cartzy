@@ -1026,3 +1026,128 @@ dialog.logistics-terms-dialog::backdrop {
         padding: 12px 16px;
     }
 }
+
+/* ── Removed Account Alert Dialog ── */
+dialog.account-removed-dialog {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    margin: auto;
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    border: 1px solid #fecaca;
+    border-radius: 20px;
+    background: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 25px 50px -12px rgba(185, 28, 28, 0.25), 0 0 0 100vmax rgba(15, 10, 25, 0.65);
+    overflow: hidden;
+}
+dialog.account-removed-dialog::backdrop {
+    background: rgba(15, 10, 25, 0.65);
+    backdrop-filter: blur(4px);
+}
+.account-removed-card {
+    position: relative;
+    padding: 32px 28px 28px;
+    text-align: center;
+}
+.account-removed-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 50%;
+    color: #6b7280;
+    font-size: 20px;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all .15s;
+}
+.account-removed-close:hover {
+    background: #e5e7eb;
+    color: #111827;
+}
+.account-removed-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+    margin-bottom: 16px;
+}
+.account-removed-icon svg {
+    width: 28px;
+    height: 28px;
+}
+#account-removed-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #991b1b;
+    margin: 0 0 6px;
+}
+.account-removed-sub {
+    font-size: 13.5px;
+    color: #4b5563;
+    line-height: 1.5;
+    margin: 0 0 18px;
+}
+.account-removed-reason-card {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-left: 4px solid #dc2626;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: left;
+    margin-bottom: 18px;
+}
+.account-removed-reason-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #991b1b;
+    margin-bottom: 4px;
+}
+.account-removed-reason-text {
+    font-size: 13px;
+    color: #1f2937;
+    line-height: 1.55;
+    margin: 0;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+.account-removed-help {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+    margin: 0 0 22px;
+}
+.account-removed-actions {
+    display: flex;
+    justify-content: center;
+}
+.account-removed-btn {
+    min-height: 42px;
+    padding: 10px 28px;
+    border-radius: 10px;
+    background: #dc2626;
+    border: 1px solid #dc2626;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s;
+}
+.account-removed-btn:hover {
+    background: #b91c1c;
+}

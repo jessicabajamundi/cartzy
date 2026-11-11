@@ -179,7 +179,11 @@ class AdminPortalController extends Controller
      */
     public function registrations(Request $request)
     {
-        $baseQuery = User::whereIn('role', ['seller', 'logistics', 'courier']);
+        // All pending accounts go to registrations section since they are not yet registered
+        $baseQuery = User::where(function ($q) {
+            $q->where('status', 'pending')
+              ->orWhereIn('role', ['seller', 'logistics', 'courier']);
+        });
 
         $statusCounts = [
             'all' => (clone $baseQuery)->count(),
@@ -499,7 +503,8 @@ class AdminPortalController extends Controller
 
     public function users(Request $request)
     {
-        $query = User::query();
+        // Pending accounts are managed under Registrations. Archived and removed accounts are in Archive.
+        $query = User::whereNotIn('status', ['pending', 'archived', 'removed']);
         $this->filterUsers($query, $request);
         $users = $query->latest()->paginate(20)->withQueryString();
         return view('admin.users', compact('users'));
@@ -507,17 +512,101 @@ class AdminPortalController extends Controller
 
     public function updateUserStatus(Request $request, int $id)
     {
-        $data = $request->validate(['status' => ['required', Rule::in(['active', 'suspended', 'deactivated'])]]);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(['active', 'suspended', 'deactivated'])],
+            'reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+
         DB::transaction(function () use ($id, $data) {
             $user = User::lockForUpdate()->findOrFail($id);
             abort_if($user->isAdmin(), 422, 'Administrator access cannot be changed here.');
             abort_if($data['status'] === 'active' && in_array($user->status, ['pending', 'rejected']), 422, 'Review the registration before activating this account.');
-            $user->update(['status' => $data['status'], 'is_suspended' => $data['status'] !== 'active']);
+
+            $reason = trim((string) ($data['reason'] ?? ''));
+
+            $updateData = [
+                'status' => $data['status'],
+                'is_suspended' => $data['status'] !== 'active',
+            ];
+
+            if ($data['status'] !== 'active' && !empty($reason)) {
+                $updateData['status_reason'] = $reason;
+            } elseif ($data['status'] === 'active') {
+                $updateData['status_reason'] = null;
+            }
+
+            $user->update($updateData);
             $user->rider()->update(['is_active' => $data['status'] === 'active']);
             $user->buyer()->update(['status' => $data['status']]);
-            $this->audit('Account status changed', $user->name.' — '.$data['status']);
+
+            // Notify user of the status change and reason
+            if (in_array($data['status'], ['suspended', 'deactivated'], true)) {
+                $statusTitle = ucfirst($data['status']);
+                $noticeText = !empty($reason)
+                    ? "Your account has been {$data['status']} by Cartzy administration. Reason: {$reason}"
+                    : "Your account has been {$data['status']} by Cartzy administration.";
+
+                try {
+                    NotificationService::notify(
+                        $user->id,
+                        'account_status_changed',
+                        "Account {$statusTitle}",
+                        $noticeText,
+                        url('/login')
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Status notification failed: ' . $e->getMessage());
+                }
+            } elseif ($data['status'] === 'active') {
+                try {
+                    NotificationService::notify(
+                        $user->id,
+                        'account_restored',
+                        'Account Reactivated',
+                        'Your account has been reactivated and restored to active status by Cartzy administration.',
+                        url('/login')
+                    );
+                } catch (\Throwable $e) {
+                    Log::info('Reactivate notification failed: ' . $e->getMessage());
+                }
+            }
+
+            $this->audit('Account status changed', $user->name.' — '.$data['status'].(!empty($reason) ? ' (Reason: '.$reason.')' : ''));
         });
-        return back()->with('success', 'Account status saved.');
+
+        $actionWord = $data['status'] === 'active' ? 'reactivated' : $data['status'];
+        return back()->with('success', "Account has been {$actionWord} successfully.");
+    }
+
+    public function archiveUser(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $user = User::lockForUpdate()->findOrFail($id);
+            abort_if($user->isAdmin(), 422, 'Administrator access cannot be changed here.');
+
+            $user->update([
+                'status' => 'archived',
+                'is_suspended' => true,
+            ]);
+            $user->rider()->update(['is_active' => false]);
+            $user->buyer()->update(['status' => 'archived']);
+
+            try {
+                NotificationService::notify(
+                    $user->id,
+                    'account_archived',
+                    'Account Archived',
+                    'Your account has been archived by Cartzy administration.',
+                    url('/login')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Archive notification failed: ' . $e->getMessage());
+            }
+
+            $this->audit('Account archived', "User '{$user->name}' (#{$user->id}) was archived and moved to the archive section.");
+        });
+
+        return back()->with('success', 'Account has been archived and moved to the Archive section.');
     }
 
     public function activityLogs(Request $request)
@@ -830,7 +919,7 @@ class AdminPortalController extends Controller
 
         $counts = [
             'products' => Product::withTrashed()->where(fn ($q) => $q->where('is_active', false)->orWhereNotNull('deleted_at'))->count(),
-            'users' => User::where('role', '!=', User::ROLE_ADMIN)->where(fn ($q) => $q->whereIn('status', ['suspended', 'deactivated'])->orWhere('is_suspended', true))->count(),
+            'users' => User::where('role', '!=', User::ROLE_ADMIN)->whereIn('status', ['archived', 'removed', 'suspended', 'deactivated'])->count(),
             'registrations' => User::where('role', '!=', User::ROLE_ADMIN)->where(fn ($q) => $q->where('id_status', 'rejected')->orWhere('status', 'rejected'))->count(),
             'disputes' => DB::table('admin_disputes')->where('status', 'resolved')->count(),
         ];
@@ -868,7 +957,7 @@ class AdminPortalController extends Controller
             $products = $query->latest('updated_at')->paginate(15)->withQueryString();
         } elseif ($tab === 'users') {
             $query = User::where('role', '!=', User::ROLE_ADMIN)
-                ->where(fn ($q) => $q->whereIn('status', ['suspended', 'deactivated'])->orWhere('is_suspended', true));
+                ->whereIn('status', ['archived', 'removed', 'suspended', 'deactivated']);
 
             if ($request->filled('role')) {
                 $query->where('role', $request->string('role')->toString());
@@ -1006,6 +1095,9 @@ class AdminPortalController extends Controller
             $user->update([
                 'status' => 'active',
                 'is_suspended' => false,
+                'status_reason' => null,
+                'removal_reason' => null,
+                'removed_at' => null,
             ]);
 
             $user->seller()->update(['status' => 'approved']);
@@ -1028,6 +1120,46 @@ class AdminPortalController extends Controller
         });
 
         return back()->with('success', 'Account reactivated and restored to active status.');
+    }
+
+    public function removeArchivedUser(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'removal_reason' => ['required', 'string', 'max:2000'],
+        ]);
+
+        DB::transaction(function () use ($id, $data) {
+            $user = User::lockForUpdate()->findOrFail($id);
+            abort_if($user->isAdmin(), 422, 'Administrator access cannot be changed here.');
+
+            $reason = trim($data['removal_reason']);
+
+            $user->update([
+                'status' => 'removed',
+                'is_suspended' => true,
+                'removal_reason' => $reason,
+                'removed_at' => now(),
+            ]);
+
+            $user->rider()->update(['is_active' => false]);
+            $user->buyer()->update(['status' => 'removed']);
+
+            try {
+                NotificationService::notify(
+                    $user->id,
+                    'account_removed',
+                    'Account Removed',
+                    "Your account has been removed by platform administration. Reason: {$reason}",
+                    url('/login')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Remove notification failed: ' . $e->getMessage());
+            }
+
+            $this->audit('Account removed', "User '{$user->name}' (#{$user->id}) was permanently marked as removed. Reason: {$reason}");
+        });
+
+        return back()->with('success', 'Account has been removed and removal reason saved.');
     }
 
     public function restoreArchivedRegistration(Request $request, int $id)
