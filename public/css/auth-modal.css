@@ -45,7 +45,7 @@
     flex-direction: column;
     width: 100%;
     max-width: 540px;
-    max-height: calc(100vh - 150px);
+    max-height: calc(100vh - 48px);
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 30px 80px -20px rgba(40, 33, 51, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6);
@@ -85,9 +85,16 @@
 /* ── Form panel ── */
 .lm-panel {
     position: relative;
-    padding: 28px 30px 20px;
+    padding: 22px 28px 18px;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.lm-panel::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .lm-close {
@@ -108,10 +115,10 @@
 .lm-close:hover { background: #EFEAF4; color: var(--lm-ink); transform: rotate(90deg); }
 .lm-close svg { width: 16px; height: 16px; }
 
-.lm-head { text-align: center; margin-bottom: 18px; }
-.lm-logo { display: block; height: 32px; width: auto; margin: 0 auto 10px; }
+.lm-head { text-align: center; margin-bottom: 14px; }
+.lm-logo { display: block; height: 28px; width: auto; margin: 0 auto 8px; }
 .lm-title {
-    margin: 0 0 4px;
+    margin: 0 0 3px;
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.65rem;
     font-weight: 700;
@@ -364,10 +371,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
-    min-height: 132px;
-    padding: 16px 12px 14px;
+    min-height: 108px;
+    padding: 12px 10px 10px;
     border: 1.5px solid var(--lm-line);
     border-radius: 16px;
     background: #fff;
@@ -380,14 +387,14 @@
 .lm-role-icon {
     display: grid;
     place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     background: linear-gradient(135deg, #F1EDF6 0%, #F8ECE8 100%);
     color: var(--lm-lavender-dark);
     transition: background .18s, color .18s, box-shadow .18s;
 }
-.lm-role-icon svg { width: 20px; height: 20px; }
+.lm-role-icon svg { width: 18px; height: 18px; }
 .lm-role-text { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
 .lm-role-name { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px; font-size: .9rem; font-weight: 800; line-height: 1.2; }
 .lm-role-name small {
@@ -666,9 +673,18 @@ body.auth-modal-page {
    Long forms scroll inside the dialog instead of stretching it. */
 .auth-modal-page .lm-dialog-form {
     max-width: 540px;
-    max-height: calc(100vh - 150px);
+    max-height: calc(100vh - 48px);
 }
-.auth-modal-page .lm-dialog-form .lm-panel { padding: 22px 30px 18px; }
+.auth-modal-page .lm-dialog-form .lm-panel {
+    padding: 22px 30px 18px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.auth-modal-page .lm-dialog-form .lm-panel::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
 .auth-modal-page .lm-dialog-form .lm-logo { height: 26px; margin-bottom: 6px; }
 
 /* Two fields per row (first and last name, vehicle and plate, region and province...) */
@@ -734,8 +750,18 @@ body.auth-modal-page {
 
 /* Shorter laptop screens: a smaller gap for Cozy and a more compact header so step 1 still fits */
 @media (max-height: 820px) and (min-width: 521px) {
-    .auth-modal-page .lm-dialog-form .lm-panel { padding-top: 16px; padding-bottom: 14px; }
-    .auth-modal-page .lm-dialog-form .lm-logo { height: 22px; margin-bottom: 4px; }
+    .lm-panel,
+    .auth-modal-page .lm-dialog-form .lm-panel { padding: 16px 24px 14px; }
+    .lm-logo,
+    .auth-modal-page .lm-dialog-form .lm-logo { height: 24px; margin-bottom: 4px; }
+    .lm-head { margin-bottom: 10px; }
+    .lm-title { font-size: 1.55rem; }
+    .lm-subtitle { font-size: 0.76rem; }
+    .lm-overlay .lm-role { min-height: 96px; padding: 10px 8px 8px; gap: 4px; }
+    .lm-role-icon { width: 32px; height: 32px; }
+    .lm-role-icon svg { width: 16px; height: 16px; }
+    .lm-role-name { font-size: 0.84rem; }
+    .lm-role-desc { font-size: 0.68rem; }
     .auth-modal-page .lm-dialog-form .auth-title,
     .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.85rem !important; }
     .auth-modal-page .lm-dialog-form .auth-subtitle,
@@ -743,9 +769,10 @@ body.auth-modal-page {
     .auth-modal-page .lm-dialog-form .stepper { margin-bottom: 10px; }
     .auth-modal-page .lm-dialog-form #googleSignupDivider { margin: 10px 0 !important; }
     .auth-modal-page .lm-dialog-form .btn-details-continue { margin-top: 10px !important; }
-    .auth-modal-page .lm-dialog-form .auth-foot { margin-top: 10px; }
+    .lm-foot,
+    .auth-modal-page .lm-dialog-form .auth-foot { margin-top: 10px; font-size: 0.78rem; }
     .lm-dialog,
-    .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 104px); }
+    .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 48px); }
     .auth-modal-page .lm-dialog-form .name-row.mb-4 { margin-bottom: 2px !important; }
     .auth-modal-page .lm-dialog-form .field-block { margin-top: 4px !important; margin-bottom: 6px !important; }
     .auth-modal-page .lm-dialog-form .stepper { padding-bottom: 8px !important; }
@@ -767,30 +794,214 @@ body.auth-modal-page {
     .auth-modal-page .lm-dialog-form .rider-auth-title { font-size: 1.8rem !important; }
 }
 
-/* ── Logistics Terms & Conditions box (Step 6 / Sign-in details) ── */
-.logistics-terms-box {
-    background: #FAF8FC;
-    border: 1.5px solid #E7E2EC;
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin: 16px 0 18px;
+/* ── Logistics Terms & Conditions (Step 6 / Sign-in details) ── */
+.logistics-terms-prompt {
     text-align: left;
 }
-.logistics-terms-header {
+.logistics-terms-prompt-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #374151;
+    line-height: 1.5;
+}
+.logistics-terms-agreed-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+    margin-left: 4px;
+}
+.logistics-terms-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    color: var(--lm-lavender, #6F6382);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    display: inline;
+    border-radius: 4px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+.logistics-terms-link:hover {
+    color: var(--lm-rose-dark, #8C5A50);
+    background-color: #F8ECE8;
+}
+
+/* Logistics Terms Modal Dialog */
+dialog.logistics-terms-dialog {
+    border: none;
+    padding: 0;
+    border-radius: 20px;
+    background: #ffffff;
+    max-width: 620px;
+    width: 92vw;
+    box-shadow: 0 30px 80px -20px rgba(40, 33, 51, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6);
+    overflow: hidden;
+    margin: auto;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+}
+dialog.logistics-terms-dialog::backdrop {
+    background: rgba(40, 33, 51, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+.logistics-terms-modal-card {
+    display: flex;
+    flex-direction: column;
+    max-height: 84vh;
+    height: 100%;
+    background: #fff;
+}
+.logistics-terms-modal-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #ECE7F2;
+    background: #FAF8FC;
+    flex-shrink: 0;
 }
-.logistics-terms-title {
+.logistics-terms-modal-head-title {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
+    gap: 8px;
+}
+.logistics-terms-modal-heading {
+    margin: 0;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.35rem;
     font-weight: 700;
     color: var(--lm-ink, #282133);
 }
+.logistics-terms-modal-head-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.logistics-terms-close-btn {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: #6F6382;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, transform 0.18s;
+}
+.logistics-terms-close-btn:hover {
+    background: #EFEAF4;
+    color: var(--lm-ink, #282133);
+    transform: rotate(90deg);
+}
+
+.logistics-terms-modal-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    font-size: 0.82rem;
+    color: #4B5563;
+    line-height: 1.6;
+    background: #fff;
+    flex: 1 1 auto;
+}
+.logistics-terms-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.logistics-terms-modal-body::-webkit-scrollbar-thumb {
+    background: #D1CAD9;
+    border-radius: 4px;
+}
+.terms-section-banner {
+    color: #6F6382;
+    border-bottom: 1.5px solid #ECE7F2;
+    padding-bottom: 5px;
+    margin: 14px 0 10px;
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+.logistics-terms-modal-body h5 {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 12px 0 4px;
+}
+.logistics-terms-modal-body p {
+    margin: 0 0 8px;
+}
+.logistics-terms-modal-body ul {
+    margin: 0 0 10px 20px;
+    padding: 0;
+}
+.logistics-terms-modal-body li {
+    margin-bottom: 4px;
+}
+
+.logistics-terms-modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #FAF8FC;
+    border-top: 1px solid #ECE7F2;
+    flex-shrink: 0;
+}
+.logistics-terms-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+}
+.btn-terms-close {
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid #D1CAD9;
+    background: #fff;
+    color: #4B5563;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.btn-terms-close:hover {
+    background: #F3EFF7;
+    border-color: #BDB3C7;
+}
+.btn-terms-agree {
+    padding: 8px 22px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--lm-lavender, #6F6382) 0%, var(--lm-rose-dark, #8C5A50) 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(111, 99, 130, 0.25);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-terms-agree:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(111, 99, 130, 0.35);
+}
+
 .logistics-terms-pdf-link {
     display: inline-flex;
     align-items: center;
@@ -809,49 +1020,7 @@ body.auth-modal-page {
     color: var(--lm-lavender-dark, #564B68);
     text-decoration: underline;
 }
-.logistics-terms-viewer {
-    max-height: 160px;
-    overflow-y: auto;
-    background: #ffffff;
-    border: 1px solid #ECE7F2;
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 0.76rem;
-    color: #4B5563;
-    line-height: 1.55;
-}
-.logistics-terms-viewer::-webkit-scrollbar {
-    width: 6px;
-}
-.logistics-terms-viewer::-webkit-scrollbar-thumb {
-    background: #D1CAD9;
-    border-radius: 4px;
-}
-.logistics-terms-viewer h4 {
-    font-size: 0.82rem;
-    font-weight: 800;
-    color: #1F2937;
-    margin: 12px 0 4px;
-}
-.logistics-terms-viewer h4:first-child {
-    margin-top: 0;
-}
-.logistics-terms-viewer h5 {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #374151;
-    margin: 8px 0 3px;
-}
-.logistics-terms-viewer p {
-    margin: 0 0 6px;
-}
-.logistics-terms-viewer ul {
-    margin: 0 0 8px 18px;
-    padding: 0;
-}
-.logistics-terms-viewer li {
-    margin-bottom: 3px;
-}
+
 .logistics-terms-checkbox-label {
     display: flex;
     align-items: flex-start;
@@ -873,4 +1042,23 @@ body.auth-modal-page {
     font-weight: 600;
     color: #1F2937;
     line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+    dialog.logistics-terms-dialog {
+        width: 95vw;
+        border-radius: 16px;
+    }
+    .logistics-terms-modal-card {
+        max-height: 88vh;
+    }
+    .logistics-terms-modal-header {
+        padding: 12px 16px;
+    }
+    .logistics-terms-modal-body {
+        padding: 14px 16px;
+    }
+    .logistics-terms-modal-footer {
+        padding: 12px 16px;
+    }
 }
