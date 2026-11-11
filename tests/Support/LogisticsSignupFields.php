@@ -12,7 +12,7 @@ trait LogisticsSignupFields
         \Illuminate\Support\Facades\Storage::fake('public');
         \Illuminate\Support\Facades\Storage::fake('local');
         return [
-            'business_name' => 'Cavite Delivery', 'sec_registration_no' => 'cs 202012345',
+            'business_name' => 'Cavite Delivery', 'sec_registration_no' => 'cs 2020123456789',
             'tin_number' => '123-456-789-000', 'contact_position' => 'Operations Manager',
             'service_regions' => ['NCR', 'IV-A'],
             'office_region' => 'IV-A', 'office_province' => 'Cavite', 'office_city' => 'Imus',

@@ -50,7 +50,7 @@ class LogisticsRegistrationTest extends TestCase
         $provider = LogisticsProvider::where('user_id', $user->id)->firstOrFail();
         $this->assertSame('Cavite Delivery', $provider->name);
         $this->assertSame('pending', $provider->status);
-        $this->assertSame('CS202012345', $provider->sec_registration_no);
+        $this->assertSame('CS2020123456789', $provider->sec_registration_no);
         $this->assertSame('Operations Manager', $provider->contact_position);
         $this->assertSame(['NCR', 'IV-A'], $provider->service_regions);
         $this->assertSame('NCR, Region IV-A', $provider->serviceRegionsSummary());

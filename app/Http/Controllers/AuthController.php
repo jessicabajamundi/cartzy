@@ -465,7 +465,7 @@ class AuthController extends Controller
                     $fail('This company name is already used by another logistics partner.');
                 }
             }],
-            'sec_registration_no' => ['required', 'regex:/\A[A-Z0-9][A-Z0-9-]{4,29}\z/'],
+            'sec_registration_no' => ['required', 'regex:/\A[A-Z]{2}[0-9]{13}\z/'],
             'tin_number' => ['required', 'regex:/\A[0-9]{12}\z/'],
             'contact_position' => ['required', 'string', 'max:100'],
             'service_regions' => ['required', 'array', 'min:1'],
@@ -612,7 +612,7 @@ class AuthController extends Controller
         ], [
             'business_name.required' => 'Please enter your company name.',
             'sec_registration_no.required' => 'Please enter your SEC registration number.',
-            'sec_registration_no.regex' => 'Enter the SEC registration number as shown on your certificate, e.g. CS202012345.',
+            'sec_registration_no.regex' => 'Enter the SEC registration number as shown on your certificate (2 letters followed by 13 numbers, e.g. CS2020123456789).',
             'tin_number.required' => 'Please enter your TIN.',
             'tin_number.regex' => 'TIN must be 12 digits: 9-digit TIN and 3-digit branch code.',
             'contact_position.required' => "Please enter the contact person's position.",

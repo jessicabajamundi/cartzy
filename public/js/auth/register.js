@@ -728,6 +728,11 @@ function detailFieldMessage(input) {
         if (file.size > 5 * 1024 * 1024) return 'File must not exceed 5 MB.';
         if (!/\.(jpe?g|png|pdf)$/i.test(file.name)) return 'Choose a JPG, PNG or PDF file.';
     }
+    if (input.id === 'sec_registration_no' && input.value) {
+        if (!/^[A-Za-z]{2}[0-9]{13}$/.test(input.value)) {
+            return 'Enter the SEC registration number as shown on your certificate (2 letters followed by 13 numbers, e.g. CS2020123456789).';
+        }
+    }
     return input.checkValidity() ? '' : input.validationMessage;
 }
 
@@ -808,6 +813,33 @@ function formatRegistrationTin(value) {
     return value.replace(/\D/g, '').slice(0, 12).replace(/(\d{3})(?=\d)/g, '$1-');
 }
 
+// Logistics SEC number: 2 letters followed by up to 13 digits (max 15 characters).
+function formatRegistrationSec(value) {
+    if (!value) return '';
+    const clean = value.replace(/[^A-Za-z0-9]/g, '');
+    let letters = '';
+    let digits = '';
+    for (let i = 0; i < clean.length && letters.length < 2; i++) {
+        if (/[A-Za-z]/.test(clean[i])) {
+            letters += clean[i].toUpperCase();
+        } else {
+            break;
+        }
+    }
+    if (letters.length < 2) return letters;
+    let letterCount = 0;
+    for (let i = 0; i < clean.length && digits.length < 13; i++) {
+        if (/[A-Za-z]/.test(clean[i]) && letterCount < 2) {
+            letterCount++;
+            continue;
+        }
+        if (/[0-9]/.test(clean[i])) {
+            digits += clean[i];
+        }
+    }
+    return letters + digits;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // The seller TIN and the logistics TIN format the same way (000-000-000-000).
     document.querySelectorAll('#tin_number, [data-tin-input]').forEach(tinInput => {
@@ -840,13 +872,89 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     document.getElementById('seller_type')?.addEventListener('change', () => updateSellerDetails());
-    // Logistics: SEC numbers are upper case; clear a field's error once it is changed.
+    // Logistics: SEC registration number (strictly 2 letters followed by 13 numbers, max 15 chars).
     const secInput = document.getElementById('sec_registration_no');
-    secInput?.addEventListener('input', () => {
-        const caret = secInput.selectionStart;
-        secInput.value = secInput.value.toUpperCase().replace(/\s+/g, '');
-        if (caret !== null) secInput.setSelectionRange(Math.min(caret, secInput.value.length), Math.min(caret, secInput.value.length));
-    });
+    if (secInput) {
+        if (secInput.value) secInput.value = formatRegistrationSec(secInput.value);
+
+        secInput.addEventListener('beforeinput', event => {
+            if (!event.data || !event.inputType.startsWith('insert')) return;
+
+            const start = secInput.selectionStart ?? 0;
+            const end = secInput.selectionEnd ?? 0;
+            const value = secInput.value;
+
+            // Single-character insertion
+            if (event.data.length === 1) {
+                const char = event.data;
+                if (start < 2) {
+                    // First 2 positions can only take letters
+                    if (!/[A-Za-z]/.test(char)) {
+                        event.preventDefault();
+                        return;
+                    }
+                    // Cannot insert a 3rd letter if 2 letters already exist and none is selected to replace
+                    if (start === end && /^[A-Za-z]{2}/.test(value)) {
+                        event.preventDefault();
+                        return;
+                    }
+                } else {
+                    // Position 2+ can only take numbers
+                    if (!/[0-9]/.test(char)) {
+                        event.preventDefault();
+                        return;
+                    }
+                    // Cannot exceed 13 numbers
+                    const existingDigits = (value.slice(2).match(/[0-9]/g) || []).length;
+                    if (start === end && existingDigits >= 13) {
+                        event.preventDefault();
+                        return;
+                    }
+                }
+            }
+
+            // Boundary and length check on proposed outcome
+            if (value.length >= 15 && start === end) {
+                event.preventDefault();
+                return;
+            }
+            const proposed = value.slice(0, start) + event.data + value.slice(end);
+            const formatted = formatRegistrationSec(proposed);
+            if (formatted === value && start === end) {
+                event.preventDefault();
+                return;
+            }
+        });
+
+        secInput.addEventListener('paste', event => {
+            const pasted = event.clipboardData?.getData('text');
+            if (pasted === undefined) return;
+            event.preventDefault();
+            const start = secInput.selectionStart ?? 0;
+            const end = secInput.selectionEnd ?? 0;
+            const combined = secInput.value.slice(0, start) + pasted + secInput.value.slice(end);
+            const formatted = formatRegistrationSec(combined);
+            secInput.value = formatted;
+            const newCaret = Math.min(formatted.length, start + pasted.replace(/[^A-Za-z0-9]/g, '').length);
+            secInput.setSelectionRange(newCaret, newCaret);
+            showRegistrationError('sec_registration_no', '');
+        });
+
+        secInput.addEventListener('input', () => {
+            const caret = secInput.selectionStart;
+            const prevVal = secInput.value;
+            const formatted = formatRegistrationSec(prevVal);
+            if (prevVal !== formatted) {
+                secInput.value = formatted;
+                if (caret !== null) {
+                    const diff = prevVal.length - formatted.length;
+                    const newCaret = Math.max(0, Math.min(formatted.length, caret - (diff > 0 ? diff : 0)));
+                    secInput.setSelectionRange(newCaret, newCaret);
+                }
+            }
+            showRegistrationError('sec_registration_no', '');
+        });
+    }
     document.querySelectorAll('#logisticsFieldsWrapper [data-logistics-required]').forEach(input => {
         input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => showRegistrationError(input.id, ''));
     });

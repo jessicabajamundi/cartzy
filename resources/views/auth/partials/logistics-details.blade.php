@@ -16,7 +16,7 @@
         <div class="form-grid-2 mb-4">
             <div>
                 <label class="field-label" for="sec_registration_no">SEC registration no.</label>
-                <input class="auth-input lg-input" id="sec_registration_no" name="sec_registration_no" value="{{ old('sec_registration_no') }}" placeholder="CS202012345" maxlength="30" pattern="[A-Za-z0-9][A-Za-z0-9\-]{4,29}" title="Letters, digits and dashes, as shown on your SEC certificate." autocapitalize="characters" data-logistics-required>
+                <input class="auth-input lg-input" id="sec_registration_no" name="sec_registration_no" value="{{ old('sec_registration_no') }}" placeholder="CS2020123456789" maxlength="15" pattern="[A-Za-z]{2}[0-9]{13}" title="2 letters followed by 13 numbers, e.g. CS2020123456789." autocapitalize="characters" data-logistics-required>
                 <p class="seller-field-error" id="sec_registration_no_error" role="alert">{{ $errors->first('sec_registration_no') }}</p>
             </div>
             <div>
