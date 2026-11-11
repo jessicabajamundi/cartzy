@@ -958,10 +958,9 @@ dialog.logistics-terms-dialog::backdrop {
 .logistics-terms-embedded-agreement {
     margin-top: 24px;
     margin-bottom: 8px;
-    padding: 16px 18px;
-    background: #FAF8FC;
-    border: 1.5px solid #E7E2EC;
-    border-radius: 12px;
+    padding: 16px 0 4px;
+    border-top: 1px solid #ECE7F2;
+    background: transparent;
 }
 .logistics-terms-modal-actions {
     display: flex;
