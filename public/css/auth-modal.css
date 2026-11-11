@@ -955,34 +955,13 @@ dialog.logistics-terms-dialog::backdrop {
     margin-bottom: 4px;
 }
 
-.logistics-terms-modal-footer {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 14px 20px;
+.logistics-terms-embedded-agreement {
+    margin-top: 24px;
+    margin-bottom: 8px;
+    padding: 16px 18px;
     background: #FAF8FC;
-    border-top: 1px solid #ECE7F2;
-    flex-shrink: 0;
-}
-.terms-scroll-prompt {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--lm-lavender-dark, #564B68);
-    background: #F1EDF6;
-    padding: 10px 14px;
-    border-radius: 10px;
-    width: 100%;
-}
-.logistics-terms-agreement-section {
-    animation: fadeInTerms 0.25s ease-out;
-}
-@keyframes fadeInTerms {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    border: 1.5px solid #E7E2EC;
+    border-radius: 12px;
 }
 .logistics-terms-modal-actions {
     display: flex;
@@ -991,13 +970,13 @@ dialog.logistics-terms-dialog::backdrop {
     gap: 10px;
 }
 .btn-terms-agree {
-    padding: 8px 22px;
+    padding: 9px 24px;
     border-radius: 10px;
     border: none;
     background: linear-gradient(135deg, var(--lm-lavender, #6F6382) 0%, var(--lm-rose-dark, #8C5A50) 100%);
     color: #fff;
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(111, 99, 130, 0.25);
     transition: transform 0.15s, box-shadow 0.15s;

@@ -783,31 +783,8 @@ function setupLogisticsTermsModal() {
     const formCheckbox = document.getElementById('logistics_terms_agreed');
     const modalCheckbox = document.getElementById('modal_logistics_terms_agreed');
     const modalBody = document.getElementById('logisticsTermsModalBody') || dialog?.querySelector('.logistics-terms-modal-body');
-    const scrollHint = document.getElementById('termsScrollHint');
-    const agreementSection = document.getElementById('modalTermsAgreementSection');
 
     if (!dialog) return;
-
-    function showAgreement() {
-        if (agreementSection) agreementSection.style.display = 'block';
-        if (scrollHint) scrollHint.style.display = 'none';
-    }
-
-    function hideAgreement() {
-        if (agreementSection) agreementSection.style.display = 'none';
-        if (scrollHint) scrollHint.style.display = 'flex';
-    }
-
-    function checkScrollPosition() {
-        if (!modalBody) return;
-        // 20px threshold to account for sub-pixel rendering / zoom
-        const atBottom = modalBody.scrollHeight - modalBody.scrollTop <= modalBody.clientHeight + 20;
-        if (atBottom || formCheckbox?.checked) {
-            showAgreement();
-        }
-    }
-
-    modalBody?.addEventListener('scroll', checkScrollPosition, { passive: true });
 
     const outside = event => {
         const rect = dialog.getBoundingClientRect();
@@ -834,19 +811,8 @@ function setupLogisticsTermsModal() {
             dialog.setAttribute('open', '');
         }
 
-        if (modalBody) {
-            if (formCheckbox?.checked) {
-                showAgreement();
-            } else {
-                modalBody.scrollTop = 0;
-                hideAgreement();
-                // If content happens to fit entirely without scrolling
-                requestAnimationFrame(() => {
-                    if (modalBody.scrollHeight <= modalBody.clientHeight + 20) {
-                        showAgreement();
-                    }
-                });
-            }
+        if (modalBody && !formCheckbox?.checked) {
+            modalBody.scrollTop = 0;
         }
     }
 

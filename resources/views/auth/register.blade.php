@@ -702,27 +702,18 @@
                         <li>I will protect customer, seller, Rider, and other personal information from unauthorized use or disclosure.</li>
                         <li>I understand how Cartzy may collect, use, store, and share my personal information as explained in this Privacy Policy.</li>
                     </ul>
-                </div>
-            </div>
 
-            <div class="logistics-terms-modal-footer" id="logisticsTermsModalFooter">
-                <div id="termsScrollHint" class="terms-scroll-prompt">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;" aria-hidden="true">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <polyline points="19 12 12 19 5 12"></polyline>
-                    </svg>
-                    <span>Scroll to the bottom of the document to agree</span>
-                </div>
-
-                <div id="modalTermsAgreementSection" class="logistics-terms-agreement-section" style="display: none; width: 100%;">
-                    <label class="logistics-terms-checkbox-label" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
-                        <input type="checkbox" id="modal_logistics_terms_agreed">
-                        <span>
-                            I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
-                        </span>
-                    </label>
-                    <div class="logistics-terms-modal-actions" style="margin-top: 10px;">
-                        <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal">I Agree</button>
+                    {{-- Embedded agreement at the very bottom of the scrolled terms --}}
+                    <div id="modalTermsAgreementSection" class="logistics-terms-embedded-agreement">
+                        <label class="logistics-terms-checkbox-label" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
+                            <input type="checkbox" id="modal_logistics_terms_agreed">
+                            <span>
+                                I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
+                            </span>
+                        </label>
+                        <div class="logistics-terms-modal-actions" style="margin-top: 14px;">
+                            <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal">I Agree</button>
+                        </div>
                     </div>
                 </div>
             </div>
