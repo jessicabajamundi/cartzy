@@ -705,25 +705,25 @@
                 </div>
             </div>
 
-            <div class="logistics-terms-modal-footer">
-                <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
-                    <label class="logistics-terms-checkbox-label is-disabled" id="modalTermsCheckboxLabel" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
-                        <input type="checkbox" id="modal_logistics_terms_agreed" disabled>
+            <div class="logistics-terms-modal-footer" id="logisticsTermsModalFooter">
+                <div id="termsScrollHint" class="terms-scroll-prompt">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px; flex-shrink: 0;" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <polyline points="19 12 12 19 5 12"></polyline>
+                    </svg>
+                    <span>Scroll to the bottom of the document to agree</span>
+                </div>
+
+                <div id="modalTermsAgreementSection" class="logistics-terms-agreement-section" style="display: none; width: 100%;">
+                    <label class="logistics-terms-checkbox-label" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
+                        <input type="checkbox" id="modal_logistics_terms_agreed">
                         <span>
                             I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
                         </span>
                     </label>
-                    <span id="termsScrollHint" class="terms-scroll-hint">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; flex-shrink: 0;" aria-hidden="true">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <polyline points="19 12 12 19 5 12"></polyline>
-                        </svg>
-                        Please scroll to the very bottom to enable the agreement checkbox.
-                    </span>
-                </div>
-                <div class="logistics-terms-modal-actions">
-                    <button type="button" class="btn-terms-close" id="btnCloseTermsModal">Close</button>
-                    <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal" disabled>I Agree</button>
+                    <div class="logistics-terms-modal-actions" style="margin-top: 10px;">
+                        <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal">I Agree</button>
+                    </div>
                 </div>
             </div>
         </div>

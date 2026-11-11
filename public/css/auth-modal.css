@@ -964,26 +964,31 @@ dialog.logistics-terms-dialog::backdrop {
     border-top: 1px solid #ECE7F2;
     flex-shrink: 0;
 }
+.terms-scroll-prompt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--lm-lavender-dark, #564B68);
+    background: #F1EDF6;
+    padding: 10px 14px;
+    border-radius: 10px;
+    width: 100%;
+}
+.logistics-terms-agreement-section {
+    animation: fadeInTerms 0.25s ease-out;
+}
+@keyframes fadeInTerms {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 .logistics-terms-modal-actions {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 10px;
-}
-.btn-terms-close {
-    padding: 8px 18px;
-    border-radius: 10px;
-    border: 1px solid #D1CAD9;
-    background: #fff;
-    color: #4B5563;
-    font-weight: 600;
-    font-size: 0.82rem;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-}
-.btn-terms-close:hover {
-    background: #F3EFF7;
-    border-color: #BDB3C7;
 }
 .btn-terms-agree {
     padding: 8px 22px;
@@ -1001,12 +1006,6 @@ dialog.logistics-terms-dialog::backdrop {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(111, 99, 130, 0.35);
 }
-.btn-terms-agree:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: none !important;
-}
 
 .logistics-terms-checkbox-label {
     display: flex;
@@ -1015,11 +1014,6 @@ dialog.logistics-terms-dialog::backdrop {
     margin-top: 10px;
     cursor: pointer;
     user-select: none;
-    transition: opacity 0.2s ease;
-}
-.logistics-terms-checkbox-label.is-disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
 }
 .logistics-terms-checkbox-label input[type="checkbox"] {
     width: 17px;
@@ -1029,23 +1023,11 @@ dialog.logistics-terms-dialog::backdrop {
     flex-shrink: 0;
     cursor: pointer;
 }
-.logistics-terms-checkbox-label input[type="checkbox"]:disabled {
-    cursor: not-allowed;
-}
 .logistics-terms-checkbox-label span {
     font-size: 0.8rem;
     font-weight: 600;
     color: #1F2937;
     line-height: 1.45;
-}
-.terms-scroll-hint {
-    font-size: 0.74rem;
-    font-weight: 600;
-    color: #8C5A50;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 2px;
 }
 
 @media (max-width: 520px) {

@@ -779,36 +779,31 @@ function setupLogisticsTermsModal() {
     const dialog = document.getElementById('logisticsTermsDialog');
     const openBtn = document.getElementById('openLogisticsTermsBtn');
     const closeXBtn = document.getElementById('closeLogisticsTermsXBtn');
-    const closeBtn = document.getElementById('btnCloseTermsModal');
     const agreeBtn = document.getElementById('btnAgreeTermsModal');
     const formCheckbox = document.getElementById('logistics_terms_agreed');
     const modalCheckbox = document.getElementById('modal_logistics_terms_agreed');
     const modalBody = document.getElementById('logisticsTermsModalBody') || dialog?.querySelector('.logistics-terms-modal-body');
     const scrollHint = document.getElementById('termsScrollHint');
-    const checkboxLabel = document.getElementById('modalTermsCheckboxLabel');
+    const agreementSection = document.getElementById('modalTermsAgreementSection');
 
     if (!dialog) return;
 
-    function enableAgreement() {
-        if (modalCheckbox) modalCheckbox.disabled = false;
-        if (agreeBtn) agreeBtn.disabled = false;
-        if (checkboxLabel) checkboxLabel.classList.remove('is-disabled');
+    function showAgreement() {
+        if (agreementSection) agreementSection.style.display = 'block';
         if (scrollHint) scrollHint.style.display = 'none';
     }
 
-    function disableAgreement() {
-        if (modalCheckbox) modalCheckbox.disabled = true;
-        if (agreeBtn) agreeBtn.disabled = true;
-        if (checkboxLabel) checkboxLabel.classList.add('is-disabled');
-        if (scrollHint) scrollHint.style.display = 'inline-flex';
+    function hideAgreement() {
+        if (agreementSection) agreementSection.style.display = 'none';
+        if (scrollHint) scrollHint.style.display = 'flex';
     }
 
     function checkScrollPosition() {
         if (!modalBody) return;
-        // 15px threshold to account for sub-pixel rendering / zoom
-        const atBottom = modalBody.scrollHeight - modalBody.scrollTop <= modalBody.clientHeight + 15;
+        // 20px threshold to account for sub-pixel rendering / zoom
+        const atBottom = modalBody.scrollHeight - modalBody.scrollTop <= modalBody.clientHeight + 20;
         if (atBottom || formCheckbox?.checked) {
-            enableAgreement();
+            showAgreement();
         }
     }
 
@@ -841,14 +836,14 @@ function setupLogisticsTermsModal() {
 
         if (modalBody) {
             if (formCheckbox?.checked) {
-                enableAgreement();
+                showAgreement();
             } else {
                 modalBody.scrollTop = 0;
-                disableAgreement();
+                hideAgreement();
                 // If content happens to fit entirely without scrolling
                 requestAnimationFrame(() => {
-                    if (modalBody.scrollHeight <= modalBody.clientHeight + 15) {
-                        enableAgreement();
+                    if (modalBody.scrollHeight <= modalBody.clientHeight + 20) {
+                        showAgreement();
                     }
                 });
             }
@@ -869,7 +864,6 @@ function setupLogisticsTermsModal() {
     });
 
     closeXBtn?.addEventListener('click', closeModal);
-    closeBtn?.addEventListener('click', closeModal);
 
     modalCheckbox?.addEventListener('change', () => {
         if (formCheckbox) {
@@ -886,7 +880,6 @@ function setupLogisticsTermsModal() {
     });
 
     agreeBtn?.addEventListener('click', () => {
-        if (agreeBtn.disabled) return;
         if (formCheckbox) formCheckbox.checked = true;
         if (modalCheckbox) modalCheckbox.checked = true;
         validateLogisticsTerms();
