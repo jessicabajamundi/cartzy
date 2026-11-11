@@ -384,18 +384,113 @@
             </div>
 
             {{-- Logistics partner Step 6: Terms & Conditions and Privacy Policy --}}
-            <div id="logisticsTermsWrapper" class="logistics-terms-box" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }};">
-                <div class="logistics-terms-header">
-                    <span class="logistics-terms-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; color: #6F6382;" aria-hidden="true">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="16" y1="13" x2="8" y2="13"></line>
-                            <line x1="16" y1="17" x2="8" y2="17"></line>
-                            <polyline points="10 9 9 9 8 9"></polyline>
+            <div id="logisticsTermsWrapper" class="logistics-terms-prompt" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'block' : 'none' }}; margin: 14px 0 16px;">
+                <input type="checkbox" id="logistics_terms_agreed" name="terms_agreed" value="1" style="display: none;" @checked(old('terms_agreed'))>
+                <div class="logistics-terms-prompt-row">
+                    <span>Please read and agree to the</span>
+                    <button type="button" class="logistics-terms-link" id="openLogisticsTermsBtn" aria-haspopup="dialog" aria-controls="logisticsTermsDialog">Cartzy Logistics Terms &amp; Conditions and Privacy Policy</button>
+                    <span style="color:#ef4444; font-weight: 700;">*</span>
+                    <span id="logisticsTermsAgreedBadge" class="logistics-terms-agreed-pill" style="display: {{ old('terms_agreed') ? 'inline-flex' : 'none' }};">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; margin-right: 3px;" aria-hidden="true">
+                            <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
-                        Logistics Terms &amp; Privacy Policy
+                        Agreed
                     </span>
+                </div>
+                <p id="logistics_terms_error" class="seller-field-error" role="alert" style="color: #ef4444; font-size: 12.5px; margin-top: 5px; font-weight: 500;" @unless($errors->has('terms_agreed')) hidden @endunless>
+                    {{ $errors->first('terms_agreed') ?: 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.' }}
+                </p>
+            </div>
+
+            <p class="field-subheading" style="margin-bottom: 20px;">We'll send a six-digit verification code to this email address to finish creating your Cartzy account.</p>
+
+            <div class="form-btn-row">
+                <button type="button" class="btn-action-back" onclick="prevStep(1)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    Back
+                </button>
+                <button type="button" class="btn-action-continue" id="sendVerificationCodeButton" onclick="nextStep(3)">
+                    <span id="sendVerificationCodeLabel">Send verification code</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14m-6-6 6 6-6 6"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 3: Verify (Email verification code) -->
+        <div id="step-3" style="display:none;">
+            <!-- Instant Sent Banner -->
+            <div id="otpSentNotice" class="otp-sent-banner">
+                <span class="banner-icon">✓</span>
+                <span class="banner-text">Your verification code has been sent.</span>
+            </div>
+
+            <div class="security-section">
+                <label class="field-heading">Email verification code</label>
+                <p class="field-subheading" id="verificationApplicant" style="margin-bottom: 8px;">Enter the 6-digit code sent to your email.</p>
+
+                <div class="otp-boxes-wrapper">
+                    <input type="text" maxlength="1" class="otp-input" data-index="0" placeholder="0" inputmode="numeric" autocomplete="one-time-code">
+                    <input type="text" maxlength="1" class="otp-input" data-index="1" placeholder="0" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" data-index="2" placeholder="0" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" data-index="3" placeholder="0" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" data-index="4" placeholder="0" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-input" data-index="5" placeholder="0" inputmode="numeric">
+                </div>
+                <input type="hidden" name="email_verification_otp" id="email_verification_otp" value="">
+                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 8px;">Your code expires after 10 minutes. You can paste all six digits here.</p>
+
+                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
+                        <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
+                    </div>
+                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: #64748b;"></div>
+                </div>
+            </div>
+
+            <div id="otpFeedbackMsg" style="display:none; margin-top: 10px; font-size: 0.82rem; font-weight: 600;"></div>
+
+            <button type="submit" class="btn-primary btn-single" id="btnVerifyEmailSubmit" style="margin-top: 22px;">VERIFY EMAIL &amp; CONTINUE</button>
+
+            <div class="otp-resend-row" style="margin-top: 18px; flex-direction: column; align-items: flex-start; gap: 8px;">
+                <span style="font-size: 0.8rem; color: #6b7280; line-height: 1.45;">Didn't receive a code? Check your spam folder or request another. Please wait one minute between requests.</span>
+                <button type="button" id="resendOtpBtn" class="resend-otp-btn" onclick="triggerResendOtp()" style="font-weight: 700; color: #6F6382; text-decoration: underline;">Resend code (<span id="otpTimerDisplay">00:60</span>)</button>
+            </div>
+
+            <div style="margin-top: 18px; text-align: center;">
+                <button type="button" onclick="prevStep(2)" style="background: none; border: none; font-size: 0.82rem; font-weight: 600; color: #6F6382; cursor: pointer; text-decoration: underline;">← Change email or password</button>
+            </div>
+        </div>
+
+    </form>
+
+    <div class="auth-foot">
+        Already have an account?
+        <a href="{{ route('login') }}">Log in</a>
+    </div>
+
+    </div>
+
+    {{-- ── Logistics Terms & Conditions Separate Modal Pop-up ── --}}
+    <dialog id="logisticsTermsDialog" class="logistics-terms-dialog" aria-labelledby="logisticsTermsModalTitle">
+        <div class="logistics-terms-modal-card">
+            <div class="logistics-terms-modal-header">
+                <div class="logistics-terms-modal-head-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: #6F6382;" aria-hidden="true">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <h3 id="logisticsTermsModalTitle" class="logistics-terms-modal-heading">Logistics Terms &amp; Privacy Policy</h3>
+                </div>
+                <div class="logistics-terms-modal-head-actions">
                     <a href="{{ asset('docs/Cartzy-Logistics-Terms-and-Conditions.pdf') }}" target="_blank" rel="noopener" class="logistics-terms-pdf-link" title="Open complete document in PDF format">
                         <span>Open PDF</span>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px;" aria-hidden="true">
@@ -404,13 +499,21 @@
                             <line x1="10" y1="14" x2="21" y2="3"></line>
                         </svg>
                     </a>
+                    <button type="button" class="logistics-terms-close-btn" id="closeLogisticsTermsXBtn" aria-label="Close modal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
+            </div>
 
-                <div class="logistics-terms-viewer" tabindex="0" role="region" aria-label="Logistics Terms and Conditions and Privacy Policy document">
-                    <h4 style="text-align: center; text-transform: uppercase; color: #111827; margin-bottom: 2px;">Cartzy</h4>
-                    <p style="text-align: center; font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: #6B7280; margin-bottom: 12px;">Terms &amp; Conditions and Privacy Policy</p>
+            <div class="logistics-terms-modal-body" tabindex="0" role="region" aria-label="Logistics Terms and Conditions and Privacy Policy document">
+                <div class="logistics-terms-content">
+                    <h4 style="text-align: center; text-transform: uppercase; color: #111827; margin-bottom: 2px; font-size: 1rem; font-weight: 800;">Cartzy</h4>
+                    <p style="text-align: center; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #6B7280; margin-bottom: 16px; letter-spacing: 0.05em;">Terms &amp; Conditions and Privacy Policy</p>
 
-                    <h4 style="color: #6F6382; border-bottom: 1px solid #ECE7F2; padding-bottom: 4px; margin-bottom: 8px;">LOGISTICS TERMS &amp; CONDITIONS</h4>
+                    <h4 class="terms-section-banner">LOGISTICS TERMS &amp; CONDITIONS</h4>
 
                     <h5>1. Introduction</h5>
                     <p>Welcome to Cartzy. These Terms &amp; Conditions apply to all individuals authorized to access and use a Logistics account on the Cartzy platform. By registering for or using a Logistics account, you agree to follow the responsibilities, procedures, and policies established by Cartzy.</p>
@@ -521,7 +624,7 @@
                     <h5>12. Changes to the Terms &amp; Conditions</h5>
                     <p>Cartzy may update these Terms &amp; Conditions when necessary. Important changes will be communicated through the platform or other official channels. Continued use of the Logistics account after changes take effect indicates acceptance of the updated terms, subject to applicable law.</p>
 
-                    <h4 style="color: #6F6382; border-bottom: 1px solid #ECE7F2; padding-bottom: 4px; margin-top: 16px; margin-bottom: 8px;">LOGISTICS PRIVACY POLICY</h4>
+                    <h4 class="terms-section-banner" style="margin-top: 20px;">LOGISTICS PRIVACY POLICY</h4>
 
                     <h5>1. Introduction</h5>
                     <p>Cartzy respects the privacy of its Logistics personnel and is committed to protecting personal information. This Privacy Policy explains how Cartzy collects, uses, stores, and shares information when a Logistics account is created or used.</p>
@@ -598,7 +701,7 @@
                     <h5>11. Contact and Support</h5>
                     <p>For questions, concerns, or requests about Logistics accounts, platform operations, or personal information, personnel may contact Cartzy through its official support channels.</p>
 
-                    <h4 style="color: #6F6382; border-bottom: 1px solid #ECE7F2; padding-bottom: 4px; margin-top: 16px; margin-bottom: 8px;">LOGISTICS AGREEMENT</h4>
+                    <h4 class="terms-section-banner" style="margin-top: 20px;">LOGISTICS AGREEMENT</h4>
                     <p>By registering for or using a Logistics account on Cartzy, I confirm that:</p>
                     <ul>
                         <li>I have read and understood the Logistics Terms &amp; Conditions and Privacy Policy.</li>
@@ -608,91 +711,22 @@
                         <li>I understand how Cartzy may collect, use, store, and share my personal information as explained in this Privacy Policy.</li>
                     </ul>
                 </div>
+            </div>
 
-                <label class="logistics-terms-checkbox-label" for="logistics_terms_agreed">
-                    <input type="checkbox" id="logistics_terms_agreed" name="terms_agreed" value="1" @checked(old('terms_agreed'))>
+            <div class="logistics-terms-modal-footer">
+                <label class="logistics-terms-checkbox-label" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
+                    <input type="checkbox" id="modal_logistics_terms_agreed">
                     <span>
-                        I have read and agree to the Cartzy Logistics Terms &amp; Conditions and Privacy Policy <span style="color:#ef4444">*</span>
+                        I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
                     </span>
                 </label>
-                <p id="logistics_terms_error" class="seller-field-error" role="alert" style="color: #ef4444; font-size: 12.5px; margin-top: 5px; font-weight: 500;" @unless($errors->has('terms_agreed')) hidden @endunless>
-                    {{ $errors->first('terms_agreed') ?: 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.' }}
-                </p>
-            </div>
-
-            <p class="field-subheading" style="margin-bottom: 20px;">We'll send a six-digit verification code to this email address to finish creating your Cartzy account.</p>
-
-            <div class="form-btn-row">
-                <button type="button" class="btn-action-back" onclick="prevStep(1)">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"/>
-                        <polyline points="12 19 5 12 12 5"/>
-                    </svg>
-                    Back
-                </button>
-                <button type="button" class="btn-action-continue" id="sendVerificationCodeButton" onclick="nextStep(3)">
-                    <span id="sendVerificationCodeLabel">Send verification code</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M5 12h14m-6-6 6 6-6 6"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- STEP 3: Verify (Email verification code) -->
-        <div id="step-3" style="display:none;">
-            <!-- Instant Sent Banner -->
-            <div id="otpSentNotice" class="otp-sent-banner">
-                <span class="banner-icon">✓</span>
-                <span class="banner-text">Your verification code has been sent.</span>
-            </div>
-
-            <div class="security-section">
-                <label class="field-heading">Email verification code</label>
-                <p class="field-subheading" id="verificationApplicant" style="margin-bottom: 8px;">Enter the 6-digit code sent to your email.</p>
-
-                <div class="otp-boxes-wrapper">
-                    <input type="text" maxlength="1" class="otp-input" data-index="0" placeholder="0" inputmode="numeric" autocomplete="one-time-code">
-                    <input type="text" maxlength="1" class="otp-input" data-index="1" placeholder="0" inputmode="numeric">
-                    <input type="text" maxlength="1" class="otp-input" data-index="2" placeholder="0" inputmode="numeric">
-                    <input type="text" maxlength="1" class="otp-input" data-index="3" placeholder="0" inputmode="numeric">
-                    <input type="text" maxlength="1" class="otp-input" data-index="4" placeholder="0" inputmode="numeric">
-                    <input type="text" maxlength="1" class="otp-input" data-index="5" placeholder="0" inputmode="numeric">
-                </div>
-                <input type="hidden" name="email_verification_otp" id="email_verification_otp" value="">
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 8px;">Your code expires after 10 minutes. You can paste all six digits here.</p>
-
-                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 13px; color: #1e40af;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
-                        <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
-                    </div>
-                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: #64748b;"></div>
+                <div class="logistics-terms-modal-actions">
+                    <button type="button" class="btn-terms-close" id="btnCloseTermsModal">Close</button>
+                    <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal">I Agree</button>
                 </div>
             </div>
-
-            <div id="otpFeedbackMsg" style="display:none; margin-top: 10px; font-size: 0.82rem; font-weight: 600;"></div>
-
-            <button type="submit" class="btn-primary btn-single" id="btnVerifyEmailSubmit" style="margin-top: 22px;">VERIFY EMAIL &amp; CONTINUE</button>
-
-            <div class="otp-resend-row" style="margin-top: 18px; flex-direction: column; align-items: flex-start; gap: 8px;">
-                <span style="font-size: 0.8rem; color: #6b7280; line-height: 1.45;">Didn't receive a code? Check your spam folder or request another. Please wait one minute between requests.</span>
-                <button type="button" id="resendOtpBtn" class="resend-otp-btn" onclick="triggerResendOtp()" style="font-weight: 700; color: #6F6382; text-decoration: underline;">Resend code (<span id="otpTimerDisplay">00:60</span>)</button>
-            </div>
-
-            <div style="margin-top: 18px; text-align: center;">
-                <button type="button" onclick="prevStep(2)" style="background: none; border: none; font-size: 0.82rem; font-weight: 600; color: #6F6382; cursor: pointer; text-decoration: underline;">← Change email or password</button>
-            </div>
         </div>
-
-    </form>
-
-    <div class="auth-foot">
-        Already have an account?
-        <a href="{{ route('login') }}">Log in</a>
-    </div>
-
-    </div>
+    </dialog>
 
 <style>
     #standardRoleWrapper { display: none !important; }

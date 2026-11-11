@@ -722,7 +722,7 @@ function updateLogisticsDetails(role = document.getElementById('role_input').val
     if (termsWrapper) {
         termsWrapper.style.display = logistics ? 'block' : 'none';
         const termsCheckbox = document.getElementById('logistics_terms_agreed');
-        if (termsCheckbox) termsCheckbox.required = logistics;
+        if (termsCheckbox) termsCheckbox.required = false;
         if (!logistics) {
             const error = document.getElementById('logistics_terms_error');
             if (error) error.hidden = true;
@@ -736,18 +736,31 @@ function validateLogisticsTerms(focus = false) {
     if (role !== 'logistics') return true;
 
     const checkbox = document.getElementById('logistics_terms_agreed');
+    const modalCheckbox = document.getElementById('modal_logistics_terms_agreed');
     const error = document.getElementById('logistics_terms_error');
+    const openBtn = document.getElementById('openLogisticsTermsBtn');
+    const badge = document.getElementById('logisticsTermsAgreedBadge');
     if (!checkbox) return true;
+
+    if (modalCheckbox && modalCheckbox.checked !== checkbox.checked) {
+        modalCheckbox.checked = checkbox.checked;
+    }
+
+    if (badge) {
+        badge.style.display = checkbox.checked ? 'inline-flex' : 'none';
+    }
 
     if (!checkbox.checked) {
         if (error) {
-            error.textContent = 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.';
+            error.textContent = 'You must open and agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.';
             error.hidden = false;
         }
-        checkbox.setAttribute('aria-invalid', 'true');
-        if (focus) {
-            checkbox.focus();
-            checkbox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (openBtn) {
+            openBtn.setAttribute('aria-invalid', 'true');
+            if (focus) {
+                openBtn.focus();
+                openBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
         }
         return false;
     }
@@ -756,8 +769,87 @@ function validateLogisticsTerms(focus = false) {
         error.textContent = '';
         error.hidden = true;
     }
-    checkbox.setAttribute('aria-invalid', 'false');
+    if (openBtn) {
+        openBtn.removeAttribute('aria-invalid');
+    }
     return true;
+}
+
+function setupLogisticsTermsModal() {
+    const dialog = document.getElementById('logisticsTermsDialog');
+    const openBtn = document.getElementById('openLogisticsTermsBtn');
+    const closeXBtn = document.getElementById('closeLogisticsTermsXBtn');
+    const closeBtn = document.getElementById('btnCloseTermsModal');
+    const agreeBtn = document.getElementById('btnAgreeTermsModal');
+    const formCheckbox = document.getElementById('logistics_terms_agreed');
+    const modalCheckbox = document.getElementById('modal_logistics_terms_agreed');
+
+    if (!dialog) return;
+
+    const outside = event => {
+        const rect = dialog.getBoundingClientRect();
+        return event.clientX < rect.left || event.clientX > rect.right
+            || event.clientY < rect.top || event.clientY > rect.bottom;
+    };
+    let startedOutside = false;
+    dialog.addEventListener('pointerdown', event => {
+        startedOutside = event.target === dialog && outside(event);
+    });
+    dialog.addEventListener('click', event => {
+        if (startedOutside && event.target === dialog && outside(event)) {
+            closeModal();
+        }
+    });
+
+    function openModal() {
+        if (formCheckbox && modalCheckbox) {
+            modalCheckbox.checked = formCheckbox.checked;
+        }
+        if (typeof dialog.showModal === 'function') {
+            dialog.showModal();
+        } else {
+            dialog.setAttribute('open', '');
+        }
+        const bodyContent = dialog.querySelector('.logistics-terms-modal-body');
+        if (bodyContent) bodyContent.scrollTop = 0;
+    }
+
+    function closeModal() {
+        if (typeof dialog.close === 'function') {
+            dialog.close();
+        } else {
+            dialog.removeAttribute('open');
+        }
+    }
+
+    openBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModal();
+    });
+
+    closeXBtn?.addEventListener('click', closeModal);
+    closeBtn?.addEventListener('click', closeModal);
+
+    modalCheckbox?.addEventListener('change', () => {
+        if (formCheckbox) {
+            formCheckbox.checked = modalCheckbox.checked;
+            validateLogisticsTerms();
+        }
+    });
+
+    formCheckbox?.addEventListener('change', () => {
+        if (modalCheckbox) {
+            modalCheckbox.checked = formCheckbox.checked;
+        }
+        validateLogisticsTerms();
+    });
+
+    agreeBtn?.addEventListener('click', () => {
+        if (formCheckbox) formCheckbox.checked = true;
+        if (modalCheckbox) modalCheckbox.checked = true;
+        validateLogisticsTerms();
+        closeModal();
+    });
 }
 
 // Error and focus for a sign-up detail field (text, select or file).
@@ -1020,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ['register_password', 'password_confirmation'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', () => validateRegistrationPasswords());
     });
-    document.getElementById('logistics_terms_agreed')?.addEventListener('change', () => validateLogisticsTerms());
+    setupLogisticsTermsModal();
     const phoneInput = document.getElementById('phone');
     phoneInput?.addEventListener('beforeinput', event => {
         if (event.inputType === 'insertText' && event.data && /[^0-9]/.test(event.data)) {
