@@ -12,18 +12,29 @@ window.showToast = function(message, type = 'success') {
         toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;transform:translateY(120px);opacity:0;transition:all 0.35s cubic-bezier(.4,0,.2,1);pointer-events:none;';
         document.body.appendChild(toast);
     }
+    if (!document.getElementById('cart-toast-style')) {
+        const style = document.createElement('style');
+        style.id = 'cart-toast-style';
+        style.textContent = `
+            @keyframes toastProgress {
+                from { width: 100%; }
+                to { width: 0%; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
     const bg = type === 'success' ? '#111827' : '#dc2626';
     const icon = type === 'success'
         ? '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
         : '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>';
-    toast.innerHTML = `<div style="background:${bg};color:#fff;border-radius:12px;padding:12px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.28);min-width:240px;max-width:360px">${icon}<span>${message}</span></div>`;
+    toast.innerHTML = `<div style="position:relative;overflow:hidden;background:${bg};color:#fff;border-radius:12px;padding:12px 18px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.28);min-width:240px;max-width:360px"><div style="display:flex;align-items:center;gap:10px;width:100%">${icon}<span>${message}</span></div><div style="position:absolute;bottom:0;left:0;height:3px;background:rgba(255,255,255,0.75);animation:toastProgress 5s linear forwards;"></div></div>`;
     toast.style.transform = 'translateY(0)';
     toast.style.opacity = '1';
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => {
         toast.style.transform = 'translateY(120px)';
         toast.style.opacity = '0';
-    }, 3000);
+    }, 5000);
 };
 
 // ─── Update Cart Badge ─────────────────────────────────────────────────────
