@@ -44,8 +44,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 410px;
-    max-height: calc(100vh - 48px);
+    max-width: 540px;
+    max-height: calc(100vh - 150px);
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 30px 80px -20px rgba(40, 33, 51, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6);
@@ -625,7 +625,7 @@ body.lm-page {
 
 
 /* ── Sign-up modal (layouts/auth with @section('auth_modal')) ──
-   Same 410px dialog as the login. Step 1 is the "Sign up as..." role list (login's role boxes);
+   Same 540px dialog as the login. Step 1 is the "Sign up as..." role list (login's role boxes);
    step 2 is the registration form, whose field styles come from auth-split.css and are tightened here. */
 body.auth-modal-page {
     display: block !important;
@@ -744,6 +744,7 @@ body.auth-modal-page {
     .auth-modal-page .lm-dialog-form #googleSignupDivider { margin: 10px 0 !important; }
     .auth-modal-page .lm-dialog-form .btn-details-continue { margin-top: 10px !important; }
     .auth-modal-page .lm-dialog-form .auth-foot { margin-top: 10px; }
+    .lm-dialog,
     .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 104px); }
     .auth-modal-page .lm-dialog-form .name-row.mb-4 { margin-bottom: 2px !important; }
     .auth-modal-page .lm-dialog-form .field-block { margin-top: 4px !important; margin-bottom: 6px !important; }
@@ -757,6 +758,7 @@ body.auth-modal-page {
 
 @media (max-width: 520px) {
     /* Bottom sheet on phones, with room left at the top for Cozy */
+    .lm-dialog,
     .auth-modal-page .lm-dialog-form { max-height: calc(100vh - 90px); }
     .auth-modal-page .lm-dialog-form .lm-panel { padding: 20px 18px 16px; }
     /* On phones the names (and every other two-field row) stack */

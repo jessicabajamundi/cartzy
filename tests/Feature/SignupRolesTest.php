@@ -22,7 +22,7 @@ class SignupRolesTest extends TestCase
             ->assertSee(route('register.rider', ['type' => 'first_mile']), false)
             ->assertSee('aria-labelledby="su-choose-title"', false);
 
-        // The form waits behind the role picker, in the same 410px dialog as the login.
+        // The form waits behind the role picker, in the same 540px dialog as the login.
         $html = $response->getContent();
         $this->assertMatchesRegularExpression('/data-su-step="choose"\s+data-su-roles/', $html);
         $this->assertMatchesRegularExpression('/data-su-step="form"\s+hidden/', $html);
