@@ -491,14 +491,6 @@
                     <h3 id="logisticsTermsModalTitle" class="logistics-terms-modal-heading">Logistics Terms &amp; Privacy Policy</h3>
                 </div>
                 <div class="logistics-terms-modal-head-actions">
-                    <a href="{{ asset('docs/Cartzy-Logistics-Terms-and-Conditions.pdf') }}" target="_blank" rel="noopener" class="logistics-terms-pdf-link" title="Open complete document in PDF format">
-                        <span>Open PDF</span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px;" aria-hidden="true">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                    </a>
                     <button type="button" class="logistics-terms-close-btn" id="closeLogisticsTermsXBtn" aria-label="Close modal">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -508,7 +500,7 @@
                 </div>
             </div>
 
-            <div class="logistics-terms-modal-body" tabindex="0" role="region" aria-label="Logistics Terms and Conditions and Privacy Policy document">
+            <div id="logisticsTermsModalBody" class="logistics-terms-modal-body" tabindex="0" role="region" aria-label="Logistics Terms and Conditions and Privacy Policy document">
                 <div class="logistics-terms-content">
                     <h4 style="text-align: center; text-transform: uppercase; color: #111827; margin-bottom: 2px; font-size: 1rem; font-weight: 800;">Cartzy</h4>
                     <p style="text-align: center; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #6B7280; margin-bottom: 16px; letter-spacing: 0.05em;">Terms &amp; Conditions and Privacy Policy</p>
@@ -714,15 +706,24 @@
             </div>
 
             <div class="logistics-terms-modal-footer">
-                <label class="logistics-terms-checkbox-label" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
-                    <input type="checkbox" id="modal_logistics_terms_agreed">
-                    <span>
-                        I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
+                <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                    <label class="logistics-terms-checkbox-label is-disabled" id="modalTermsCheckboxLabel" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
+                        <input type="checkbox" id="modal_logistics_terms_agreed" disabled>
+                        <span>
+                            I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
+                        </span>
+                    </label>
+                    <span id="termsScrollHint" class="terms-scroll-hint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 13px; height: 13px; flex-shrink: 0;" aria-hidden="true">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <polyline points="19 12 12 19 5 12"></polyline>
+                        </svg>
+                        Please scroll to the very bottom to enable the agreement checkbox.
                     </span>
-                </label>
+                </div>
                 <div class="logistics-terms-modal-actions">
                     <button type="button" class="btn-terms-close" id="btnCloseTermsModal">Close</button>
-                    <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal">I Agree</button>
+                    <button type="button" class="btn-terms-agree" id="btnAgreeTermsModal" disabled>I Agree</button>
                 </div>
             </div>
         </div>

@@ -1001,24 +1001,11 @@ dialog.logistics-terms-dialog::backdrop {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(111, 99, 130, 0.35);
 }
-
-.logistics-terms-pdf-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--lm-rose-dark, #8C5A50);
-    text-decoration: none;
-    padding: 3px 9px;
-    border-radius: 6px;
-    background: #F8ECE8;
-    transition: background 0.18s, color 0.18s;
-}
-.logistics-terms-pdf-link:hover {
-    background: #F1EDF6;
-    color: var(--lm-lavender-dark, #564B68);
-    text-decoration: underline;
+.btn-terms-agree:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
 .logistics-terms-checkbox-label {
@@ -1028,6 +1015,11 @@ dialog.logistics-terms-dialog::backdrop {
     margin-top: 10px;
     cursor: pointer;
     user-select: none;
+    transition: opacity 0.2s ease;
+}
+.logistics-terms-checkbox-label.is-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 .logistics-terms-checkbox-label input[type="checkbox"] {
     width: 17px;
@@ -1037,11 +1029,23 @@ dialog.logistics-terms-dialog::backdrop {
     flex-shrink: 0;
     cursor: pointer;
 }
+.logistics-terms-checkbox-label input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
 .logistics-terms-checkbox-label span {
     font-size: 0.8rem;
     font-weight: 600;
     color: #1F2937;
     line-height: 1.45;
+}
+.terms-scroll-hint {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #8C5A50;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
 }
 
 @media (max-width: 520px) {
