@@ -1185,6 +1185,82 @@ input:focus, select:focus, textarea:focus {
     gap: 15px;
 }
 
+.pagination-summary {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: left;
+}
+
+.pagination-controls {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pagination-spacer {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.pagination-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm, 8px);
+    background: #fff;
+    border: 1px solid var(--line, #eae6ef);
+    color: var(--ink, #292334);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .15s ease;
+}
+
+.pagination-arrow svg {
+    width: 15px;
+    height: 15px;
+}
+
+.pagination-arrow:hover:not(.disabled) {
+    background: var(--brand-soft, #f7f4fa);
+    border-color: var(--brand-primary, #70558e);
+    color: var(--brand-primary, #70558e);
+}
+
+.pagination-arrow.disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: #fff;
+    border-color: var(--line, #eae6ef);
+    color: var(--muted, #756d81);
+}
+
+.pagination-current-page {
+    font-weight: 600;
+    color: var(--ink, #292334);
+    font-size: 12px;
+    white-space: nowrap;
+    padding: 0 4px;
+}
+
+@media (max-width: 600px) {
+    .pagination {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 15px;
+    }
+    .pagination-summary {
+        text-align: center;
+    }
+    .pagination-spacer {
+        display: none;
+    }
+}
+
 /* ─── Products & Details ─── */
 .product-row {
     display: flex;

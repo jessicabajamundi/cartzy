@@ -71,9 +71,13 @@
         <p class="flash-page-summary">Showing {{ $products->firstItem() ?? 0 }}&ndash;{{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products</p>
         <nav class="flash-page-controls" aria-label="Sale pagination">
             @if($products->onFirstPage())
-                <span class="is-disabled" aria-disabled="true" aria-label="Previous page">&lsaquo;</span>
+                <span class="is-disabled" aria-disabled="true" aria-label="Previous page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                </span>
             @else
-                <a href="{{ $products->previousPageUrl() }}#sale-products" aria-label="Previous page">&lsaquo;</a>
+                <a href="{{ $products->previousPageUrl() }}#sale-products" aria-label="Previous page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                </a>
             @endif
             @php($previousPage = 0)
             @for($page = 1; $page <= $products->lastPage(); $page++)
@@ -88,11 +92,16 @@
                 @endif
             @endfor
             @if($products->hasMorePages())
-                <a href="{{ $products->nextPageUrl() }}#sale-products" aria-label="Next page">&rsaquo;</a>
+                <a href="{{ $products->nextPageUrl() }}#sale-products" aria-label="Next page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </a>
             @else
-                <span class="is-disabled" aria-disabled="true" aria-label="Next page">&rsaquo;</span>
+                <span class="is-disabled" aria-disabled="true" aria-label="Next page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 15px; height: 15px;" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </span>
             @endif
         </nav>
+        <span class="flash-page-spacer" aria-hidden="true"></span>
     </div>
     @endif
 </div>

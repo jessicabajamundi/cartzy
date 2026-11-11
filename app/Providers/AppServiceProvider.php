@@ -24,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.default');
+
         // MAIL_MAILER=relay sends every email over HTTPS through the Apps Script relay (App\Mail\RelayTransport).
         \Illuminate\Support\Facades\Mail::extend('relay', fn () => new \App\Mail\RelayTransport(
             (string) config('services.mail_webhook.url'),

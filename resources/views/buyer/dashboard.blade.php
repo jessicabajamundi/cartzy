@@ -135,8 +135,17 @@
                         </div>
                         <div id="orderEmpty" class="hidden orders-filter-empty" role="status"><strong>No matching orders.</strong><p>Choose another status or clear your search to see your other purchases.</p></div>
                         <nav id="orderPagination" class="orders-pagination hidden" aria-label="Orders pagination">
-                            <p id="orderPageSummary" role="status" aria-live="polite"></p>
-                            <div><button type="button" id="orderPrevious">Previous</button><span id="orderPageNumber"></span><button type="button" id="orderNext">Next</button></div>
+                            <p id="orderPageSummary" class="order-pagination-summary" role="status" aria-live="polite"></p>
+                            <div class="order-pagination-controls">
+                                <button type="button" id="orderPrevious" class="order-pagination-arrow" aria-label="Previous page" title="Previous page">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 15px; height: 15px;"><path d="M15 18l-6-6 6-6"/></svg>
+                                </button>
+                                <span id="orderPageNumber" class="order-pagination-current-page"></span>
+                                <button type="button" id="orderNext" class="order-pagination-arrow" aria-label="Next page" title="Next page">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width: 15px; height: 15px;"><path d="M9 18l6-6-6-6"/></svg>
+                                </button>
+                            </div>
+                            <span class="order-pagination-spacer" aria-hidden="true"></span>
                         </nav>
                     @else
                         @include('buyer.partials.commerce-empty', [
@@ -312,11 +321,19 @@
     .order-filter:hover { background: #F6F4F8; }
     .order-filter.is-active { background: #564B68; color: #fff; }
     .orders-pagination:not(.hidden) { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 18px 0; color: #81738e; font-size: 13px; }
-    .orders-pagination > div { display: flex; align-items: center; gap: 12px; }
-    .orders-pagination button { min-height: 42px; padding: 9px 16px; border: 1px solid #e1dde7; border-radius: 10px; background: #fff; color: #564b68; font-weight: 700; cursor: pointer; }
-    .orders-pagination button:hover:not(:disabled) { background: #f1edf5; border-color: #9b899f; }
-    .orders-pagination button:disabled { opacity: .4; cursor: not-allowed; }
-    .orders-pagination button:focus-visible { outline: 2px solid #6f6382; outline-offset: 3px; }
+    .order-pagination-summary { flex: 1 1 0; min-width: 0; text-align: left; margin: 0; }
+    .order-pagination-controls { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
+    .order-pagination-spacer { flex: 1 1 0; min-width: 0; }
+    .order-pagination-arrow { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid #e1dde7; border-radius: 10px; background: #fff; color: #564b68; font-weight: 700; cursor: pointer; transition: all .15s ease; }
+    .order-pagination-arrow:hover:not(:disabled) { background: #f1edf5; border-color: #9b899f; }
+    .order-pagination-arrow:disabled { opacity: .35; cursor: not-allowed; }
+    .order-pagination-arrow:focus-visible { outline: 2px solid #6f6382; outline-offset: 3px; }
+    .order-pagination-current-page { font-weight: 600; color: #564b68; white-space: nowrap; padding: 0 4px; }
+    @media (max-width: 600px) {
+        .orders-pagination:not(.hidden) { flex-direction: column; align-items: center; gap: 10px; }
+        .order-pagination-summary { text-align: center; }
+        .order-pagination-spacer { display: none; }
+    }
     #orderFilters { scroll-margin-top: 120px; }
     .star.is-on { color: #fbbf24; }
 </style>

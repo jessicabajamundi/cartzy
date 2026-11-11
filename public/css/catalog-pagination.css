@@ -2,7 +2,7 @@
 :is(#daily-discover-section, .flash-page) :is(.discovery-pagination, .flash-pagination) {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 12px 20px;
@@ -12,19 +12,26 @@
 }
 #daily-discover-section .discovery-pagination[hidden] { display: none; }
 :is(#daily-discover-section, .flash-page) :is(.discovery-page-summary, .flash-page-summary) {
+    flex: 1 1 0;
+    min-width: 0;
     margin: 0;
     color: #786d82;
     font-size: 12px;
     line-height: 1.5;
     letter-spacing: .01em;
-    text-align: right;
+    text-align: left;
     font-family: 'Inter', sans-serif;
     font-variant-numeric: tabular-nums;
 }
+:is(#daily-discover-section, .flash-page) :is(.discovery-page-spacer, .flash-page-spacer) {
+    flex: 1 1 0;
+    min-width: 0;
+}
 :is(#daily-discover-section, .flash-page) :is(.discovery-page-controls, .flash-page-controls) {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 4px;
     flex-wrap: wrap;
     max-width: 100%;
