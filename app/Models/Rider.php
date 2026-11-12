@@ -47,10 +47,14 @@ class Rider extends Model
         'rating',
         'deliveries_today',
         'is_active',
+        'online_until',
+        'designated_place',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'online_until' => 'datetime',
+        'designated_place' => 'array',
         'rating' => 'float',
         'deliveries_today' => 'integer',
     ];
@@ -58,6 +62,13 @@ class Rider extends Model
     public function scopeFirstMile($query)
     {
         return $query->where('courier_type', self::FIRST_MILE);
+    }
+
+    public function scopeAvailableForDelivery($query)
+    {
+        return $query->lastMile()->where('status', 'approved')->where('is_active', true)
+            ->where('online_until', '>', now())
+            ->whereHas('user', fn ($q) => $q->where('role', 'courier')->where('status', 'active')->where('is_suspended', false));
     }
 
     public function scopeLastMile($query)

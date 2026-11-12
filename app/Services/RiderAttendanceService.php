@@ -75,7 +75,7 @@ class RiderAttendanceService
             throw new RiderAttendanceException('Your rider account must be approved by your hub before you can time in.', 403);
         }
 
-        return DB::transaction(function () use ($rider, $hubId, $window) {
+        $result = DB::transaction(function () use ($rider, $hubId, $window) {
             // Lock the rider so two scans arriving together can't both time in.
             Rider::whereKey($rider->id)->lockForUpdate()->first();
             $latest = RiderAttendance::where('rider_id', $rider->id)->latest('time_in_at')->latest('id')->first();
@@ -87,6 +87,7 @@ class RiderAttendanceService
             $open = $latest && !$latest->time_out_at && $latest->time_in_at->gt(now()->subHours(self::MAX_SHIFT_HOURS)) ? $latest : null;
             if ($open) {
                 $open->update(['time_out_at' => now(), 'time_out_window' => $window]);
+                $rider->update(['online_until' => null]);
 
                 return ['action' => 'time_out', 'attendance' => $open->fresh()];
             }
@@ -97,9 +98,13 @@ class RiderAttendanceService
                 'time_in_at' => now(),
                 'time_in_window' => $window,
             ]);
+            $rider->update(['online_until' => now()->addHours(self::MAX_SHIFT_HOURS)]);
 
             return ['action' => 'time_in', 'attendance' => $attendance];
         });
+        // Dispatch after releasing the attendance lock; assignment locks parcel before rider.
+        if ($result['action'] === 'time_in') app(DeliveryAssignment::class)->assignWaiting($hubId);
+        return $result;
     }
 
     /** The rider's shift that is still open, if any. */

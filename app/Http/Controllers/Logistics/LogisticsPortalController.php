@@ -11,6 +11,7 @@ use App\Models\PickupRequest;
 use App\Models\Rider;
 use App\Models\Shipment;
 use App\Models\User;
+use App\Services\DeliveryAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -29,8 +30,7 @@ class LogisticsPortalController extends Controller
         $hub = Auth::user();
 
         $provider = $hub->logisticsProvider
-            ?? LogisticsProvider::where('user_id', $hub->id)->first()
-            ?? LogisticsProvider::first();
+            ?? LogisticsProvider::where('user_id', $hub->id)->first();
 
         if (!$provider) {
             $provider = LogisticsProvider::create([
@@ -1054,7 +1054,7 @@ class LogisticsPortalController extends Controller
 
     private const NO_FIRST_MILE = 'No active First Mile couriers. Activate one, or change a rider to First Mile in Rider management.';
 
-    private const NO_LAST_MILE = 'No active Last Mile couriers. Activate one, or change a rider to Last Mile in Rider management.';
+    private const NO_LAST_MILE = 'No online, active Last Mile couriers. Riders must time in or set their availability to online.';
 
     public const HUB_TABS = ['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
 
@@ -1089,7 +1089,7 @@ class LogisticsPortalController extends Controller
         ]);
 
         // Last-mile couriers take parcels from the hub to buyers, so only they are offered here.
-        $riderModels = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        $riderModels = Rider::where('logistics_provider_id', $provider->id)->availableForDelivery()->with('user')->get();
         // Grouped by home barangay in the picker; riders without a home address come last.
         $riders = $riderModels->map(fn ($r) => ['id' => $r->id, 'name' => $r->user->name ?? 'Rider', 'area' => $r->area ?: 'General Area',
             'home' => \App\Support\PlaceMatcher::describe($r->user)])
@@ -1097,7 +1097,7 @@ class LogisticsPortalController extends Controller
         if ($tab === 'assign' && $riderModels->isNotEmpty()) {
             // Pre-select the best rider so assigning one parcel is a single click.
             $parcels->setCollection($parcels->getCollection()->map(fn ($p) => $p + [
-                'suggested_rider_id' => $this->bestDeliveryRider($riderModels, (string) $p['delivery_area'], $p['recipient_address'])?->id,
+                'suggested_rider_id' => app(DeliveryAssignment::class)->candidates(Shipment::findOrFail($p['id']))->first()['rider']->id ?? null,
             ]));
         }
 
@@ -1132,11 +1132,19 @@ class LogisticsPortalController extends Controller
         if ($shipment->received_at) {
             return back()->with('success', 'This parcel has already been received.');
         }
-        $area = $this->receiveShipment($shipment);
+        $area = DB::transaction(function () use ($shipment) {
+            $locked = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+            return $locked->received_at ? $locked->delivery_area : $this->receiveShipment($locked);
+        });
+
+        $shipment->refresh();
+        if ($shipment->rider_id) {
+            return back()->with('success', "{$shipment->tracking_code} received and automatically assigned to an online rider.");
+        }
 
         return back()->with('success', $area
-            ? "{$shipment->tracking_code} received and auto-sorted to {$area}. It's ready for a rider."
-            : "{$shipment->tracking_code} received. Its address didn't match an area, so choose one in the Sort tab.");
+            ? "{$shipment->tracking_code} received and auto-sorted to {$area}. Waiting for an online rider."
+            : "{$shipment->tracking_code} received. Waiting for an online rider; choose a delivery area in the Sort tab if needed.");
     }
 
     public function receiveAllParcels(Request $request)
@@ -1157,7 +1165,10 @@ class LogisticsPortalController extends Controller
         $area = $request->validate(['area' => ['required', 'string', 'max:255']])['area'];
 
         $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
-        $this->sortShipment($shipment, $area, "Parcel sorted to area: {$area}");
+        DB::transaction(function () use ($shipment, $area) {
+            $locked = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+            $this->sortShipment($locked, $area, "Parcel sorted to area: {$area}");
+        });
 
         return back()->with('success', "{$shipment->tracking_code} sorted to {$area}. It's ready for a rider.");
     }
@@ -1181,7 +1192,7 @@ class LogisticsPortalController extends Controller
         if (!$rider->isLastMile()) {
             return back()->with('error', ($rider->user->name ?? 'This rider').' is a First Mile courier. Choose a Last Mile courier to deliver to the buyer.');
         }
-        $this->assignShipment($shipment, $rider, 'Parcel assigned to rider '.($rider->user->name ?? 'Rider').'.');
+        app(DeliveryAssignment::class)->assign($shipment, (int) $riderId, Auth::id());
 
         return back()->with('success', "{$shipment->tracking_code} assigned to ".($rider->user->name ?? 'the rider').'.');
     }
@@ -1215,7 +1226,7 @@ class LogisticsPortalController extends Controller
         if ($assign && $assign[0]) $parts[] = "{$assign[0]} assigned to riders";
         $message = $parts ? ucfirst(implode(', ', $parts)).'.' : 'Nothing was waiting to be processed.';
         if ($left) $message .= " {$left} ".Str::plural('parcel', $left).' need an area chosen in the Sort tab.';
-        if ($assign === null) $message .= ' No active Last Mile couriers, so nothing was assigned. Activate one first.';
+        if ($assign === null) $message .= ' No online, active Last Mile couriers. Parcels will wait until a rider comes online.';
 
         return redirect()->route('logistics.hub', ['tab' => $left ? 'sort' : 'assigned'])->with('success', $message);
     }
@@ -1223,7 +1234,8 @@ class LogisticsPortalController extends Controller
     /** @return array{0:int,1:int} [received, auto-sorted] */
     private function runReceiveAll(LogisticsProvider $provider): array
     {
-        $pending = Shipment::where('logistics_provider_id', $provider->id)->whereNull('received_at')->with('sellerOrder.order.buyer')->get();
+        $pending = Shipment::where('logistics_provider_id', $provider->id)->whereNull('received_at')
+            ->whereIn('status', DeliveryAssignment::HUB_STATUSES)->lockForUpdate()->with('sellerOrder.order.buyer')->get();
         $sorted = $pending->filter(fn ($shipment) => $this->receiveShipment($shipment) !== null)->count();
 
         return [$pending->count(), $sorted];
@@ -1249,33 +1261,11 @@ class LogisticsPortalController extends Controller
     /** @return array{0:int,1:int}|null [assigned, riders used], or null when there are no active riders. */
     private function runAutoAssign(LogisticsProvider $provider): ?array
     {
-        $riders = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
-        if ($riders->isEmpty()) {
+        if (!Rider::where('logistics_provider_id', $provider->id)->availableForDelivery()->exists()) {
             return null;
         }
-        $waiting = Shipment::where('logistics_provider_id', $provider->id)->where('sort_status', 'sorted')->whereNull('rider_id')
-            ->with('sellerOrder.order.buyer')->get();
-        $load = [];
-        foreach ($waiting as $shipment) {
-            $rider = $this->bestDeliveryRider($riders, (string) $shipment->delivery_area, $this->shipmentAddress($shipment), $load);
-            $load[$rider->id] = ($load[$rider->id] ?? 0) + 1;
-            $this->assignShipment($shipment, $rider, 'Parcel auto-assigned to rider '.($rider->user->name ?? 'Rider').'.');
-        }
-
-        return [$waiting->count(), count($load)];
-    }
-
-    private function assignShipment(Shipment $shipment, Rider $rider, string $note): void
-    {
-        $shipment->update(['rider_id' => $rider->id, 'sort_status' => 'assigned', 'status' => 'assigned', 'assigned_at' => now()]);
-        DeliveryEvent::create([
-            'shipment_id' => $shipment->id,
-            'status'      => 'assigned_to_rider',
-            'attempt'     => DeliveryEvent::nextAttempt($shipment->id, 'assigned_to_rider'),
-            'user_id'     => Auth::id(),
-            'note'        => $note,
-            'occurred_at' => now(),
-        ]);
+        $assigned = app(DeliveryAssignment::class)->assignWaiting($provider->id);
+        return [count($assigned), count(array_unique($assigned))];
     }
 
     /**
@@ -1820,6 +1810,9 @@ class LogisticsPortalController extends Controller
     /** Mark a shipment sorted into an area and log it. */
     private function sortShipment(Shipment $shipment, string $area, string $note): void
     {
+        if ($shipment->rider_id || !in_array($shipment->status, DeliveryAssignment::HUB_STATUSES, true)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['area' => 'This parcel has already been assigned or left the hub.']);
+        }
         $shipment->update(['sort_status' => 'sorted', 'delivery_area' => $area, 'sorted_at' => now()]);
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
@@ -1843,6 +1836,7 @@ class LogisticsPortalController extends Controller
     /** Receive one shipment at the hub; auto-sorts it when the address names a delivery area. Returns the area or null. */
     private function receiveShipment(Shipment $shipment): ?string
     {
+        abort_unless(in_array($shipment->status, DeliveryAssignment::HUB_STATUSES, true), 422, 'This parcel cannot be received at the hub.');
         $shipment->update(['received_at' => now()]);
         DeliveryEvent::create([
             'shipment_id' => $shipment->id,
@@ -1854,6 +1848,7 @@ class LogisticsPortalController extends Controller
         ]);
 
         if (($shipment->sort_status ?: 'unsorted') !== 'unsorted') {
+            app(DeliveryAssignment::class)->assign($shipment, actorId: Auth::id());
             return null;
         }
         $area = $this->suggestDeliveryArea($this->shipmentAddress($shipment));
@@ -1861,20 +1856,9 @@ class LogisticsPortalController extends Controller
             $this->sortShipment($shipment, $area, "Auto-sorted to {$area} from the recipient address on receipt.");
         }
 
+        app(DeliveryAssignment::class)->assign($shipment, actorId: Auth::id());
+
         return $area;
-    }
-
-    /**
-     * Best active rider for each parcel, using the same scoring as pickup dispatch (area match, online,
-     * workload, rating). $extraLoad counts parcels handed out earlier in the same batch so work spreads out.
-     */
-    private function bestDeliveryRider($riders, string $area, string $address, array $extraLoad = []): ?Rider
-    {
-        $ranked = $this->rankRidersForPickup($riders, trim($area.' '.$address))
-            ->map(fn ($r) => $r + ['adjusted' => $r['score'] - 8 * ($extraLoad[$r['rider']->id] ?? 0)])
-            ->sortByDesc('adjusted');
-
-        return $ranked->first()['rider'] ?? null;
     }
 
     private function fetchFormattedParcels(LogisticsProvider $provider, ?int $limit = null, string $filter = 'all'): array

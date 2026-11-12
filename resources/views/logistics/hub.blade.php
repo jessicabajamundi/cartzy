@@ -69,7 +69,7 @@
             </div>
         </div>
         @if($tab === 'assign' && !$riders)
-            <p class="hub-notice">No active Last Mile couriers right now. <a href="{{ route('logistics.riders', ['type' => 'last_mile']) }}">Activate a Last Mile courier</a> to assign deliveries.</p>
+            <p class="hub-notice">No online, active Last Mile couriers right now. Riders must time in or set their availability to online. Waiting parcels will be assigned when a rider comes online.</p>
         @endif
         <form class="hub-search" method="GET" action="{{ route('logistics.hub') }}" role="search">
             <input type="hidden" name="tab" value="{{ $tab }}">
@@ -107,18 +107,22 @@
                                 </select>
                                 <button type="submit" class="hub-button primary">Sort</button>
                             </form>
-                        @elseif($tab === 'assign')
+                        @elseif(in_array($tab, ['assign', 'assigned'], true))
+                            @if($tab === 'assigned')
+                                <span class="hub-assigned">{{ $parcel['assigned_rider_name'] ?: 'Rider' }}</span>
+                                <small>Change rider before the parcel leaves the hub.</small>
+                            @endif
                             <form method="POST" action="{{ route('logistics.assignments.assign', ['id' => $parcel['id']], false) }}" class="hub-inline hub-once">@csrf
                                 <label class="hub-sr" for="rider-{{ $parcel['id'] }}">Rider for {{ $parcel['tracking_code'] }}</label>
                                 <select id="rider-{{ $parcel['id'] }}" name="rider_id" required @disabled(!$riders)>
-                                    <option value="">{{ $riders ? 'Choose a Last Mile courier' : 'No active Last Mile couriers' }}</option>
+                                    <option value="">{{ $riders ? 'Choose an online Last Mile courier' : 'No online Last Mile couriers' }}</option>
                                     @foreach(collect($riders)->groupBy(fn ($r) => $r['home'] ?? 'No home address yet') as $home => $group)
                                         <optgroup label="🏠 {{ $home }}">
                                             @foreach($group as $rider)<option value="{{ $rider['id'] }}" @selected($rider['id'] === ($parcel['suggested_rider_id'] ?? null))>{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? '★ ' : '' }}{{ $rider['name'] }} — {{ $rider['area'] }}{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? ' (best)' : '' }}</option>@endforeach
                                         </optgroup>
                                     @endforeach
                                 </select>
-                                <button type="submit" class="hub-button primary" @disabled(!$riders)>Assign</button>
+                                <button type="submit" class="hub-button primary" @disabled(!$riders)>{{ $tab === 'assigned' ? 'Change rider' : 'Assign' }}</button>
                             </form>
                         @else
                             <span class="hub-assigned">✓ {{ $parcel['assigned_rider_name'] ?: 'Rider' }}</span>

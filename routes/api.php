@@ -47,6 +47,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/account/activity', [ActivityController::class, 'index']);
 
     // Rider time in / time out: scan the QR code shown on the hub's Time in / time out page.
+    Route::put('/rider/availability', [\App\Http\Controllers\Api\DeliveryAssignmentController::class, 'availability'])
+        ->middleware(['api.role:courier', 'throttle:20,1']);
+    Route::middleware(['api.role:logistics,admin', 'throttle:60,1'])->prefix('logistics')->group(function () {
+        Route::get('/shipments/{id}/riders', [\App\Http\Controllers\Api\DeliveryAssignmentController::class, 'candidates'])->whereNumber('id');
+        Route::post('/shipments/{id}/auto-assign', [\App\Http\Controllers\Api\DeliveryAssignmentController::class, 'autoAssign'])->whereNumber('id');
+        Route::put('/shipments/{id}/rider', [\App\Http\Controllers\Api\DeliveryAssignmentController::class, 'override'])->whereNumber('id');
+        Route::put('/riders/{id}/designation', [\App\Http\Controllers\Api\DeliveryAssignmentController::class, 'designation'])->whereNumber('id');
+    });
+
     Route::middleware('api.role:courier')->prefix('rider/attendance')->group(function () {
         Route::get('/', [RiderAttendanceController::class, 'show']);
         Route::post('/scan', [RiderAttendanceController::class, 'scan'])->middleware('throttle:20,1');
