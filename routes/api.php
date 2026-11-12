@@ -47,6 +47,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/account/activity', [ActivityController::class, 'index']);
 
     // Rider time in / time out: scan the QR code shown on the hub's Time in / time out page.
+    Route::middleware(['api.role:buyer,seller,logistics,admin', 'throttle:60,1'])->prefix('returns')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ReturnController::class, 'index']);
+        Route::get('/{id}/proof', [\App\Http\Controllers\ReturnController::class, 'proof'])->whereNumber('id');
+        Route::post('/{id}/{action}', [\App\Http\Controllers\ReturnController::class, 'action'])->whereNumber('id');
+    });
+
     Route::put('/rider/availability', [\App\Http\Controllers\Api\DeliveryAssignmentController::class, 'availability'])
         ->middleware(['api.role:courier', 'throttle:20,1']);
     Route::middleware(['api.role:logistics,admin', 'throttle:60,1'])->prefix('logistics')->group(function () {

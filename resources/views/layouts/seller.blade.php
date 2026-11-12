@@ -35,6 +35,7 @@
                     'dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'],
                     'orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'],
                     'chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user'],
+                    'returns' => ['Returns & refunds','box'],
                 ])
                 @foreach($sellerNavLinks as $key => [$label,$icon])
                     @php($navActive = request()->routeIs('seller.'.$key.'*'))

@@ -46,6 +46,11 @@ class AdminDispute extends Model
         return $this->belongsTo(Order::class);
     }
 
+    public function returnCase()
+    {
+        return $this->hasOne(ReturnCase::class);
+    }
+
     public function sellerOrder()
     {
         return $this->belongsTo(SellerOrder::class);

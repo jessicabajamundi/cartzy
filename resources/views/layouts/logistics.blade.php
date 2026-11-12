@@ -37,6 +37,7 @@
         'Parcel operations' => [
             'pickups' => ['Pickup requests', 'truck'],
             'hub' => ['Hub desk', 'box'],
+            'returns' => ['Return parcels', 'refresh'],
             'monitoring' => ['Delivery monitoring', 'activity'],
         ],
         'Analytics & comms' => [

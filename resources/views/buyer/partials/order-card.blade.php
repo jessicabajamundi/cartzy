@@ -24,6 +24,9 @@
         <p class="px-5 py-3 text-sm text-gray-600">Cancellation approved by seller. If already paid, contact the seller to arrange your refund.</p>
     @endif
     @if($report = $o['report'] ?? null)
+        @if(in_array($report->requested_resolution, ['refund', 'return_refund']))
+            <a class="buyer-order-secondary buyer-order-report-link" href="{{ route('returns.index') }}">Track return / refund</a>
+        @endif
         @if($report->status === 'open')
             <p class="buyer-order-report is-open" role="status"><strong>Problem reported · Case #{{ $report->id }}</strong> {{ $report->subject }}. Our team is reviewing it and will update you in Notifications.</p>
         @else

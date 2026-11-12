@@ -805,6 +805,8 @@ class AdminPortalController extends Controller
             $dispute = DB::table('admin_disputes')->lockForUpdate()->find($id);
             abort_unless($dispute, 404);
             abort_if($dispute->status === 'resolved', 422, 'This dispute is already resolved.');
+            abort_if(\App\Models\ReturnCase::where('admin_dispute_id', $id)->exists(), 422,
+                'Use Returns & refunds to complete this case and record its outcome.');
             DB::table('admin_disputes')->where('id', $id)->update([
                 'status' => 'resolved', 'admin_notes' => $data['notes'], 'resolved_at' => now(), 'updated_at' => now(),
             ]);

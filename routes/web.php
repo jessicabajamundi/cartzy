@@ -170,6 +170,16 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
 });
 
 // Authenticated Routes for Buyer, Seller & Courier
+Route::middleware(['auth', 'role:buyer,seller,logistics,admin'])->group(function () {
+    Route::get('/returns', [\App\Http\Controllers\ReturnController::class, 'index'])->name('returns.index');
+    Route::get('/returns/{id}/proof', [\App\Http\Controllers\ReturnController::class, 'proof'])->whereNumber('id')->name('returns.proof');
+    Route::post('/returns/{id}/{action}', [\App\Http\Controllers\ReturnController::class, 'action'])->whereNumber('id')->middleware('throttle:30,1')->name('returns.action');
+});
+foreach (['seller', 'admin', 'logistics'] as $portal) {
+    Route::get('/'.$portal.'/returns', [\App\Http\Controllers\ReturnController::class, 'index'])
+        ->middleware(['auth', 'role:'.$portal])->name($portal.'.returns');
+}
+
 Route::middleware('auth')->group(function () {
     Route::get('/buyer/navigation-counts', \App\Http\Controllers\Buyer\NavigationCountsController::class)->middleware('role:buyer')->name('buyer.navigation-counts');
     

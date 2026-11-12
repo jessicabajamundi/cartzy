@@ -91,12 +91,13 @@ class ProblemReportController extends Controller
             ]);
             $dispute->update(['evidence' => collect($request->file('photos', []))
                 ->map(fn ($photo) => $photo->store('dispute-evidence/'.$dispute->id, 'local'))->all()]);
+            app(\App\Services\ReturnWorkflow::class)->open($dispute);
 
             $reference = $sellerOrder->order->reference;
             if ($sellerOrder->seller?->user_id) {
                 NotificationService::notify($sellerOrder->seller->user_id, 'dispute', 'Buyer reported a problem',
                     "A buyer reported \"{$dispute->subject}\" on order {$reference}. Cartzy will review it and may contact you.",
-                    route('seller.orders'));
+                    in_array($dispute->requested_resolution, ['refund', 'return_refund'], true) ? route('seller.returns') : route('seller.orders'));
             }
             NotificationService::notify(Auth::id(), 'dispute', 'Problem report received',
                 "We received your report for order {$reference} (case #{$dispute->id}). We'll update you here once it's reviewed.",
@@ -111,7 +112,8 @@ class ProblemReportController extends Controller
     /** Photo proof is private: only admins and the buyer who reported it can see it. */
     public function evidence(AdminDispute $dispute, int $index)
     {
-        abort_unless(Auth::user()->isAdmin() || $dispute->reporter_id === Auth::id(), 403);
+        abort_unless(Auth::user()->isAdmin() || $dispute->reporter_id === Auth::id()
+            || $dispute->sellerOrder?->seller?->user_id === Auth::id(), 403);
         $path = $dispute->evidence[$index] ?? null;
         abort_unless($path && Storage::disk('local')->exists($path), 404);
 

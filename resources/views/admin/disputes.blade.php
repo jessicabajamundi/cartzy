@@ -146,7 +146,9 @@
                 </div>
             </div>
 
-            @if($dispute->status === 'open')
+            @if(in_array($dispute->requested_resolution ?? null, ['refund', 'return_refund']) && \App\Models\ReturnCase::where('admin_dispute_id', $dispute->id)->exists())
+                <a class="button subtle" href="{{ route('admin.returns') }}">Manage return / refund</a>
+            @elseif($dispute->status === 'open')
                 <details>
                     <summary class="text-link">Record resolution</summary>
                     <form class="form-stack spaced" action="{{ route('admin.disputes.resolve', $dispute->id) }}" method="POST">

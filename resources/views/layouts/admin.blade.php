@@ -35,6 +35,7 @@
                     'compliance' => ['Product compliance', 'shield'],
                     'archive' => ['Archive', 'archive'],
                     'disputes' => ['Disputes', 'shield'],
+                    'returns' => ['Returns & refunds', 'refresh'],
                     'commission' => ['Commission', 'wallet'],
                     'vouchers' => ['Vouchers', 'ticket'],
                     'shipping' => ['Shipping rates', 'truck'],
