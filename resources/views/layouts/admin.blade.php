@@ -25,6 +25,7 @@
                 'Workspace' => [
                     'dashboard' => ['Overview', 'grid'],
                     'products' => ['Seller products', 'box'],
+                    'stores' => ['Registered Stores', 'box'],
                     'registrations' => ['Registrations', 'file'],
                     'id-checks' => ['ID checks', 'shield'],
                     'logistics' => ['Logistics partners', 'truck'],

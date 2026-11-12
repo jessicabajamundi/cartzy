@@ -49,7 +49,7 @@
             <h2>Registered stores</h2>
             <p>All registered merchant storefronts across your marketplace</p>
         </div>
-        <span class="muted">{{ $stores->total() }} total {{ \Illuminate\Support\Str::plural('store', $stores->total()) }}</span>
+        <a class="button subtle" href="{{ route('admin.stores') }}">Manage registered stores</a>
     </header>
     <div class="table-scroll">
         <table>

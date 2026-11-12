@@ -52,6 +52,53 @@ class AdminPortalController extends Controller
         return view('admin.dashboard', compact('stats', 'stores', 'activity'));
     }
 
+    private function registeredStores()
+    {
+        return Seller::where('status', 'approved')->whereHas('user', fn ($q) => $q
+            ->where('role', 'seller')->whereIn('status', ['active', 'suspended', 'deactivated']));
+    }
+
+    public function stores(Request $request)
+    {
+        $query = $this->registeredStores()->with('user')->withCount('products');
+        if ($request->filled('search')) {
+            $search = '%'.$request->string('search')->trim()->toString().'%';
+            $query->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('slug', 'like', $search)
+                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', $search)->orWhere('email', 'like', $search)));
+        }
+        if (in_array($request->query('status'), ['active', 'suspended', 'deactivated'], true)) {
+            $query->whereHas('user', fn ($q) => $q->where('status', $request->query('status')));
+        }
+        $stores = $query->latest('id')->paginate(15)->withQueryString();
+
+        return view('admin.stores', compact('stores'));
+    }
+
+    public function updateStoreStatus(Request $request, int $id)
+    {
+        $data = $request->validate(['status' => ['required', Rule::in(['active', 'suspended', 'deactivated'])]]);
+
+        return DB::transaction(function () use ($request, $id, $data) {
+            $store = $this->registeredStores()->findOrFail($id);
+            $user = User::lockForUpdate()->findOrFail($store->user_id);
+            $allowed = $data['status'] === 'active' ? ['suspended', 'deactivated'] : ['active'];
+            abort_unless(in_array($user->status, $allowed, true), 422, 'This store status has changed. Refresh and try again.');
+
+            return $this->updateUserStatus($request, $user->id);
+        });
+    }
+
+    public function archiveStore(int $id)
+    {
+        return DB::transaction(function () use ($id) {
+            $store = $this->registeredStores()->findOrFail($id);
+            $user = User::lockForUpdate()->findOrFail($store->user_id);
+            abort_unless(in_array($user->status, ['suspended', 'deactivated'], true), 422, 'Suspend or deactivate this store before archiving it.');
+
+            return $this->archiveUser($user->id);
+        });
+    }
+
     public function products(Request $request)
     {
         $statusCounts = [

@@ -86,6 +86,9 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
     // 1. Dashboard & Overview
     Route::get('/', [AdminPortalController::class, 'dashboard']);
     Route::get('/dashboard', [AdminPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/stores', [AdminPortalController::class, 'stores'])->name('stores');
+    Route::post('/stores/{id}/status', [AdminPortalController::class, 'updateStoreStatus'])->whereNumber('id')->name('stores.status');
+    Route::post('/stores/{id}/archive', [AdminPortalController::class, 'archiveStore'])->whereNumber('id')->name('stores.archive');
 
     // 2. Seller Products Workspace & Approvals
     Route::get('/products', [AdminPortalController::class, 'products'])->name('products');

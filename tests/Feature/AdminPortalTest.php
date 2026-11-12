@@ -35,10 +35,43 @@ class AdminPortalTest extends TestCase
     public function test_all_admin_pages_render_empty_database_states_without_demo_data(): void
     {
         $this->actingAs($this->admin());
-        foreach (['dashboard', 'registrations', 'users', 'compliance', 'archive', 'disputes', 'commission', 'reports', 'settings', 'chat', 'account'] as $page) {
+        foreach (['dashboard', 'stores', 'registrations', 'users', 'compliance', 'archive', 'disputes', 'commission', 'reports', 'settings', 'chat', 'account'] as $page) {
             $this->get('/admin/'.$page)->assertOk()->assertDontSee('TechZone')->assertDontSee('1,845,920')->assertDontSee('GlowBeauty');
         }
         $this->get('/admin/dashboard')->assertViewHas('stats', fn ($s) => $s['sales'] === 0 && $s['buyers'] === 0 && $s['pending'] === 0);
+    }
+
+    public function test_registered_store_lifecycle_and_actions(): void
+    {
+        $owner = User::factory()->create(['role' => 'seller', 'status' => 'active']);
+        $store = Seller::create(['user_id' => $owner->id, 'name' => 'Lifecycle Shop', 'slug' => 'lifecycle-shop', 'status' => 'approved']);
+        $this->get('/admin/stores')->assertRedirect(route('login.admin'));
+        $this->actingAs($owner)->post('/admin/stores/'.$store->id.'/status', ['status' => 'suspended'])->assertForbidden();
+        $this->actingAs($this->admin());
+        $this->get('/admin/stores?search=Lifecycle')->assertOk()->assertSee('Lifecycle Shop')->assertSee('>Suspend<', false)->assertSee('>Deactivate<', false)->assertSee('View shop');
+        $this->post('/admin/stores/'.$store->id.'/archive')->assertUnprocessable();
+        $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'invalid'])->assertSessionHasErrors('status');
+        foreach (['suspended', 'deactivated'] as $status) {
+            $this->post('/admin/stores/'.$store->id.'/status', ['status' => $status])->assertRedirect();
+            $this->assertSame($status, $owner->fresh()->status);
+            $this->assertFalse(Seller::publiclyVisible()->whereKey($store->id)->exists());
+            $this->get('/admin/stores?status='.$status)->assertOk()->assertSee('>Reactivate<', false)->assertSee('>Archive<', false)->assertDontSee('>Suspend<', false)->assertDontSee('>Deactivate<', false);
+            $this->get('/store/'.$store->slug)->assertOk();
+            $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'active'])->assertRedirect();
+            $this->assertFalse($owner->fresh()->is_suspended);
+            $this->assertTrue(Seller::publiclyVisible()->whereKey($store->id)->exists());
+        }
+        $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'suspended'])->assertRedirect();
+        $this->post('/admin/stores/'.$store->id.'/archive')->assertRedirect();
+        $this->assertSame('archived', $owner->fresh()->status);
+        $this->get('/admin/stores')->assertDontSee('Lifecycle Shop');
+        $this->get('/admin/archive?tab=users&role=seller')->assertSee($owner->email);
+        $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'active'])->assertNotFound();
+        $this->post('/admin/archive/users/'.$owner->id.'/restore')->assertRedirect();
+        $this->get('/admin/stores')->assertSee('Lifecycle Shop');
+        $store->update(['status' => 'pending']);
+        $this->get('/admin/stores')->assertDontSee('Lifecycle Shop');
+        $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'active'])->assertNotFound();
     }
 
     public function test_totals_use_saved_commission_and_exclude_unpaid_cancelled_and_refunded_orders(): void
