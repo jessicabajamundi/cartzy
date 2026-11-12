@@ -158,12 +158,13 @@ class SellerPortalController extends Controller
 
             $shipment->deliveryEvents()->firstOrCreate(['status' => 'packed', 'attempt' => 1], [
                 'user_id' => Auth::id(),
-                'note' => 'The seller packed the parcel and marked it ready for pickup.',
+                'note' => 'The seller packed the parcel and marked it ready for logistics handover.',
                 'occurred_at' => now(),
             ]);
         });
 
-        return back()->with('success', 'Order packed and ready for pickup.');
+        return redirect()->route('seller.courier', ['status' => 'ready_to_ship', 'order' => $id])
+            ->with('success', 'Parcel is ready. Choose pickup from your shop or drop-off at a logistics partner.');
     }
 
     public function printWaybill(int $id)
@@ -242,13 +243,14 @@ class SellerPortalController extends Controller
 
     public function courier(Request $request, \App\Services\HubRecommender $hubs)
     {
-        $request->validate(['status' => ['nullable', Rule::in(['ready_to_ship', 'shipped'])]]);
+        $request->validate(['status' => ['nullable', Rule::in(['ready_to_ship', 'shipped'])], 'order' => ['nullable', 'integer', 'min:1']]);
         $pickupAddress = $this->pickupLocation($this->shop());
         $providers = LogisticsProvider::where('status', 'approved')->with('user')->orderBy('name')->get();
 
         return $this->page('courier', [
             'orders' => $this->ordersQuery()->whereIn('status', ['ready_to_ship', 'shipped'])
                 ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+                ->when($request->filled('order'), fn ($q) => $q->whereKey($request->integer('order')))
                 ->with(['order.buyer', 'shipment.logisticsProvider.user', 'shipment.rider.user', 'shipment.pickupRider.user'])->latest()->paginate(15)->withQueryString(),
             'providers' => $providers,
             // Closest hub first, by the seller's pickup address.
@@ -278,9 +280,9 @@ class SellerPortalController extends Controller
 
         DB::transaction(function () use ($id, $data, $method, $shop, $provider, $pickupFrom) {
             $order = $this->ordersQuery()->lockForUpdate()->findOrFail($id);
-            abort_unless($order->status === 'ready_to_ship', 422, 'Pack the order before requesting pickup.');
-            abort_if($order->cancellation_status === 'pending', 422, 'Review the cancellation request before scheduling pickup.');
-            $shipment = $order->shipment;
+            abort_unless($order->status === 'ready_to_ship', 422, 'Pack the order before arranging pickup or drop-off.');
+            abort_if($order->cancellation_status === 'pending', 422, 'Review the cancellation request before arranging handover.');
+            $shipment = $order->shipment()->lockForUpdate()->first();
             abort_if($shipment && $shipment->status !== 'unassigned', 422, 'This shipment has already been assigned to a courier.');
             abort_if($shipment?->received_at !== null, 422, 'The hub already received this parcel.');
 

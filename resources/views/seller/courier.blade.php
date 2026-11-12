@@ -9,7 +9,8 @@
 .handover legend{font-size:12px;font-weight:600;margin-bottom:6px}
 .handover-option{flex:1 1 220px;display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--surface)}
 .handover-option:has(input:checked){border-color:var(--accent);background:var(--accent-light)}
-.handover-option input{margin-top:3px}
+.handover-option input{margin-top:3px;width:16px;height:16px;min-height:0;flex-shrink:0;accent-color:var(--accent)}
+.handover-option:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:3px}
 .handover-option strong{display:block;font-size:13px}
 .handover-option small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .hub-hint{font-size:12px;color:var(--muted);margin:6px 0 0}
@@ -20,9 +21,9 @@
 .shipping-form select{max-width:100%}
 </style>
 
-<div class="page-heading"><div><div class="eyebrow">FULFILLMENT</div><h1>Shipping & pickup</h1><p class="subtitle">Choose a logistics hub for each packed order, then have a courier pick it up or drop it off at the hub yourself.</p></div></div>
+<div class="page-heading"><div><div class="eyebrow">FULFILLMENT</div><h1>Pickup or drop-off</h1><p class="subtitle">Your parcel is ready for logistics. Choose a partner, then request pickup from your shop or bring the parcel to their hub.</p></div></div>
 @if(request()->filled('status'))
-<div class="notice">Showing {{ request('status') === 'ready_to_ship' ? 'orders ready for pickup' : 'shipped orders' }}. <a href="{{ route('seller.courier') }}">View all shipments</a></div>
+<div class="notice">Showing {{ request('status') === 'ready_to_ship' ? 'parcels ready for pickup or drop-off' : 'shipped orders' }}. <a href="{{ route('seller.courier') }}">View all shipments</a></div>
 @endif
 
 @if($providers->isNotEmpty())
@@ -42,7 +43,7 @@
     $shipment = $order->shipment;
     $isDropoff = $shipment?->isDropoff() && !$shipment->received_at;
     $statusLabel = match (true) {
-        !$shipment => 'Awaiting pickup request',
+        !$shipment => 'Choose pickup or drop-off',
         $isDropoff && $shipment->status === 'unassigned' => 'Drop-off at hub',
         $shipment->status === 'unassigned' && $shipment->received_at !== null => 'At hub',
         default => ucfirst(str_replace('_', ' ', $shipment->status)),
@@ -66,8 +67,8 @@
             @csrf
             <fieldset class="handover">
                 <legend>How will the parcel reach the hub?</legend>
-                <label class="handover-option"><input type="radio" name="handover_method" value="pickup" @checked($selectedMethod === 'pickup')><span><strong>Pick-up</strong><small>A courier from the hub collects it from your pickup address.</small></span></label>
-                <label class="handover-option"><input type="radio" name="handover_method" value="dropoff" @checked($selectedMethod === 'dropoff')><span><strong>Drop-off</strong><small>You bring it to the hub yourself. No courier is sent.</small></span></label>
+                <label class="handover-option"><input type="radio" name="handover_method" value="pickup" required @checked($selectedMethod === 'pickup')><span><strong>Pick up from my shop</strong><small>The logistics partner sends a courier to collect this parcel from your pickup address.</small></span></label>
+                <label class="handover-option"><input type="radio" name="handover_method" value="dropoff" required @checked($selectedMethod === 'dropoff')><span><strong>Drop off at logistics partner</strong><small>Bring this parcel to the selected partner's hub yourself. No pickup courier is sent.</small></span></label>
             </fieldset>
             <div class="row">
                 <label>Logistics hub
@@ -88,7 +89,7 @@
         @else<p class="notice">No approved logistics providers are available yet.</p>@endif
     @endif
 </section>
-@empty<div class="panel empty"><div class="empty-icon">@include('seller.partials.icon',['name'=>'truck'])</div><h3>No shipments to manage</h3><p>Mark an order as packed to prepare it for courier pickup.</p><a class="button secondary" href="{{ route('seller.orders') }}">View orders</a></div>@endforelse
+@empty<div class="panel empty"><div class="empty-icon">@include('seller.partials.icon',['name'=>'truck'])</div><h3>No shipments to manage</h3><p>Mark an order as packed to arrange pickup or drop-off.</p><a class="button secondary" href="{{ route('seller.orders') }}">View orders</a></div>@endforelse
 @include('seller.partials.pagination',['paginator'=>$orders])
 
 <script>

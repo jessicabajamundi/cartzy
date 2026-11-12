@@ -14,7 +14,7 @@
         && ($payment->payment_method === 'cod' || $payment->payment_status === 'paid');
     $awaitingPayment = in_array($order->status, ['pending', 'accepted', 'packed'], true)
         && !$canPack && !in_array($payment->payment_status, ['refunded', 'partially_refunded'], true);
-    $needsPickup = $order->status === 'ready_to_ship' && (!$shipment || $shipment->status === 'unassigned');
+    $needsPickup = $order->status === 'ready_to_ship' && (!$shipment || ($shipment->status === 'unassigned' && !$shipment->received_at));
     $awaitingRider = $order->status === 'ready_to_ship' && !$needsPickup;
     $address = $payment->shipping_address ?? [];
     $tracking = app(\App\Services\OrderTracking::class)->build($order);
@@ -67,7 +67,8 @@
             @elseif($canPack)
                 <form method="POST" action="{{ route('seller.orders.pack', $order) }}">@csrf<button class="button small" type="submit">Mark packed</button></form>
             @elseif($needsPickup)
-                <a class="button small" href="{{ route('seller.courier', ['status' => 'ready_to_ship']) }}">Request pickup</a>
+                <a class="button small" href="{{ route('seller.courier', ['status' => 'ready_to_ship', 'order' => $order->id]) }}">Pickup or drop-off</a>
+                @if($shipment?->isDropoff())<span class="so-hint">Drop off at the selected logistics partner</span>@endif
             @elseif($awaitingPayment)
                 <span class="so-hint">Waiting for payment</span>
             @elseif($awaitingRider)

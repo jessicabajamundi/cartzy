@@ -118,6 +118,40 @@ class HubAndRiderMatchingTest extends TestCase
         $this->assertSame(1, PickupRequest::where('seller_order_id', $order->id)->count());
     }
 
+    public function test_packing_opens_both_handover_choices_for_the_specific_sellers_parcel(): void
+    {
+        $hub = $this->hub('Handover Hub');
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $order = $this->packedOrder($seller);
+        $order->update(['status' => 'pending']);
+        $another = $this->packedOrder($seller);
+        $destination = route('seller.courier', ['status' => 'ready_to_ship', 'order' => $order->id]);
+
+        $this->actingAs($seller->user)->post(route('seller.orders.pack', $order->id))->assertRedirect($destination);
+        $this->get($destination)->assertOk()->assertSee('Pick up from my shop')->assertSee('Drop off at logistics partner')
+            ->assertViewHas('orders', fn ($orders) => $orders->total() === 1 && $orders->first()->id === $order->id);
+        $this->get(route('seller.orders'))->assertOk()->assertSee('Pickup or drop-off')->assertSee($destination);
+
+        $otherSeller = $this->sellerAt(['barangay' => 'Other', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $this->actingAs($otherSeller->user)->get($destination)->assertOk()->assertViewHas('orders', fn ($orders) => $orders->isEmpty());
+        $this->post(route('seller.courier.schedule', $order->id), ['logistics_provider_id' => $hub->id,
+            'handover_method' => 'dropoff', 'pickup_date' => now()->toDateString()])->assertNotFound();
+    }
+
+    public function test_handover_choice_cannot_change_after_the_hub_receives_the_parcel(): void
+    {
+        $hub = $this->hub('Receiving Hub');
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $order = $this->packedOrder($seller);
+        $data = ['logistics_provider_id' => $hub->id, 'handover_method' => 'dropoff', 'pickup_date' => now()->toDateString()];
+        $this->actingAs($seller->user)->post(route('seller.courier.schedule', $order->id), $data)->assertSessionHasNoErrors();
+        $order->fresh()->shipment->update(['received_at' => now()]);
+        $data['handover_method'] = 'pickup';
+        $this->post(route('seller.courier.schedule', $order->id), $data)->assertUnprocessable();
+        $this->assertTrue($order->fresh()->shipment->isDropoff());
+        $this->assertFalse(PickupRequest::where('seller_order_id', $order->id)->exists());
+    }
+
     public function test_drop_off_sends_no_courier_and_the_hub_receives_it(): void
     {
         $hub = $this->hub('Sta Cruz Hub', ['street_address' => '123', 'barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
