@@ -34,8 +34,10 @@
                             <form method="POST" action="{{ route('admin.stores.status', $store->id) }}" data-confirm="{{ $label }} {{ $store->name }} and its seller account?">
                                 @csrf
                                 <input type="hidden" name="status" value="{{ $status }}">
-                                <button class="button store-action store-action--{{ $status }}" type="submit">
-                                    @include('admin.partials.icon', ['name' => ['suspended' => 'pause', 'deactivated' => 'power', 'active' => 'refresh'][$status]])
+                                <button class="button {{ $status === 'active' ? '' : 'subtle' }} store-action store-action--{{ $status }}" type="submit">
+                                    @if($status !== 'deactivated')
+                                        @include('admin.partials.icon', ['name' => $status === 'suspended' ? 'shield' : 'refresh'])
+                                    @endif
                                     <span>{{ $label }}</span>
                                 </button>
                             </form>
@@ -43,13 +45,13 @@
                         @if(in_array($store->user->status, ['suspended', 'deactivated'], true))
                             <form method="POST" action="{{ route('admin.stores.archive', $store->id) }}" data-confirm="Move {{ $store->name }} and its seller account to Archive?">
                                 @csrf
-                                <button class="button store-action store-action--archive" type="submit">
+                                <button class="button subtle store-action store-action--archive" type="submit">
                                     @include('admin.partials.icon', ['name' => 'archive'])
                                     <span>Archive</span>
                                 </button>
                             </form>
                         @endif
-                        <a class="button store-action store-action--view" href="{{ route('store.show', $store->slug) }}" target="_blank" rel="noopener">
+                        <a class="button subtle store-action store-action--view" href="{{ route('store.show', $store->slug) }}" target="_blank" rel="noopener">
                             @include('admin.partials.icon', ['name' => 'external'])
                             <span>View shop</span>
                         </a>
@@ -67,24 +69,14 @@
 @push('styles')
 <style>
     .store-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .store-actions .store-action {
-        font-size: 12px;
-        font-weight: 700;
-        min-height: 36px;
-        padding: 7px 12px;
-        gap: 7px;
+    .store-actions .button.store-action {
+        font-size: 11px;
+        min-height: 32px;
+        padding: 5px 12px;
         white-space: nowrap;
-        color: var(--action-ink);
-        background: var(--action-bg);
-        border-color: var(--action-border);
     }
-    .store-action--suspended { --action-ink: #92400e; --action-bg: #fffbeb; --action-border: #fcd34d; --action-hover: #fef3c7; }
-    .store-action--deactivated { --action-ink: #b91c1c; --action-bg: #fef2f2; --action-border: #fca5a5; --action-hover: #fee2e2; }
-    .store-action--active { --action-ink: #166534; --action-bg: #f0fdf4; --action-border: #86efac; --action-hover: #dcfce7; }
-    .store-action--archive { --action-ink: #475569; --action-bg: #f1f5f9; --action-border: #cbd5e1; --action-hover: #e2e8f0; }
-    .store-action--view { --action-ink: #1d4ed8; --action-bg: #eff6ff; --action-border: #93c5fd; --action-hover: #dbeafe; }
-    .store-actions .store-action:hover { background: var(--action-hover); border-color: var(--action-ink); }
-    .store-actions .store-action:focus-visible { outline: 2px solid var(--action-ink); outline-offset: 3px; }
-    .store-actions .store-action .icon { width: 16px; height: 16px; flex-shrink: 0; stroke-width: 2; }
+    .store-actions .button.store-action--suspended { color: #b45309; border-color: #fde68a; }
+    .store-actions .button.store-action--deactivated { color: #475569; border-color: #cbd5e1; }
+    .store-actions .button.store-action--view { color: #1d4ed8; border-color: #bfdbfe; }
 </style>
 @endpush
