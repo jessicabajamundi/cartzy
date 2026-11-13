@@ -16,7 +16,6 @@
                     </span>
                     <span>Back to sign in</span>
                 </button>
-                <img class="lm-logo" src="{{ asset('images/logo-transparent.png') }}?v={{ filemtime(public_path('images/logo-transparent.png')) }}" alt="cartzy">
                 <h2 class="lm-title" id="fpm-title-1">Forgot your password?</h2>
                 <p class="lm-subtitle">Enter your registered email and we'll send a 6-digit verification code</p>
             </div>
