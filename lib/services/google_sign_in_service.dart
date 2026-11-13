@@ -4,24 +4,58 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'auth_service.dart';
 
 class GoogleSignInService {
-  // Uses the Web Client ID from your Google Cloud project (460041836799)
-  // to authorize tokens for the Android client (com.example.cartzy + SHA-1).
-  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+  /// App Package Name on Android
+  static const String packageName = 'com.example.cartzy';
+
+  /// Permanent Release Keystore SHA-1 (used by GitHub Actions & Release builds)
+  static const String releaseSha1 =
+      '20:84:2C:D9:D0:4E:43:52:84:6C:91:AB:95:DE:32:19:8E:CF:CC:A7';
+
+  /// Local Development Keystore SHA-1 (used when running locally via flutter run)
+  static const String debugSha1 =
+      'CF:2C:DE:F2:2A:B6:AB:F8:63:C7:B0:F7:61:90:88:49:0D:45:0B:68';
+
+  /// Web Client ID from Google Cloud project (460041836799)
+  static const String webClientId =
+      '460041836799-5np8c0dfg22jjr7sav3cd82uousu9eaq.apps.googleusercontent.com';
+
+  static final GoogleSignIn _googleSignInWithServer = GoogleSignIn(
     scopes: ['email', 'profile'],
-    serverClientId: '460041836799-5np8c0dfg22jjr7sav3cd82uousu9eaq.apps.googleusercontent.com',
+    serverClientId: webClientId,
+  );
+
+  static final GoogleSignIn _googleSignInDirect = GoogleSignIn(
+    scopes: ['email', 'profile'],
   );
 
   /// Triggers native Google Sign-In and authenticates with the Cartzy Laravel API.
-  /// Clears any cached session first so the user is always prompted with the account picker
-  /// to choose from any Google account signed in on their device.
+  /// Clears any cached session first so the user is always prompted with the account picker.
+  /// Automatically tries with serverClientId first, then falls back to direct client if
+  /// a project client ID mismatch occurs.
   static Future<Map<String, dynamic>?> signIn() async {
     try {
-      // Clear previously selected account so the account chooser dialog always opens
       try {
-        await _googleSignIn.signOut();
+        await _googleSignInWithServer.signOut();
       } catch (_) {}
 
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
+      GoogleSignInAccount? account;
+      try {
+        account = await _googleSignInWithServer.signIn();
+      } on PlatformException catch (e) {
+        final str = e.toString().toLowerCase();
+        // If developer_error (Code 10) occurs with serverClientId, retry with direct client
+        if (str.contains('developer_error') ||
+            str.contains(': 10:') ||
+            str.contains('status: 10')) {
+          try {
+            await _googleSignInDirect.signOut();
+          } catch (_) {}
+          account = await _googleSignInDirect.signIn();
+        } else {
+          rethrow;
+        }
+      }
+
       if (account == null) {
         // User dismissed the Google account picker dialog
         return null;
@@ -43,8 +77,7 @@ class GoogleSignInService {
     }
   }
 
-  /// Translates raw Google Play Services error codes (e.g. "PlatformException(network_error, N1.d: 7: , null, null)")
-  /// into clear, actionable messages.
+  /// Translates raw Google Play Services error codes into clear, actionable messages.
   static String? getReadableErrorMessage(dynamic error) {
     if (error == null) return null;
 
@@ -63,14 +96,14 @@ class GoogleSignInService {
         str.contains(': 7:') ||
         str.contains('status: 7') ||
         str.contains('code: 7')) {
-      return 'Hindi makakonekta sa Google. Pakisuri ang iyong internet o tiyaking naka-register ang SHA-1 fingerprint sa Firebase/Google Cloud.';
+      return 'Hindi makakonekta sa Google. Pakisuri ang iyong internet connection.';
     }
 
     // Developer / Configuration error (Code 10)
     if (str.contains('developer_error') ||
         str.contains(': 10:') ||
         str.contains('status: 10')) {
-      return 'Google Sign-In configuration error: Kailangang idagdag ang SHA-1 fingerprint ng app sa Firebase o Google Cloud Console.';
+      return 'Google Sign-In: Kailangang idagdag ang SHA-1 fingerprint sa Google Cloud Console:\n$releaseSha1 (Package: $packageName)';
     }
 
     return 'Google Sign-In: ${error.toString().replaceFirst('Exception: ', '')}';
@@ -78,7 +111,10 @@ class GoogleSignInService {
 
   static Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      await _googleSignInWithServer.signOut();
+    } catch (_) {}
+    try {
+      await _googleSignInDirect.signOut();
     } catch (_) {}
   }
 }

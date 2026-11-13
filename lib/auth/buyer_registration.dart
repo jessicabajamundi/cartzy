@@ -2343,10 +2343,29 @@ class CartzyRegisterHeader extends StatelessWidget {
               if (context.mounted) {
                 final msg = e.toString().replaceFirst('Exception: ', '');
                 if (msg.trim().isNotEmpty) {
+                  final hasSha1 = msg.contains('SHA-1') || msg.contains(GoogleSignInService.releaseSha1);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(msg),
                       backgroundColor: Colors.redAccent,
+                      duration: Duration(seconds: hasSha1 ? 8 : 4),
+                      action: hasSha1
+                          ? SnackBarAction(
+                              label: 'COPY SHA-1',
+                              textColor: Colors.white,
+                              onPressed: () {
+                                Clipboard.setData(
+                                  const ClipboardData(text: GoogleSignInService.releaseSha1),
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('SHA-1 copied to clipboard!'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            )
+                          : null,
                     ),
                   );
                 }
