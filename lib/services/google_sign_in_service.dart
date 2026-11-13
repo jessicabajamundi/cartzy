@@ -4,11 +4,11 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'auth_service.dart';
 
 class GoogleSignInService {
-  // Standard GoogleSignIn without cross-project serverClientId mismatch.
-  // Google Play Services on Android authenticates directly with package name
-  // com.example.cartzy and the SHA-1 signing fingerprint.
+  // Uses the Web Client ID from your Google Cloud project (460041836799)
+  // to authorize tokens for the Android client (com.example.cartzy + SHA-1).
   static final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    serverClientId: '460041836799-5np8c0dfg22jjr7sav3cd82uousu9eaq.apps.googleusercontent.com',
   );
 
   /// Triggers native Google Sign-In and authenticates with the Cartzy Laravel API.
