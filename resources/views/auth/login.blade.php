@@ -24,14 +24,13 @@
     <script src="{{ asset('js/auth/login-modal.js') }}?v={{ filemtime(public_path('js/auth/login-modal.js')) }}"></script>
     <script src="{{ asset('js/auth/cozy-peek.js') }}?v={{ filemtime(public_path('js/auth/cozy-peek.js')) }}"></script>
     <script>
-        if (window.location.hash === '#forgot-password') {
-            window.location.replace('{{ route("password.forgot") }}');
-        }
-        window.addEventListener('hashchange', function () {
-            if (window.location.hash === '#forgot-password') {
-                window.location.replace('{{ route("password.forgot") }}');
+        function checkForgotHash() {
+            if (window.location.hash === '#forgot-password' && window.cartzyForgotModal) {
+                window.cartzyForgotModal.open();
             }
-        });
+        }
+        document.addEventListener('DOMContentLoaded', checkForgotHash);
+        window.addEventListener('hashchange', checkForgotHash);
     </script>
     @include('partials.prevent-back-cache')
 </body>

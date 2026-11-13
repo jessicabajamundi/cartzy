@@ -483,25 +483,25 @@
 {{-- Modal dialog for removing an archived user with reason input --}}
 <dialog id="remove-user-modal" aria-labelledby="remove-user-title" aria-describedby="remove-user-desc">
     <div class="user-status-modal-content">
-        <button type="button" class="icon-button user-status-modal-close" data-close-remove-modal aria-label="Close dialog">&times;</button>
-        <div class="user-status-modal-badge danger" style="background: #fce9e9; color: #b42332;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        <button type="button" class="user-status-modal-close" data-close-remove-modal aria-label="Close dialog">&times;</button>
+        <div class="user-status-modal-badge danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </div>
-        <h2 id="remove-user-title" style="margin: 8px 0 6px; font-size: 20px;">Remove Account</h2>
-        <p id="remove-user-desc" style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">
+        <h2 id="remove-user-title" class="user-status-modal-title">Remove Account</h2>
+        <p id="remove-user-desc" class="user-status-modal-desc">
             Input the reason why this account is being removed. This reason will be displayed to the user if they try to log in.
         </p>
 
         <form id="remove-user-form" method="POST" action="">
             @csrf
-            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink); text-align: left; margin-bottom: 22px;">
-                <span>Reason for removal <strong style="color: #b91c1c;">*</strong></span>
-                <textarea name="removal_reason" id="remove-reason-input" rows="4" required placeholder="Type the reason why this account is being removed..." style="width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: vertical; line-height: 1.5;"></textarea>
+            <label class="user-status-modal-label">
+                <span>Reason for removal <strong style="color: #dc2626;">*</strong></span>
+                <textarea name="removal_reason" id="remove-reason-input" class="user-status-modal-textarea" rows="4" required placeholder="Type the reason why this account is being removed..."></textarea>
             </label>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="button subtle" data-close-remove-modal>Cancel</button>
-                <button type="submit" class="button" style="background: #b42332; border-color: #b42332; color: #fff;">Confirm Removal</button>
+            <div class="user-status-modal-actions">
+                <button type="button" class="btn-cancel" data-close-remove-modal>Cancel</button>
+                <button type="submit" class="btn-confirm" style="background: #dc2626;">Confirm Removal</button>
             </div>
         </form>
     </div>
@@ -512,16 +512,151 @@
     #remove-user-modal {
         width: min(500px, calc(100vw - 32px));
         max-height: calc(100dvh - 32px);
+        margin: auto;
         padding: 0;
-        border: 1px solid var(--line);
+        border: 1px solid var(--line, #e2e8f0);
         border-radius: 20px;
         background: var(--surface, #fff);
-        color: var(--ink);
-        box-shadow: 0 24px 80px rgba(40, 33, 51, 0.25);
+        color: var(--ink, #1f2937);
+        box-shadow: 0 24px 80px rgba(40, 33, 51, 0.28);
+        overflow: hidden;
     }
     #remove-user-modal::backdrop {
         background: rgba(40, 33, 51, 0.55);
-        backdrop-filter: blur(3px);
+        backdrop-filter: blur(4px);
+    }
+    #remove-user-modal[open] {
+        animation: user-modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes user-modal-pop {
+        from { opacity: 0; transform: scale(0.96) translateY(8px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .user-status-modal-content {
+        position: relative;
+        padding: 32px 30px 28px;
+        text-align: left;
+    }
+    .user-status-modal-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        line-height: 1;
+        transition: all 0.15s ease;
+    }
+    .user-status-modal-close:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        transform: scale(1.05);
+    }
+    .user-status-modal-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        margin-bottom: 18px;
+        border-radius: 14px;
+        background: #fef3c7;
+        color: #b45309;
+        flex-shrink: 0;
+    }
+    .user-status-modal-badge.danger {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+    }
+    .user-status-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 8px;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+    }
+    .user-status-modal-desc {
+        font-size: 13.5px;
+        color: #64748b;
+        margin: 0 0 22px;
+        line-height: 1.55;
+    }
+    .user-status-modal-label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        text-align: left;
+        margin-bottom: 24px;
+    }
+    .user-status-modal-textarea {
+        width: 100%;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        line-height: 1.5;
+        box-sizing: border-box;
+        background: #f8fafc;
+        color: #1e293b;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .user-status-modal-textarea:focus {
+        background: #fff;
+        border-color: #dc2626;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+    }
+    .user-status-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    .user-status-modal-actions .btn-cancel {
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .user-status-modal-actions .btn-cancel:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .user-status-modal-actions .btn-confirm {
+        min-height: 42px;
+        padding: 0 22px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s, transform 0.1s;
+    }
+    .user-status-modal-actions .btn-confirm:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
     }
 </style>
 @endpush

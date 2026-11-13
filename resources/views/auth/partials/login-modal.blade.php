@@ -240,6 +240,8 @@
     </section>
 </div>
 
+@include('auth.partials.forgot-password-modal')
+
 @if(session('account_removed'))
     <dialog id="account-removed-modal" class="account-removed-dialog" open aria-labelledby="account-removed-title" aria-describedby="account-removed-reason">
         <div class="account-removed-card">

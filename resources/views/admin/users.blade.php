@@ -106,12 +106,12 @@
 {{-- Modal dialog for Suspend & Deactivate with reason input --}}
 <dialog id="user-status-modal" aria-labelledby="status-modal-title" aria-describedby="status-modal-desc">
     <div class="user-status-modal-content">
-        <button type="button" class="icon-button user-status-modal-close" data-close-status-modal aria-label="Close dialog">&times;</button>
+        <button type="button" class="user-status-modal-close" data-close-status-modal aria-label="Close dialog">&times;</button>
         <div id="status-modal-badge" class="user-status-modal-badge warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         </div>
-        <h2 id="status-modal-title" style="margin: 8px 0 6px; font-size: 20px;">Suspend Account</h2>
-        <p id="status-modal-desc" style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">
+        <h2 id="status-modal-title" class="user-status-modal-title">Suspend Account</h2>
+        <p id="status-modal-desc" class="user-status-modal-desc">
             Please enter the reason for this action. The user will be notified of this reason.
         </p>
 
@@ -119,14 +119,14 @@
             @csrf
             <input type="hidden" name="status" id="status-modal-action" value="suspended">
             
-            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink); text-align: left; margin-bottom: 22px;">
-                <span id="status-modal-reason-label">Reason for suspension <strong style="color: #b91c1c;">*</strong></span>
-                <textarea name="reason" id="status-modal-reason-input" rows="4" required placeholder="Type the reason for this action here..." style="width: 100%; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: vertical; line-height: 1.5;"></textarea>
+            <label class="user-status-modal-label">
+                <span id="status-modal-reason-label">Reason for suspension <strong style="color: #dc2626;">*</strong></span>
+                <textarea name="reason" id="status-modal-reason-input" class="user-status-modal-textarea" rows="4" required placeholder="Type the reason for this action here..."></textarea>
             </label>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" class="button subtle" data-close-status-modal>Cancel</button>
-                <button type="submit" id="status-modal-submit-btn" class="button" style="background: #b45309; border-color: #b45309; color: #fff;">Confirm Suspension</button>
+            <div class="user-status-modal-actions">
+                <button type="button" class="btn-cancel" data-close-status-modal>Cancel</button>
+                <button type="submit" id="status-modal-submit-btn" class="btn-confirm" style="background: #b45309;">Confirm Suspension</button>
             </div>
         </form>
     </div>
@@ -137,41 +137,155 @@
     #user-status-modal {
         width: min(500px, calc(100vw - 32px));
         max-height: calc(100dvh - 32px);
+        margin: auto;
         padding: 0;
-        border: 1px solid var(--line);
+        border: 1px solid var(--line, #e2e8f0);
         border-radius: 20px;
         background: var(--surface, #fff);
-        color: var(--ink);
-        box-shadow: 0 24px 80px rgba(40, 33, 51, 0.25);
+        color: var(--ink, #1f2937);
+        box-shadow: 0 24px 80px rgba(40, 33, 51, 0.28);
+        overflow: hidden;
     }
     #user-status-modal::backdrop {
         background: rgba(40, 33, 51, 0.55);
-        backdrop-filter: blur(3px);
+        backdrop-filter: blur(4px);
+    }
+    #user-status-modal[open] {
+        animation: user-modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes user-modal-pop {
+        from { opacity: 0; transform: scale(0.96) translateY(8px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
     }
     .user-status-modal-content {
         position: relative;
-        padding: 30px;
+        padding: 32px 30px 28px;
+        text-align: left;
     }
     .user-status-modal-close {
         position: absolute;
-        top: 14px;
-        right: 14px;
-        font-size: 24px;
+        top: 18px;
+        right: 18px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
+        line-height: 1;
+        transition: all 0.15s ease;
+    }
+    .user-status-modal-close:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+        transform: scale(1.05);
     }
     .user-status-modal-badge {
-        display: grid;
-        place-items: center;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        margin-bottom: 18px;
+        border-radius: 14px;
         background: #fef3c7;
         color: #b45309;
+        flex-shrink: 0;
     }
     .user-status-modal-badge.deactivate {
         background: #f1f5f9;
         color: #475569;
+    }
+    .user-status-modal-badge.danger {
+        background: #fef2f2 !important;
+        color: #dc2626 !important;
+    }
+    .user-status-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 8px;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+    }
+    .user-status-modal-desc {
+        font-size: 13.5px;
+        color: #64748b;
+        margin: 0 0 22px;
+        line-height: 1.55;
+    }
+    .user-status-modal-label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        text-align: left;
+        margin-bottom: 24px;
+    }
+    .user-status-modal-textarea {
+        width: 100%;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        line-height: 1.5;
+        box-sizing: border-box;
+        background: #f8fafc;
+        color: #1e293b;
+        transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .user-status-modal-textarea:focus {
+        background: #fff;
+        border-color: #b45309;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.12);
+    }
+    .user-status-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    .user-status-modal-actions .btn-cancel {
+        min-height: 42px;
+        padding: 0 18px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .user-status-modal-actions .btn-cancel:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .user-status-modal-actions .btn-confirm {
+        min-height: 42px;
+        padding: 0 22px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s, transform 0.1s;
+    }
+    .user-status-modal-actions .btn-confirm:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
     }
 </style>
 @endpush

@@ -231,3 +231,135 @@ main{max-width:1540px;padding:28px 32px}
     color: var(--ink);
     overflow-wrap: anywhere;
 }
+
+/* Universal Admin Modal & Reason Dialog Styling */
+.user-status-modal-content {
+    position: relative;
+    padding: 32px 30px 28px;
+    text-align: left;
+}
+.user-status-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+}
+.user-status-modal-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    transform: scale(1.05);
+}
+.user-status-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    background: #fef3c7;
+    color: #b45309;
+    flex-shrink: 0;
+}
+.user-status-modal-badge.danger {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+}
+.user-status-modal-badge.deactivate {
+    background: #f1f5f9;
+    color: #475569;
+}
+.user-status-modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+}
+.user-status-modal-desc {
+    font-size: 13.5px;
+    color: #64748b;
+    margin: 0 0 22px;
+    line-height: 1.55;
+}
+.user-status-modal-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+    margin-bottom: 24px;
+}
+.user-status-modal-textarea {
+    width: 100%;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    line-height: 1.5;
+    box-sizing: border-box;
+    background: #f8fafc;
+    color: #1e293b;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.user-status-modal-textarea:focus {
+    background: #fff;
+    border-color: #dc2626;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+.user-status-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-top: 24px;
+}
+.user-status-modal-actions .btn-cancel {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.user-status-modal-actions .btn-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+.user-status-modal-actions .btn-confirm {
+    min-height: 42px;
+    padding: 0 22px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+}
+.user-status-modal-actions .btn-confirm:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}

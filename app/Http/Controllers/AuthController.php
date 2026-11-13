@@ -1324,6 +1324,12 @@ class AuthController extends Controller
         $isVerified = Cache::get('pwd_reset_verified_' . $email, false);
 
         if ((!$cached || $cached['otp'] !== $enteredOtp) && !$isVerified) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your verification session has expired. Please request a new code.',
+                ], 422);
+            }
             return back()->withInput()->withErrors([
                 'email' => 'Your verification session has expired. Please request a new code.',
             ]);
@@ -1331,6 +1337,12 @@ class AuthController extends Controller
 
         $user = User::where('email', $email)->first();
         if (!$user) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User account could not be found.',
+                ], 404);
+            }
             return back()->withInput()->withErrors([
                 'email' => 'User account could not be found.',
             ]);
@@ -1352,6 +1364,13 @@ class AuthController extends Controller
         // If current authenticated admin resets password from their account, redirect back to admin account
         if (Auth::check() && Auth::id() === $user->id && $user->isAdmin()) {
             ActivityLog::record('password_reset', $request, $user, ['description' => 'Password reset via OTP']);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Your password has been reset and updated successfully!',
+                    'redirect' => route('admin.account'),
+                ]);
+            }
             return redirect()->route('admin.account')->with('success', 'Your password has been reset and updated successfully!');
         }
 
@@ -1359,6 +1378,15 @@ class AuthController extends Controller
         $loginRoute = ($portal && in_array($portal, [User::ROLE_ADMIN, User::ROLE_SELLER, User::ROLE_LOGISTICS, User::ROLE_COURIER], true))
             ? self::loginRouteFor($portal)
             : self::loginRouteFor($user->role);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Your password has been reset successfully! You can now log in.',
+                'portal' => $portal ?? $user->role,
+                'login_url' => route($loginRoute),
+            ]);
+        }
 
         return redirect()->route($loginRoute)->with('success', 'Your password has been reset successfully! You can now log in.');
     }

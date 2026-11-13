@@ -133,6 +133,20 @@
     window.cartzyLogin = { open: open, close: close };
 
     overlay.addEventListener('click', function (event) {
+        var forgotTrigger = event.target.closest('[data-lm-forgot]');
+        if (forgotTrigger) {
+            event.preventDefault();
+            if (window.cartzyForgotModal) {
+                var emailInput = $('#lm-email');
+                window.cartzyForgotModal.open({
+                    email: emailInput ? emailInput.value : '',
+                    portal: current
+                });
+            } else {
+                window.location.href = forgotTrigger.href;
+            }
+            return;
+        }
         var roleTrigger = event.target.closest('[data-lm-role]');
         if (roleTrigger) {
             event.preventDefault();
