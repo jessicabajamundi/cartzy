@@ -245,9 +245,10 @@
             </div>
         </div>
     </section>
-</div>
 
-@include('auth.partials.forgot-password-modal')
+    {{-- ── Step 3: Forgot Password Modal (Unified with Login Modal) ── --}}
+    @include('auth.partials.forgot-password-modal')
+</div>
 
 @if(session('account_removed'))
     <dialog id="account-removed-modal" class="account-removed-dialog" open aria-labelledby="account-removed-title" aria-describedby="account-removed-reason">

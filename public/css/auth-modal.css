@@ -1151,3 +1151,108 @@ dialog.account-removed-dialog::backdrop {
 .account-removed-btn:hover {
     background: #b91c1c;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Forgot Password Modal - Unified with Login Modal System
+   ═══════════════════════════════════════════════════════════════════════ */
+.lm-step[data-lm-step="forgot"] .lm-panel {
+    background:
+        radial-gradient(90% 45% at 0% 0%, rgba(111, 99, 130, .09), transparent 70%),
+        radial-gradient(80% 40% at 100% 0%, rgba(192, 139, 127, .12), transparent 70%),
+        #fff;
+}
+
+.lm-icon-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    margin: 0 auto 10px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #F1EDF6 0%, #F8ECE8 100%);
+    color: var(--lm-rose-dark);
+    box-shadow: 0 4px 12px rgba(140, 90, 80, 0.12);
+}
+.lm-icon-badge svg { width: 22px; height: 22px; }
+
+.lm-icon-badge-success {
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    color: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18);
+}
+
+.lm-otp-grid {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 12px 0 16px;
+}
+.lm-otp-digit {
+    width: 46px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: 'Inter', system-ui, sans-serif;
+    border: 1.5px solid var(--lm-line);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--lm-ink);
+    box-shadow: 0 1px 2px rgba(40, 33, 51, .04);
+    transition: border-color .2s, box-shadow .2s, background .2s;
+    padding: 0;
+}
+.lm-otp-digit:focus {
+    border-color: transparent;
+    background:
+        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
+    box-shadow: 0 0 0 4px rgba(192, 139, 127, .18);
+    outline: none;
+}
+
+.fpm-substep.is-entering-forward {
+    animation: lm-in-forward .26s cubic-bezier(.2, .8, .2, 1);
+}
+.fpm-substep.is-entering-back {
+    animation: lm-in-back .26s cubic-bezier(.2, .8, .2, 1);
+}
+
+.lm-email-highlight {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #FAF8FC;
+    border: 1px solid var(--lm-line);
+    color: var(--lm-ink);
+    font-weight: 700;
+    font-size: .84rem;
+    word-break: break-all;
+    margin: 4px 0 6px;
+}
+
+.lm-resend-row {
+    margin-top: 14px;
+    text-align: center;
+    font-size: .8rem;
+    color: var(--lm-muted);
+}
+.lm-resend-row .lm-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    cursor: pointer;
+}
+
+.lm-subtle-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--lm-muted);
+    font-size: .76rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color .15s;
+}
+.lm-subtle-btn:hover { color: var(--lm-ink); }

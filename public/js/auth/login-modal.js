@@ -28,6 +28,11 @@
     function updateUrl() {
         if (!standalone || !window.history.replaceState) return;
         var isApp = current === 'courier' || current === 'rider';
+        if (step === 'forgot') {
+            window.history.replaceState(null, '', '/forgot-password');
+            document.title = 'Forgot Password | cartzy';
+            return;
+        }
         var key = step === 'login' && !isApp ? current : 'buyer';
         var data = portals[key];
         if (!data) return;
@@ -38,16 +43,20 @@
     function showStep(name, options) {
         options = options || {};
         var changed = name !== step;
+        var prevStep = step;
         step = name;
-        ['choose', 'login'].forEach(function (n) {
+        ['choose', 'login', 'forgot'].forEach(function (n) {
             var el = stepEl(n);
-            el.hidden = n !== name;
-            el.classList.remove('is-entering-forward', 'is-entering-back');
+            if (el) {
+                el.hidden = n !== name;
+                el.classList.remove('is-entering-forward', 'is-entering-back');
+            }
         });
         var el = stepEl(name);
-        if (changed && overlay.classList.contains('is-open')) {
+        if (el && changed && overlay.classList.contains('is-open')) {
             void el.offsetWidth; // restart the entrance animation
-            el.classList.add(name === 'login' ? 'is-entering-forward' : 'is-entering-back');
+            var isBack = options.direction === 'back' || (name === 'choose') || (name === 'login' && prevStep === 'forgot');
+            el.classList.add(isBack ? 'is-entering-back' : 'is-entering-forward');
         }
         updateUrl();
         if (options.focus !== false) focusStep();
@@ -57,6 +66,13 @@
         if (step === 'choose') {
             var role = stepEl('choose').querySelector('.lm-role[data-lm-role="' + current + '"]') || stepEl('choose').querySelector('.lm-role');
             if (role) role.focus({ preventScroll: true });
+        } else if (step === 'forgot') {
+            if (typeof window.fpmFocusCurrentStep === 'function') {
+                window.fpmFocusCurrentStep();
+            } else {
+                var fpmEmail = document.getElementById('fpm-email');
+                if (fpmEmail) fpmEmail.focus({ preventScroll: true });
+            }
         } else if (current === 'courier' || current === 'rider') {
             var app = $('.lm-app-button');
             if (app) app.focus({ preventScroll: true });
@@ -120,7 +136,7 @@
 
     function open(role) {
         if (role) setRole(role);
-        showStep(role ? 'login' : 'choose', { focus: false });
+        showStep(role ? 'login' : (step === 'forgot' ? 'forgot' : 'choose'), { focus: false });
         if (standalone) return focusStep();
         if (overlay.classList.contains('is-open')) return focusStep();
         clearTimeout(closeTimer);
@@ -139,25 +155,60 @@
         if (standalone || !overlay.classList.contains('is-open')) return;
         overlay.classList.remove('is-open');
         document.documentElement.classList.remove('lm-locked');
-        closeTimer = setTimeout(function () { overlay.hidden = true; }, 300);
+        closeTimer = setTimeout(function () {
+            overlay.hidden = true;
+            if (step === 'forgot') {
+                showStep('login', { focus: false });
+            }
+        }, 300);
         if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
     }
 
-    window.cartzyLogin = { open: open, close: close };
+    window.cartzyLogin = {
+        open: open,
+        close: close,
+        showStep: showStep,
+        setRole: setRole,
+        currentRole: function () { return current; }
+    };
+
+    window.cartzyForgotModal = {
+        open: function (opts) {
+            opts = opts || {};
+            var targetPortal = opts.portal || current;
+            if (targetPortal && portals[targetPortal]) setRole(targetPortal);
+            open(targetPortal);
+            if (opts.email) {
+                var fpmEmail = document.getElementById('fpm-email');
+                if (fpmEmail) fpmEmail.value = opts.email;
+            }
+            if (typeof window.fpmGoToStep === 'function') window.fpmGoToStep(1);
+            showStep('forgot');
+        },
+        close: function () {
+            close();
+        }
+    };
 
     overlay.addEventListener('click', function (event) {
         var forgotTrigger = event.target.closest('[data-lm-forgot]');
         if (forgotTrigger) {
             event.preventDefault();
-            if (window.cartzyForgotModal) {
-                var emailInput = $('#lm-email');
-                window.cartzyForgotModal.open({
-                    email: emailInput ? emailInput.value : '',
-                    portal: current
-                });
-            } else {
-                window.location.href = forgotTrigger.href;
+            var emailInput = $('#lm-email');
+            if (emailInput && emailInput.value) {
+                var fpmEmail = document.getElementById('fpm-email');
+                if (fpmEmail) fpmEmail.value = emailInput.value;
             }
+            if (typeof window.fpmGoToStep === 'function') window.fpmGoToStep(1);
+            showStep('forgot');
+            return;
+        }
+        var toStepBtn = event.target.closest('[data-lm-step-to]');
+        if (toStepBtn) {
+            event.preventDefault();
+            var targetStep = toStepBtn.dataset.lmStepTo;
+            var isBack = targetStep === 'login' || targetStep === 'choose';
+            showStep(targetStep, { direction: isBack ? 'back' : 'forward' });
             return;
         }
         var roleTrigger = event.target.closest('[data-lm-role]');

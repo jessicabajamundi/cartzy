@@ -18,6 +18,11 @@ class ForgotPasswordModalTest extends TestCase
         $this->get('/login')
             ->assertOk()
             ->assertSee('id="forgot-password-modal"', false)
+            ->assertSee('data-lm-step="forgot"', false)
+            ->assertSee('class="lm-dialog lm-step"', false)
+            ->assertSee('data-lm-step-to="login"', false)
+            ->assertSee('lm-otp-grid', false)
+            ->assertSee('lm-otp-digit', false)
             ->assertSee('fpmSubmitEmail', false)
             ->assertSee('fpmSubmitOtp', false)
             ->assertSee('fpmSubmitReset', false);
