@@ -1,7 +1,7 @@
 name: cartzy
 description: A Flutter e-commerce app.
 publish_to: 'none'
-version: 1.2.22+33
+version: 1.2.23+34
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
