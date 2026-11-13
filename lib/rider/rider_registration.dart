@@ -1130,9 +1130,24 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RoleSelectionSection(
-          isBuyerSelected: false,
+          selectedRole: _courierType == 'first_mile' ? 'courier' : 'rider',
           onSelectBuyer: () => widget.onSwitchToBuyerRegistration?.call(),
-          onSelectRider: () {},
+          onSelectCourier: () {
+            setState(() {
+              _courierType = 'first_mile';
+              if (!_vehicleOptions.contains(_selectedVehicle)) {
+                _selectedVehicle = '';
+              }
+            });
+          },
+          onSelectRider: () {
+            setState(() {
+              _courierType = 'last_mile';
+              if (!_vehicleOptions.contains(_selectedVehicle)) {
+                _selectedVehicle = '';
+              }
+            });
+          },
         ),
         const SizedBox(height: 22),
 

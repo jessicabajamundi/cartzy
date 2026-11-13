@@ -103,6 +103,7 @@ class BuyerRegistration extends StatefulWidget {
   final ValueChanged<Map<String, dynamic>> onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
   final VoidCallback? onSwitchToRiderRegistration;
+  final VoidCallback? onSwitchToCourierRegistration;
   final void Function(Map<String, dynamic> user, {String? token})? onGoogleSuccess;
 
   const BuyerRegistration({
@@ -110,6 +111,7 @@ class BuyerRegistration extends StatefulWidget {
     required this.onRegistrationSubmitted,
     required this.onBackToLogin,
     this.onSwitchToRiderRegistration,
+    this.onSwitchToCourierRegistration,
     this.onGoogleSuccess,
   });
 
@@ -745,8 +747,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RoleSelectionSection(
-          isBuyerSelected: true,
+          selectedRole: 'buyer',
           onSelectBuyer: () {},
+          onSelectCourier: () {
+            widget.onSwitchToCourierRegistration?.call();
+          },
           onSelectRider: () {
             widget.onSwitchToRiderRegistration?.call();
           },
@@ -2457,16 +2462,106 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
 // ============================================================
 
 class RoleSelectionSection extends StatelessWidget {
-  final bool isBuyerSelected;
+  final bool? isBuyerSelected;
+  final String? selectedRole; // 'buyer', 'courier', 'rider'
   final VoidCallback onSelectBuyer;
+  final VoidCallback? onSelectCourier;
   final VoidCallback onSelectRider;
 
   const RoleSelectionSection({
     super.key,
-    required this.isBuyerSelected,
+    this.isBuyerSelected,
+    this.selectedRole,
     required this.onSelectBuyer,
+    this.onSelectCourier,
     required this.onSelectRider,
   });
+
+  bool get _isBuyer =>
+      selectedRole != null ? selectedRole == 'buyer' : (isBuyerSelected ?? true);
+  bool get _isCourier =>
+      selectedRole != null ? selectedRole == 'courier' : false;
+  bool get _isRider =>
+      selectedRole != null ? selectedRole == 'rider' : !(isBuyerSelected ?? true);
+
+  Widget _buildRoleCard({
+    required bool isSelected,
+    required IconData icon,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFFFF9F9) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF8B6370) : const Color(0xFFF7F2F3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.white : const Color(0xFF7A6E72),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF231F20),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      color: const Color(0xFF7A6E72),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 22,
+              height: 22,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? const Color(0xFF8B6370) : Colors.transparent,
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF8B6370) : const Color(0xFFD0C3C5),
+                  width: 1.5,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2491,149 +2586,33 @@ class RoleSelectionSection extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Buyer Card
-        GestureDetector(
+        // 1. Buyer
+        _buildRoleCard(
+          isSelected: _isBuyer,
+          icon: Icons.shopping_bag_outlined,
+          title: 'Buyer',
+          description: 'Shop & discover items',
           onTap: onSelectBuyer,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: isBuyerSelected ? const Color(0xFFFFF9F9) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isBuyerSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
-                width: isBuyerSelected ? 1.5 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFF7F2F3),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.shopping_bag_outlined,
-                    color: isBuyerSelected ? Colors.white : const Color(0xFF7A6E72),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Buyer',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Shop & discover items',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          color: const Color(0xFF7A6E72),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isBuyerSelected ? const Color(0xFF8B6370) : Colors.transparent,
-                    border: Border.all(
-                      color: isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFD0C3C5),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: isBuyerSelected
-                      ? const Icon(Icons.check, size: 14, color: Colors.white)
-                      : null,
-                ),
-              ],
-            ),
-          ),
         ),
         const SizedBox(height: 10),
 
-        // Rider Card
-        GestureDetector(
+        // 2. Courier (First Mile)
+        _buildRoleCard(
+          isSelected: _isCourier,
+          icon: Icons.local_shipping_outlined,
+          title: 'Courier',
+          description: 'Pick up from sellers for the hub',
+          onTap: onSelectCourier ?? onSelectRider,
+        ),
+        const SizedBox(height: 10),
+
+        // 3. Delivery Partner / Rider (Last Mile)
+        _buildRoleCard(
+          isSelected: _isRider,
+          icon: Icons.two_wheeler_outlined,
+          title: 'Delivery Partner / Rider',
+          description: 'Deliver orders to buyers & earn',
           onTap: onSelectRider,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: !isBuyerSelected ? const Color(0xFFFFF9F9) : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: !isBuyerSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
-                width: !isBuyerSelected ? 1.5 : 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: !isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFF7F2F3),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    Icons.two_wheeler_outlined,
-                    color: !isBuyerSelected ? Colors.white : const Color(0xFF7A6E72),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Delivery Partner / Rider',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Deliver orders & earn',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          color: const Color(0xFF7A6E72),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: !isBuyerSelected ? const Color(0xFF8B6370) : Colors.transparent,
-                    border: Border.all(
-                      color: !isBuyerSelected ? const Color(0xFF8B6370) : const Color(0xFFD0C3C5),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: !isBuyerSelected
-                      ? const Icon(Icons.check, size: 14, color: Colors.white)
-                      : null,
-                ),
-              ],
-            ),
-          ),
         ),
       ],
     );

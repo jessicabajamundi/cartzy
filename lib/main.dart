@@ -490,6 +490,15 @@ class _CartzyHomeState extends State<CartzyHome> {
             goTo('login');
           },
           onSwitchToRiderRegistration: () {
+            setState(() {
+              pendingAccountType = AccountType.rider;
+            });
+            goTo('riderRegistration');
+          },
+          onSwitchToCourierRegistration: () {
+            setState(() {
+              pendingAccountType = AccountType.courier;
+            });
             goTo('riderRegistration');
           },
           onGoogleSuccess: (user, {token}) {
@@ -521,6 +530,9 @@ class _CartzyHomeState extends State<CartzyHome> {
             goTo('login');
           },
           onSwitchToBuyerRegistration: () {
+            setState(() {
+              pendingAccountType = AccountType.buyer;
+            });
             goTo('buyerRegistration');
           },
         );
