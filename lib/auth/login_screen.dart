@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/auth/forgot_password_screen.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
@@ -228,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textColor: Colors.white,
                     onPressed: () {
                       Clipboard.setData(
-                        const ClipboardData(text: GoogleSignInService.releaseSha1),
+                        ClipboardData(text: GoogleSignInService.releaseSha1),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

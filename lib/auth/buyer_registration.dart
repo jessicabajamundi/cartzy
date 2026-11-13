@@ -2355,7 +2355,7 @@ class CartzyRegisterHeader extends StatelessWidget {
                               textColor: Colors.white,
                               onPressed: () {
                                 Clipboard.setData(
-                                  const ClipboardData(text: GoogleSignInService.releaseSha1),
+                                  ClipboardData(text: GoogleSignInService.releaseSha1),
                                 );
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
