@@ -30,7 +30,9 @@ import 'package:cartzy/widgets/access_denied_screen.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
 import 'package:cartzy/services/app_update_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppUpdateService.init();
   runApp(const CartzyApp());
 }
 

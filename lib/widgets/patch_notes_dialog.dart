@@ -78,6 +78,10 @@ class PatchNotesDialog extends StatelessWidget {
   /// Rider and courier changes only, newest version first. Buyer-side
   /// changes are left out because riders never see those screens.
   static const Map<String, List<String>> riderNotes = {
+    '1.2.18': [
+      'Google Sign-In Stability: Direct authentication with verified web client credentials and automatic version synchronization.',
+      'Refined Navigation Bar: Increased height and thickness of the rider and courier bottom navigation bar to match the buyer app experience.',
+    ],
     '1.2.17': [
       'Refined Navigation Bar: Increased height and thickness of the rider and courier bottom navigation bar to match the buyer app experience.',
     ],
@@ -110,7 +114,7 @@ class PatchNotesDialog extends StatelessWidget {
   /// The newest rider notes for [currentVersion] or the version before it
   /// that last changed something for riders.
   static (String, List<String>) latestRiderNotes(String currentVersion) {
-    final current = currentVersion.replaceFirst('v', '');
+    final current = currentVersion.replaceFirst(RegExp(r'^[vV]'), '').split('+').first.trim();
     final entry = riderNotes.entries.firstWhere(
       (e) => _compareVersions(e.key, current) <= 0,
       orElse: () => riderNotes.entries.first,
@@ -119,8 +123,18 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static int _compareVersions(String a, String b) {
-    final x = a.split('.').map((p) => int.tryParse(p) ?? 0).toList();
-    final y = b.split('.').map((p) => int.tryParse(p) ?? 0).toList();
+    final aClean = a.trim().replaceFirst(RegExp(r'^[vV]'), '').split('+').first.split('-').first;
+    final bClean = b.trim().replaceFirst(RegExp(r'^[vV]'), '').split('+').first.split('-').first;
+
+    final x = aClean.split('.').map((p) {
+      final digits = RegExp(r'\d+').stringMatch(p);
+      return digits != null ? (int.tryParse(digits) ?? 0) : 0;
+    }).toList();
+    final y = bClean.split('.').map((p) {
+      final digits = RegExp(r'\d+').stringMatch(p);
+      return digits != null ? (int.tryParse(digits) ?? 0) : 0;
+    }).toList();
+
     for (var i = 0; i < 3; i++) {
       final d = (i < x.length ? x[i] : 0) - (i < y.length ? y[i] : 0);
       if (d != 0) return d;
@@ -129,12 +143,21 @@ class PatchNotesDialog extends StatelessWidget {
   }
 
   static List<String> defaultHighlights(String version) {
-    if (version == '1.2.17' || version == 'v1.2.17') {
+    final clean = version.trim().replaceFirst(RegExp(r'^[vV]'), '').split('+').first;
+
+    if (clean == '1.2.18') {
+      return const [
+        'Google Authentication Upgrade: Enhanced Google Sign-In with official Web Client ID for seamless login across all devices.',
+        'Version Sync & Direct APK: Smarter version verification that prevents duplicate update prompts and enables fast direct APK downloads.',
+        'Polished Bottom Navigation Bar: Increased thickness and height of the courier and rider navigation bars to perfectly match the buyer app.',
+      ];
+    }
+    if (clean == '1.2.17') {
       return const [
         'Polished Bottom Navigation Bar: Increased thickness and height of the courier and rider navigation bars to perfectly match the buyer app.',
       ];
     }
-    if (version == '1.2.16' || version == 'v1.2.16') {
+    if (clean == '1.2.16') {
       return const [
         'Enhanced Navigation Scanner: Elevated GCash-style floating circular scanner button on both Courier (First Mile) and Rider (Last Mile) navigation bars.',
       ];

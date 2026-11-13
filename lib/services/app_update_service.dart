@@ -1,25 +1,44 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
 
 class AppUpdateService {
-  /// The current app release version.
-  static const String currentAppVersion = '1.2.17';
+  /// The current app release version (fallback if PackageInfo is unavailable).
+  static String currentAppVersion = '1.2.18';
+  static bool _initialized = false;
 
   /// GitHub repository release endpoint for Cartzy.
   static const String latestReleaseApi =
       'https://api.github.com/repos/jessicabajamundi/cartzy/releases/latest';
 
   static const String defaultReleasePage =
-      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.2.17';
+      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.2.18';
 
   static const String _keyLastSeenPatch = 'cartzy_last_seen_patch_version';
+
+  /// Initializes the app version from platform package metadata at runtime.
+  static Future<void> init() async {
+    if (_initialized) return;
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final v = info.version.trim();
+      if (v.isNotEmpty) {
+        currentAppVersion = v;
+      }
+    } catch (_) {
+      // Keep static fallback version if platform info fails
+    }
+    _initialized = true;
+  }
 
   /// Runs once on startup or when navigating to the main screen.
   /// Checks for both remote newer updates and local patch notes.
   static Future<void> checkOnAppStart(BuildContext context) async {
+    await init();
+
     // 1. First, check if there's a newer version published on GitHub
     final remoteUpdateFound = await _checkRemoteUpdate(context);
     if (remoteUpdateFound) return;
@@ -35,6 +54,7 @@ class AppUpdateService {
   static Future<bool> checkLocalPatchNotes(BuildContext context,
       {bool forceShow = false}) async {
     try {
+      await init();
       final prefs = await SharedPreferences.getInstance();
       final lastSeen = prefs.getString(_keyLastSeenPatch);
 
@@ -62,6 +82,8 @@ class AppUpdateService {
   /// Checks GitHub for an update newer than [currentAppVersion].
   static Future<bool> _checkRemoteUpdate(BuildContext context) async {
     try {
+      await init();
+
       final res = await http.get(
         Uri.parse(latestReleaseApi),
         headers: {
@@ -73,7 +95,8 @@ class AppUpdateService {
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         if (data is Map<String, dynamic>) {
-          final tagName = (data['tag_name'] ?? '').toString().replaceAll('v', '').trim();
+          final rawTagName = (data['tag_name'] ?? '').toString().trim();
+          final cleanTag = rawTagName.replaceFirst(RegExp(r'^[vV]'), '').trim();
           final htmlUrl = (data['html_url'] ?? defaultReleasePage).toString();
 
           // Find direct APK asset if available
@@ -89,7 +112,7 @@ class AppUpdateService {
             }
           }
 
-          if (_isVersionNewer(tagName, currentAppVersion)) {
+          if (_isVersionNewer(cleanTag, currentAppVersion)) {
             if (!context.mounted) return false;
 
             List<String>? remoteHighlights;
@@ -110,7 +133,7 @@ class AppUpdateService {
 
             await PatchNotesDialog.showUpdateAvailable(
               context,
-              newVersion: tagName,
+              newVersion: cleanTag,
               currentVersion: currentAppVersion,
               highlights: remoteHighlights,
               downloadUrl: downloadUrl,
@@ -120,23 +143,67 @@ class AppUpdateService {
         }
       }
     } catch (_) {
-      // Fail silently if offline
+      // Fail silently if offline or request fails
     }
     return false;
   }
 
-  /// Compares semantic versions (e.g., "1.1.3" > "1.1.2").
-  static bool _isVersionNewer(String remote, String current) {
-    if (remote.isEmpty) return false;
+  /// Parses a version string into [major, minor, patch, build].
+  /// Handles formats like "1.2.18", "v1.2.18", "1.2.18+29", "1.2.18-patch1".
+  static List<int> parseVersionParts(String version) {
+    if (version.isEmpty) return [0, 0, 0, 0];
     try {
-      final rParts = remote.split('.').map((e) => int.tryParse(e) ?? 0).toList();
-      final cParts = current.split('.').map((e) => int.tryParse(e) ?? 0).toList();
+      var clean = version.trim().replaceFirst(RegExp(r'^[vV]'), '');
 
+      var build = 0;
+      if (clean.contains('+')) {
+        final plusParts = clean.split('+');
+        clean = plusParts[0];
+        if (plusParts.length > 1) {
+          final digits = RegExp(r'\d+').stringMatch(plusParts[1]);
+          build = digits != null ? (int.tryParse(digits) ?? 0) : 0;
+        }
+      }
+
+      if (clean.contains('-')) {
+        clean = clean.split('-')[0];
+      }
+
+      final segments = clean.split('.');
+      final major = segments.isNotEmpty
+          ? (int.tryParse(RegExp(r'\d+').stringMatch(segments[0]) ?? '') ?? 0)
+          : 0;
+      final minor = segments.length > 1
+          ? (int.tryParse(RegExp(r'\d+').stringMatch(segments[1]) ?? '') ?? 0)
+          : 0;
+      final patch = segments.length > 2
+          ? (int.tryParse(RegExp(r'\d+').stringMatch(segments[2]) ?? '') ?? 0)
+          : 0;
+
+      return [major, minor, patch, build];
+    } catch (_) {
+      return [0, 0, 0, 0];
+    }
+  }
+
+  /// Compares versions and returns true ONLY if [remote] is strictly newer than [current].
+  /// If [current] >= [remote], returns false.
+  static bool _isVersionNewer(String remote, String current) {
+    if (remote.trim().isEmpty) return false;
+    try {
+      final r = parseVersionParts(remote);
+      final c = parseVersionParts(current);
+
+      // Compare major, minor, patch
       for (var i = 0; i < 3; i++) {
-        final r = i < rParts.length ? rParts[i] : 0;
-        final c = i < cParts.length ? cParts[i] : 0;
-        if (r > c) return true;
-        if (r < c) return false;
+        if (r[i] > c[i]) return true;
+        if (r[i] < c[i]) return false;
+      }
+
+      // If major, minor, and patch are all identical, check build number
+      // only if both remote and current have a build number > 0.
+      if (r[3] > 0 && c[3] > 0) {
+        return r[3] > c[3];
       }
     } catch (_) {}
     return false;

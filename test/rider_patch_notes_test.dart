@@ -11,8 +11,8 @@ void main() {
     expect(PatchNotesDialog.latestRiderNotes('1.2.13').$1, '1.2.13');
     expect(PatchNotesDialog.latestRiderNotes('v1.2.12').$1, '1.2.12');
     // A newer app with no rider changes still shows the latest rider notes.
-    expect(PatchNotesDialog.latestRiderNotes('1.2.20').$1, '1.2.13');
-    expect(PatchNotesDialog.latestRiderNotes('1.3.0').$1, '1.2.13');
+    expect(PatchNotesDialog.latestRiderNotes('1.2.20').$1, '1.2.18');
+    expect(PatchNotesDialog.latestRiderNotes('1.3.0').$1, '1.2.18');
   });
 
   test('rider notes leave out buyer-only changes', () {
@@ -37,8 +37,8 @@ void main() {
     await tester.tap(button);
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.textContaining('Scan Barcodes and QR Codes', findRichText: true), findsOneWidget);
-    expect(find.textContaining('Accept or Decline', findRichText: true), findsOneWidget);
+    expect(find.textContaining('Google Sign-In Stability', findRichText: true), findsOneWidget);
+    expect(find.textContaining('Refined Navigation Bar', findRichText: true), findsOneWidget);
     expect(find.textContaining('Cozy', findRichText: true), findsNothing);
   });
 }
