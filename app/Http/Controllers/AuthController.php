@@ -109,9 +109,9 @@ class AuthController extends Controller
                 'eyebrow' => 'FOR LOGISTICS PARTNERS', 'heading' => ['Every parcel.', 'Right on time.'],
             ],
             User::ROLE_COURIER => [
-                'label' => 'Rider', 'route' => 'login.courier',
-                'title' => 'Rider Portal', 'subtitle' => 'Log in to see your deliveries and routes',
-                'button' => 'Sign In to Rider Portal', 'register' => route('register.rider'),
+                'label' => 'Courier', 'route' => 'login.courier',
+                'title' => 'Courier Portal', 'subtitle' => 'Log in to see your deliveries, routes and earnings',
+                'button' => 'Sign In to Courier Portal', 'register' => route('register.rider'),
                 'eyebrow' => 'FOR COURIER RIDERS', 'heading' => ['On the road.', 'On your terms.'],
             ],
             User::ROLE_ADMIN => [

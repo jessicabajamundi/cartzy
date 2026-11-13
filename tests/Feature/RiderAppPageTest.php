@@ -31,11 +31,11 @@ class RiderAppPageTest extends TestCase
         ]);
     }
 
-    public function test_rider_login_page_is_the_app_download_page(): void
+    public function test_rider_app_page_shows_the_app_download_page(): void
     {
         $this->fakeLatestRelease();
 
-        $this->get(route('login.courier'))
+        $this->get(route('rider.app'))
             ->assertOk()
             ->assertSee('Deliver with the', false)
             ->assertSee('Download the app (APK)')
@@ -65,12 +65,11 @@ class RiderAppPageTest extends TestCase
         $this->get(route('rider.app'))->assertOk()->assertDontSee('Version ');
     }
 
-    public function test_a_signed_in_rider_opening_the_hub_in_a_browser_gets_the_app_page(): void
+    public function test_a_signed_in_rider_opening_the_rider_app_page(): void
     {
         $this->fakeLatestRelease();
         $rider = User::factory()->create(['role' => User::ROLE_COURIER, 'status' => 'active', 'name' => 'Arnel Gomez']);
 
-        $this->actingAs($rider)->get('/courier/dashboard')->assertRedirect(route('rider.app'));
         $this->actingAs($rider)->get(route('rider.app'))
             ->assertOk()
             ->assertSee('signed in on the website as Arnel Gomez')

@@ -55,6 +55,14 @@
                             @include('admin.partials.icon', ['name' => 'external'])
                             <span>View shop</span>
                         </a>
+                        <button type="button" class="button subtle store-action store-action--remove" style="color: #dc2626; border-color: #fecaca;"
+                            data-trigger-remove-store
+                            data-store-id="{{ $store->id }}"
+                            data-store-name="{{ $store->name }}"
+                            data-action-url="{{ route('admin.stores.remove', $store->id) }}">
+                            @include('admin.partials.icon', ['name' => 'trash'])
+                            <span>Remove</span>
+                        </button>
                     </div></td>
                 </tr>
             @empty
@@ -65,6 +73,33 @@
     </div>
     @include('admin.partials.pagination', ['paginator' => $stores])
 </section>
+
+{{-- Modal dialog for removing a store with reason input --}}
+<dialog id="remove-store-modal" aria-labelledby="remove-store-title" aria-describedby="remove-store-desc">
+    <div class="user-status-modal-content">
+        <button type="button" class="user-status-modal-close" data-close-remove-modal aria-label="Close dialog">&times;</button>
+        <div class="user-status-modal-badge danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        </div>
+        <h2 id="remove-store-title" class="user-status-modal-title">Remove Store</h2>
+        <p id="remove-store-desc" class="user-status-modal-desc">
+            Enter the reason why this store is being removed. Its seller account will be deactivated and products unlisted.
+        </p>
+
+        <form id="remove-store-form" method="POST" action="">
+            @csrf
+            <label class="user-status-modal-label">
+                <span>Reason for removal <strong style="color: #dc2626;">*</strong></span>
+                <textarea name="removal_reason" id="remove-store-reason-input" class="user-status-modal-textarea" rows="4" required placeholder="Type the reason why this store is being removed..."></textarea>
+            </label>
+
+            <div class="user-status-modal-actions">
+                <button type="button" class="btn-cancel" data-close-remove-modal>Cancel</button>
+                <button type="submit" class="btn-confirm" style="background: #dc2626; color: #fff;">Confirm Removal</button>
+            </div>
+        </form>
+    </div>
+</dialog>
 @endsection
 @push('styles')
 <style>
@@ -78,5 +113,75 @@
     .store-actions .button.store-action--suspended { color: #b45309; border-color: #fde68a; }
     .store-actions .button.store-action--deactivated { color: #475569; border-color: #cbd5e1; }
     .store-actions .button.store-action--view { color: #1d4ed8; border-color: #bfdbfe; }
+    .store-actions .button.store-action--remove:hover { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+
+    #remove-store-modal {
+        width: min(500px, calc(100vw - 32px));
+        max-height: calc(100dvh - 32px);
+        margin: auto;
+        padding: 0;
+        border: 1px solid var(--line, #e2e8f0);
+        border-radius: 20px;
+        background: var(--surface, #fff);
+        color: var(--ink, #1f2937);
+        box-shadow: 0 24px 80px rgba(40, 33, 51, 0.28);
+        overflow: hidden;
+    }
+    #remove-store-modal::backdrop {
+        background: rgba(40, 33, 51, 0.55);
+        backdrop-filter: blur(4px);
+    }
 </style>
+@endpush
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('remove-store-modal');
+        if (!modal) return;
+
+        const form = document.getElementById('remove-store-form');
+        const titleEl = document.getElementById('remove-store-title');
+        const descEl = document.getElementById('remove-store-desc');
+        const reasonInput = document.getElementById('remove-store-reason-input');
+
+        document.querySelectorAll('[data-trigger-remove-store]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const storeName = this.dataset.storeName || 'Store';
+                const actionUrl = this.dataset.actionUrl;
+
+                form.action = actionUrl;
+                reasonInput.value = '';
+                titleEl.textContent = `Remove Store — ${storeName}`;
+                descEl.textContent = `Enter the reason why ${storeName} is being removed. Its seller account will be marked as removed and all products unlisted.`;
+
+                if (typeof modal.showModal === 'function') {
+                    modal.showModal();
+                } else {
+                    modal.setAttribute('open', '');
+                }
+                setTimeout(() => reasonInput.focus(), 80);
+            });
+        });
+
+        document.querySelectorAll('[data-close-remove-modal]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (typeof modal.close === 'function') modal.close();
+                else modal.removeAttribute('open');
+            });
+        });
+
+        modal.addEventListener('click', function (e) {
+            const rect = modal.getBoundingClientRect();
+            if (
+                e.clientX < rect.left ||
+                e.clientX > rect.right ||
+                e.clientY < rect.top ||
+                e.clientY > rect.bottom
+            ) {
+                if (typeof modal.close === 'function') modal.close();
+                else modal.removeAttribute('open');
+            }
+        });
+    });
+</script>
 @endpush

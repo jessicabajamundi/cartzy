@@ -27,7 +27,7 @@
             'icon' => '<path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/>',
         ],
         'courier' => [
-            'label' => 'Rider', 'description' => 'Deliver parcels using the cartzy Rider app', 'app' => true,
+            'label' => 'Courier', 'description' => 'Deliver parcels, track routes and manage earnings',
             'icon' => '<circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8"/><path d="M8 9h4"/>',
         ],
         'admin' => [
@@ -52,9 +52,6 @@
         'forgot' => route('password.forgot', ['portal' => $key]),
         'google' => route('auth.google', ['portal' => $key]),
     ]);
-    if ($portalData->has('courier')) {
-        $portalData['courier'] = ['subtitle' => 'Deliveries and routes are in the cartzy Rider app'] + $portalData['courier'];
-    }
     $active = $portalData[$current] ?? $portalData['buyer'];
     $hintKey = session('portal_hint') ? collect($portals)->search(fn ($p) => $p['label'] === session('portal_hint.label')) : null;
 
@@ -158,23 +155,7 @@
                 </div>
             @endif
 
-            {{-- Riders: the app is where they sign in --}}
-            <div class="lm-app-note" data-lm-section="app" @unless($current === 'courier') hidden @endunless>
-                <span class="lm-app-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg>
-                </span>
-                <p class="lm-app-title">Riders sign in on the cartzy app</p>
-                <p class="lm-app-text">Your deliveries, routes and earnings live in the Rider app. Install it on your Android phone and log in there.</p>
-                <a href="{{ route('login.courier') }}" class="lm-submit lm-app-button" data-lm-skip>
-                    <span>Get the Rider app</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 10l6 6 6-6M5 20h14"/></svg>
-                </a>
-                @if(! empty($portals['courier']['register']))
-                    <p class="lm-foot">Want to deliver with us? <a href="{{ $portals['courier']['register'] }}" class="lm-link" data-lm-skip>Apply as a rider</a></p>
-                @endif
-            </div>
-
-            <div data-lm-section="form" @if($current === 'courier') hidden @endif>
+            <div data-lm-section="form">
                 <form action="{{ route('login.submit') }}" method="POST" class="lm-form" id="lm-form" novalidate>
                     @csrf
                     <input type="hidden" name="portal" value="{{ $current }}" data-lm-portal-input>
@@ -234,6 +215,10 @@
 
                 <p class="lm-foot" data-lm-register-row @unless($active['register']) hidden @endunless>
                     New to cartzy? <a href="{{ $active['register'] ?? route('register') }}" class="lm-link" data-lm-register data-lm-skip>Create an account</a>
+                </p>
+
+                <p class="lm-foot lm-app-tip" data-lm-section="app-tip" @unless($current === 'courier') hidden @endunless style="margin-top: 10px; font-size: 13px; color: #64748b; text-align: center;">
+                    Delivering with Android? <a href="{{ route('rider.app') }}" class="lm-link" data-lm-skip>Get the Rider App &rarr;</a>
                 </p>
             </div>
         </div>

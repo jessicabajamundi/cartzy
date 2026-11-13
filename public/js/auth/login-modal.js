@@ -27,7 +27,7 @@
 
     function updateUrl() {
         if (!standalone || !window.history.replaceState) return;
-        var key = step === 'login' && current !== 'courier' ? current : 'buyer';
+        var key = step === 'login' ? current : 'buyer';
         var data = portals[key];
         if (!data) return;
         window.history.replaceState(null, '', data.url);
@@ -56,9 +56,6 @@
         if (step === 'choose') {
             var role = stepEl('choose').querySelector('.lm-role[data-lm-role="' + current + '"]') || stepEl('choose').querySelector('.lm-role');
             if (role) role.focus({ preventScroll: true });
-        } else if (current === 'courier') {
-            var app = $('.lm-app-button');
-            if (app) app.focus({ preventScroll: true });
         } else {
             var email = $('#lm-email');
             var target = email && email.value ? $('#lm-password') : email;
@@ -73,9 +70,8 @@
         var changed = key !== current;
         current = key;
 
-        var isApp = key === 'courier';
-        $('[data-lm-section="app"]').hidden = !isApp;
-        $('[data-lm-section="form"]').hidden = isApp;
+        var appTip = $('[data-lm-section="app-tip"]');
+        if (appTip) appTip.hidden = key !== 'courier';
 
         $('[data-lm-badge-icon]').innerHTML = data.icon;
         $('[data-lm-badge-label]').textContent = data.label;
@@ -239,7 +235,7 @@
     var buyerPath = portals.buyer ? path(portals.buyer.url) : '/login';
     var rolesByPath = {};
     Object.keys(portals).forEach(function (key) {
-        if (key !== 'courier' && key !== 'buyer') rolesByPath[path(portals[key].url)] = key;
+        if (key !== 'buyer') rolesByPath[path(portals[key].url)] = key;
     });
 
     document.addEventListener('click', function (event) {

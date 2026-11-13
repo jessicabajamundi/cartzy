@@ -99,6 +99,47 @@ class AdminPortalController extends Controller
         });
     }
 
+    public function removeStore(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'removal_reason' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        return DB::transaction(function () use ($request, $id, $data) {
+            $store = Seller::findOrFail($id);
+            $user = User::lockForUpdate()->findOrFail($store->user_id);
+            abort_if($user->isAdmin(), 422, 'Administrator access cannot be changed here.');
+
+            $reason = trim($data['removal_reason'] ?? '') ?: 'Store removed by platform administration.';
+
+            $user->update([
+                'status' => 'removed',
+                'is_suspended' => true,
+                'removal_reason' => $reason,
+                'removed_at' => now(),
+            ]);
+
+            $store->update(['status' => 'rejected', 'rejection_reason' => $reason]);
+            Product::where('seller_id', $store->id)->update(['is_active' => false]);
+
+            try {
+                NotificationService::notify(
+                    $user->id,
+                    'account_removed',
+                    'Store Account Removed',
+                    "Your store \"{$store->name}\" and seller account have been removed by platform administration. Reason: {$reason}",
+                    url('/login')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Store remove notification error: ' . $e->getMessage());
+            }
+
+            $this->audit('Store removed', "Store '{$store->name}' (#{$store->id}) and seller '{$user->name}' (#{$user->id}) were permanently removed. Reason: {$reason}");
+
+            return back()->with('success', "Store \"{$store->name}\" has been permanently removed.");
+        });
+    }
+
     public function products(Request $request)
     {
         $statusCounts = [

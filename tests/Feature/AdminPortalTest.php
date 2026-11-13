@@ -83,6 +83,22 @@ class AdminPortalTest extends TestCase
         $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'active'])->assertNotFound();
     }
 
+    public function test_admin_can_remove_store_directly(): void
+    {
+        $owner = User::factory()->create(['role' => 'seller', 'status' => 'active']);
+        $store = Seller::create(['user_id' => $owner->id, 'name' => 'Direct Remove Shop', 'slug' => 'direct-remove-shop', 'status' => 'approved']);
+        $admin = $this->admin();
+        $this->actingAs($admin);
+        $this->get('/admin/stores?search=Direct')->assertOk()->assertSee('Direct Remove Shop');
+
+        $this->post('/admin/stores/'.$store->id.'/remove', ['removal_reason' => 'Policy non-compliance'])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+        $this->assertSame('removed', $owner->fresh()->status);
+        $this->assertSame('rejected', $store->fresh()->status);
+        $this->get('/admin/stores?search=Direct')->assertOk()->assertSee('No registered stores found');
+    }
+
     public function test_totals_use_saved_commission_and_exclude_unpaid_cancelled_and_refunded_orders(): void
     {
         $this->order();

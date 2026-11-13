@@ -34,11 +34,11 @@ class LoginModalTest extends TestCase
                 'Buyer', 'Shop, track orders and save favourites',
                 'Seller', 'Manage your store, products and orders',
                 'Logistics', 'Run pickups and riders for your hub',
-                'Rider', 'In the app', 'Deliver parcels using the cartzy Rider app',
+                'Courier', 'Deliver parcels, track routes and manage earnings',
                 'Admin', 'Oversee the platform. Authorized staff only',
             ])
-            ->assertSee('Riders sign in on the cartzy app')
-            ->assertSee(route('login.courier'), false);
+            ->assertSee('Delivering with Android?')
+            ->assertSee(route('rider.app'), false);
     }
 
     public function test_a_roles_own_login_page_opens_straight_on_its_form(): void
@@ -47,6 +47,11 @@ class LoginModalTest extends TestCase
             ->assertSee('data-step="login"', false)
             ->assertSee('Sign In to Seller Centre')
             ->assertSee('name="portal" value="seller"', false);
+
+        $this->get('/courier/login')->assertOk()
+            ->assertSee('data-step="login"', false)
+            ->assertSee('Sign In to Courier Portal')
+            ->assertSee('name="portal" value="courier"', false);
     }
 
     public function test_storefront_includes_the_modal_for_guests_only(): void

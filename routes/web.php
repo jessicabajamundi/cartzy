@@ -51,8 +51,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::get('/seller/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'seller')->name('login.seller');
     Route::get('/logistics/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'logistics')->name('login.logistics');
-    // Riders sign in on the Android app, so the rider "login" is the app download page.
-    Route::get('/courier/login', [\App\Http\Controllers\RiderAppController::class, 'show'])->name('login.courier');
+    Route::get('/courier/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'courier')->name('login.courier');
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->defaults('portal', 'admin')->name('login.admin');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 
@@ -89,6 +88,7 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
     Route::get('/stores', [AdminPortalController::class, 'stores'])->name('stores');
     Route::post('/stores/{id}/status', [AdminPortalController::class, 'updateStoreStatus'])->whereNumber('id')->name('stores.status');
     Route::post('/stores/{id}/archive', [AdminPortalController::class, 'archiveStore'])->whereNumber('id')->name('stores.archive');
+    Route::post('/stores/{id}/remove', [AdminPortalController::class, 'removeStore'])->whereNumber('id')->name('stores.remove');
 
     // 2. Seller Products Workspace & Approvals
     Route::get('/products', [AdminPortalController::class, 'products'])->name('products');
@@ -319,8 +319,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Courier / Rider Hub Routes
-    // Rider Hub pages open in the Android app; in a browser they show the download page.
-    Route::middleware(['role:courier', \App\Http\Middleware\RidersUseTheApp::class])->prefix('courier')->name('courier.')->group(function () {
+    Route::middleware(['role:courier'])->prefix('courier')->name('courier.')->group(function () {
         // 1. Dashboard Overview
         Route::get('/', [CourierDashboardController::class, 'index']);
         Route::get('/dashboard', [CourierDashboardController::class, 'index'])->name('dashboard');
