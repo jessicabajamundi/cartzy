@@ -57,11 +57,12 @@ class CourierRiderHubTest extends TestCase
         return [$courier, $rider, $provider];
     }
 
-    public function test_courier_dashboard_in_a_browser_opens_the_dashboard(): void
+    public function test_courier_dashboard_in_a_browser_opens_the_app_download_page(): void
     {
         [$courier] = $this->createCourierRider();
 
-        $this->actingAs($courier)->get(route('courier.dashboard'))->assertOk();
+        // Rider Hub pages now open in the app; the browser shows the download page.
+        $this->actingAs($courier)->get(route('courier.dashboard'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_pickups_page_and_accept_action(): void
@@ -86,7 +87,7 @@ class CourierRiderHubTest extends TestCase
             'status'                => 'pending',
         ]);
 
-        $this->actingAs($courier)->get(route('courier.pickups'))->assertOk();
+        $this->actingAs($courier)->get(route('courier.pickups'))->assertRedirect(route('rider.app'));
 
         // Collecting from the seller is a First Mile courier's job.
         $courier->rider->update(['courier_type' => \App\Models\Rider::FIRST_MILE]);
@@ -147,7 +148,7 @@ class CourierRiderHubTest extends TestCase
             'cod_collected'         => false,
         ]);
 
-        $this->actingAs($courier)->get(route('courier.deliveries'))->assertOk();
+        $this->actingAs($courier)->get(route('courier.deliveries'))->assertRedirect(route('rider.app'));
 
         $deliverResponse = $this->actingAs($courier)->post(route('courier.deliver', $shipment->id), [
             'recipient_name' => 'Danilo Cruz',
@@ -168,28 +169,28 @@ class CourierRiderHubTest extends TestCase
     {
         [$courier] = $this->createCourierRider();
 
-        $this->actingAs($courier)->get(route('courier.earnings'))->assertOk();
+        $this->actingAs($courier)->get(route('courier.earnings'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_history_page(): void
     {
         [$courier] = $this->createCourierRider();
 
-        $this->actingAs($courier)->get(route('courier.history'))->assertOk();
+        $this->actingAs($courier)->get(route('courier.history'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_chat_page(): void
     {
         [$courier] = $this->createCourierRider();
 
-        $this->actingAs($courier)->get(route('courier.chat'))->assertOk();
+        $this->actingAs($courier)->get(route('courier.chat'))->assertRedirect(route('rider.app'));
     }
 
     public function test_courier_account_page_and_status_toggle(): void
     {
         [$courier, $rider] = $this->createCourierRider();
 
-        $this->actingAs($courier)->get(route('courier.account'))->assertOk();
+        $this->actingAs($courier)->get(route('courier.account'))->assertRedirect(route('rider.app'));
 
         $toggleResponse = $this->actingAs($courier)->post(route('courier.account.toggle-status'));
         $toggleResponse->assertRedirect();

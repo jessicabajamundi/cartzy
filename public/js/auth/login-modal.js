@@ -27,7 +27,8 @@
 
     function updateUrl() {
         if (!standalone || !window.history.replaceState) return;
-        var key = step === 'login' ? current : 'buyer';
+        var isApp = current === 'courier' || current === 'rider';
+        var key = step === 'login' && !isApp ? current : 'buyer';
         var data = portals[key];
         if (!data) return;
         window.history.replaceState(null, '', data.url);
@@ -56,6 +57,9 @@
         if (step === 'choose') {
             var role = stepEl('choose').querySelector('.lm-role[data-lm-role="' + current + '"]') || stepEl('choose').querySelector('.lm-role');
             if (role) role.focus({ preventScroll: true });
+        } else if (current === 'courier' || current === 'rider') {
+            var app = $('.lm-app-button');
+            if (app) app.focus({ preventScroll: true });
         } else {
             var email = $('#lm-email');
             var target = email && email.value ? $('#lm-password') : email;
@@ -70,8 +74,21 @@
         var changed = key !== current;
         current = key;
 
-        var appTip = $('[data-lm-section="app-tip"]');
-        if (appTip) appTip.hidden = key !== 'courier';
+        var isApp = key === 'courier' || key === 'rider';
+        var appSection = $('[data-lm-section="app"]');
+        var formSection = $('[data-lm-section="form"]');
+        if (appSection) appSection.hidden = !isApp;
+        if (formSection) formSection.hidden = isApp;
+
+        var appTitle = $('[data-lm-app-title]');
+        if (appTitle) {
+            appTitle.textContent = key === 'courier' ? 'Couriers sign in on the cartzy app' : 'Riders sign in on the cartzy app';
+        }
+        var appRegister = $('[data-lm-app-register]');
+        if (appRegister) {
+            appRegister.textContent = 'Apply as a ' + (key === 'courier' ? 'courier' : 'rider');
+            if (data.register) appRegister.href = data.register;
+        }
 
         $('[data-lm-badge-icon]').innerHTML = data.icon;
         $('[data-lm-badge-label]').textContent = data.label;
@@ -235,7 +252,7 @@
     var buyerPath = portals.buyer ? path(portals.buyer.url) : '/login';
     var rolesByPath = {};
     Object.keys(portals).forEach(function (key) {
-        if (key !== 'buyer') rolesByPath[path(portals[key].url)] = key;
+        if (key !== 'courier' && key !== 'rider' && key !== 'buyer') rolesByPath[path(portals[key].url)] = key;
     });
 
     document.addEventListener('click', function (event) {

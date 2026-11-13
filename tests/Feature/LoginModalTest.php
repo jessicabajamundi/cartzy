@@ -34,10 +34,11 @@ class LoginModalTest extends TestCase
                 'Buyer', 'Shop, track orders and save favourites',
                 'Seller', 'Manage your store, products and orders',
                 'Logistics', 'Run pickups and riders for your hub',
-                'Courier', 'Deliver parcels, track routes and manage earnings',
+                'Courier', 'In the app', 'First Mile: collect parcels from sellers for the hub',
+                'Rider', 'In the app', 'Last Mile: deliver parcels from the hub to buyers',
                 'Admin', 'Oversee the platform. Authorized staff only',
             ])
-            ->assertSee('Delivering with Android?')
+            ->assertSee('Riders sign in on the cartzy app')
             ->assertSee(route('rider.app'), false);
     }
 
@@ -49,9 +50,29 @@ class LoginModalTest extends TestCase
             ->assertSee('name="portal" value="seller"', false);
 
         $this->get('/courier/login')->assertOk()
-            ->assertSee('data-step="login"', false)
-            ->assertSee('Sign In to Courier Portal')
-            ->assertSee('name="portal" value="courier"', false);
+            ->assertSee('Download the app (APK)')
+            ->assertDontSee('name="portal" value="courier"', false);
+
+        $this->get('/rider/login')->assertOk()
+            ->assertSee('Download the app (APK)')
+            ->assertDontSee('name="portal" value="rider"', false);
+    }
+
+    public function test_courier_or_rider_cannot_sign_in_via_web_form(): void
+    {
+        $courier = User::factory()->create([
+            'role' => User::ROLE_COURIER,
+            'password' => bcrypt('secret123'),
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $courier->email,
+            'password' => 'secret123',
+            'portal' => 'buyer',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertGuest();
     }
 
     public function test_storefront_includes_the_modal_for_guests_only(): void

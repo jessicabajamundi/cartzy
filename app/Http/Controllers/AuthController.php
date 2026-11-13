@@ -108,11 +108,17 @@ class AuthController extends Controller
                 'button' => 'Sign In to Logistics Hub', 'register' => route('register', ['role' => User::ROLE_LOGISTICS]),
                 'eyebrow' => 'FOR LOGISTICS PARTNERS', 'heading' => ['Every parcel.', 'Right on time.'],
             ],
-            User::ROLE_COURIER => [
+            'courier' => [
                 'label' => 'Courier', 'route' => 'login.courier',
-                'title' => 'Courier Portal', 'subtitle' => 'Log in to see your deliveries, routes and earnings',
-                'button' => 'Sign In to Courier Portal', 'register' => route('register.rider'),
-                'eyebrow' => 'FOR COURIER RIDERS', 'heading' => ['On the road.', 'On your terms.'],
+                'title' => 'Courier', 'subtitle' => 'Deliveries and routes are in the cartzy app',
+                'button' => 'Get the Rider app', 'register' => route('register.rider', ['type' => \App\Models\Rider::FIRST_MILE]),
+                'eyebrow' => 'FOR COURIERS', 'heading' => ['On the road.', 'On your terms.'],
+            ],
+            'rider' => [
+                'label' => 'Rider', 'route' => 'login.rider',
+                'title' => 'Rider', 'subtitle' => 'Deliveries and routes are in the cartzy app',
+                'button' => 'Get the Rider app', 'register' => route('register.rider', ['type' => \App\Models\Rider::LAST_MILE]),
+                'eyebrow' => 'FOR RIDERS', 'heading' => ['Every delivery.', 'On your terms.'],
             ],
             User::ROLE_ADMIN => [
                 'label' => 'Admin', 'route' => 'login.admin',
@@ -134,7 +140,7 @@ class AuthController extends Controller
     {
         $section = explode('/', trim($path, '/'))[0];
 
-        return in_array($section, [User::ROLE_SELLER, User::ROLE_LOGISTICS, User::ROLE_COURIER, User::ROLE_ADMIN], true)
+        return in_array($section, [User::ROLE_SELLER, User::ROLE_LOGISTICS, User::ROLE_COURIER, 'rider', User::ROLE_ADMIN], true)
             ? self::loginRouteFor($section) : 'login';
     }
 
@@ -165,6 +171,17 @@ class AuthController extends Controller
         try {
             if (Auth::attempt($credentials, $remember)) {
                 $user = Auth::user();
+
+                if ($user->role === User::ROLE_COURIER) {
+                    ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Couriers and riders must sign in using the mobile app']);
+                    Auth::logout();
+                    $request->session()->invalidate();
+                    $request->session()->regenerateToken();
+
+                    return back()->withErrors([
+                        'email' => 'Couriers and riders sign in using the cartzy mobile app. Please install the app on your phone to access your account.',
+                    ])->onlyInput('email');
+                }
 
                 if ($user->role !== $portal) {
                     ActivityLog::record(ActivityLog::FAILED_LOGIN, $request, $user, ['method' => 'password', 'description' => 'Wrong login portal ('.$portal.')']);
