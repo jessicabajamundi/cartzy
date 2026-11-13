@@ -73,18 +73,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 pendingArchive = { form, submitter: event.submitter };
                 const deleting = form.dataset.archiveAction === 'delete';
                 archiveDialog.dataset.action = form.dataset.archiveAction;
+                const itemType = form.dataset.archiveType || (form.dataset.productName ? 'listing' : 'record');
+                const itemName = form.dataset.itemName || form.dataset.productName || 'this item';
+
                 document.getElementById('archive-confirm-title').textContent = deleting
-                    ? 'Permanently delete this listing?' : 'Restore this listing?';
+                    ? `Permanently delete this ${itemType}?` : `Restore this ${itemType}?`;
                 document.getElementById('archive-confirm-message').textContent = deleting
-                    ? `Are you sure you want to permanently delete “${form.dataset.productName}”?`
-                    : `Are you sure you want to restore “${form.dataset.productName}”?`;
+                    ? `Are you sure you want to permanently delete “${itemName}” from the database?`
+                    : `Are you sure you want to restore “${itemName}”?`;
                 document.getElementById('archive-confirm-note').textContent = deleting
-                    ? 'This action cannot be undone. You will no longer be able to restore this listing.'
-                    : 'This listing will become active again and visible on the marketplace.';
-                archiveSubmit.textContent = deleting ? 'Yes, delete permanently' : 'Yes, restore listing';
+                    ? 'This action cannot be undone. This record will be permanently deleted from the database.'
+                    : `This ${itemType} will become active again on the marketplace.`;
+                archiveSubmit.textContent = deleting ? 'Yes, delete permanently' : `Yes, restore ${itemType}`;
                 archiveSubmit.disabled = false;
                 archiveDialog.showModal();
-                archiveDialog.querySelector('[autofocus]').focus();
+                archiveDialog.querySelector('[autofocus]')?.focus();
                 return;
             }
         });

@@ -420,5 +420,71 @@ class AdminPortalTest extends TestCase
             ->assertRedirect();
         $this->assertSame('open', DB::table('admin_disputes')->where('id', $disputeId)->value('status'));
     }
+
+    public function test_admin_can_permanently_delete_archived_accounts_applications_and_disputes(): void
+    {
+        $this->actingAs($this->admin());
+
+        // 1. Permanently delete an archived account
+        $archivedUser = User::factory()->create([
+            'name' => 'To Be Deleted User',
+            'email' => 'tobedeleted@example.test',
+            'role' => 'seller',
+            'status' => 'removed',
+            'removal_reason' => 'Store closed by policy',
+        ]);
+        $seller = Seller::create(['user_id' => $archivedUser->id, 'name' => 'To Be Deleted Store', 'slug' => 'to-be-deleted-store', 'status' => 'rejected']);
+
+        $this->get(route('admin.archive', ['tab' => 'users']))
+            ->assertOk()
+            ->assertSee('To Be Deleted User')
+            ->assertSee(route('admin.archive.users.force', $archivedUser->id));
+
+        $this->delete(route('admin.archive.users.force', $archivedUser->id))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('users', ['id' => $archivedUser->id]);
+        $this->assertDatabaseMissing('sellers', ['id' => $seller->id]);
+
+        // 2. Permanently delete a rejected registration application
+        $rejectedApp = User::factory()->create([
+            'name' => 'Rejected Applicant To Delete',
+            'role' => 'courier',
+            'status' => 'rejected',
+            'id_status' => 'rejected',
+        ]);
+
+        $this->get(route('admin.archive', ['tab' => 'registrations']))
+            ->assertOk()
+            ->assertSee('Rejected Applicant To Delete')
+            ->assertSee(route('admin.archive.registrations.force', $rejectedApp->id));
+
+        $this->delete(route('admin.archive.registrations.force', $rejectedApp->id))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('users', ['id' => $rejectedApp->id]);
+
+        // 3. Permanently delete a resolved dispute
+        $order = $this->order();
+        $disputeId = DB::table('admin_disputes')->insertGetId([
+            'order_id' => $order->order->id,
+            'subject' => 'Dispute to delete permanently',
+            'description' => 'Test dispute body.',
+            'status' => 'resolved',
+            'resolved_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->get(route('admin.archive', ['tab' => 'disputes']))
+            ->assertOk()
+            ->assertSee('Dispute to delete permanently')
+            ->assertSee(route('admin.archive.disputes.force', $disputeId));
+
+        $this->delete(route('admin.archive.disputes.force', $disputeId))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('admin_disputes', ['id' => $disputeId]);
+    }
 }
 

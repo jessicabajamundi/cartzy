@@ -296,6 +296,13 @@
                                         @include('admin.partials.icon', ['name' => 'trash']) Remove
                                     </button>
                                 @endif
+                                <form method="POST" action="{{ route('admin.archive.users.force', $user->id) }}" data-archive-action="delete" data-archive-type="account" data-item-name="{{ $user->name }}" data-confirm="Permanently delete user account '{{ $user->name }}' from the database? This cannot be undone.">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="button" style="min-height: 32px; padding: 5px 12px; font-size: 11px; background: #dc2626; border-color: #dc2626; color: #fff;">
+                                        @include('admin.partials.icon', ['name' => 'trash']) Delete Permanently
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -387,11 +394,18 @@
                             <small>{{ $applicant->updated_at?->format('g:i A') }}</small>
                         </td>
                         <td>
-                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
                                 <form method="POST" action="{{ route('admin.archive.registrations.restore', $applicant->id) }}" data-confirm="Reopen this application and return it to pending review?">
                                     @csrf
                                     <button type="submit" class="button" style="min-height: 34px; padding: 6px 14px; font-size: 11px;">
                                         @include('admin.partials.icon', ['name' => 'refresh']) Reopen for Review
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.archive.registrations.force', $applicant->id) }}" data-archive-action="delete" data-archive-type="application" data-item-name="{{ $applicant->name }}" data-confirm="Permanently delete application for '{{ $applicant->name }}' from the database? This cannot be undone.">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="button" style="min-height: 34px; padding: 6px 14px; font-size: 11px; background: #dc2626; border-color: #dc2626; color: #fff;">
+                                        @include('admin.partials.icon', ['name' => 'trash']) Delete Permanently
                                     </button>
                                 </form>
                             </div>
@@ -440,12 +454,19 @@
                         <h2>{{ $dispute->subject }}</h2>
                         <p class="muted">Buyer: {{ $dispute->buyer_name }} · Resolved on {{ \Carbon\Carbon::parse($dispute->resolved_at ?? $dispute->updated_at)->format('M j, Y g:i A') }}</p>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <span class="badge good">Resolved Case</span>
                         <form method="POST" action="{{ route('admin.archive.disputes.reopen', $dispute->id) }}" data-confirm="Reopen case #{{ $dispute->id }} and move back to active disputes?">
                             @csrf
                             <button type="submit" class="button subtle" style="min-height: 32px; padding: 5px 12px; font-size: 11px;">
                                 @include('admin.partials.icon', ['name' => 'refresh']) Reopen Dispute
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('admin.archive.disputes.force', $dispute->id) }}" data-archive-action="delete" data-archive-type="dispute" data-item-name="Case #{{ $dispute->id }} ({{ $dispute->reference }})" data-confirm="Permanently delete dispute case #{{ $dispute->id }} from the database? This cannot be undone.">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="button" style="min-height: 32px; padding: 5px 12px; font-size: 11px; background: #dc2626; border-color: #dc2626; color: #fff;">
+                                @include('admin.partials.icon', ['name' => 'trash']) Delete Permanently
                             </button>
                         </form>
                     </div>

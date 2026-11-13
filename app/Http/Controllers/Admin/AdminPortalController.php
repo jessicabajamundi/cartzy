@@ -1262,6 +1262,116 @@ class AdminPortalController extends Controller
         return back()->with('success', 'Account has been removed and removal reason saved.');
     }
 
+    public function forceDeleteUser(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $user = User::findOrFail($id);
+            abort_if($user->isAdmin(), 422, 'Administrator access cannot be deleted.');
+
+            $name = $user->name;
+            $role = $user->role;
+
+            $this->performPermanentUserDelete($user);
+
+            $this->audit('Account permanently deleted', "User '{$name}' (#{$id}, role: {$role}) was permanently deleted from the database.");
+        });
+
+        return back()->with('success', 'User account has been permanently deleted from the database.');
+    }
+
+    public function forceDeleteRegistration(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $user = User::findOrFail($id);
+            abort_if($user->isAdmin(), 422, 'Administrator access cannot be deleted.');
+
+            $name = $user->name;
+
+            $this->performPermanentUserDelete($user);
+
+            $this->audit('Registration application permanently deleted', "Application for '{$name}' (#{$id}) was permanently deleted from the database.");
+        });
+
+        return back()->with('success', 'Registration application has been permanently deleted from the database.');
+    }
+
+    public function forceDeleteDispute(int $id)
+    {
+        DB::transaction(function () use ($id) {
+            $dispute = DB::table('admin_disputes')->where('id', $id)->first();
+            abort_unless($dispute, 404);
+
+            $reference = $dispute->reference ?? "#{$id}";
+
+            // Remove associated return workflow if any
+            $returnCase = DB::table('return_cases')->where('admin_dispute_id', $id)->first();
+            if ($returnCase) {
+                DB::table('refund_transactions')->where('return_case_id', $returnCase->id)->delete();
+                DB::table('return_events')->where('return_case_id', $returnCase->id)->delete();
+                DB::table('return_cases')->where('id', $returnCase->id)->delete();
+            }
+
+            DB::table('admin_disputes')->where('id', $id)->delete();
+
+            $this->audit('Dispute permanently deleted', "Dispute case #{$id} ({$reference}) was permanently deleted from the database.");
+        });
+
+        return back()->with('success', 'Dispute record has been permanently deleted from the database.');
+    }
+
+    protected function performPermanentUserDelete(User $user): void
+    {
+        // 1. Force delete all seller products and variants
+        if ($user->seller) {
+            $sellerId = $user->seller->id;
+            Product::withTrashed()->where('seller_id', $sellerId)->each(function ($p) {
+                $p->variants()->withTrashed()->forceDelete();
+                $p->forceDelete();
+            });
+        }
+
+        // 2. Clear any recorded_by references in refund_transactions
+        DB::table('refund_transactions')->where('recorded_by', $user->id)->update([
+            'recorded_by' => auth()->id() ?? 1,
+        ]);
+
+        // 3. Clear return cases and refunds for user's orders or seller orders
+        $orderIds = DB::table('orders')->where('buyer_id', $user->id)->pluck('id')->all();
+        $sellerOrderIds = $user->seller ? DB::table('seller_orders')->where('seller_id', $user->seller->id)->pluck('id')->all() : [];
+
+        if (!empty($orderIds) || !empty($sellerOrderIds)) {
+            $refundQuery = DB::table('refund_transactions')->where(function ($q) use ($orderIds, $sellerOrderIds) {
+                if (!empty($orderIds)) {
+                    $q->whereIn('order_id', $orderIds);
+                }
+                if (!empty($sellerOrderIds)) {
+                    $q->orWhereIn('seller_order_id', $sellerOrderIds);
+                }
+            });
+            $returnCaseIds = $refundQuery->pluck('return_case_id')->filter()->unique();
+            $refundQuery->delete();
+
+            if ($returnCaseIds->isNotEmpty()) {
+                DB::table('return_events')->whereIn('return_case_id', $returnCaseIds)->delete();
+                DB::table('return_cases')->whereIn('id', $returnCaseIds)->delete();
+            }
+        }
+
+        // 4. Delete user files from storage
+        if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+        if ($user->id_photo) {
+            Storage::disk('public')->delete($user->id_photo);
+        }
+        if ($user->dti_permit) {
+            Storage::disk('public')->delete($user->dti_permit);
+        }
+
+        // 5. Delete the user (cascades to sellers, buyers, riders, notifications, etc.)
+        $user->delete();
+    }
+
     public function restoreArchivedRegistration(Request $request, int $id)
     {
         DB::transaction(function () use ($id) {

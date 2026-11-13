@@ -127,8 +127,11 @@ Route::middleware('admin.demo')->prefix('admin')->name('admin.')->group(function
         Route::delete('/archive/products/{id}/force', [AdminPortalController::class, 'forceDeleteProduct'])->name('archive.products.force');
         Route::post('/archive/users/{id}/restore', [AdminPortalController::class, 'restoreArchivedUser'])->name('archive.users.restore');
         Route::post('/archive/users/{id}/remove', [AdminPortalController::class, 'removeArchivedUser'])->name('archive.users.remove');
+        Route::delete('/archive/users/{id}/force', [AdminPortalController::class, 'forceDeleteUser'])->name('archive.users.force');
         Route::post('/archive/registrations/{id}/restore', [AdminPortalController::class, 'restoreArchivedRegistration'])->name('archive.registrations.restore');
+        Route::delete('/archive/registrations/{id}/force', [AdminPortalController::class, 'forceDeleteRegistration'])->name('archive.registrations.force');
         Route::post('/archive/disputes/{id}/reopen', [AdminPortalController::class, 'reopenArchivedDispute'])->name('archive.disputes.reopen');
+        Route::delete('/archive/disputes/{id}/force', [AdminPortalController::class, 'forceDeleteDispute'])->name('archive.disputes.force');
 
         // 5. Manage Complaints and Disputes
           Route::get('/disputes', [AdminPortalController::class, 'disputes'])->name('disputes');
