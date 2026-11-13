@@ -42,11 +42,35 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Read version from pubspec.yaml
+      - name: Read and auto-bump version
         id: version_step
         run: |
           RAW_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d '\r' | cut -d '+' -f 1)
           BUILD_NUMBER=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d '\r' | cut -d '+' -f 2)
+
+          # Fetch remote tags to check if this tag was already released
+          git fetch --tags origin || true
+
+          # If tag v${RAW_VERSION} already exists, bump patch and build number
+          if git rev-parse "v${RAW_VERSION}" >/dev/null 2>&1 || git ls-remote --tags origin "refs/tags/v${RAW_VERSION}" | grep -q "v${RAW_VERSION}"; then
+            echo "Tag v${RAW_VERSION} already exists. Auto-incrementing version..."
+            MAJOR=$(echo "$RAW_VERSION" | cut -d '.' -f 1)
+            MINOR=$(echo "$RAW_VERSION" | cut -d '.' -f 2)
+            PATCH=$(echo "$RAW_VERSION" | cut -d '.' -f 3)
+            NEW_PATCH=$((PATCH + 1))
+            RAW_VERSION="${MAJOR}.${MINOR}.${NEW_PATCH}"
+            BUILD_NUMBER=$((BUILD_NUMBER + 1))
+
+            sed -i "s/^version: .*/version: ${RAW_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+            echo "Bumped version to: ${RAW_VERSION}+${BUILD_NUMBER}"
+
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add pubspec.yaml
+            git commit -m "chore(release): auto-bump version to v${RAW_VERSION}+${BUILD_NUMBER} [skip ci]" || true
+            git push origin HEAD:${{ github.ref_name }} || true
+          fi
+
           echo "tag=v${RAW_VERSION}" >> $GITHUB_OUTPUT
           echo "version=${RAW_VERSION}" >> $GITHUB_OUTPUT
           echo "build=${BUILD_NUMBER}" >> $GITHUB_OUTPUT
