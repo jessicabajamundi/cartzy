@@ -43,11 +43,11 @@ class AdminPortalController extends Controller
                 ->orWhere(fn ($q) => $q->where('status', 'pending')->where('id_status', '!=', 'rejected')))->count(),
             'pending_products' => Product::where('approval_status', Product::APPROVAL_PENDING)->count(),
             'buyers' => User::where('role', 'buyer')->count(),
-            'sellers' => User::where('role', 'seller')->count(),
+            'sellers' => $this->registeredStores()->count(),
             'couriers' => User::where('role', 'courier')->count(),
             'products' => Product::count(),
         ];
-        $stores = Seller::with(['user', 'pickupAddress'])->withCount('products')->latest('id')->paginate(10)->withQueryString();
+        $stores = $this->registeredStores()->with(['user', 'pickupAddress'])->withCount('products')->latest('id')->paginate(10)->withQueryString();
         $activity = DB::table('admin_audit_logs')->latest('id')->limit(8)->get();
         return view('admin.dashboard', compact('stats', 'stores', 'activity'));
     }
@@ -637,6 +637,10 @@ class AdminPortalController extends Controller
             ]);
             $user->rider()->update(['is_active' => false]);
             $user->buyer()->update(['status' => 'archived']);
+            $user->seller()->update(['status' => 'suspended']);
+            if ($user->seller) {
+                Product::where('seller_id', $user->seller->id)->update(['is_active' => false]);
+            }
 
             try {
                 NotificationService::notify(
@@ -1192,6 +1196,10 @@ class AdminPortalController extends Controller
 
             $user->rider()->update(['is_active' => false]);
             $user->buyer()->update(['status' => 'removed']);
+            $user->seller()->update(['status' => 'rejected']);
+            if ($user->seller) {
+                Product::where('seller_id', $user->seller->id)->update(['is_active' => false]);
+            }
 
             try {
                 NotificationService::notify(

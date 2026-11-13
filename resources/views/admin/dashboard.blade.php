@@ -91,8 +91,8 @@
                         <span>{{ number_format($store->products_count ?? 0) }} {{ \Illuminate\Support\Str::plural('item', $store->products_count ?? 0) }}</span>
                     </td>
                     <td>
-                        <span class="badge {{ $store->status === 'approved' ? 'good' : ($store->status === 'pending' ? 'warning' : '') }}">
-                            {{ ucfirst($store->status ?? ($store->user?->status ?? 'pending')) }}
+                        <span class="badge {{ $store->user?->status === 'active' ? 'good' : 'warning' }}">
+                            {{ ucfirst($store->user?->status ?? 'Active') }}
                         </span>
                     </td>
                     <td class="nowrap">

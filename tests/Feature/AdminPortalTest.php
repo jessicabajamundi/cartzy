@@ -65,12 +65,21 @@ class AdminPortalTest extends TestCase
         $this->post('/admin/stores/'.$store->id.'/archive')->assertRedirect();
         $this->assertSame('archived', $owner->fresh()->status);
         $this->get('/admin/stores')->assertDontSee('Lifecycle Shop');
+        $this->get('/admin/dashboard')->assertDontSee('Lifecycle Shop');
         $this->get('/admin/archive?tab=users&role=seller')->assertSee($owner->email);
         $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'active'])->assertNotFound();
         $this->post('/admin/archive/users/'.$owner->id.'/restore')->assertRedirect();
         $this->get('/admin/stores')->assertSee('Lifecycle Shop');
+        $this->get('/admin/dashboard')->assertSee('Lifecycle Shop');
+        $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'suspended'])->assertRedirect();
+        $this->post('/admin/stores/'.$store->id.'/archive')->assertRedirect();
+        $this->post('/admin/archive/users/'.$owner->id.'/remove', ['removal_reason' => 'Closed violation'])->assertRedirect();
+        $this->assertSame('removed', $owner->fresh()->status);
+        $this->get('/admin/stores')->assertDontSee('Lifecycle Shop');
+        $this->get('/admin/dashboard')->assertDontSee('Lifecycle Shop');
         $store->update(['status' => 'pending']);
         $this->get('/admin/stores')->assertDontSee('Lifecycle Shop');
+        $this->get('/admin/dashboard')->assertDontSee('Lifecycle Shop');
         $this->post('/admin/stores/'.$store->id.'/status', ['status' => 'active'])->assertNotFound();
     }
 
