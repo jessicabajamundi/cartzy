@@ -76,7 +76,12 @@ class ProblemReportController extends Controller
                 throw ValidationException::withMessages(['category' => 'You already have an open report for this order.']);
             }
             $items = $sellerOrder->items->whereIn('id', $data['items'] ?? [])
-                ->map(fn ($item) => ['name' => $item->product_name, 'variation' => $item->variant_name, 'qty' => $item->quantity])->values()->all();
+                ->map(fn ($item) => [
+                    'name' => $item->product_name,
+                    'variation' => $item->variant_name,
+                    'qty' => $item->quantity,
+                    'image' => $item->thumbnail_url,
+                ])->values()->all();
             $dispute = AdminDispute::create([
                 'order_id' => $sellerOrder->order_id,
                 'seller_order_id' => $sellerOrder->id,

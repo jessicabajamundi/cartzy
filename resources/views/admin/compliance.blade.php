@@ -46,11 +46,18 @@
                     $mismatch = !empty($lob) && !empty($cat) && !$isMatch;
                     $sellerUser = $product->seller?->user;
                     $isSellerSuspended = $sellerUser && ($sellerUser->is_suspended || $sellerUser->status === 'suspended');
+                    $cover = $product->coverImage?->path ?? $product->images->first()?->path;
+                    $coverUrl = $cover ? (str_starts_with($cover, 'http') || str_starts_with($cover, '/') ? $cover : Storage::disk('public')->url($cover)) : asset('images/logo-transparent.png');
                 @endphp
                 <tr>
                     <td>
-                        <strong>{{ $product->name }}</strong>
-                        <small>Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</small>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;" loading="lazy">
+                            <div style="min-width: 0;">
+                                <strong style="display: block; font-size: 13.5px; line-height: 1.35; margin-bottom: 2px;">{{ $product->name }}</strong>
+                                <small style="display: block; color: var(--muted);">Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</small>
+                            </div>
+                        </div>
                     </td>
                     <td>
                         <strong>{{ $product->seller?->name ?? 'No store assigned' }}</strong>
@@ -78,10 +85,13 @@
                         <button type="button" class="review-open" data-dialog-open="enforce-{{ $product->id }}" aria-haspopup="dialog">Enforcement actions</button>
                         <dialog class="review-modal" id="enforce-{{ $product->id }}" aria-labelledby="enforce-{{ $product->id }}-title">
                             <header class="review-modal-head">
-                                <div>
-                                    <p class="review-modal-eyebrow">Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</p>
-                                    <h2 id="enforce-{{ $product->id }}-title">{{ $product->name }}</h2>
-                                    <p class="muted">{{ $product->seller?->name ?? 'No store assigned' }}@if($product->seller?->user?->email) · {{ $product->seller->user->email }}@endif</p>
+                                <div style="display: flex; gap: 14px; align-items: center;">
+                                    <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 58px; height: 58px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;">
+                                    <div>
+                                        <p class="review-modal-eyebrow">Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</p>
+                                        <h2 id="enforce-{{ $product->id }}-title" style="margin: 0 0 4px; font-size: 18px;">{{ $product->name }}</h2>
+                                        <p class="muted" style="margin: 0;">{{ $product->seller?->name ?? 'No store assigned' }}@if($product->seller?->user?->email) · {{ $product->seller->user->email }}@endif</p>
+                                    </div>
                                 </div>
                                 <button type="button" class="review-modal-close" data-dialog-close aria-label="Close">&times;</button>
                             </header>

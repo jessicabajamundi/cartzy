@@ -63,7 +63,35 @@
                     <dl>
                         <div><dt>Buyer wants</dt><dd>{{ \App\Models\AdminDispute::RESOLUTIONS[$dispute->requested_resolution] ?? '—' }}</dd></div>
                         <div><dt>Contact number</dt><dd>{{ $dispute->contact_phone ?: '—' }}</dd></div>
-                        <div><dt>Affected items</dt><dd>@forelse($reportItems as $item){{ $item['name'] }} ({{ $item['variation'] }} · x{{ $item['qty'] }})@if(!$loop->last), @endif @empty Whole order @endforelse</dd></div>
+                        <div>
+                            <dt>Affected items</dt>
+                            <dd>
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+                                    @forelse($reportItems as $item)
+                                        @php
+                                            $itemImg = $item['image'] ?? null;
+                                            if (!$itemImg && isset($order) && $order && $order->sellerOrders) {
+                                                $matchItem = $order->sellerOrders->flatMap(fn ($so) => $so->items ?? collect())->first(fn ($oi) => ($oi->product_name ?? '') === ($item['name'] ?? ''));
+                                                $itemImg = $matchItem?->thumbnail_url;
+                                            }
+                                            $itemImg = $itemImg ?: asset('images/logo-transparent.png');
+                                        @endphp
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <img src="{{ $itemImg }}" alt="{{ $item['name'] ?? 'Product' }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;" loading="lazy">
+                                            <div>
+                                                <strong>{{ $item['name'] ?? 'Product' }}</strong>
+                                                <small class="muted" style="display: block; font-size: 11px;">
+                                                    @if(!empty($item['variation']) && $item['variation'] !== 'Default') {{ $item['variation'] }} &middot; @endif
+                                                    Qty: {{ $item['qty'] ?? 1 }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <span>Whole order</span>
+                                    @endforelse
+                                </div>
+                            </dd>
+                        </div>
                     </dl>
                     @if($reportPhotos)
                         <div class="dispute-photos">

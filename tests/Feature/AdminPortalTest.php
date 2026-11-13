@@ -193,12 +193,35 @@ class AdminPortalTest extends TestCase
         $order = $this->order();
         $category = \App\Models\Category::create(['name' => 'Database category', 'slug' => 'database-category']);
         $product = Product::create(['seller_id' => $order->seller_id, 'category_id' => $category->id, 'name' => 'Database product', 'slug' => 'database-product', 'is_active' => true]);
-        $this->actingAs($this->admin())->get('/admin/compliance')->assertOk()->assertSee('Database product');
+        $this->actingAs($this->admin())->get('/admin/compliance')->assertOk()->assertSee('Database product')->assertSee('<img', false);
         $this->post('/admin/compliance/'.$product->id.'/action', ['action' => 'suspend_product'])->assertRedirect();
         $this->assertFalse($product->fresh()->is_active);
         $this->post('/admin/compliance/'.$product->id.'/action', ['action' => 'invalid'])->assertSessionHasErrors('action');
         $this->post('/admin/compliance/'.$product->id.'/action', ['action' => 'activate'])->assertRedirect();
         $this->assertTrue($product->fresh()->is_active);
+    }
+
+    public function test_order_report_renders_product_image_and_details(): void
+    {
+        $order = $this->order();
+        $category = Category::create(['name' => 'Report Category', 'slug' => 'report-category']);
+        $product = Product::create(['seller_id' => $order->seller_id, 'category_id' => $category->id, 'name' => 'Reported Product', 'slug' => 'reported-product', 'is_active' => true]);
+        $variant = \App\Models\ProductVariant::create(['product_id' => $product->id, 'sku' => 'SKU-LARGE', 'name' => 'Large', 'price_minor' => 10000, 'stock' => 50]);
+        \App\Models\OrderItem::create([
+            'seller_order_id' => $order->id,
+            'product_id' => $product->id,
+            'product_variant_id' => $variant->id,
+            'product_name' => 'Reported Product',
+            'variant_name' => 'Large',
+            'unit_price_minor' => 10000,
+            'quantity' => 2,
+        ]);
+
+        $this->actingAs($this->admin())->get('/admin/reports')->assertOk()
+            ->assertSee('Order report')
+            ->assertSee('Reported Product')
+            ->assertSee('Qty: 2')
+            ->assertSee('<img', false);
     }
 
     public function test_demo_links_cannot_create_accounts_and_disabled_sessions_are_revoked(): void

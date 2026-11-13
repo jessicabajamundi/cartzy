@@ -722,7 +722,7 @@ class AdminPortalController extends Controller
 
     public function compliance(Request $request)
     {
-        $query = Product::with(['seller.user', 'category']);
+        $query = Product::with(['seller.user', 'category', 'coverImage', 'images']);
         if (in_array($request->query('status'), ['active', 'inactive'])) $query->where('is_active', $request->query('status') === 'active');
         if ($request->filled('search')) $query->where('name', 'like', '%'.$request->string('search')->trim().'%');
         $products = $query->latest()->paginate(15)->withQueryString();
@@ -816,6 +816,8 @@ class AdminPortalController extends Controller
             ->with([
                 'buyer',
                 'sellerOrders.seller.user',
+                'sellerOrders.items.product.coverImage',
+                'sellerOrders.items.variant',
                 'sellerOrders.shipment.rider.user',
                 'sellerOrders.shipment.logisticsProvider.user',
             ])
@@ -883,7 +885,7 @@ class AdminPortalController extends Controller
         ]);
         $from = $data['from'] ?? now()->startOfMonth()->toDateString();
         $to = $data['to'] ?? now()->toDateString();
-        $query = SellerOrder::with(['order.buyer', 'seller'])->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to);
+        $query = SellerOrder::with(['order.buyer', 'seller', 'items.product.coverImage', 'items.variant'])->whereDate('created_at', '>=', $from)->whereDate('created_at', '<=', $to);
         if ($request->query('export') === 'csv') {
             return response()->streamDownload(function () use ($query) {
                 $out = fopen('php://output', 'w');
