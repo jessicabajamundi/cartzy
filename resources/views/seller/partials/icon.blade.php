@@ -33,5 +33,7 @@
     'lock' => 'M5 11h14v10H5z M8 11V7a4 4 0 0 1 8 0v4',
     'trophy' => 'M7 4h10v6a5 5 0 0 1-10 0z M7 6H4v2a3 3 0 0 0 3 3 M17 6h3v2a3 3 0 0 1-3 3 M12 15v4 M8 21h8 M9.500 19h5',
     'printer' => 'M6 9V3h12v6 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v7H6z',
+    'clock' => 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M12 6v6l4 2',
+    'wallet' => 'M3 6h18v15H3z M3 6V3h15v3 M16 12h5v5h-5z',
 ])
 <svg class="{{ $class ?? 'icon' }}" width="{{ $size ?? 20 }}" height="{{ $size ?? 20 }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ $stroke ?? 1.7 }}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $paths[$name] ?? $paths['box'] }}"/></svg>

@@ -113,17 +113,113 @@ class SellerPortalController extends Controller
         $reportDates = ['from_date' => $start->format('Y-m-d'), 'to_date' => $end->format('Y-m-d')];
         $updatedAt = now()->timezone('Asia/Manila')->format('M j, Y \a\t g:i A');
 
-        return $this->page('dashboard', compact('stats', 'rankings', 'recentOrders', 'period', 'periodLabels', 'periodLabel', 'reportDates', 'updatedAt'));
+        // Today's order metrics — reset to zero every day at 12:00 AM PHT
+        $nowManila = now()->timezone('Asia/Manila');
+        $todayStart = $nowManila->copy()->startOfDay();
+        $todayEnd = $nowManila->copy()->endOfDay();
+
+        $todayOrdersQuery = $this->ordersQuery()->whereBetween('created_at', [$todayStart, $todayEnd]);
+        $todayStats = [
+            'date_formatted' => $nowManila->format('F j, Y'),
+            'orders' => (clone $todayOrdersQuery)->count(),
+            'delivered' => $this->ordersQuery()
+                ->whereIn('status', ['delivered', 'completed'])
+                ->where(function ($q) use ($todayStart, $todayEnd) {
+                    $q->whereBetween('delivered_at', [$todayStart, $todayEnd])
+                      ->orWhere(fn ($sq) => $sq->whereNull('delivered_at')->whereBetween('updated_at', [$todayStart, $todayEnd]));
+                })->count(),
+            'cancelled' => $this->ordersQuery()
+                ->where('status', 'cancelled')
+                ->whereBetween('updated_at', [$todayStart, $todayEnd])->count(),
+            'refunded' => $this->ordersQuery()
+                ->whereHas('order', fn ($q) => $q->whereIn('payment_status', ['refunded', 'partially_refunded']))
+                ->whereBetween('updated_at', [$todayStart, $todayEnd])->count(),
+            'sales' => (int) (clone $todayOrdersQuery)->where('status', '!=', 'cancelled')->sum('subtotal_minor'),
+        ];
+
+        // Daily Order History: records grouped by day with delivered, cancelled, and refund statuses
+        $historyRange = $request->input('history_range', '7');
+        $historyStatus = $request->input('history_status', 'all');
+
+        $historyQuery = $this->ordersQuery()->with(self::ORDERS_TABLE_RELATIONS);
+
+        if ($historyRange === 'today') {
+            $historyQuery->whereBetween('created_at', [$todayStart, $todayEnd]);
+        } elseif ($historyRange === 'yesterday') {
+            $yesterdayStart = $nowManila->copy()->subDay()->startOfDay();
+            $yesterdayEnd = $nowManila->copy()->subDay()->endOfDay();
+            $historyQuery->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd]);
+        } elseif ($historyRange === '30') {
+            $historyQuery->where('created_at', '>=', $nowManila->copy()->subDays(30)->startOfDay());
+        } elseif ($historyRange === 'all') {
+            // all orders
+        } else { // default '7' days
+            $historyQuery->where('created_at', '>=', $nowManila->copy()->subDays(7)->startOfDay());
+        }
+
+        if ($historyStatus === 'delivered') {
+            $historyQuery->whereIn('status', ['delivered', 'completed']);
+        } elseif ($historyStatus === 'cancelled') {
+            $historyQuery->where('status', 'cancelled');
+        } elseif ($historyStatus === 'refunded') {
+            $historyQuery->whereHas('order', fn ($q) => $q->whereIn('payment_status', ['refunded', 'partially_refunded']));
+        }
+
+        $rawHistoryOrders = $historyQuery->latest('created_at')->get();
+
+        $groupedByDay = $rawHistoryOrders->groupBy(function ($order) {
+            return $order->created_at->timezone('Asia/Manila')->format('Y-m-d');
+        });
+
+        $todayKey = $nowManila->format('Y-m-d');
+        $yesterdayKey = $nowManila->copy()->subDay()->format('Y-m-d');
+
+        // Always show Today in the daily history so seller sees today's orders (starting at 0)
+        if (!isset($groupedByDay[$todayKey]) && in_array($historyRange, ['7', '30', 'today', 'all'], true) && $historyStatus === 'all') {
+            $groupedByDay->put($todayKey, collect());
+        }
+
+        $groupedByDay = $groupedByDay->sortKeysDesc();
+
+        $dailyHistory = [];
+        foreach ($groupedByDay as $dateKey => $orders) {
+            $dateObj = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $dateKey, 'Asia/Manila');
+            $isToday = $dateKey === $todayKey;
+            $isYesterday = $dateKey === $yesterdayKey;
+            $label = $isToday ? 'Today' : ($isYesterday ? 'Yesterday' : $dateObj->format('D, M j'));
+
+            $deliveredCount = $orders->filter(fn ($o) => in_array($o->status, ['delivered', 'completed'], true))->count();
+            $cancelledCount = $orders->filter(fn ($o) => $o->status === 'cancelled')->count();
+            $refundedCount = $orders->filter(fn ($o) => in_array($o->order?->payment_status, ['refunded', 'partially_refunded'], true))->count();
+            $daySales = $orders->filter(fn ($o) => $o->status !== 'cancelled')->sum('subtotal_minor');
+
+            $dailyHistory[] = [
+                'date_key' => $dateKey,
+                'label' => $label,
+                'full_date' => $dateObj->format('F j, Y'),
+                'is_today' => $isToday,
+                'total_orders' => $orders->count(),
+                'delivered_count' => $deliveredCount,
+                'cancelled_count' => $cancelledCount,
+                'refunded_count' => $refundedCount,
+                'sales_minor' => $daySales,
+                'orders' => $orders,
+            ];
+        }
+
+        return $this->page('dashboard', compact('stats', 'rankings', 'recentOrders', 'period', 'periodLabels', 'periodLabel', 'reportDates', 'updatedAt', 'todayStats', 'dailyHistory', 'historyRange', 'historyStatus'));
     }
 
     public function orders(Request $request)
     {
-        $request->validate(['search' => 'nullable|string|max:150', 'status' => ['nullable', Rule::in(['all', 'cancellation_requested', 'to_prepare', 'pending', 'accepted', 'packed', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled'])]]);
+        $request->validate(['search' => 'nullable|string|max:150', 'status' => ['nullable', Rule::in(['all', 'cancellation_requested', 'to_prepare', 'pending', 'accepted', 'packed', 'ready_to_ship', 'shipped', 'delivered', 'completed', 'cancelled', 'refunded'])]]);
         $query = $this->ordersQuery()->with(self::ORDERS_TABLE_RELATIONS);
         if ($request->status === 'cancellation_requested') {
             $query->where('cancellation_status', 'pending');
         } elseif ($request->status === 'to_prepare') {
             $query->whereIn('status', ['pending', 'accepted', 'packed']);
+        } elseif ($request->status === 'refunded') {
+            $query->whereHas('order', fn ($q) => $q->whereIn('payment_status', ['refunded', 'partially_refunded']));
         } elseif ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }

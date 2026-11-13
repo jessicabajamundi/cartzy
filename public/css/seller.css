@@ -887,6 +887,12 @@ td small {
     border-color: var(--red-border);
 }
 
+.badge.refunded {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
 /* Product Promotional & Gender Badges with Icons */
 .badge.badge-product-highlight {
     display: inline-flex;
