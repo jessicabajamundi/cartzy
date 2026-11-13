@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     textColor: Colors.white,
                     onPressed: () {
                       Clipboard.setData(
-                        ClipboardData(text: GoogleSignInService.releaseSha1),
+                        const ClipboardData(text: GoogleSignInService.releaseSha1),
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

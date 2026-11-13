@@ -156,8 +156,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   String _selectedProvince = '';
   String _selectedMunicipality = '';
   String _selectedBarangay = '';
-  String _selectedProvinceCode = '';
-  String _selectedMunicipalityCode = '';
 
   bool _houseStreetError = false;
   bool _provinceError = false;
@@ -935,9 +933,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             final province = _provinces.firstWhere((p) => p.name == name);
             setState(() {
               _selectedProvince = name;
-              _selectedProvinceCode = province.code;
               _selectedMunicipality = '';
-              _selectedMunicipalityCode = '';
               _selectedBarangay = '';
               _provinceError = false;
             });
@@ -964,7 +960,6 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             final municipality = _municipalities.firstWhere((m) => m.name == name);
             setState(() {
               _selectedMunicipality = name;
-              _selectedMunicipalityCode = municipality.code;
               _selectedBarangay = '';
               _municipalityError = false;
             });
@@ -1403,8 +1398,6 @@ class RegistrationUploadField extends StatelessWidget {
     );
   }
 }
-
-typedef _UploadField = RegistrationUploadField;
 
 // ============================================================
 // DATE FIELD
@@ -2323,8 +2316,8 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
               onPressed: widget.onBack,
             ),
           ),
-        Center(
-          child: const CartzyLogo(height: 34),
+        const Center(
+          child: CartzyLogo(height: 34),
         ),
         const SizedBox(height: 14),
         Text(
@@ -2362,36 +2355,35 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
                 widget.onGoogleSuccess?.call(user, token: token);
               }
             } catch (e) {
-              if (mounted) {
-                setState(() => _isSigningIn = false);
-                final msg = e.toString().replaceFirst('Exception: ', '');
-                if (msg.trim().isNotEmpty) {
-                  final hasSha1 = msg.contains('SHA-1') || msg.contains(GoogleSignInService.releaseSha1);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(msg),
-                      backgroundColor: Colors.redAccent,
-                      duration: Duration(seconds: hasSha1 ? 8 : 4),
-                      action: hasSha1
-                          ? SnackBarAction(
-                              label: 'COPY SHA-1',
-                              textColor: Colors.white,
-                              onPressed: () {
-                                Clipboard.setData(
-                                  ClipboardData(text: GoogleSignInService.releaseSha1),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('SHA-1 copied to clipboard!'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                            )
-                          : null,
-                    ),
-                  );
-                }
+              if (!context.mounted) return;
+              setState(() => _isSigningIn = false);
+              final msg = e.toString().replaceFirst('Exception: ', '');
+              if (msg.trim().isNotEmpty) {
+                final hasSha1 = msg.contains('SHA-1') || msg.contains(GoogleSignInService.releaseSha1);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(msg),
+                    backgroundColor: Colors.redAccent,
+                    duration: Duration(seconds: hasSha1 ? 8 : 4),
+                    action: hasSha1
+                        ? SnackBarAction(
+                            label: 'COPY SHA-1',
+                            textColor: Colors.white,
+                            onPressed: () {
+                              Clipboard.setData(
+                                const ClipboardData(text: GoogleSignInService.releaseSha1),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('SHA-1 copied to clipboard!'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                          )
+                        : null,
+                  ),
+                );
               }
             }
           },
