@@ -2373,6 +2373,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
                               Clipboard.setData(
                                 const ClipboardData(text: GoogleSignInService.releaseSha1),
                               );
+                              if (!context.mounted) return;
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('SHA-1 copied to clipboard!'),

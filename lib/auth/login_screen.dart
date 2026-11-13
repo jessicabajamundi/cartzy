@@ -213,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       widget.onLogin(userRole, user, token: token);
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() => _isLoggingIn = false);
       final msg = e.toString().replaceFirst('Exception: ', '');
       if (msg.trim().isNotEmpty) {
@@ -231,6 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Clipboard.setData(
                         const ClipboardData(text: GoogleSignInService.releaseSha1),
                       );
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('SHA-1 copied to clipboard!'),
