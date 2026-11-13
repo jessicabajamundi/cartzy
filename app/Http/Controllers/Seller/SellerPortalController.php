@@ -230,6 +230,104 @@ class SellerPortalController extends Controller
         return $this->page('orders', ['orders' => $query->latest()->paginate(15)->withQueryString()]);
     }
 
+    public function orderHistory(Request $request)
+    {
+        $request->validate([
+            'search' => 'nullable|string|max:150',
+            'status' => ['nullable', Rule::in(['all', 'delivered', 'completed', 'cancelled', 'refunded', 'shipped', 'ready_to_ship', 'pending', 'accepted', 'packed'])],
+            'range'  => ['nullable', Rule::in(['all', 'today', 'yesterday', '7', '30', 'this_month'])],
+            'sort'   => ['nullable', Rule::in(['latest', 'oldest'])],
+        ]);
+
+        $base = $this->ordersQuery();
+
+        // Summary metrics for store order history
+        $summary = [
+            'total_orders'     => (clone $base)->count(),
+            'delivered_orders' => (clone $base)->whereIn('status', ['delivered', 'completed'])->count(),
+            'cancelled_orders' => (clone $base)->where('status', 'cancelled')->count(),
+            'refunded_orders'  => (clone $base)->whereHas('order', fn ($q) => $q->whereIn('payment_status', ['refunded', 'partially_refunded']))->count(),
+            'gross_sales'      => (clone $base)->whereIn('status', ['delivered', 'completed'])
+                ->get()
+                ->sum(fn ($o) => $o->buyerDueMinor()),
+        ];
+
+        $statusCounts = [
+            'all'       => $summary['total_orders'],
+            'delivered' => $summary['delivered_orders'],
+            'cancelled' => $summary['cancelled_orders'],
+            'refunded'  => $summary['refunded_orders'],
+            'shipped'   => (clone $base)->whereIn('status', ['shipped', 'ready_to_ship'])->count(),
+        ];
+
+        $query = $this->ordersQuery()->with([
+            'order.buyer',
+            'items' => fn ($q) => $q->with([
+                'product' => fn ($pq) => $pq->withTrashed()->with('coverImage', 'images'),
+                'variant' => fn ($vq) => $vq->withTrashed(),
+            ]),
+            'logisticsProvider',
+            'shipment.deliveryEvents',
+            'shipment.logisticsProvider',
+            'shipment.rider.user',
+        ]);
+
+        // Status filter
+        $status = $request->input('status', 'all');
+        if ($status === 'delivered') {
+            $query->whereIn('status', ['delivered', 'completed']);
+        } elseif ($status === 'cancelled') {
+            $query->where('status', 'cancelled');
+        } elseif ($status === 'refunded') {
+            $query->whereHas('order', fn ($q) => $q->whereIn('payment_status', ['refunded', 'partially_refunded']));
+        } elseif ($status === 'shipped') {
+            $query->whereIn('status', ['shipped', 'ready_to_ship']);
+        } elseif ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // Date range filter
+        $range = $request->input('range', 'all');
+        $now = now()->timezone('Asia/Manila');
+        if ($range === 'today') {
+            $start = $now->copy()->startOfDay()->utc();
+            $end = $now->copy()->endOfDay()->utc();
+            $query->whereBetween('created_at', [$start, $end]);
+        } elseif ($range === 'yesterday') {
+            $start = $now->copy()->subDay()->startOfDay()->utc();
+            $end = $now->copy()->subDay()->endOfDay()->utc();
+            $query->whereBetween('created_at', [$start, $end]);
+        } elseif ($range === '7') {
+            $query->where('created_at', '>=', $now->copy()->subDays(7)->startOfDay()->utc());
+        } elseif ($range === '30') {
+            $query->where('created_at', '>=', $now->copy()->subDays(30)->startOfDay()->utc());
+        } elseif ($range === 'this_month') {
+            $query->where('created_at', '>=', $now->copy()->startOfMonth()->utc());
+        }
+
+        // Search filter
+        if ($request->filled('search')) {
+            $term = '%' . trim($request->search) . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereHas('order', fn ($oq) => $oq->where('reference', 'like', $term)->orWhereHas('buyer', fn ($bq) => $bq->where('name', 'like', $term)))
+                  ->orWhereHas('items', fn ($iq) => $iq->where('product_name', 'like', $term)->orWhere('variant_name', 'like', $term))
+                  ->orWhereHas('shipment', fn ($sq) => $sq->where('tracking_code', 'like', $term));
+            });
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'latest');
+        if ($sort === 'oldest') {
+            $query->oldest('created_at');
+        } else {
+            $query->latest('created_at');
+        }
+
+        $orders = $query->paginate(15)->withQueryString();
+
+        return $this->page('order-history', compact('orders', 'summary', 'statusCounts', 'status', 'range', 'sort'));
+    }
+
     public function packOrder(Request $request, int $id)
     {
         DB::transaction(function () use ($id) {

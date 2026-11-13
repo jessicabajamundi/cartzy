@@ -31,12 +31,12 @@ class OrderItem extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
     }
 
     public function variant()
     {
-        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id')->withTrashed();
     }
 
     /** The option's own photo, else the product cover; null when neither exists. */
@@ -48,6 +48,10 @@ class OrderItem extends Model
 
         $cover = $this->product?->coverImage?->path;
         if (!$cover) {
+            $firstImg = $this->product?->images?->first()?->path;
+            if ($firstImg) {
+                return preg_match('~^(https?://|/)~', $firstImg) ? $firstImg : \Illuminate\Support\Facades\Storage::disk('public')->url($firstImg);
+            }
             return null;
         }
 

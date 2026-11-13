@@ -102,7 +102,9 @@
             <h2>Daily Order History</h2>
             <small>Everyday order records with live status: Delivered, Cancelled, and Refunded</small>
         </div>
-        <div class="daily-history-filters">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ route('seller.order-history') }}" class="button text" style="font-weight: 700;">Full order history &rarr;</a>
+            <div class="daily-history-filters">
             <form method="GET" action="{{ route('seller.dashboard') }}#daily-order-history" class="daily-filter-form">
                 <select name="history_range" onchange="this.form.submit()" aria-label="Filter by date range">
                     <option value="today" @selected($historyRange === 'today')>Today only</option>

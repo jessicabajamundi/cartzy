@@ -33,7 +33,7 @@
             @if($sellerMode)
                 @php($sellerNavLinks = [
                     'dashboard' => ['Overview','grid'], 'products' => ['Products','tag'], 'inventory' => ['Inventory','box'], 'archive' => ['Archive','archive'],
-                    'orders' => ['Orders','bag'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'],
+                    'orders' => ['Orders','bag'], 'order-history' => ['Order history','clock'], 'courier' => ['Shipping','truck'], 'deliveries' => ['Deliveries','check'], 'vouchers' => ['Vouchers','ticket'], 'feedback' => ['Reviews','star'], 'reports' => ['Sales reports','chart'],
                     'chat' => ['Messages','chat-round'], 'logistics' => ['Logistics chat','truck'], 'account' => ['My account','user'],
                     'returns' => ['Returns & refunds','box'],
                 ])
