@@ -492,6 +492,9 @@ class _CartzyHomeState extends State<CartzyHome> {
           onSwitchToRiderRegistration: () {
             goTo('riderRegistration');
           },
+          onGoogleSuccess: (user, {token}) {
+            handleLogin(AccountType.buyer, user, token: token);
+          },
         );
 
       // ========================================================

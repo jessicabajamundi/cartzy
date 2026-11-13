@@ -103,12 +103,14 @@ class BuyerRegistration extends StatefulWidget {
   final ValueChanged<Map<String, dynamic>> onRegistrationSubmitted;
   final VoidCallback onBackToLogin;
   final VoidCallback? onSwitchToRiderRegistration;
+  final void Function(Map<String, dynamic> user, {String? token})? onGoogleSuccess;
 
   const BuyerRegistration({
     super.key,
     required this.onRegistrationSubmitted,
     required this.onBackToLogin,
     this.onSwitchToRiderRegistration,
+    this.onGoogleSuccess,
   });
 
   @override
@@ -714,6 +716,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                 title: 'Create your account',
                 subtitle: 'Join cartzy and discover your everyday favorites',
                 onBack: widget.onBackToLogin,
+                onGoogleSuccess: (user, {token}) {
+                  widget.onGoogleSuccess?.call(user, token: token);
+                },
               ),
               const SizedBox(height: 12),
               StepIndicator(
@@ -2278,11 +2283,11 @@ class ShakeWidgetState extends State<ShakeWidget> with SingleTickerProviderState
 // CARTZY REGISTER HEADER (Screenshot Reference)
 // ============================================================
 
-class CartzyRegisterHeader extends StatelessWidget {
+class CartzyRegisterHeader extends StatefulWidget {
   final String title;
   final String subtitle;
   final VoidCallback? onBack;
-  final ValueChanged<Map<String, dynamic>>? onGoogleSuccess;
+  final void Function(Map<String, dynamic> user, {String? token})? onGoogleSuccess;
   final bool showGoogleSignUp;
 
   const CartzyRegisterHeader({
@@ -2295,15 +2300,22 @@ class CartzyRegisterHeader extends StatelessWidget {
   });
 
   @override
+  State<CartzyRegisterHeader> createState() => _CartzyRegisterHeaderState();
+}
+
+class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
+  bool _isSigningIn = false;
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (onBack != null)
+        if (widget.onBack != null)
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Color(0xFF231F20)),
-              onPressed: onBack,
+              onPressed: widget.onBack,
             ),
           ),
         Center(
@@ -2311,7 +2323,7 @@ class CartzyRegisterHeader extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          title,
+          widget.title,
           textAlign: TextAlign.center,
           style: GoogleFonts.playfairDisplay(
             fontSize: 26,
@@ -2322,25 +2334,31 @@ class CartzyRegisterHeader extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          subtitle,
+          widget.subtitle,
           textAlign: TextAlign.center,
           style: GoogleFonts.dmSans(
             fontSize: 13,
             color: const Color(0xFF7A6E72),
           ),
         ),
-        if (showGoogleSignUp) ...[
+        if (widget.showGoogleSignUp) ...[
         const SizedBox(height: 18),
         GestureDetector(
-          onTap: () async {
+          onTap: _isSigningIn ? null : () async {
+            setState(() => _isSigningIn = true);
             try {
               final response = await GoogleSignInService.signIn();
-              if (response != null && response['user'] != null && onGoogleSuccess != null) {
+              if (!mounted) return;
+              setState(() => _isSigningIn = false);
+
+              if (response != null && response['user'] != null) {
                 final user = Map<String, dynamic>.from(response['user'] as Map);
-                onGoogleSuccess!(user);
+                final token = response['token']?.toString();
+                widget.onGoogleSuccess?.call(user, token: token);
               }
             } catch (e) {
-              if (context.mounted) {
+              if (mounted) {
+                setState(() => _isSigningIn = false);
                 final msg = e.toString().replaceFirst('Exception: ', '');
                 if (msg.trim().isNotEmpty) {
                   final hasSha1 = msg.contains('SHA-1') || msg.contains(GoogleSignInService.releaseSha1);
@@ -2383,15 +2401,24 @@ class CartzyRegisterHeader extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.network(
-                  'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
-                  width: 18,
-                  height: 18,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
-                ),
+                _isSigningIn
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF231F20),
+                        ),
+                      )
+                    : Image.network(
+                        'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+                        width: 18,
+                        height: 18,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
+                      ),
                 const SizedBox(width: 10),
                 Text(
-                  'Sign up with Google',
+                  _isSigningIn ? 'Connecting to Google...' : 'Sign up with Google',
                   style: GoogleFonts.dmSans(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
