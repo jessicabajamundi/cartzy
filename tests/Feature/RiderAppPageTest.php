@@ -61,7 +61,7 @@ class RiderAppPageTest extends TestCase
         Http::fake(['api.github.com/*' => Http::response([], 503)]);
 
         $this->get(route('rider.app.download'))
-            ->assertRedirect('https://github.com/jessicabajamundi/cartzy/releases/latest');
+            ->assertRedirect(\App\Http\Controllers\RiderAppController::DIRECT_DOWNLOAD_URL);
         $this->get(route('rider.app'))->assertOk()->assertDontSee('Version ');
     }
 

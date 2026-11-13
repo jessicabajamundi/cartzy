@@ -14,7 +14,10 @@ class RiderAppController extends Controller
 {
     public const REPO = 'jessicabajamundi/cartzy';
 
-    public const RELEASES_PAGE = 'https://github.com/'.self::REPO.'/releases/latest';
+    /** Direct download link that immediately downloads the latest APK without navigating to the GitHub webpage */
+    public const DIRECT_DOWNLOAD_URL = 'https://github.com/'.self::REPO.'/releases/latest/download/cartzy.apk';
+
+    public const RELEASES_PAGE = self::DIRECT_DOWNLOAD_URL;
 
     /**
      * The newest release's version and APK link, checked at most every 10 minutes.
@@ -32,15 +35,15 @@ class RiderAppController extends Controller
             } catch (\Throwable $e) {
                 report($e);
 
-                return ['version' => null, 'apk_url' => null, 'apk_name' => null];
+                return ['version' => null, 'apk_url' => self::DIRECT_DOWNLOAD_URL, 'apk_name' => 'cartzy.apk'];
             }
 
             $apk = collect($release['assets'] ?? [])->first(fn ($asset) => str_ends_with(strtolower($asset['name'] ?? ''), '.apk'));
 
             return [
                 'version' => isset($release['tag_name']) ? ltrim((string) $release['tag_name'], 'vV') : null,
-                'apk_url' => $apk['browser_download_url'] ?? null,
-                'apk_name' => $apk['name'] ?? null,
+                'apk_url' => $apk['browser_download_url'] ?? self::DIRECT_DOWNLOAD_URL,
+                'apk_name' => $apk['name'] ?? 'cartzy.apk',
             ];
         });
     }
