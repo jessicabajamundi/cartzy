@@ -106,6 +106,7 @@
                     <p class="st-price"><strong>₱{{ number_format($variant->sale_price_minor / 100, 2) }}</strong>@if($onSale)<del>₱{{ number_format($variant->price_minor / 100, 2) }}</del>@endif</p>
                     @endif
                     @if(\App\Models\Product::qualifiesForFreeShipping($variant?->sale_price_minor, $product->seller_id))<p class="st-free-shipping">Free Shipping</p>@endif
+                    <p class="st-delivery text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded inline-block mb-1">{{ $product->estimated_delivery_badge }}</p>
                     <p class="st-meta"><span><span aria-hidden="true" class="st-star">&#9733;</span> {{ $product->ratingLabel() }}</span></p>
                     <div class="st-stock-row">
                         <p class="st-stock {{ !$inStock ? 'is-out' : '' }}">@if($inStock){{ number_format($totalStock) }} in stock @else Out of stock @endif</p>

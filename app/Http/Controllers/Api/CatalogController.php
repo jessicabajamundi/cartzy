@@ -52,6 +52,8 @@ class CatalogController extends Controller
             'reviews_count' => (int) ($product->reviews_count ?? 0),
             'sold' => (int) ($product->sold_quantity ?? 0),
             'in_stock' => $variants->sum('stock') > 0,
+            'estimated_delivery' => $product->estimated_delivery,
+            'estimated_delivery_badge' => $product->estimated_delivery_badge,
         ];
         if ($full) {
             $reviewQuery = $product->reviews();
@@ -129,7 +131,7 @@ class CatalogController extends Controller
         $activeVariants = fn ($q) => $q->where('is_active', true);
         $query = $this->available()
             ->whereHas('variants', $activeVariants)
-            ->with(['seller', 'category', 'coverImage', 'variants' => $activeVariants])
+            ->with(['seller.pickupAddress', 'category', 'coverImage', 'variants' => $activeVariants])
             ->withAvg('reviews', 'rating')->withCount('reviews')
             ->withSum(['orderItems as sold_quantity' => fn ($items) => $items->whereHas('sellerOrder', fn ($order) => $order->whereIn('status', ['delivered', 'completed']))], 'quantity');
 
@@ -193,7 +195,7 @@ class CatalogController extends Controller
     public function product(int $id)
     {
         $product = $this->available()
-            ->with(['seller', 'category', 'coverImage', 'images', 'variants' => fn ($q) => $q->where('is_active', true)])
+            ->with(['seller.pickupAddress', 'category', 'coverImage', 'images', 'variants' => fn ($q) => $q->where('is_active', true)])
             ->withAvg('reviews', 'rating')->withCount('reviews')
             ->findOrFail($id);
 

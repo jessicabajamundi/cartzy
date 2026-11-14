@@ -256,7 +256,7 @@ class HomeController extends Controller
             ->whereHas('seller', fn ($query) => $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
             ->whereHas('variants', fn ($query) => $query->where('is_active', true))
             ->with([
-                'seller',
+                'seller.pickupAddress',
                 'category',
                 'coverImage',
                 'variants' => fn ($query) => $query->where('is_active', true)->orderBy('price_minor')

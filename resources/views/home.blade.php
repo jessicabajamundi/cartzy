@@ -107,7 +107,12 @@
                             <a href="{{ route('products.show', $product->id) }}" class="block">
                                 <h3 class="line-clamp-2">{{ $product->name }}</h3>
                             </a>
-                            @if($hasFreeShipping)<span class="discovery-tag">Free Shipping</span>@endif
+                            <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                                @if($hasFreeShipping)<span class="discovery-tag">Free Shipping</span>@endif
+                                <span class="discovery-tag-delivery inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded shadow-2xs" title="Estimated delivery days based on distance from seller to buyer">
+                                    {{ $product->estimated_delivery_badge }}
+                                </span>
+                            </div>
                         </div>
                         <div class="discovery-pricing">
                             <div class="discovery-price">

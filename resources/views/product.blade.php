@@ -91,9 +91,9 @@
                 <div>
                     @if($shippingEstimate)
                         <p><span class="pd-shipping-label">Ships to</span> <strong>{{ $shippingEstimate['city'] ? $shippingEstimate['city'].', ' : '' }}{{ $shippingEstimate['province'] }}</strong></p>
-                        <p class="pd-shipping-fee">Shipping fee <strong>₱{{ number_format($shippingEstimate['fee_minor'] / 100, 2) }}</strong> &middot; {{ $shippingEstimate['label'] }}</p>
+                        <p class="pd-shipping-fee">Shipping fee <strong>₱{{ number_format($shippingEstimate['fee_minor'] / 100, 2) }}</strong> &middot; {{ $shippingEstimate['label'] }} &middot; <span class="text-emerald-700 font-semibold">{{ $product->estimated_delivery_badge }}</span></p>
                     @else
-                        <p><span class="pd-shipping-label">Shipping from</span> <strong>₱{{ number_format($shippingFromMinor / 100, 2) }}</strong></p>
+                        <p><span class="pd-shipping-label">Shipping from</span> <strong>₱{{ number_format($shippingFromMinor / 100, 2) }}</strong> &middot; <span class="text-emerald-700 font-semibold">{{ $product->estimated_delivery_badge }}</span></p>
                         <p class="pd-shipping-fee">The fee depends on your address. @auth<a href="{{ route('buyer.dashboard', ['tab' => 'addresses']) }}">Add your address</a> to see the exact fee.@else<a href="{{ route('login') }}">Log in</a> to see the fee for your address.@endauth</p>
                     @endif
                     @if($storeFreeShippingMin !== null)

@@ -36,6 +36,7 @@
                     <a class="flash-store" href="{{ route('store.show', $product->seller->slug) }}">{{ $product->seller->name }}</a>
                     <h3><a class="flash-product-link" href="{{ route('products.show', $product->id) }}" aria-label="{{ $product->name }} — view details">{{ $product->name }}</a></h3>
                     @if(\App\Models\Product::qualifiesForFreeShipping($variant->sale_price_minor, $product->seller_id))<span class="flash-free-shipping">Free Shipping</span>@endif
+                    <span class="flash-delivery-badge inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-1.5 py-0.5 rounded shadow-2xs" title="Estimated delivery">{{ $product->estimated_delivery_badge }}</span>
                 </div>
                 <div class="flash-pricing">
                     <div class="flash-card-price">

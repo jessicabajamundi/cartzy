@@ -134,6 +134,24 @@ class Product extends Model
         return ($platform !== null && $priceMinor >= $platform) || ($store !== null && $priceMinor >= $store);
     }
 
+    public function getEstimatedDeliveryAttribute(): string
+    {
+        $seller = $this->relationLoaded('seller') ? $this->seller : $this->seller()->with('pickupAddress')->first();
+        return \App\Services\DeliveryEstimator::estimate($seller)['days_text'];
+    }
+
+    public function getEstimatedDeliveryBadgeAttribute(): string
+    {
+        $seller = $this->relationLoaded('seller') ? $this->seller : $this->seller()->with('pickupAddress')->first();
+        return \App\Services\DeliveryEstimator::estimate($seller)['badge'];
+    }
+
+    public function getDeliveryEstimateAttribute(): array
+    {
+        $seller = $this->relationLoaded('seller') ? $this->seller : $this->seller()->with('pickupAddress')->first();
+        return \App\Services\DeliveryEstimator::estimate($seller);
+    }
+
     public function seller()
     {
         return $this->belongsTo(Seller::class);
