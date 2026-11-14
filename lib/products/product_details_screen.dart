@@ -85,6 +85,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   int? _sellerId;
   String? _sellerSlug;
   double? _sellerFreeShippingMin;
+  String? _estimatedDelivery;
   late String _badge;
   late double _rating;
   late String _soldCount;
@@ -277,6 +278,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           if (rawBadge != null && rawBadge.isNotEmpty) {
             _badge = rawBadge;
           }
+
+          _estimatedDelivery = data['estimated_delivery_badge']?.toString() ?? data['estimated_delivery']?.toString();
 
           _rating = (data['rating'] as num?)?.toDouble() ?? 0;
           if (data['reviews_count'] != null) {
@@ -1374,9 +1377,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   ),
                 ),
                 const SizedBox(height: 3),
-                const Text(
-                  'Shipping fee ₱50.00 · Standard Delivery (2-4 business days)',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                Text(
+                  _estimatedDelivery != null && _estimatedDelivery!.trim().isNotEmpty
+                      ? 'Shipping fee ₱50.00 · ${_estimatedDelivery!.trim()}'
+                      : 'Shipping fee ₱50.00 · Standard Delivery (2-4 business days)',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 4),
                 Container(

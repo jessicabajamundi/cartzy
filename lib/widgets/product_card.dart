@@ -31,6 +31,7 @@ class ProductCard extends StatefulWidget {
   final String? sellerName;
   final bool inStock;
   final int? stock;
+  final String? estimatedDelivery;
 
   const ProductCard({
     super.key,
@@ -50,12 +51,13 @@ class ProductCard extends StatefulWidget {
     this.sellerName,
     this.inStock = true,
     this.stock,
+    this.estimatedDelivery,
   });
 
   /// Height of everything below the square photo. A card of width `w` needs
   /// a height of `w + bodyHeight(context)`.
   static double bodyHeight(BuildContext context) =>
-      MediaQuery.textScalerOf(context).scale(150);
+      MediaQuery.textScalerOf(context).scale(165);
 
   @override
   State<ProductCard> createState() => _ProductCardState();
@@ -340,6 +342,29 @@ class _ProductCardState extends State<ProductCard> {
                             ),
                         ],
                       ),
+
+                      // Estimated delivery based on distance
+                      if (widget.estimatedDelivery != null && widget.estimatedDelivery!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: const Color(0xFFBBF7D0)),
+                          ),
+                          child: Text(
+                            widget.estimatedDelivery!.trim(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.dmSans(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF15803D),
+                            ),
+                          ),
+                        ),
+                      ],
                       const Spacer(),
 
                       // Price + add to cart

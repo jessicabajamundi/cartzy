@@ -962,6 +962,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             inStock: product.inStock,
                             stock: product.stock,
                             hasFreeShipping: product.hasFreeShipping,
+                            estimatedDelivery: product.estimatedDelivery,
                             onTap: () => _openDetails(product),
                             onAddToCart: () => _handleAddToCart(product),
                           );

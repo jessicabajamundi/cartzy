@@ -1795,6 +1795,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
               sellerName: p.sellerName,
               inStock: p.inStock,
               stock: p.stock,
+              estimatedDelivery: p.estimatedDelivery,
               imageUrl: p.effectiveImageUrl,
               onTap: () => widget.onProductTap(p),
               onAddToCart: widget.onAddToCart != null

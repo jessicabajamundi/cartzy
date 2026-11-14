@@ -35,6 +35,9 @@ class ProductItem {
   /// When this product's sale ends; null if not on sale or no end date.
   final DateTime? saleEndsAt;
 
+  /// Estimated delivery days based on distance (e.g. "⚡ Est. 1-2 days", "🚚 Est. 2-4 days").
+  final String? estimatedDelivery;
+
   const ProductItem({
     this.id,
     required this.name,
@@ -51,6 +54,7 @@ class ProductItem {
     this.stock,
     this.hasFreeShipping = true,
     this.saleEndsAt,
+    this.estimatedDelivery,
   });
 
   String get effectiveImageUrl => (imageUrl != null && imageUrl!.isNotEmpty)
@@ -534,6 +538,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 inStock: product.inStock,
                                 stock: product.stock,
                                 hasFreeShipping: product.hasFreeShipping,
+                                estimatedDelivery: product.estimatedDelivery,
                                 onTap: () => _openDetails(product),
                                 onAddToCart: () {
                                   if (!AuthService.isAuthenticated) {

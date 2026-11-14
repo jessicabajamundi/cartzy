@@ -997,6 +997,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                       sellerName: _effectiveSellerName,
                       inStock: inStock,
                       badge: item['badge']?.toString(),
+                      estimatedDelivery: item['estimated_delivery_badge']?.toString() ?? item['estimated_delivery']?.toString(),
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
