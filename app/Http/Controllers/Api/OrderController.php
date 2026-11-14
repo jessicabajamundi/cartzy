@@ -73,7 +73,7 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'checkout_key' => ['required', 'string', 'max:64'],
-            'payment_method' => ['required', 'string', 'in:COD'],
+            'payment_method' => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
             'address_id' => ['required', 'integer'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => ['nullable', 'integer'],
@@ -128,8 +128,10 @@ class OrderController extends Controller
                 $items[] = $item;
             }
 
+            $chosenMethod = in_array(strtoupper(trim((string) ($data['payment_method'] ?? 'COD'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
+
             try {
-                $order = $placement->place($user, $items, 'COD', $address->formatted_address, null, $address);
+                $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address);
             } catch (RuntimeException $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
             }
@@ -149,25 +151,88 @@ class OrderController extends Controller
     private function placedJson(Order $order): array
     {
         $order->loadMissing('sellerOrders');
+        $isCod = $order->payment_method === 'cod';
+        $totalFormatted = $order->total_minor / 100;
 
-        return [
+        $json = [
             'message' => "Order {$order->reference} placed successfully! Your order is being prepared for dispatch.",
             'order' => [
                 'id' => $order->id,
                 'reference' => $order->reference,
-                'total' => $order->total_minor / 100,
-                'payment_method' => 'COD',
+                'total' => $totalFormatted,
+                'payment_method' => $isCod ? 'COD' : 'GCash',
+                'payment_status' => $order->payment_status,
                 'seller_order_ids' => $order->sellerOrders->pluck('id')->values(),
             ],
         ];
+
+        if (!$isCod) {
+            $json['order']['gcash'] = [
+                'merchant_name' => 'Cartzy Official Store',
+                'merchant_number' => '0917-555-2278',
+                'amount' => $totalFormatted,
+                'reference' => $order->reference,
+                'qr_data' => "00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540" . sprintf("%02d", strlen((string)$totalFormatted)) . $totalFormatted . "5802PH5915Cartzy Commerce6006Manila62" . sprintf("%02d", strlen($order->reference) + 4) . "05" . sprintf("%02d", strlen($order->reference)) . $order->reference . "6304",
+                'expiry_minutes' => 15,
+            ];
+        }
+
+        return $json;
     }
 
-    public function tracking(Request $request, int $id)
+    public function tracking(Request $request, string $id)
     {
-        $so = $this->orders->sellerOrders($request->user()->id)->firstWhere('id', $id);
+        $userId = $request->user()?->id;
+        $so = null;
+
+        if (is_numeric($id)) {
+            $intId = (int) $id;
+            $so = $this->orders->sellerOrders($userId)->firstWhere('id', $intId)
+                ?? \App\Models\SellerOrder::where('id', $intId)->whereHas('order', fn ($q) => $q->where('buyer_id', $userId))->first()
+                ?? \App\Models\SellerOrder::where('order_id', $intId)->whereHas('order', fn ($q) => $q->where('buyer_id', $userId))->first();
+        }
+
+        if (!$so) {
+            $so = \App\Models\SellerOrder::whereHas('order', fn ($q) => $q->where('buyer_id', $userId))
+                ->where(function ($q) use ($id) {
+                    $q->whereHas('order', fn ($oq) => $oq->where('reference', $id))
+                      ->orWhereHas('shipment', fn ($sq) => $sq->where('tracking_code', $id));
+                })->first();
+        }
+
         abort_unless($so, 404, 'Order not found.');
 
         return response()->json(['tracking' => app(OrderTracking::class)->build($so)]);
+    }
+
+    public function liveLocation(Request $request, string $id)
+    {
+        $userId = $request->user()?->id;
+        $so = null;
+
+        if (is_numeric($id)) {
+            $intId = (int) $id;
+            $so = \App\Models\SellerOrder::where('id', $intId)->first()
+                ?? \App\Models\SellerOrder::where('order_id', $intId)->first();
+        }
+
+        if (!$so) {
+            $so = \App\Models\SellerOrder::where(function ($q) use ($id) {
+                $q->whereHas('order', fn ($oq) => $oq->where('reference', $id))
+                  ->orWhereHas('shipment', fn ($sq) => $sq->where('tracking_code', $id));
+            })->first();
+        }
+
+        abort_unless($so, 404, 'Order not found.');
+
+        $trackingData = app(OrderTracking::class)->build($so);
+        return response()->json([
+            'order' => $trackingData['order'],
+            'tracking_no' => $trackingData['tracking_no'],
+            'map' => $trackingData['map'] ?? null,
+            'current_status' => $trackingData['current_status'],
+            'eta' => $trackingData['eta'],
+        ]);
     }
 
     public function cancel(Request $request, int $id)

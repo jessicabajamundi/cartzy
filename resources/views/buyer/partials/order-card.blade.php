@@ -47,9 +47,9 @@
             @endif
             <a href="{{ route('buyer.messages', ['contact' => $o['seller_order_id']]) }}" class="buyer-order-secondary">Contact seller</a>
             @if($o['status'] === 'to_pay')
-                <form action="{{ route('orders.pay', $o['id']) }}" method="POST" class="inline">
+                <button type="button" class="commerce-button" style="background:#007DFE; border-color:#007DFE; color:#fff;" onclick="openGcashPayModal('{{ $o['id'] }}', '{{ number_format($o['total'], 2) }}')">Pay with GCash QR</button>
+                <form id="pay-form-{{ $o['id'] }}" action="{{ route('orders.pay', $o['id']) }}" method="POST" class="inline" style="display:none;">
                     @csrf
-                    <button type="submit" class="commerce-button">Pay now</button>
                 </form>
             @elseif($o['status'] === 'to_receive')
                 <a href="{{ $trackUrl }}" class="commerce-button">Track order</a>

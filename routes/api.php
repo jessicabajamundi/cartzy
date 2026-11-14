@@ -109,9 +109,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:10,1');
-        Route::get('/orders/{id}/tracking', [OrderController::class, 'tracking'])->whereNumber('id');
-        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->whereNumber('id');
-        Route::post('/orders/{id}/report', [OrderController::class, 'report'])->whereNumber('id')->middleware('throttle:10,1');
+        Route::get('/orders/{id}/tracking', [OrderController::class, 'tracking']);
+        Route::get('/orders/{id}/realtime-location', [OrderController::class, 'liveLocation']);
+        Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel']);
+        Route::post('/orders/{id}/report', [OrderController::class, 'report'])->middleware('throttle:10,1');
         Route::post('/orders/pay/{reference}', [OrderController::class, 'pay']);
         Route::post('/reviews', [OrderController::class, 'review']);
 

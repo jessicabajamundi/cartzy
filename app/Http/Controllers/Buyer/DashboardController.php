@@ -363,10 +363,6 @@ class DashboardController extends Controller
     /** Timeline for the requested order/tracking code, else the latest in-progress (or latest) order. */
     private function tracking($sellerOrders, ?string $query): ?array
     {
-        if ($sellerOrders->isEmpty()) {
-            return null;
-        }
-
         $query = $query ? trim($query) : null;
         $so = null;
 
@@ -374,12 +370,27 @@ class DashboardController extends Controller
             $so = $sellerOrders->first(fn ($s) => strcasecmp($s->order->reference, $query) === 0
                 || strcasecmp((string) optional($s->shipment)->tracking_code, $query) === 0);
 
+            if (!$so && Auth::check()) {
+                $so = \App\Models\SellerOrder::whereHas('order', fn ($q) => $q->where('buyer_id', Auth::id()))
+                    ->where(function ($q) use ($query) {
+                        $q->whereHas('order', fn ($oq) => $oq->where('reference', $query))
+                          ->orWhereHas('shipment', fn ($sq) => $sq->where('tracking_code', $query));
+                    })->first();
+            }
+
             if (!$so) {
                 return ['not_found' => true, 'query' => $query];
             }
         } else {
+            if ($sellerOrders->isEmpty()) {
+                return null;
+            }
             $so = $sellerOrders->first(fn ($s) => in_array($this->dashboardStatus($s), ['to_receive', 'to_ship', 'to_pay'], true))
                 ?? $sellerOrders->first();
+        }
+
+        if (!$so) {
+            return null;
         }
 
         return app(\App\Services\OrderTracking::class)->build($so);

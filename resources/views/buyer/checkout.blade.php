@@ -174,18 +174,57 @@
                 <section class="checkout-card" aria-labelledby="payment-title">
                     <div class="checkout-card-heading"><div class="checkout-section-title"><span class="checkout-step">04</span><h2 id="payment-title">Payment method</h2></div></div>
                     <fieldset class="checkout-payments"><legend class="checkout-sr-only">Choose your payment method</legend>
-                        <label class="checkout-payment is-selected">
+                        <label class="checkout-payment is-selected" id="payment-label-cod">
                             <span class="checkout-payment-icon" aria-hidden="true">&#8369;</span>
                             <span class="checkout-payment-copy"><strong>Cash on Delivery (COD)</strong><small>Pay the rider in cash when your order arrives.</small></span>
                             <input type="radio" name="payment_method" value="COD" checked required>
                         </label>
-                        <label class="checkout-payment is-disabled">
-                            <span class="checkout-payment-icon gcash" aria-hidden="true">G</span>
-                            <span class="checkout-payment-copy"><strong>GCash <span class="checkout-badge">Unavailable</span></strong><small>Online payments are not available yet. Please use COD.</small></span>
-                            <input type="radio" name="payment_method" value="GCash" disabled aria-label="GCash unavailable">
+                        <label class="checkout-payment" id="payment-label-gcash">
+                            <span class="checkout-payment-icon gcash" aria-hidden="true" style="background:#007DFE; color:#fff; font-weight:800;">G</span>
+                            <span class="checkout-payment-copy"><strong>GCash QR Code <span class="checkout-badge" style="background:#EBF5FF; color:#007DFE; font-weight:700;">Instant Payment</span></strong><small>Scan and pay with your GCash app for faster dispatch.</small></span>
+                            <input type="radio" name="payment_method" value="GCash" required>
                         </label>
                     </fieldset>
-                    <div class="checkout-payment-note">No payment is collected now. Prepare <strong data-total>&#8369;{{ number_format($total, 2) }}</strong> for delivery.</div>
+
+                    <!-- GCash QR Code Payment Container -->
+                    <div id="gcash-qr-panel" style="display:none; margin-top:16px; padding:20px; background:#F4F9FF; border:1.5px solid #007DFE; border-radius:16px;">
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                            <span style="background:#007DFE; color:#fff; font-weight:900; font-size:12px; padding:4px 10px; border-radius:8px; letter-spacing:0.5px;">GCash QR</span>
+                            <h4 style="margin:0; font-size:15px; font-weight:800; color:#0b2545;">Scan to Pay with GCash</h4>
+                        </div>
+                        <p style="margin:0 0 16px; font-size:13px; color:#4a5568; line-height:1.5;">
+                            Scan the merchant QR code using your GCash app to pay the exact amount. Your order will be confirmed immediately.
+                        </p>
+                        
+                        <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:center; background:#fff; padding:18px; border-radius:14px; border:1px solid #D0E4FF;">
+                            <div style="text-align:center;">
+                                <div style="display:inline-block; padding:10px; background:#fff; border:2px solid #007DFE; border-radius:12px; box-shadow:0 4px 12px rgba(0,125,254,0.12);">
+                                    <img id="gcash-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?data=00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540{{ number_format($total, 2, '.', '') }}5802PH5915CartzyCommerce6006Manila6304&size=180x180&margin=4" alt="GCash Payment QR Code" style="width:180px; height:180px; display:block;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'180\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23f7fafc\'/><rect x=\'10\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'65\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'10\' y=\'65\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><text x=\'50\' y=\'55\' font-size=\'10\' font-weight=\'bold\' fill=\'%23007DFE\' text-anchor=\'middle\'>GCASH QR</text></svg>';">
+                                </div>
+                                <div style="margin-top:8px; font-size:11px; font-weight:700; color:#007DFE; letter-spacing:0.5px;">OFFICIAL MERCHANDISE QR</div>
+                            </div>
+                            <div style="flex:1; min-width:200px;">
+                                <div style="margin-bottom:10px;">
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Merchant</span>
+                                    <strong style="font-size:14px; color:#1a202c;">Cartzy Philippines Official</strong>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">GCash Account No.</span>
+                                    <strong style="font-size:14px; font-family:monospace; color:#007DFE;">0917-555-2278</strong>
+                                </div>
+                                <div style="margin-bottom:14px;">
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Total Amount to Pay</span>
+                                    <strong style="font-size:18px; font-weight:900; color:#007DFE;" data-total>&#8369;{{ number_format($total, 2) }}</strong>
+                                </div>
+                                <div>
+                                    <label for="gcash_reference" style="font-size:12px; font-weight:700; color:#4a5568; display:block; margin-bottom:4px;">GCash Reference No. (Optional)</label>
+                                    <input type="text" name="gcash_reference" id="gcash_reference" placeholder="e.g. 1002 9845 2819" maxlength="30" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #CBD5E0; border-radius:8px; background:#fff;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-payment-note" id="payment-note-text">No payment is collected now. Prepare <strong data-total>&#8369;{{ number_format($total, 2) }}</strong> for delivery.</div>
                 </section>
             </div>
 
@@ -250,6 +289,32 @@
         form.querySelectorAll('.checkout-store').forEach(group => group.setAttribute('aria-busy', 'true'));
         window.location.assign(url.toString());
     }));
+    // Payment method switching (COD vs GCash QR)
+    const paymentMethods = form.querySelectorAll('input[name="payment_method"]');
+    const gcashPanel = document.getElementById('gcash-qr-panel');
+    const paymentNote = document.getElementById('payment-note-text');
+    const reviewPayment = document.querySelector('.checkout-review strong');
+    const labelCod = document.getElementById('payment-label-cod');
+    const labelGcash = document.getElementById('payment-label-gcash');
+
+    function updatePaymentMethod() {
+        const selected = form.querySelector('input[name="payment_method"]:checked')?.value || 'COD';
+        if (selected === 'GCash') {
+            labelGcash?.classList.add('is-selected');
+            labelCod?.classList.remove('is-selected');
+            if (gcashPanel) gcashPanel.style.display = 'block';
+            if (paymentNote) paymentNote.innerHTML = 'Scan the GCash QR code above using your GCash app and complete payment before placing order.';
+            if (reviewPayment) reviewPayment.textContent = 'GCash QR (Instant)';
+        } else {
+            labelCod?.classList.add('is-selected');
+            labelGcash?.classList.remove('is-selected');
+            if (gcashPanel) gcashPanel.style.display = 'none';
+            if (paymentNote) paymentNote.innerHTML = 'No payment is collected now. Prepare <strong data-total>' + peso(Math.max(0, Number(form.dataset.subtotal) + Number(form.dataset.shipping))) + '</strong> for delivery.';
+            if (reviewPayment) reviewPayment.textContent = 'Cash on Delivery';
+        }
+    }
+    paymentMethods.forEach(r => r.addEventListener('change', updatePaymentMethod));
+    updatePaymentMethod();
 })();
 
 document.getElementById('checkout-form').addEventListener('submit', function (event) {

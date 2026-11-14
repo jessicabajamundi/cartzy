@@ -151,8 +151,9 @@ class CheckoutController extends Controller
         }
 
         $request->validate([
-            'payment_method'   => ['required', 'string', 'in:COD'],
+            'payment_method'   => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
             'delivery_address' => ['required', 'string'],
+            'gcash_reference'  => ['nullable', 'string', 'max:50'],
             'selected_items' => ['required', 'array', 'min:1'],
             'selected_items.*' => ['required', 'string', 'distinct'],
             'voucher_id' => ['nullable', 'integer'],
@@ -178,13 +179,28 @@ class CheckoutController extends Controller
 
         try {
             $order = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $checkoutItems, $request, $selectedCart, $shopVoucherIds) {
+                $chosenMethod = in_array(strtoupper(trim((string) $request->input('payment_method'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
                 $order = app(OrderPlacement::class)->place(
                     $user,
                     $checkoutItems,
-                    $request->input('payment_method'),
+                    $chosenMethod,
                     $request->input('delivery_address'),
                     ['items' => $request->integer('voucher_id') ?: null, 'shipping' => $request->integer('shipping_voucher_id') ?: null] + $shopVoucherIds
                 );
+
+                if ($chosenMethod === 'GCash') {
+                    $gcashRef = $request->input('gcash_reference') ?: ('GCASH-' . strtoupper(\Illuminate\Support\Str::random(10)));
+                    \App\Models\Payment::create([
+                        'order_id' => $order->id,
+                        'method' => 'gcash',
+                        'amount_minor' => $order->total_minor,
+                        'status' => 'completed',
+                        'provider_ref' => $gcashRef,
+                    ]);
+                    $order->update(['payment_status' => 'paid']);
+                    \App\Models\ActivityLog::forUser($user->id, 'order_paid', $order->reference);
+                }
+
                 app(\App\Services\BuyerCart::class)->remove(array_keys($selectedCart));
                 return $order;
             });

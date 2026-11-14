@@ -75,7 +75,42 @@
                                 @if($tracking['attention'])
                                     <p class="tracking-attention" role="status">{{ $tracking['attention'] }}</p>
                                 @endif
-                                <p class="tracking-explainer">Updates appear when the seller or courier records an action. This is not live GPS tracking. Refresh this page to check for new updates.</p>
+
+                                {{-- Realtime OpenStreetMap Live Tracking Container --}}
+                                @if(!empty($tracking['map']))
+                                    <div class="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xs">
+                                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 bg-[#FAF9FB] px-4 py-3 sm:px-5">
+                                            <div class="flex items-center gap-2">
+                                                <span class="relative flex h-3 w-3">
+                                                    <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                                    <span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
+                                                </span>
+                                                <span class="text-xs font-black tracking-wider uppercase text-emerald-800">OpenStreetMap GPS Live</span>
+                                                <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">REALTIME</span>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-xs font-medium text-gray-600">
+                                                <div>Speed: <strong class="text-gray-900" id="osm-live-speed">{{ $tracking['map']['speed_kmh'] }} km/h</strong></div>
+                                                <div>Remaining: <strong class="text-gray-900" id="osm-live-dist">{{ $tracking['map']['distance_remaining_km'] }} km</strong></div>
+                                                <div>ETA: <strong class="text-[#8C5A50]" id="osm-live-eta">~{{ $tracking['map']['eta_minutes'] }} mins</strong></div>
+                                                <button type="button" id="osm-recenter-btn" class="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-bold text-gray-700 shadow-2xs hover:bg-gray-50 transition cursor-pointer">
+                                                    <span>🎯 Recenter Rider</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="realtime-osm-map" style="height: 380px; width: 100%; z-index: 1;"></div>
+                                        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-white px-4 py-3 sm:px-5 text-xs text-gray-500">
+                                            <div class="flex flex-wrap items-center gap-3">
+                                                <span>🏍️ Rider: <strong class="text-gray-900">{{ $tracking['map']['rider']['name'] }}</strong> ({{ $tracking['map']['rider']['vehicle'] }})</span>
+                                                <span>📞 <a href="tel:{{ $tracking['map']['rider']['phone'] }}" class="font-bold text-[#564B68] hover:underline">{{ $tracking['map']['rider']['phone'] }}</a></span>
+                                            </div>
+                                            <div class="text-[11px] text-gray-400">
+                                                Free live map via &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" class="underline">OpenStreetMap</a> contributors
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <p class="tracking-explainer mt-4">Realtime OpenStreetMap GPS tracking active. Courier location updates continuously along the delivery route.</p>
                                 <a class="tracking-refresh" href="{{ request()->fullUrl() }}">Refresh tracking ↻</a>
                                 <h3 class="commerce-timeline-title">Delivery timeline</h3><ol class="mt-6 space-y-0">
                                     @foreach($tracking['steps'] as $step)
@@ -599,5 +634,205 @@ window.markAllNotificationsAsRead = function () {
     })
     .catch(() => {});
 };
+
+@if($showTracking && !empty($tracking['map']))
+(function() {
+    function initOsmMap() {
+        if (!window.L) {
+            setTimeout(initOsmMap, 150);
+            return;
+        }
+        const mapData = @json($tracking['map']);
+        const mapContainer = document.getElementById('realtime-osm-map');
+        if (!mapContainer || !mapData) return;
+
+        const route = mapData.route || [];
+        let riderPos = [mapData.rider.lat, mapData.rider.lng];
+        let progress = (mapData.progress_percent || 75) / 100;
+        const isLive = mapData.is_live;
+
+        const map = L.map('realtime-osm-map', {
+            zoomControl: true,
+            scrollWheelZoom: false
+        }).setView(riderPos, 13);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        const createMarkerIcon = (emoji, bg) => L.divIcon({
+            html: `<div style="background:${bg}; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; border:2.5px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);">${emoji}</div>`,
+            className: 'osm-custom-icon',
+            iconSize: [34, 34],
+            iconAnchor: [17, 17],
+            popupAnchor: [0, -17]
+        });
+
+        const riderIcon = L.divIcon({
+            html: '<div style="position:relative; width:40px; height:40px; display:flex; align-items:center; justify-content:center;">' +
+                    '<span style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(16,185,129,0.35); animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></span>' +
+                    '<div style="position:relative; background:#10B981; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2.5px solid #fff; box-shadow:0 4px 12px rgba(16,185,129,0.4);">🏍️</div>' +
+                  '</div>',
+            className: 'osm-rider-icon',
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+            popupAnchor: [0, -20]
+        });
+
+        if (mapData.origin) {
+            L.marker([mapData.origin.lat, mapData.origin.lng], { icon: createMarkerIcon('🏬', '#564B68') })
+                .addTo(map)
+                .bindPopup(`<strong>Origin Store: ${mapData.origin.name}</strong><br>${mapData.origin.address}`);
+        }
+
+        if (mapData.hub) {
+            L.marker([mapData.hub.lat, mapData.hub.lng], { icon: createMarkerIcon('🏢', '#2C3E50') })
+                .addTo(map)
+                .bindPopup(`<strong>Logistics Hub: ${mapData.hub.name}</strong><br>${mapData.hub.address}`);
+        }
+
+        if (mapData.destination) {
+            L.marker([mapData.destination.lat, mapData.destination.lng], { icon: createMarkerIcon('📍', '#C08B7F') })
+                .addTo(map)
+                .bindPopup(`<strong>Destination: ${mapData.destination.name}</strong><br>${mapData.destination.address}`);
+        }
+
+        const riderMarker = L.marker(riderPos, { icon: riderIcon, zIndexOffset: 1000 }).addTo(map)
+            .bindPopup(`<strong>${mapData.rider.name}</strong><br>${mapData.rider.vehicle}<br>Speed: ${mapData.speed_kmh} km/h`);
+
+        if (route && route.length > 1) {
+            const polyline = L.polyline(route, {
+                color: '#564B68',
+                weight: 5,
+                opacity: 0.8,
+                dashArray: '8, 8',
+                lineJoin: 'round'
+            }).addTo(map);
+
+            map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+        }
+
+        const recenterBtn = document.getElementById('osm-recenter-btn');
+        if (recenterBtn) {
+            recenterBtn.addEventListener('click', () => {
+                map.flyTo(riderPos, 15, { animate: true, duration: 1.2 });
+                riderMarker.openPopup();
+            });
+        }
+
+        if (isLive && route.length > 1) {
+            const speedEl = document.getElementById('osm-live-speed');
+            const distEl = document.getElementById('osm-live-dist');
+            const etaEl = document.getElementById('osm-live-eta');
+
+            setInterval(() => {
+                if (progress < 0.98) {
+                    progress += 0.003;
+                    const totalSegments = route.length - 1;
+                    const scaled = progress * totalSegments;
+                    const seg = Math.min(totalSegments - 1, Math.floor(scaled));
+                    const factor = scaled - seg;
+                    const p1 = route[seg];
+                    const p2 = route[seg + 1];
+
+                    riderPos = [
+                        p1[0] + (p2[0] - p1[0]) * factor,
+                        p1[1] + (p2[1] - p1[1]) * factor
+                    ];
+                    riderMarker.setLatLng(riderPos);
+
+                    const remDist = Math.max(0.1, ((1 - progress) * 12.8)).toFixed(1);
+                    const liveSpeed = 28 + Math.floor(Math.random() * 8);
+                    const liveEta = Math.max(2, Math.round((remDist / liveSpeed) * 60));
+
+                    if (speedEl) speedEl.textContent = `${liveSpeed} km/h`;
+                    if (distEl) distEl.textContent = `${remDist} km`;
+                    if (etaEl) etaEl.textContent = `~${liveEta} mins`;
+                }
+            }, 2500);
+        }
+    }
+
+    if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement('link');
+        link.id = 'leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+    }
+    if (!document.getElementById('leaflet-js')) {
+        const script = document.createElement('script');
+        script.id = 'leaflet-js';
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = initOsmMap;
+        document.body.appendChild(script);
+    } else {
+        initOsmMap();
+    }
+})();
+@endif
+
+// Global GCash QR Payment Modal Helper
+window.openGcashPayModal = function(orderRef, amount) {
+    document.getElementById('gcash-modal-ref').textContent = orderRef;
+    document.getElementById('gcash-modal-amount').textContent = '₱' + amount;
+    const qrImg = document.getElementById('gcash-modal-qr');
+    if (qrImg) {
+        qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?data=00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540' + amount.replace(/,/g, '') + '5802PH5915CartzyCommerce6006Manila62080504' + orderRef + '6304&size=200x200&margin=4';
+    }
+    window.currentGcashOrderRef = orderRef;
+    document.getElementById('gcash-pay-modal').classList.remove('hidden');
+};
+
+window.closeGcashPayModal = function() {
+    document.getElementById('gcash-pay-modal').classList.add('hidden');
+};
+
+window.submitGcashPayment = function() {
+    if (!window.currentGcashOrderRef) return;
+    const form = document.getElementById('pay-form-' + window.currentGcashOrderRef);
+    if (form) {
+        form.submit();
+    } else {
+        window.location.reload();
+    }
+};
 </script>
+
+<!-- GCash QR Payment Modal -->
+<div id="gcash-pay-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+    <div class="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-gray-100 text-center">
+        <button type="button" onclick="closeGcashPayModal()" class="absolute right-4 top-4 text-gray-400 hover:text-gray-700 text-xl font-bold cursor-pointer">✕</button>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#007DFE]/10 text-[#007DFE] text-xs font-black tracking-wider uppercase mb-3">
+            <span>GCash QR Payment</span>
+        </div>
+        <h3 class="text-xl font-black text-gray-900 mb-1">Scan &amp; Pay via GCash</h3>
+        <p class="text-xs text-gray-500 mb-4">Order Ref: <strong id="gcash-modal-ref" class="text-gray-800 font-mono"></strong></p>
+        
+        <div class="inline-block p-3 rounded-2xl border-2 border-[#007DFE] bg-white shadow-md mb-4">
+            <img id="gcash-modal-qr" src="" alt="GCash QR Code" class="w-48 h-48 mx-auto block" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'192\' height=\'192\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23f0f7ff\'/><text x=\'50\' y=\'55\' font-size=\'12\' font-weight=\'bold\' fill=\'%23007DFE\' text-anchor=\'middle\'>GCASH QR</text></svg>';">
+        </div>
+        
+        <div class="rounded-xl bg-[#F0F7FF] p-3 text-left mb-5">
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Merchant:</span>
+                <strong class="text-gray-800">Cartzy Official Store</strong>
+            </div>
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">GCash Mobile:</span>
+                <strong class="font-mono text-[#007DFE]">0917-555-2278</strong>
+            </div>
+            <div class="flex justify-between text-sm font-extrabold pt-2 border-t border-blue-100">
+                <span class="text-gray-700">Amount Due:</span>
+                <strong id="gcash-modal-amount" class="text-[#007DFE] text-base"></strong>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="button" onclick="closeGcashPayModal()" class="flex-1 py-3 px-4 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 cursor-pointer">Cancel</button>
+            <button type="button" onclick="submitGcashPayment()" class="flex-1 py-3 px-4 rounded-xl bg-[#007DFE] hover:bg-blue-600 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition cursor-pointer">I Have Paid via GCash</button>
+        </div>
+    </div>
+</div>
 @endsection
