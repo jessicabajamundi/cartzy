@@ -168,7 +168,7 @@ class SellerPortalController extends Controller
         $rawHistoryOrders = $historyQuery->latest('created_at')->get();
 
         $groupedByDay = $rawHistoryOrders->groupBy(function ($order) {
-            return $order->created_at->timezone('Asia/Manila')->format('Y-m-d');
+            return $order->created_at ? $order->created_at->timezone('Asia/Manila')->format('Y-m-d') : '';
         });
 
         $todayKey = $nowManila->format('Y-m-d');
@@ -183,7 +183,14 @@ class SellerPortalController extends Controller
 
         $dailyHistory = [];
         foreach ($groupedByDay as $dateKey => $orders) {
-            $dateObj = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', $dateKey, 'Asia/Manila');
+            if (empty($dateKey)) continue;
+            try {
+                $dateObj = \Illuminate\Support\Carbon::createFromFormat('Y-m-d', (string) $dateKey, 'Asia/Manila');
+            } catch (\Throwable) {
+                continue;
+            }
+            if (!$dateObj) continue;
+
             $isToday = $dateKey === $todayKey;
             $isYesterday = $dateKey === $yesterdayKey;
             $label = $isToday ? 'Today' : ($isYesterday ? 'Yesterday' : $dateObj->format('D, M j'));

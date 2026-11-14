@@ -132,7 +132,7 @@ class StoreRankings
     {
         return [
             'name' => $store->name,
-            'url' => route('store.show', $store->slug),
+            'url' => !empty($store->slug) ? route('store.show', $store->slug) : '#',
             'logo' => $store->logoUrl(),
             'sold' => $sold,
             'rating' => $rating === null ? null : round((float) $rating, 1),

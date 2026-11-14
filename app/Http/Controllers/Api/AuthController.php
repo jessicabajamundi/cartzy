@@ -38,7 +38,7 @@ class AuthController extends Controller
             'role' => $user->role === User::ROLE_COURIER ? 'rider' : $user->role,
             'status' => $user->status,
             'email_verified' => $user->email_verified_at !== null,
-            'birthday' => $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : null,
+            'birthday' => $user->birthday ? rescue(fn () => \Carbon\Carbon::parse($user->birthday)->format('Y-m-d'), null, false) : null,
             'street_address' => $user->street_address ?? '',
             'address' => $user->address ?? '',
             'barangay' => $user->barangay ?? '',

@@ -29,7 +29,7 @@
                 <span>Add product (Locked)</span>
             </button>
         @else
-            <a class="button secondary" href="{{ route('store.show', $shop->slug) }}" target="_blank" rel="noopener" title="See your shop the way buyers do (opens in a new tab)">@include('seller.partials.icon', ['name' => 'store', 'size' => 16, 'class' => 'icon icon-lead'])<span>View my shop</span>@include('seller.partials.icon', ['name' => 'external', 'size' => 14, 'class' => 'icon icon-trail'])</a>
+            <a class="button secondary" href="{{ !empty($shop?->slug) ? route('store.show', $shop->slug) : '#' }}" target="_blank" rel="noopener" title="See your shop the way buyers do (opens in a new tab)">@include('seller.partials.icon', ['name' => 'store', 'size' => 16, 'class' => 'icon icon-lead'])<span>View my shop</span>@include('seller.partials.icon', ['name' => 'external', 'size' => 14, 'class' => 'icon icon-trail'])</a>
             <a class="button" href="{{ route('seller.products', ['create' => 1]) }}#add-product">@include('seller.partials.icon', ['name' => 'plus', 'size' => 16, 'stroke' => 2.2, 'class' => 'icon icon-lead'])<span>Add product</span></a>
         @endif
     </div>
@@ -195,7 +195,7 @@
                                     <tr class="{{ $isCancelled ? 'row-cancelled' : '' }} {{ $isDelivered ? 'row-delivered' : '' }} {{ $isRefunded ? 'row-refunded' : '' }}">
                                         <td class="so-order">
                                             <strong>{{ $payment?->reference ?? 'ORD-'.$order->id }}</strong>
-                                            <small>{{ $order->created_at->timezone('Asia/Manila')->format('M j, Y · g:i A') }}</small>
+                                            <small>{{ $order->created_at ? $order->created_at->timezone('Asia/Manila')->format('M j, Y · g:i A') : 'N/A' }}</small>
                                             @if($shipment?->tracking_code)
                                                 <small class="so-tracking">{{ $shipment->tracking_code }}</small>
                                             @endif
@@ -248,7 +248,7 @@
 
                                             @if($isRefunded)
                                                 <span class="badge refunded" style="margin-top: 4px;" title="Refund processed for this order">
-                                                    {{ $payment->payment_status === 'refunded' ? 'Refunded' : 'Partial Refund' }}
+                                                    {{ ($payment?->payment_status === 'refunded') ? 'Refunded' : 'Partial Refund' }}
                                                 </span>
                                             @endif
                                         </td>
