@@ -499,7 +499,6 @@
         @endif
     @endif
 </section>
-@include('admin.partials.archive-confirm')
 
 {{-- Modal dialog for removing an archived user with reason input --}}
 <dialog id="remove-user-modal" aria-labelledby="remove-user-title" aria-describedby="remove-user-desc">

@@ -197,6 +197,12 @@
 
     function handleClose(confirmed) {
         if (dialog.open) dialog.close();
+        if (!confirmed && pendingForm) {
+            delete pendingForm.dataset.appConfirmed;
+            pendingForm = null;
+            pendingSubmitter = null;
+            confirmedForm = null;
+        }
         if (pendingResolve) {
             pendingResolve(confirmed);
             pendingResolve = null;
@@ -212,10 +218,7 @@
     });
 
     dialog.addEventListener('close', () => {
-        if (pendingResolve) {
-            pendingResolve(false);
-            pendingResolve = null;
-        }
+        handleClose(false);
     });
 
     submitBtn.addEventListener('click', () => {
@@ -223,16 +226,19 @@
         submitBtn.disabled = true;
 
         if (pendingForm) {
-            confirmedForm = pendingForm;
-            const sub = pendingSubmitter;
             const formToSubmit = pendingForm;
+            const sub = pendingSubmitter;
+            confirmedForm = formToSubmit;
+            formToSubmit.dataset.appConfirmed = 'true';
             pendingForm = null;
             pendingSubmitter = null;
             handleClose(true);
+
+            // Directly submit the form so nothing intercepts, cancels or loops
             try {
-                formToSubmit.requestSubmit(sub || undefined);
-            } finally {
-                confirmedForm = null;
+                HTMLFormElement.prototype.submit.call(formToSubmit);
+            } catch (err) {
+                formToSubmit.submit();
             }
         } else {
             handleClose(true);
@@ -257,12 +263,16 @@
     document.addEventListener('submit', (event) => {
         const form = event.target;
         if (!(form instanceof HTMLFormElement)) return;
-        if (confirmedForm === form) return;
+        if (confirmedForm === form || form.dataset.appConfirmed === 'true') return;
+
+        const itemName = form.dataset.itemName || form.dataset.productName || 'this item';
+        const isDelete = form.dataset.archiveAction === 'delete' || /delete|permanently|force/i.test(form.dataset.confirm || '');
+        const itemType = form.dataset.archiveType || (form.dataset.productName ? 'listing' : 'record');
 
         const confirmMsg = form.dataset.confirm || (
-            form.dataset.archiveAction === 'delete'
-                ? `Are you sure you want to permanently delete “${form.dataset.productName || 'this item'}”?`
-                : (form.dataset.archiveAction ? `Are you sure you want to restore “${form.dataset.productName || 'this item'}”?` : null)
+            isDelete
+                ? `Are you sure you want to permanently delete “${itemName}” from the database?`
+                : (form.dataset.archiveAction ? `Are you sure you want to restore “${itemName}”?` : null)
         );
 
         if (!confirmMsg) return;
@@ -275,14 +285,14 @@
 
         showConfirmModal({
             message: confirmMsg,
-            title: form.dataset.confirmTitle,
-            btnText: form.dataset.confirmBtn,
+            title: form.dataset.confirmTitle || (isDelete ? `Permanently delete this ${itemType}?` : (form.dataset.archiveAction ? `Restore this ${itemType}?` : undefined)),
+            btnText: form.dataset.confirmBtn || (isDelete ? 'Yes, delete permanently' : (form.dataset.archiveAction ? `Yes, restore ${itemType}` : undefined)),
             note: form.dataset.confirmNote || (
-                form.dataset.archiveAction === 'delete'
-                    ? 'This action cannot be undone. You will no longer be able to restore this listing.'
-                    : (form.dataset.archiveAction ? 'This listing will become active again and visible on the marketplace.' : null)
+                isDelete
+                    ? 'This action cannot be undone. This record will be permanently deleted from the database.'
+                    : (form.dataset.archiveAction ? `This ${itemType} will become active again and visible on the marketplace.` : null)
             ),
-            kind: form.dataset.archiveAction || form.dataset.confirmKind
+            kind: form.dataset.archiveAction || form.dataset.confirmKind || (isDelete ? 'delete' : undefined)
         });
     }, true);
 })();
