@@ -347,18 +347,44 @@ class LogisticsPortalController extends Controller
             $date = now($tz)->startOfDay();
         }
 
-        $shifts = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
+        $typeFilter = $request->query('type', 'all');
+
+        $shiftsQuery = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
             ->whereBetween('time_in_at', [$date->copy()->utc(), $date->copy()->endOfDay()->utc()])
             ->with('rider.user')
-            ->orderByDesc('time_in_at')
-            ->get();
+            ->orderByDesc('time_in_at');
 
-        $onShift = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
+        $onShiftQuery = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
             ->whereNull('time_out_at')
             ->where('time_in_at', '>', now()->subHours(\App\Services\RiderAttendanceService::MAX_SHIFT_HOURS))
             ->with('rider.user')
-            ->orderBy('time_in_at')
+            ->orderBy('time_in_at');
+
+        if (in_array($typeFilter, ['first_mile', 'last_mile'], true)) {
+            $shiftsQuery->whereHas('rider', fn ($q) => $q->where('courier_type', $typeFilter));
+            $onShiftQuery->whereHas('rider', fn ($q) => $q->where('courier_type', $typeFilter));
+        }
+
+        $shifts = $shiftsQuery->get();
+        $onShift = $onShiftQuery->get();
+
+        // Calculate breakdown for both couriers and riders
+        $allOnShift = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
+            ->whereNull('time_out_at')
+            ->where('time_in_at', '>', now()->subHours(\App\Services\RiderAttendanceService::MAX_SHIFT_HOURS))
+            ->with('rider')
             ->get();
+
+        $onShiftCouriers = $allOnShift->filter(fn ($s) => $s->rider?->courier_type === 'first_mile')->count();
+        $onShiftRiders = $allOnShift->filter(fn ($s) => $s->rider?->courier_type !== 'first_mile')->count();
+
+        $allShiftsToday = \App\Models\RiderAttendance::where('logistics_provider_id', $provider->id)
+            ->whereBetween('time_in_at', [$date->copy()->utc(), $date->copy()->endOfDay()->utc()])
+            ->with('rider')
+            ->get();
+
+        $todayCouriers = $allShiftsToday->filter(fn ($s) => $s->rider?->courier_type === 'first_mile')->count();
+        $todayRiders = $allShiftsToday->filter(fn ($s) => $s->rider?->courier_type !== 'first_mile')->count();
 
         $code = $attendance->code($provider);
 
@@ -369,6 +395,11 @@ class LogisticsPortalController extends Controller
             'tz' => $tz,
             'shifts' => $shifts,
             'onShift' => $onShift,
+            'typeFilter' => $typeFilter,
+            'onShiftCouriers' => $onShiftCouriers,
+            'onShiftRiders' => $onShiftRiders,
+            'todayCouriers' => $todayCouriers,
+            'todayRiders' => $todayRiders,
             'qrSvg' => $attendance->qrSvg($code),
             'secondsLeft' => $attendance->secondsLeft(),
             'windowSeconds' => \App\Services\RiderAttendanceService::WINDOW_SECONDS,

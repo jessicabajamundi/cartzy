@@ -1,9 +1,9 @@
 @extends('layouts.logistics')
-@section('title', 'Time In / Time Out | Logistics Hub | cartzy')
-@section('page_eyebrow', 'RIDER ATTENDANCE')
-@section('page_title', 'Time in / time out')
-@section('page_description', 'Riders open the Cartzy Rider app, tap Time in / out, and scan this code. The first scan times them in, the next one times them out.')
-@section('page_subtitle', 'Riders scan the hub QR code in the Rider app')
+@section('title', 'Attendance (Time In / Time Out) | Logistics Hub | cartzy')
+@section('page_eyebrow', 'COURIER & RIDER ATTENDANCE')
+@section('page_title', 'Attendance (Time in / time out)')
+@section('page_description', 'Couriers and riders open the Cartzy mobile app, tap Attendance (Time in / out), and scan this code. The first scan times them in, the next one times them out.')
+@section('page_subtitle', 'Couriers and riders scan the hub QR code in the mobile app')
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-attendance.css') }}?v={{ filemtime(public_path('css/logistics-attendance.css')) }}">
 @endpush
@@ -12,16 +12,16 @@
     $fmtWorked = fn (int $minutes) => intdiv($minutes, 60).'h '.str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT).'m';
 @endphp
 @section('content')
-<section class="att-workspace" aria-label="Rider time in and time out">
+<section class="att-workspace" aria-label="Courier and rider time in and time out">
     <div class="stats-grid dashboard-stats three">
         <div class="stat-card">
             <div class="metric-heading">
                 <span class="metric-icon">@include('admin.partials.icon', ['name' => 'users'])</span>
                 <span>Live</span>
             </div>
-            <span>Riders on shift</span>
+            <span>Personnel on shift</span>
             <strong>{{ $onShift->count() }}</strong>
-            <small>Currently timed in at {{ $provider->name }}</small>
+            <small>{{ $onShiftCouriers ?? 0 }} couriers · {{ $onShiftRiders ?? 0 }} riders clocked in</small>
         </div>
         <div class="stat-card">
             <div class="metric-heading">
@@ -30,7 +30,7 @@
             </div>
             <span>Recorded shifts</span>
             <strong>{{ $shifts->count() }}</strong>
-            <small>{{ $date->format('l, M j, Y') }}</small>
+            <small>{{ $todayCouriers ?? 0 }} couriers · {{ $todayRiders ?? 0 }} riders on {{ $date->format('M j, Y') }}</small>
         </div>
         <div class="stat-card">
             <div class="metric-heading">
@@ -48,9 +48,9 @@
         <div class="panel att-qr-card" id="att-qr-card" data-qr-url="{{ route('logistics.attendance.qr') }}" data-seconds-left="{{ $secondsLeft }}" data-window="{{ $windowSeconds }}" data-version="{{ $version }}">
             <header class="panel-header att-qr-top">
                 <div>
-                    <span class="eyebrow">SCAN TO TIME IN / OUT</span>
+                    <span class="eyebrow">SCAN FOR ATTENDANCE (TIME IN / OUT)</span>
                     <h2>{{ $provider->name }}</h2>
-                    <p>Point the Rider mobile app scanner at this code.</p>
+                    <p>Point the Courier or Rider mobile app scanner at this code.</p>
                 </div>
                 <button type="button" class="button subtle att-button" id="att-fullscreen" aria-pressed="false">⛶ Full screen</button>
             </header>
@@ -70,19 +70,29 @@
                 <header class="panel-header att-panel-head">
                     <div>
                         <h2>On shift now</h2>
-                        <p>Active riders currently clocked in</p>
+                        <p>Active couriers and riders currently clocked in</p>
                     </div>
                     <span class="badge good att-pill" id="att-on-shift-count">{{ $onShift->count() }}</span>
                 </header>
                 <ul class="att-on-shift">
                     @forelse($onShift as $shift)
                         <li>
-                            <span class="avatar att-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($shift->rider->user->name ?? 'R', 0, 1)) }}</span>
-                            <span class="att-on-shift-name"><strong>{{ $shift->rider->user->name ?? 'Rider' }}</strong><small>{{ $shift->rider->area ?: 'General area' }}</small></span>
+                            <span class="avatar att-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($shift->rider->user->name ?? 'P', 0, 1)) }}</span>
+                            <span class="att-on-shift-name">
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <strong>{{ $shift->rider->user->name ?? 'Personnel' }}</strong>
+                                    @if(($shift->rider->courier_type ?? '') === 'first_mile')
+                                        <span class="badge" style="background: #EEF2FF; color: #4338CA; font-size: 10px; font-weight: 700; padding: 2px 6px;">🚚 First Mile Courier</span>
+                                    @else
+                                        <span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 700; padding: 2px 6px;">🏍️ Last Mile Rider</span>
+                                    @endif
+                                </div>
+                                <small>{{ $shift->rider->area ?: 'General area' }} · {{ $shift->rider->vehicle_type ? ucfirst($shift->rider->vehicle_type) : '' }} {{ $shift->rider->plate_no ? '('.$shift->rider->plate_no.')' : '' }}</small>
+                            </span>
                             <span class="att-on-shift-time">In {{ $fmtTime($shift->time_in_at) }}<small>{{ $fmtWorked($shift->workedMinutes()) }}</small></span>
                         </li>
                     @empty
-                        <li class="empty att-empty"><strong>No riders are timed in right now.</strong><p>Riders will appear here as soon as they scan the hub QR code.</p></li>
+                        <li class="empty att-empty"><strong>No couriers or riders are timed in right now.</strong><p>Personnel will appear here as soon as they scan the hub QR code in the app.</p></li>
                     @endforelse
                 </ul>
             </div>
@@ -90,28 +100,68 @@
     </div>
 
     <div class="panel att-panel att-log">
-        <header class="panel-header att-panel-head">
+        <header class="panel-header att-panel-head" style="flex-wrap: wrap; gap: 12px;">
             <div>
                 <h2>Attendance log</h2>
                 <p>{{ $isToday ? 'Today, ' : '' }}{{ $date->format('l, M j, Y') }} · {{ $shifts->count() }} {{ Str::plural('shift', $shifts->count()) }}</p>
             </div>
-            <form method="GET" action="{{ route('logistics.attendance') }}" class="att-date">
-                <label for="att-date">Day</label>
-                <input type="date" id="att-date" name="date" value="{{ $date->format('Y-m-d') }}" max="{{ now($tz)->format('Y-m-d') }}" onchange="this.form.submit()">
-                <noscript><button type="submit" class="button subtle att-button">Show</button></noscript>
-                @unless($isToday)<a class="button subtle att-link" href="{{ route('logistics.attendance') }}">Today</a>@endunless
-            </form>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <form method="GET" action="{{ route('logistics.attendance') }}" class="att-date">
+                    <input type="hidden" name="type" value="{{ $typeFilter ?? 'all' }}">
+                    <label for="att-date">Day</label>
+                    <input type="date" id="att-date" name="date" value="{{ $date->format('Y-m-d') }}" max="{{ now($tz)->format('Y-m-d') }}" onchange="this.form.submit()">
+                    <noscript><button type="submit" class="button subtle att-button">Show</button></noscript>
+                    @unless($isToday)<a class="button subtle att-link" href="{{ route('logistics.attendance', ['type' => $typeFilter ?? 'all']) }}">Today</a>@endunless
+                </form>
+            </div>
         </header>
+
+        {{-- Type filter pills --}}
+        <div style="padding: 10px 20px 0; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--line, #e2e8f0);">
+            <a href="{{ route('logistics.attendance', ['date' => $date->format('Y-m-d'), 'type' => 'all']) }}"
+               class="button {{ ($typeFilter ?? 'all') === 'all' ? '' : 'subtle' }}"
+               style="min-height: 32px; padding: 4px 14px; font-size: 12px; border-radius: 20px;">
+               All Personnel ({{ ($todayCouriers ?? 0) + ($todayRiders ?? 0) }})
+            </a>
+            <a href="{{ route('logistics.attendance', ['date' => $date->format('Y-m-d'), 'type' => 'first_mile']) }}"
+               class="button {{ ($typeFilter ?? 'all') === 'first_mile' ? '' : 'subtle' }}"
+               style="min-height: 32px; padding: 4px 14px; font-size: 12px; border-radius: 20px;">
+               🚚 First Mile Couriers ({{ $todayCouriers ?? 0 }})
+            </a>
+            <a href="{{ route('logistics.attendance', ['date' => $date->format('Y-m-d'), 'type' => 'last_mile']) }}"
+               class="button {{ ($typeFilter ?? 'all') === 'last_mile' ? '' : 'subtle' }}"
+               style="min-height: 32px; padding: 4px 14px; font-size: 12px; border-radius: 20px;">
+               🏍️ Last Mile Riders ({{ $todayRiders ?? 0 }})
+            </a>
+        </div>
+
         <div class="table-scroll att-table-wrap">
             <table class="att-table">
                 <thead>
-                    <tr><th scope="col">Rider</th><th scope="col">Time in</th><th scope="col">Time out</th><th scope="col">Hours worked</th></tr>
+                    <tr>
+                        <th scope="col">Courier / Rider</th>
+                        <th scope="col">Type & Vehicle</th>
+                        <th scope="col">Time in</th>
+                        <th scope="col">Time out</th>
+                        <th scope="col">Hours worked</th>
+                    </tr>
                 </thead>
                 <tbody>
                     @forelse($shifts as $shift)
                         @php $stale = !$shift->time_out_at && $shift->time_in_at->lt(now()->subHours(\App\Services\RiderAttendanceService::MAX_SHIFT_HOURS)); @endphp
                         <tr>
-                            <td><strong>{{ $shift->rider->user->name ?? 'Rider' }}</strong><small>{{ $shift->rider->plate_no ?: ($shift->rider->vehicle_type ?: '') }}</small></td>
+                            <td>
+                                <strong>{{ $shift->rider->user->name ?? 'Personnel' }}</strong>
+                                <small>{{ $shift->rider->user->phone ?? ($shift->rider->area ?: 'General area') }}</small>
+                            </td>
+                            <td>
+                                @if(($shift->rider->courier_type ?? '') === 'first_mile')
+                                    <span class="badge" style="background: #EEF2FF; color: #4338CA; font-size: 11px; font-weight: 700;">🚚 First Mile</span>
+                                @else
+                                    <span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700;">🏍️ Last Mile</span>
+                                @endif
+                                <small>{{ ucfirst($shift->rider->vehicle_type ?? '') }} {{ $shift->rider->plate_no ? '· '.$shift->rider->plate_no : '' }}</small>
+                            </td>
                             <td>{{ $fmtTime($shift->time_in_at) }}</td>
                             <td>
                                 @if($shift->time_out_at){{ $fmtTime($shift->time_out_at) }}
@@ -121,7 +171,7 @@
                             <td>{{ $stale ? '—' : $fmtWorked($shift->workedMinutes()) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="empty att-empty">No rider timed in on this day.</td></tr>
+                        <tr><td colspan="5" class="empty att-empty">No courier or rider timed in on this day.</td></tr>
                     @endforelse
                 </tbody>
             </table>

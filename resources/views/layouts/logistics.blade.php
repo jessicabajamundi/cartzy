@@ -30,9 +30,9 @@
         'Overview' => [
             'dashboard' => ['Dashboard', 'grid'],
         ],
-        'Riders' => [
-            'riders' => ['Rider management', 'users'],
-            'attendance' => ['Time in / time out', 'clock'],
+        'Personnel & Attendance' => [
+            'riders' => ['Rider & courier management', 'users'],
+            'attendance' => ['Attendance (Time in / out)', 'clock'],
         ],
         'Parcel operations' => [
             'pickups' => ['Pickup requests', 'truck'],

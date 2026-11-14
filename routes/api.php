@@ -67,6 +67,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/scan', [RiderAttendanceController::class, 'scan'])->middleware('throttle:20,1');
     });
 
+    Route::middleware('api.role:courier')->prefix('courier/attendance')->group(function () {
+        Route::get('/', [RiderAttendanceController::class, 'show']);
+        Route::post('/scan', [RiderAttendanceController::class, 'scan'])->middleware('throttle:20,1');
+    });
+
     // First Mile courier dashboard in the app (real data only).
     Route::get('/courier/dashboard', [\App\Http\Controllers\Api\CourierDashboardController::class, 'show'])
         ->middleware('api.role:courier');

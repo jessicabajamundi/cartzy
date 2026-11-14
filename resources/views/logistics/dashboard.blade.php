@@ -178,8 +178,8 @@
         <a href="{{ route('logistics.attendance') }}">
             @include('admin.partials.icon', ['name' => 'clock'])
             <span>
-                <strong>Time in / time out</strong>
-                <small>Display live hub QR code for rider shifts</small>
+                <strong>Attendance (Time in / out)</strong>
+                <small>Display live hub QR code for courier & rider shifts</small>
             </span>
             @include('admin.partials.icon', ['name' => 'arrow'])
         </a>
