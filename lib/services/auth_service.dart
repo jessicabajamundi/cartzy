@@ -3,6 +3,7 @@ import 'smtp_email_service.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'wishlist_service.dart';
+import 'cart_service.dart';
 import 'user_account_service.dart';
 
 class AuthService {
@@ -32,6 +33,16 @@ class AuthService {
       _token = token;
     }
     _persistSession();
+    CartService.instance.fetchCartFromServer(force: true);
+  }
+
+  static void updateCurrentUser(Map<String, dynamic> user) {
+    if (_currentUser != null) {
+      _currentUser = {..._currentUser!, ...user};
+    } else {
+      _currentUser = Map<String, dynamic>.from(user);
+    }
+    _persistSession();
   }
 
   static Future<void> _persistSession() async {
@@ -57,6 +68,7 @@ class AuthService {
       if (savedUserJson != null && savedUserJson.isNotEmpty) {
         _currentUser = Map<String, dynamic>.from(jsonDecode(savedUserJson) as Map);
         _token = savedToken;
+        CartService.instance.fetchCartFromServer(force: true);
         return true;
       }
     } catch (_) {}
@@ -67,6 +79,7 @@ class AuthService {
     _currentUser = null;
     _token = null;
     WishlistService.clear();
+    CartService.instance.clearAll();
     SharedPreferences.getInstance().then((prefs) {
       prefs.remove(_kAuthToken);
       prefs.remove(_kAuthUser);

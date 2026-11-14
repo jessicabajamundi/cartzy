@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/utils/product_images.dart';
 
@@ -24,6 +26,9 @@ class CartItem {
   /// null = not checked yet, 0 = out of stock.
   int? stock;
 
+  /// Store / Seller name
+  final String? store;
+
   CartItem({
     required this.id,
     required this.name,
@@ -37,6 +42,7 @@ class CartItem {
     this.productId,
     this.variantId,
     this.stock,
+    this.store,
   });
 
   String get safeName => name.isNotEmpty ? name : 'Product';
@@ -70,21 +76,23 @@ class CartItem {
         'productId': productId,
         'variantId': variantId,
         'stock': stock,
+        'store': store,
       };
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
-        id: json['id']?.toString() ?? '',
+        id: json['cart_key']?.toString() ?? (json['id']?.toString() ?? ''),
         name: json['name']?.toString() ?? '',
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
-        originalPrice: json['originalPrice']?.toString(),
+        originalPrice: json['originalPrice']?.toString() ?? json['original_price']?.toString(),
         image: json['image']?.toString() ?? '',
         category: json['category']?.toString() ?? '',
         variation: json['variation']?.toString() ?? '',
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,
         selected: json['selected'] as bool? ?? true,
-        productId: (json['productId'] as num?)?.toInt(),
-        variantId: (json['variantId'] as num?)?.toInt(),
+        productId: (json['productId'] as num?)?.toInt() ?? (json['product_id'] as num?)?.toInt(),
+        variantId: (json['variantId'] as num?)?.toInt() ?? (json['variant_id'] as num?)?.toInt(),
         stock: (json['stock'] as num?)?.toInt(),
+        store: json['store']?.toString(),
       );
 }
 
@@ -148,6 +156,10 @@ class CartService extends ChangeNotifier {
     }
     _restored = true;
     notifyListeners();
+
+    if (AuthService.isLoggedIn) {
+      fetchCartFromServer(force: true);
+    }
   }
 
   Future<void> _save() async {
@@ -170,6 +182,161 @@ class CartService extends ChangeNotifier {
   }
 
   List<CartItem> get items => List.unmodifiable(_items);
+
+  bool _isLoadingFromServer = false;
+  bool get isLoadingFromServer => _isLoadingFromServer;
+
+  /// Loads the saved cart from the Laravel API for the logged-in buyer (synced with web).
+  Future<void> fetchCartFromServer({bool force = false}) async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) {
+      return;
+    }
+
+    _isLoadingFromServer = true;
+    try {
+      final res = await ApiService.get('/cart', token: token);
+      final rawList = res['items'] as List? ?? [];
+      final serverItems = rawList
+          .whereType<Map>()
+          .map((m) => CartItem.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+
+      _items.clear();
+      _items.addAll(serverItems);
+      _restored = true;
+      _save();
+      super.notifyListeners();
+    } catch (e) {
+      debugPrint('[CartService] fetchCartFromServer error: $e');
+    } finally {
+      _isLoadingFromServer = false;
+    }
+  }
+
+  /// Syncs any local offline cart items into the server cart.
+  Future<void> syncLocalCartToServer() async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn || _items.isEmpty) {
+      return;
+    }
+    try {
+      final payload = {
+        'items': _items.map((i) => i.toJson()).toList(),
+      };
+      final res = await ApiService.post('/cart/sync', payload, token: token);
+      final rawList = res['items'] as List? ?? [];
+      final serverItems = rawList
+          .whereType<Map>()
+          .map((m) => CartItem.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+
+      if (serverItems.isNotEmpty) {
+        _items.clear();
+        _items.addAll(serverItems);
+        _restored = true;
+        _save();
+        super.notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[CartService] syncLocalCartToServer error: $e');
+    }
+  }
+
+  Future<void> _syncAddToServer({
+    required String name,
+    required double price,
+    required String image,
+    required String variation,
+    required int quantity,
+    int? productId,
+    int? variantId,
+  }) async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
+    try {
+      final res = await ApiService.post('/cart/add', {
+        'id': productId ?? variantId ?? DateTime.now().millisecondsSinceEpoch,
+        'product_id': productId,
+        'variant_id': variantId,
+        'name': name,
+        'price': price,
+        'image': image,
+        'variation': variation,
+        'quantity': quantity,
+      }, token: token);
+      final rawList = res['items'] as List? ?? [];
+      if (rawList.isNotEmpty) {
+        final serverItems = rawList
+            .whereType<Map>()
+            .map((m) => CartItem.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+        _items.clear();
+        _items.addAll(serverItems);
+        _save();
+        super.notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('[CartService] _syncAddToServer error: $e');
+    }
+  }
+
+  Future<void> _syncQuantityToServer(CartItem item) async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
+    try {
+      await ApiService.put('/cart/items/${Uri.encodeComponent(item.id)}', {
+        'quantity': item.quantity,
+      }, token: token);
+    } catch (e) {
+      debugPrint('[CartService] _syncQuantityToServer error: $e');
+    }
+  }
+
+  Future<void> _syncRemoveFromServer(String id) async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
+    try {
+      await ApiService.delete('/cart/items/${Uri.encodeComponent(id)}', token: token);
+    } catch (e) {
+      debugPrint('[CartService] _syncRemoveFromServer error: $e');
+    }
+  }
+
+  Future<void> _syncSelectionToServer(CartItem item) async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
+    try {
+      await ApiService.put('/cart/items/${Uri.encodeComponent(item.id)}/select', {
+        'selected': item.selected,
+      }, token: token);
+    } catch (e) {
+      debugPrint('[CartService] _syncSelectionToServer error: $e');
+    }
+  }
+
+  Future<void> _syncSelectAllToServer() async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
+    try {
+      final selectedKeys = selectedItems.map((i) => i.id).toList();
+      await ApiService.post('/cart/selection', {
+        'selected_items': selectedKeys,
+      }, token: token);
+    } catch (e) {
+      debugPrint('[CartService] _syncSelectAllToServer error: $e');
+    }
+  }
+
+  Future<void> _syncClearServer() async {
+    final token = AuthService.token;
+    if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
+    try {
+      await ApiService.delete('/cart/clear', token: token);
+    } catch (e) {
+      debugPrint('[CartService] _syncClearServer error: $e');
+    }
+  }
 
   /// Items that will be checked out: ticked and not out of stock.
   List<CartItem> get selectedItems =>
@@ -336,6 +503,18 @@ class CartService extends ChangeNotifier {
 
     if (added > 0 || stock != null) notifyListeners();
 
+    if (added > 0) {
+      _syncAddToServer(
+        name: name,
+        price: parsedPrice,
+        image: effectiveImage,
+        variation: variation,
+        quantity: added,
+        productId: productId,
+        variantId: variantId,
+      );
+    }
+
     // Stock not known yet: check it against the database in the background.
     final line = existing ?? (added > 0 ? _items.last : null);
     if (line != null && stock == null) refreshStock(only: [line]);
@@ -350,8 +529,9 @@ class CartService extends ChangeNotifier {
 
   void removeItem(int index) {
     if (index >= 0 && index < _items.length) {
-      _items.removeAt(index);
+      final removed = _items.removeAt(index);
       notifyListeners();
+      _syncRemoveFromServer(removed.id);
     }
   }
 
@@ -360,11 +540,21 @@ class CartService extends ChangeNotifier {
     if (_items.any((existing) => existing.id == item.id)) return;
     _items.insert(index.clamp(0, _items.length), item);
     notifyListeners();
+    _syncAddToServer(
+      name: item.name,
+      price: item.price,
+      image: item.image ?? '',
+      variation: item.variation ?? '',
+      quantity: item.quantity,
+      productId: item.productId,
+      variantId: item.variantId,
+    );
   }
 
   void removeItemById(String id) {
     _items.removeWhere((item) => item.id == id);
     notifyListeners();
+    _syncRemoveFromServer(id);
   }
 
   /// Adds one. Returns false when the stock limit is already reached.
@@ -374,17 +564,22 @@ class CartService extends ChangeNotifier {
     if (item.atStockLimit) return false;
     item.quantity++;
     notifyListeners();
+    _syncQuantityToServer(item);
     return true;
   }
 
   void decreaseQuantity(int index) {
     if (index >= 0 && index < _items.length) {
-      if (_items[index].quantity > 1) {
-        _items[index].quantity--;
+      final item = _items[index];
+      if (item.quantity > 1) {
+        item.quantity--;
+        notifyListeners();
+        _syncQuantityToServer(item);
       } else {
         _items.removeAt(index);
+        notifyListeners();
+        _syncRemoveFromServer(item.id);
       }
-      notifyListeners();
     }
   }
 
@@ -401,6 +596,7 @@ class CartService extends ChangeNotifier {
     }
     item.quantity = target;
     notifyListeners();
+    _syncQuantityToServer(item);
     return target;
   }
 
@@ -410,6 +606,7 @@ class CartService extends ChangeNotifier {
       if (item.isOutOfStock && selected == true) return;
       item.selected = selected ?? false;
       notifyListeners();
+      _syncSelectionToServer(item);
     }
   }
 
@@ -419,6 +616,7 @@ class CartService extends ChangeNotifier {
       item.selected = target && !item.isOutOfStock;
     }
     notifyListeners();
+    _syncSelectAllToServer();
   }
 
   /// Removes the items that were just checked out.
@@ -426,11 +624,15 @@ class CartService extends ChangeNotifier {
     final done = selectedItems.toSet();
     _items.removeWhere(done.contains);
     notifyListeners();
+    for (final item in done) {
+      _syncRemoveFromServer(item.id);
+    }
   }
 
   void clearAll() {
     _items.clear();
     notifyListeners();
+    _syncClearServer();
   }
 
   // ============================================================

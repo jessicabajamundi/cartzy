@@ -3,6 +3,7 @@ import 'package:cartzy/utils/input_rules.dart';
 import 'package:flutter/services.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/psgc_api.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
@@ -178,7 +179,18 @@ class _BuyerAccountScreenState
 
   Future<void> _loadProfile() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 200));
+      final token = AuthService.token;
+      if (token != null && token.isNotEmpty) {
+        try {
+          final res = await ApiService.get('/auth/me', token: token);
+          if (res['user'] is Map) {
+            AuthService.setSession(
+              user: Map<String, dynamic>.from(res['user'] as Map),
+              token: token,
+            );
+          }
+        } catch (_) {}
+      }
 
       // The signed-in buyer; fields the account doesn't have stay blank.
       final user = <String, dynamic>{
@@ -1073,6 +1085,16 @@ class _BuyerAccountScreenState
         'id_photo': _idPhoto,
         'id_status': _idStatus,
       };
+
+      final token = AuthService.token;
+      if (token != null && token.isNotEmpty) {
+        final res = await ApiService.put('/account/profile', user, token: token);
+        if (res['user'] != null && res['user'] is Map) {
+          final updated = Map<String, dynamic>.from(res['user'] as Map);
+          AuthService.updateCurrentUser(updated);
+          user.addAll(updated);
+        }
+      }
 
       widget.onProfileUpdated?.call(user);
 

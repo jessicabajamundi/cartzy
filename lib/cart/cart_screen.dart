@@ -133,7 +133,12 @@ class _CartScreenState extends State<CartScreen>
     super.initState();
     CartService.instance.addListener(_onCartChanged);
     _entrance.forward();
-    _checkStock();
+    _fetchAndCheck();
+  }
+
+  Future<void> _fetchAndCheck() async {
+    await CartService.instance.fetchCartFromServer(force: true);
+    await _checkStock();
   }
 
   /// Gets the live stock of every item from the database and tells the
@@ -390,12 +395,15 @@ class _CartScreenState extends State<CartScreen>
             children: [
               NotificationListener<ScrollNotification>(
                 onNotification: _onScrollNotification,
-                child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 110),
-              child: Center(
+                child: RefreshIndicator(
+                  color: const Color(0xFF564B68),
+                  onRefresh: _fetchAndCheck,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 110),
+                    child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 1140),
                   child: Column(
@@ -444,6 +452,7 @@ class _CartScreenState extends State<CartScreen>
                 ),
               ),
             ),
+                ),
               ),
               // ── Cozy Bear Floating Companion ──
               ValueListenableBuilder<int>(

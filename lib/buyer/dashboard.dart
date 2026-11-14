@@ -66,6 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     NotificationService.fetchUnreadCount();
     WishlistService.fetchWishlistRefs();
+    CartService.instance.fetchCartFromServer();
     MessageService.fetchUnreadCount();
     RecentlyViewedService.load();
   }
