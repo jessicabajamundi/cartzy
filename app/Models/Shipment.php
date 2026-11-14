@@ -118,6 +118,11 @@ class Shipment extends Model
         return $deliveredAt ? $deliveredAt->copy()->addDays(7) : null;
     }
 
+    public function isCodRemitted(): bool
+    {
+        return $this->isCod() && $this->cod_remitted_at !== null;
+    }
+
     public function isCodHolding(): bool
     {
         if (!$this->isCod() || !$this->cod_collected || $this->cod_remitted_at) {
