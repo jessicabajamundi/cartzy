@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Models\SellerOrder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class OrderTracking
 {
@@ -211,7 +214,7 @@ class OrderTracking
     }
 
     /**
-     * Builds OpenStreetMap coordinates, polyline route, and live telemetry for real-time delivery tracking.
+     * Builds OpenStreetMap coordinates, polyline road route, and live telemetry for real-time delivery tracking.
      */
     public function buildRealtimeMap(SellerOrder $order, string $currentStatus, bool $delivered, ?string $terminal): array
     {
@@ -231,13 +234,27 @@ class OrderTracking
         $riderVehicle = $hasRider ? (ucfirst($shipment->rider->vehicle_type ?? 'Motorcycle') . ($plate ? ' · Plate ' . $plate : '')) : null;
         $courierName = $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Cartzy Express';
 
-        // Derive coordinates based on destination text or realistic Metro Manila route
-        $destCoords = $this->resolveCoordinates($destAddress, 14.5547, 121.0244); // default Makati
-        $originCoords = $this->resolveCoordinates($sellerAddress, 14.6507, 121.0305); // default QC
-        $hubCoords = [14.5862, 121.0610]; // Ortigas / Pasig Central Sorting Hub
+        // Derive coordinates based on saved pins or comprehensive Philippine geocoding resolution
+        $sellerPickup = $order->seller?->pickupAddress;
+        if ($sellerPickup && !empty($sellerPickup->latitude) && !empty($sellerPickup->longitude)) {
+            $originCoords = [(float) $sellerPickup->latitude, (float) $sellerPickup->longitude];
+        } else {
+            $originCoords = $this->resolveCoordinates($sellerAddress, 14.6507, 121.0305); // default QC
+        }
 
-        // Generate smooth route waypoints (Origin -> Hub -> Intermediate Waypoints -> Destination)
-        $route = $this->generateRoutePoints($originCoords, $hubCoords, $destCoords);
+        $buyerAddressModel = $order->order->buyer?->defaultAddress ?? $order->order->buyer?->addresses()->first();
+        if ($buyerAddressModel && !empty($buyerAddressModel->latitude) && !empty($buyerAddressModel->longitude)) {
+            $destCoords = [(float) $buyerAddressModel->latitude, (float) $buyerAddressModel->longitude];
+        } else {
+            $destCoords = $this->resolveCoordinates($destAddress, 14.5547, 121.0244); // default Makati
+        }
+        $hubCoords = [14.5862, 121.0610]; // Ortigas East / Pasig Central Sorting Hub
+
+        // Fetch street-level road polyline from OSRM (or intelligent road-grid fallback)
+        $routeData = $this->fetchRoadRoute($originCoords, $hubCoords, $destCoords);
+        $route = $routeData['coordinates'];
+        $totalDistanceKm = $routeData['distance_km'];
+        $totalDurationMinutes = $routeData['duration_minutes'];
 
         // Calculate progress percentage along route based on order/delivery status
         $progress = match (true) {
@@ -250,18 +267,18 @@ class OrderTracking
             default => 0.05,
         };
 
-        // Interpolate current rider location along the route
+        // Interpolate current rider location along the road route
         $riderLoc = $this->interpolatePosition($route, $progress);
-        $totalDistanceKm = 12.8;
-        $distanceRemainingKm = max(0.2, round($totalDistanceKm * (1.0 - $progress), 1));
-        $speedKmh = ($currentStatus === 'Out for delivery' || $currentStatus === 'In transit') ? 32 + (time() % 9) : 0;
-        $etaMinutes = $delivered ? 0 : max(3, (int) round(($distanceRemainingKm / max(20, $speedKmh ?: 25)) * 60));
+        $distanceRemainingKm = max(0.1, round($totalDistanceKm * (1.0 - $progress), 1));
+        $speedKmh = ($currentStatus === 'Out for delivery' || $currentStatus === 'In transit') ? 30 + (time() % 8) : 0;
+        $etaMinutes = $delivered ? 0 : max(1, (int) round($totalDurationMinutes * (1.0 - $progress)));
 
         $bearing = $this->calculateBearing($route, $progress);
 
         return [
             'is_live' => in_array($currentStatus, ['Out for delivery', 'In transit'], true),
             'progress_percent' => (int) round($progress * 100),
+            'total_distance_km' => $totalDistanceKm,
             'distance_remaining_km' => $distanceRemainingKm,
             'speed_kmh' => $speedKmh,
             'eta_minutes' => $etaMinutes,
@@ -299,49 +316,266 @@ class OrderTracking
         ];
     }
 
-    private function resolveCoordinates(string $address, float $fallbackLat, float $fallbackLng): array
+    /**
+     * Fetches driving route on actual streets/roads via OpenStreetMap OSRM routing engine.
+     * Caches route geometry and metrics to ensure instant response.
+     */
+    public function fetchRoadRoute(array $origin, array $hub, array $dest): array
     {
-        $addr = strtolower($address);
-        if (str_contains($addr, 'manila') && !str_contains($addr, 'quezon')) return [14.5995, 120.9842];
-        if (str_contains($addr, 'quezon')) return [14.6507, 121.0305];
-        if (str_contains($addr, 'makati')) return [14.5547, 121.0244];
-        if (str_contains($addr, 'taguig') || str_contains($addr, 'bgc')) return [14.5176, 121.0509];
-        if (str_contains($addr, 'pasig')) return [14.5764, 121.0851];
-        if (str_contains($addr, 'mandaluyong')) return [14.5794, 121.0359];
-        if (str_contains($addr, 'pasay')) return [14.5378, 121.0014];
-        if (str_contains($addr, 'paranaque')) return [14.4793, 121.0198];
-        if (str_contains($addr, 'las pinas')) return [14.4445, 120.9939];
-        if (str_contains($addr, 'muntinlupa') || str_contains($addr, 'alabang')) return [14.4081, 121.0415];
-        if (str_contains($addr, 'marikina')) return [14.6507, 121.1029];
-        if (str_contains($addr, 'cebu')) return [10.3157, 123.8854];
-        if (str_contains($addr, 'davao')) return [7.1907, 125.4553];
-        if (str_contains($addr, 'cavite')) return [14.4791, 120.8967];
-        if (str_contains($addr, 'laguna')) return [14.2809, 121.1118];
-        if (str_contains($addr, 'bulacan')) return [14.8527, 120.8160];
-        if (str_contains($addr, 'rizal') || str_contains($addr, 'antipolo')) return [14.5842, 121.1763];
+        $cacheKey = 'osrm_road_' . md5(sprintf('%.4f,%.4f;%.4f,%.4f;%.4f,%.4f', $origin[0], $origin[1], $hub[0], $hub[1], $dest[0], $dest[1]));
+
+        return Cache::remember($cacheKey, 86400, function () use ($origin, $hub, $dest) {
+            $url = sprintf(
+                'https://router.project-osrm.org/route/v1/driving/%.6f,%.6f;%.6f,%.6f;%.6f,%.6f?overview=full&geometries=geojson',
+                $origin[1], $origin[0], $hub[1], $hub[0], $dest[1], $dest[0]
+            );
+
+            try {
+                $response = Http::withHeaders([
+                    'User-Agent' => 'CartzyLogisticsApp/1.0 (contact@cartzy.shop)',
+                    'Accept' => 'application/json',
+                ])->timeout(3.5)->get($url);
+
+                if ($response->successful()) {
+                    $json = $response->json();
+                    if (($json['code'] ?? '') === 'Ok' && !empty($json['routes'][0]['geometry']['coordinates'])) {
+                        $rawCoords = $json['routes'][0]['geometry']['coordinates'];
+                        // OSRM returns [lng, lat]; flip to [lat, lng] for leaflet/flutter_map
+                        $roadCoords = array_map(fn ($pt) => [round((float) $pt[1], 6), round((float) $pt[0], 6)], $rawCoords);
+                        $distMeters = (float) ($json['routes'][0]['distance'] ?? 0);
+                        $durationSec = (float) ($json['routes'][0]['duration'] ?? 0);
+
+                        return [
+                            'coordinates' => $roadCoords,
+                            'distance_km' => max(0.5, round($distMeters / 1000.0, 1)),
+                            'duration_minutes' => max(2, (int) round($durationSec / 60.0)),
+                            'source' => 'osrm',
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('OSRM route fetch failed: ' . $e->getMessage());
+            }
+
+            // Fallback: Generate street corridor waypoints (ortho-grid snapping to prevent cutting through buildings)
+            return $this->generateStreetGridFallback($origin, $hub, $dest);
+        });
+    }
+
+    /**
+     * Resolves Philippine location name or address string to precise latitude and longitude.
+     */
+    public function resolveCoordinates(string $address, float $fallbackLat, float $fallbackLng): array
+    {
+        $addr = strtolower(trim($address));
+
+        // Dictionary of Philippine cities, commercial centers, and districts
+        $dictionary = [
+            // Metro Manila (NCR) Cities & Districts
+            'quezon city' => [14.6507, 121.0305],
+            'quezon' => [14.6507, 121.0305],
+            'cubao' => [14.6206, 121.0526],
+            'eastwood' => [14.6094, 121.0805],
+            'diliman' => [14.6538, 121.0685],
+            'fairview' => [14.7118, 121.0664],
+            'novaliches' => [14.7214, 121.0381],
+            'commonwealth' => [14.6989, 121.0886],
+            'makati' => [14.5547, 121.0244],
+            'ayala' => [14.5547, 121.0244],
+            'poblacion makati' => [14.5683, 121.0315],
+            'taguig' => [14.5176, 121.0509],
+            'bgc' => [14.5507, 121.0509],
+            'bonifacio global city' => [14.5507, 121.0509],
+            'mckinley' => [14.5342, 121.0509],
+            'pasig' => [14.5764, 121.0851],
+            'ortigas' => [14.5862, 121.0610],
+            'kapitolyo' => [14.5727, 121.0583],
+            'manila' => [14.5995, 120.9842],
+            'city of manila' => [14.5995, 120.9842],
+            'binondo' => [14.6001, 120.9754],
+            'intramuros' => [14.5896, 120.9747],
+            'ermita' => [14.5750, 120.9840],
+            'malate' => [14.5700, 120.9910],
+            'sampaloc' => [14.6073, 120.9975],
+            'santa mesa' => [14.6007, 121.0137],
+            'tondo' => [14.6193, 120.9698],
+            'mandaluyong' => [14.5794, 121.0359],
+            'wack wack' => [14.5912, 121.0518],
+            'pasay' => [14.5378, 121.0014],
+            'moa' => [14.5352, 120.9822],
+            'mall of asia' => [14.5352, 120.9822],
+            'paranaque' => [14.4793, 121.0198],
+            'bf homes' => [14.4502, 121.0264],
+            'las pinas' => [14.4445, 120.9939],
+            'muntinlupa' => [14.4081, 121.0415],
+            'alabang' => [14.4253, 121.0410],
+            'filinvest' => [14.4208, 121.0389],
+            'marikina' => [14.6507, 121.1029],
+            'caloocan' => [14.6571, 120.9841],
+            'malabon' => [14.6625, 120.9566],
+            'navotas' => [14.6669, 120.9421],
+            'valenzuela' => [14.7011, 120.9830],
+            'san juan' => [14.6019, 121.0355],
+            'greenhills' => [14.6027, 121.0514],
+            'pateros' => [14.5454, 121.0686],
+
+            // Cavite
+            'bacoor' => [14.4624, 120.9645],
+            'imus' => [14.4296, 120.9367],
+            'dasmarinas' => [14.3294, 120.9367],
+            'dasmariñas' => [14.3294, 120.9367],
+            'general trias' => [14.3869, 120.8812],
+            'tagaytay' => [14.1153, 120.9621],
+            'silang' => [14.2307, 120.9748],
+            'kawit' => [14.4441, 120.9038],
+            'cavite' => [14.4791, 120.8967],
+
+            // Laguna
+            'santa rosa' => [14.3122, 121.1114],
+            'sta rosa' => [14.3122, 121.1114],
+            'calamba' => [14.2117, 121.1656],
+            'binan' => [14.3384, 121.0809],
+            'biñan' => [14.3384, 121.0809],
+            'san pedro' => [14.3592, 121.0544],
+            'cabuyao' => [14.2783, 121.1246],
+            'los banos' => [14.1706, 121.2433],
+            'san pablo' => [14.0684, 121.3255],
+            'laguna' => [14.2809, 121.1118],
+
+            // Rizal
+            'antipolo' => [14.5842, 121.1763],
+            'cainta' => [14.5777, 121.1157],
+            'taytay' => [14.5683, 121.1328],
+            'san mateo' => [14.6967, 121.1219],
+            'rodriguez' => [14.7431, 121.1578],
+            'angono' => [14.5247, 121.1558],
+            'rizal' => [14.5842, 121.1763],
+
+            // Bulacan
+            'san jose del monte' => [14.8136, 121.0453],
+            'sjdm' => [14.8136, 121.0453],
+            'malolos' => [14.8433, 120.8114],
+            'meycauayan' => [14.7347, 120.9575],
+            'marilao' => [14.7578, 120.9644],
+            'santa maria' => [14.8197, 120.9614],
+            'baliuag' => [14.9547, 120.9008],
+            'bulacan' => [14.8527, 120.8160],
+
+            // Pampanga
+            'angeles' => [15.1450, 120.5887],
+            'san fernando pampanga' => [15.0298, 120.6896],
+            'clark' => [15.1855, 120.5367],
+            'mabalacat' => [15.2227, 120.5732],
+            'pampanga' => [15.0298, 120.6896],
+
+            // Batangas
+            'batangas city' => [13.7565, 121.0583],
+            'lipa' => [13.9419, 121.1644],
+            'tanauan' => [14.0863, 121.1504],
+            'batangas' => [13.7565, 121.0583],
+
+            // Other Luzon
+            'baguio' => [16.4023, 120.5960],
+            'benguet' => [16.4023, 120.5960],
+            'dagupan' => [16.0433, 120.3340],
+            'pangasinan' => [15.9760, 120.5710],
+            'tarlac' => [15.4802, 120.5979],
+            'cabanatuan' => [15.4859, 120.9673],
+            'nueva ecija' => [15.4859, 120.9673],
+            'olongapo' => [14.8386, 120.2842],
+            'subic' => [14.8789, 120.2344],
+            'zambales' => [14.8386, 120.2842],
+            'bataan' => [14.6760, 120.5360],
+            'la union' => [16.6159, 120.3209],
+            'laoag' => [18.1960, 120.5927],
+            'vigan' => [17.5747, 120.3869],
+            'naga' => [13.6218, 123.1948],
+            'legazpi' => [13.1391, 123.7438],
+            'puerto princesa' => [9.7392, 118.7353],
+            'palawan' => [9.7392, 118.7353],
+
+            // Visayas
+            'cebu city' => [10.3157, 123.8854],
+            'cebu' => [10.3157, 123.8854],
+            'mandaue' => [10.3333, 123.9333],
+            'lapu-lapu' => [10.3103, 123.9494],
+            'lapu lapu' => [10.3103, 123.9494],
+            'talisay cebu' => [10.2447, 123.8494],
+            'iloilo' => [10.7202, 122.5621],
+            'bacolod' => [10.6760, 122.9509],
+            'tacloban' => [11.2433, 125.0047],
+            'tagbilaran' => [9.6729, 123.8730],
+            'bohol' => [9.6729, 123.8730],
+            'dumaguete' => [9.3068, 123.3054],
+            'roxas city' => [11.5853, 122.7511],
+
+            // Mindanao
+            'davao city' => [7.1907, 125.4553],
+            'davao' => [7.1907, 125.4553],
+            'cagayan de oro' => [8.4542, 124.6319],
+            'cdo' => [8.4542, 124.6319],
+            'general santos' => [6.1164, 125.1716],
+            'gensan' => [6.1164, 125.1716],
+            'zamboanga' => [6.9214, 122.0790],
+            'iligan' => [8.2280, 124.2452],
+            'butuan' => [8.9492, 125.5436],
+            'cotabato' => [7.2236, 124.2464],
+        ];
+
+        foreach ($dictionary as $keyword => $coords) {
+            if (str_contains($addr, $keyword)) {
+                return $coords;
+            }
+        }
 
         return [$fallbackLat, $fallbackLng];
     }
 
-    private function generateRoutePoints(array $origin, array $hub, array $dest): array
+    /**
+     * Fallback generator that creates an orthogonal street-grid trajectory between waypoints
+     * to avoid cutting diagonally through buildings when live OSRM routing is unreachable.
+     */
+    private function generateStreetGridFallback(array $origin, array $hub, array $dest): array
     {
         $points = [];
         $points[] = $origin;
 
-        // Origin to Hub (2 intermediate points)
-        $points[] = [$origin[0] * 0.65 + $hub[0] * 0.35 + 0.002, $origin[1] * 0.65 + $hub[1] * 0.35 - 0.003];
-        $points[] = [$origin[0] * 0.30 + $hub[0] * 0.70 - 0.001, $origin[1] * 0.30 + $hub[1] * 0.70 + 0.002];
+        // Street-grid legs from Origin to Hub (along avenues)
+        $midLat1 = $origin[0] * 0.70 + $hub[0] * 0.30;
+        $points[] = [$midLat1, $origin[1]]; // Turn 1 (orthogonal)
+        $points[] = [$midLat1, $hub[1]];    // Turn 2
         $points[] = $hub;
 
-        // Hub to Destination (3 intermediate points for a realistic road trajectory)
-        $points[] = [$hub[0] * 0.75 + $dest[0] * 0.25 - 0.002, $hub[1] * 0.75 + $dest[1] * 0.25 + 0.003];
-        $points[] = [$hub[0] * 0.50 + $dest[0] * 0.50 + 0.003, $hub[1] * 0.50 + $dest[1] * 0.50 - 0.002];
-        $points[] = [$hub[0] * 0.25 + $dest[0] * 0.75 - 0.001, $hub[1] * 0.25 + $dest[1] * 0.75 + 0.001];
+        // Street-grid legs from Hub to Destination
+        $midLat2 = $hub[0] * 0.50 + $dest[0] * 0.50;
+        $points[] = [$midLat2, $hub[1]];   // Turn 3
+        $points[] = [$midLat2, $dest[1]];  // Turn 4
         $points[] = $dest;
 
-        return $points;
+        // Calculate cumulative distance along street segments
+        $distKm = 0.0;
+        for ($i = 0; $i < count($points) - 1; $i++) {
+            $p1 = $points[$i];
+            $p2 = $points[$i + 1];
+            $latDiff = ($p2[0] - $p1[0]) * 111.0;
+            $lngDiff = ($p2[1] - $p1[1]) * 111.0 * cos(deg2rad($p1[0]));
+            $distKm += sqrt($latDiff * $latDiff + $lngDiff * $lngDiff);
+        }
+
+        $distKm = max(1.2, round($distKm * 1.25, 1)); // apply city road curvature factor
+        $durationMinutes = max(4, (int) round(($distKm / 28.0) * 60));
+
+        return [
+            'coordinates' => $points,
+            'distance_km' => $distKm,
+            'duration_minutes' => $durationMinutes,
+            'source' => 'street_grid_fallback',
+        ];
     }
 
+    /**
+     * Interpolates rider position along real road polyline points using cumulative distance.
+     */
     private function interpolatePosition(array $route, float $progress): array
     {
         $n = count($route);
@@ -349,28 +583,53 @@ class OrderTracking
         if ($progress <= 0) return $route[0];
         if ($progress >= 1.0) return $route[$n - 1];
 
-        $totalSegments = $n - 1;
-        $scaled = $progress * $totalSegments;
-        $segIndex = (int) floor($scaled);
-        $segFactor = $scaled - $segIndex;
+        // Compute segment lengths
+        $lengths = [];
+        $totalLength = 0.0;
+        for ($i = 0; $i < $n - 1; $i++) {
+            $latDiff = $route[$i + 1][0] - $route[$i][0];
+            $lngDiff = ($route[$i + 1][1] - $route[$i][1]) * cos(deg2rad($route[$i][0]));
+            $len = sqrt($latDiff * $latDiff + $lngDiff * $lngDiff);
+            $lengths[] = $len;
+            $totalLength += $len;
+        }
 
-        $p1 = $route[$segIndex];
-        $p2 = $route[min($segIndex + 1, $n - 1)];
+        if ($totalLength <= 0) return $route[0];
 
-        return [
-            round($p1[0] + ($p2[0] - $p1[0]) * $segFactor, 6),
-            round($p1[1] + ($p2[1] - $p1[1]) * $segFactor, 6),
-        ];
+        $targetDist = $progress * $totalLength;
+        $accum = 0.0;
+
+        for ($i = 0; $i < count($lengths); $i++) {
+            $len = $lengths[$i];
+            if ($accum + $len >= $targetDist || $i === count($lengths) - 1) {
+                $segFactor = $len > 0 ? max(0.0, min(1.0, ($targetDist - $accum) / $len)) : 0.0;
+                $p1 = $route[$i];
+                $p2 = $route[$i + 1];
+
+                return [
+                    round($p1[0] + ($p2[0] - $p1[0]) * $segFactor, 6),
+                    round($p1[1] + ($p2[1] - $p1[1]) * $segFactor, 6),
+                ];
+            }
+            $accum += $len;
+        }
+
+        return $route[$n - 1];
     }
 
+    /**
+     * Computes the forward azimuth / bearing of the active road segment the rider is currently traveling on.
+     */
     private function calculateBearing(array $route, float $progress): float
     {
         $n = count($route);
         if ($n <= 1) return 0.0;
+        if ($progress <= 0) $progress = 0.001;
+
         $totalSegments = $n - 1;
         $segIndex = min($totalSegments - 1, (int) floor($progress * $totalSegments));
         $p1 = $route[$segIndex];
-        $p2 = $route[$segIndex + 1];
+        $p2 = $route[min($segIndex + 1, $n - 1)];
 
         $dLng = deg2rad($p2[1] - $p1[1]);
         $lat1 = deg2rad($p1[0]);

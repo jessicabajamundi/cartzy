@@ -20,10 +20,14 @@ class Address extends Model
         'province',
         'region',
         'postal_code',
+        'latitude',
+        'longitude',
         'is_default',
     ];
 
     protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
         'is_default' => 'boolean',
     ];
 
