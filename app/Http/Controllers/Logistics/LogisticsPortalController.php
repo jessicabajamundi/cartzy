@@ -1318,6 +1318,184 @@ class LogisticsPortalController extends Controller
         return back()->with('success', "{$shipment->tracking_code} assigned to ".($rider->user->name ?? 'the rider').'.');
     }
 
+    /**
+     * Reschedule parcel delivery by 2-3 days grace period when no rider is available for the barangay.
+     */
+    public function rescheduleDelivery(Request $request, int $id)
+    {
+        $provider = $this->provider();
+        $data = $request->validate([
+            'days' => ['required', 'integer', 'min:1', 'max:5'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
+        abort_if(in_array($shipment->status, ['delivered', 'returned'], true), 422, 'Cannot reschedule this parcel.');
+
+        $days = (int) $data['days'];
+        $barangay = self::extractBarangay($shipment);
+        $reason = trim((string) ($data['reason'] ?? ''));
+        if (empty($reason)) {
+            $reason = "No courier rider currently available in Brgy. {$barangay}. Delivery rescheduled with a {$days}-day grace period.";
+        }
+
+        $newDate = now()->addDays($days)->endOfDay();
+        $dateFormatted = $newDate->timezone('Asia/Manila')->format('M d, Y');
+
+        DB::transaction(function () use ($shipment, $newDate, $reason, $days, $barangay, $dateFormatted, $provider) {
+            $locked = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+            $locked->update([
+                'rescheduled_until' => $newDate,
+                'reschedule_reason' => $reason,
+                'reschedule_count'  => ($locked->reschedule_count ?? 0) + 1,
+            ]);
+
+            DeliveryEvent::create([
+                'shipment_id' => $locked->id,
+                'status'      => 'rescheduled',
+                'attempt'     => DeliveryEvent::nextAttempt($locked->id, 'rescheduled'),
+                'user_id'     => Auth::id(),
+                'note'        => $reason,
+                'occurred_at' => now(),
+            ]);
+
+            // Notify buyer in real-time
+            if ($buyerId = $locked->sellerOrder?->order?->buyer_id) {
+                \App\Services\NotificationService::notify(
+                    $buyerId,
+                    'delivery_rescheduled',
+                    'Delivery Rescheduled · Grace Period',
+                    "No courier rider is currently available in your barangay (Brgy. {$barangay}). Expected delivery has been rescheduled by {$days} days to {$dateFormatted}.",
+                    route('buyer.dashboard')
+                );
+            }
+
+            // Notify seller in real-time
+            if ($sellerUserId = $locked->sellerOrder?->seller?->user_id) {
+                \App\Services\NotificationService::notify(
+                    $sellerUserId,
+                    'delivery_rescheduled',
+                    "Parcel {$locked->tracking_code} Rescheduled",
+                    "Delivery rescheduled to {$dateFormatted} due to rider availability in Brgy. {$barangay}.",
+                    route('seller.orders')
+                );
+            }
+        });
+
+        return back()->with('success', "Parcel {$shipment->tracking_code} rescheduled to {$dateFormatted} ({$days} days grace period for Brgy. {$barangay}).");
+    }
+
+    /**
+     * Cancel the order and return the parcel to the seller (RTS) if no rider can deliver after grace period.
+     */
+    public function returnToSeller(Request $request, int $id)
+    {
+        $provider = $this->provider();
+        $reason = trim((string) $request->input('reason', ''));
+
+        $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
+        abort_if($shipment->status === 'delivered', 422, 'Cannot return an already delivered parcel.');
+
+        $barangay = self::extractBarangay($shipment);
+        if (empty($reason)) {
+            $reason = "No courier rider available for delivery in Brgy. {$barangay} after grace period. Order cancelled and parcel returned to seller.";
+        }
+
+        DB::transaction(function () use ($shipment, $reason, $barangay, $provider) {
+            $locked = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+            $sellerOrder = $locked->sellerOrder()->lockForUpdate()->firstOrFail();
+            $order = $sellerOrder->order()->lockForUpdate()->firstOrFail();
+
+            // 1. Mark shipment returned
+            $locked->update([
+                'status'           => 'returned',
+                'return_reason'    => $reason,
+                'returned_at'      => now(),
+                'rider_id'         => null,
+                'cod_amount_minor' => 0,
+            ]);
+
+            // 2. Mark seller order cancelled
+            $sellerOrder->update([
+                'status'                   => 'cancelled',
+                'note'                     => trim(($sellerOrder->note ? $sellerOrder->note . "\n" : '') . "Cancelled by logistics: " . $reason),
+                'cancellation_status'      => 'approved',
+                'cancellation_reason'      => "No available rider for Brgy. {$barangay}",
+                'cancellation_reviewed_at' => now(),
+            ]);
+
+            // 3. Restock items back to seller's inventory
+            foreach ($sellerOrder->items as $item) {
+                if ($item->variant_id) {
+                    \App\Models\ProductVariant::whereKey($item->variant_id)->increment('stock', $item->quantity);
+                } elseif ($item->product_id) {
+                    \App\Models\Product::whereKey($item->product_id)->increment('stock', $item->quantity);
+                }
+            }
+
+            // 4. Handle payments / refund note
+            if (!$order->sellerOrders()->where('status', '!=', 'cancelled')->exists()) {
+                if ($order->payment_status === 'paid') {
+                    $order->payments()->update([
+                        'verification_notes' => 'Refund pending: Parcel returned to seller (No available rider in buyer barangay).'
+                    ]);
+                } else {
+                    $order->payments()->where('status', 'pending')->update(['status' => 'cancelled']);
+                }
+                app(\App\Services\VoucherService::class)->reverseIfCancelled($order);
+            }
+
+            // 5. Create returned delivery event
+            DeliveryEvent::create([
+                'shipment_id' => $locked->id,
+                'status'      => 'returned',
+                'attempt'     => DeliveryEvent::nextAttempt($locked->id, 'returned'),
+                'user_id'     => Auth::id(),
+                'note'        => $reason,
+                'occurred_at' => now(),
+            ]);
+
+            // 6. Notify Buyer
+            if ($order->buyer_id) {
+                $refundMsg = $order->payment_status === 'paid' ? ' If you paid via GCash, your refund is being processed.' : '';
+                \App\Services\NotificationService::notify(
+                    $order->buyer_id,
+                    'order_cancelled',
+                    'Order Cancelled · Returned to Seller',
+                    "Your order {$order->reference} was cancelled because no rider was available to deliver in Brgy. {$barangay}. The parcel is returning to the seller.{$refundMsg}",
+                    route('buyer.dashboard')
+                );
+            }
+
+            // 7. Notify Seller
+            if ($sellerUserId = $sellerOrder->seller?->user_id) {
+                \App\Services\NotificationService::notify(
+                    $sellerUserId,
+                    'order_cancelled',
+                    "Parcel Returning to Store · {$locked->tracking_code}",
+                    "Parcel {$locked->tracking_code} is being returned to your shop because no rider was available in Brgy. {$barangay}. Product stock has been restored to your inventory.",
+                    route('seller.orders')
+                );
+            }
+        });
+
+        return back()->with('success', "Order cancelled and parcel {$shipment->tracking_code} marked as Returned to Seller (RTS). Item stocks restored.");
+    }
+
+    public static function extractBarangay(Shipment $shipment): string
+    {
+        $order = $shipment->sellerOrder?->order;
+        $shipping = is_array($order?->shipping_address) ? $order->shipping_address : json_decode($order?->shipping_address ?? '[]', true);
+        if (!empty($shipping['barangay'])) {
+            return (string) $shipping['barangay'];
+        }
+        $addr = (string) ($shipping['address'] ?? '');
+        if (preg_match('/(?:brgy\.?|barangay)\s+([^,]+)/i', $addr, $m)) {
+            return trim($m[1]);
+        }
+        return $shipment->delivery_area ?: 'Destination Area';
+    }
+
     public function autoAssignDeliveries(Request $request)
     {
         $result = DB::transaction(fn () => $this->runAutoAssign($this->provider()));
@@ -1398,7 +1576,7 @@ class LogisticsPortalController extends Controller
         $provider = $this->provider();
         $filter   = $request->query('status', 'all');
 
-        $labels = ['all' => 'All deliveries', 'failed' => 'Failed', 'out_for_delivery' => 'Out for delivery', 'in_transit' => 'In transit', 'at_hub' => 'At hub', 'delivered' => 'Delivered'];
+        $labels = ['all' => 'All deliveries', 'failed' => 'Failed', 'out_for_delivery' => 'Out for delivery', 'in_transit' => 'In transit', 'at_hub' => 'At hub', 'delivered' => 'Delivered', 'returned' => 'Returned to seller'];
         $filter = array_key_exists($filter, $labels) ? $filter : 'all';
         $search = trim((string) $request->query('search', ''));
         $all = collect($this->fetchFormattedParcels($provider));
@@ -1406,7 +1584,7 @@ class LogisticsPortalController extends Controller
         foreach (array_keys($labels) as $status) {
             if ($status !== 'all') $counts[$status] = $all->where('delivery_status', $status)->count();
         }
-        $priority = ['failed' => 0, 'out_for_delivery' => 1, 'in_transit' => 2, 'at_hub' => 3, 'delivered' => 4];
+        $priority = ['failed' => 0, 'out_for_delivery' => 1, 'in_transit' => 2, 'at_hub' => 3, 'delivered' => 4, 'returned' => 5];
         $filtered = $all->filter(function ($parcel) use ($filter, $search) {
             $text = implode(' ', [$parcel['tracking_code'], $parcel['recipient_name'], $parcel['recipient_address'], $parcel['delivery_area'], $parcel['assigned_rider_name']]);
             return ($filter === 'all' || $parcel['delivery_status'] === $filter)
@@ -2016,6 +2194,7 @@ class LogisticsPortalController extends Controller
                 'out_for_delivery' => 'out_for_delivery',
                 'delivered'        => 'delivered',
                 'failed'           => 'failed',
+                'returned'         => 'returned',
                 default            => 'at_hub',
             };
 
@@ -2040,6 +2219,14 @@ class LogisticsPortalController extends Controller
                 'assigned_rider_user_id' => $s->rider?->user_id,
                 'updated_at'          => $s->updated_at?->timezone('Asia/Manila')->format('M d, Y g:i A'),
                 'assigned_rider_name' => $s->rider?->user?->name,
+                'barangay'            => self::extractBarangay($s),
+                'rescheduled_until'   => $s->rescheduled_until?->timezone('Asia/Manila')->format('M d, Y'),
+                'rescheduled_days_left' => $s->rescheduled_until ? max(0, (int) ceil(now()->diffInDays($s->rescheduled_until, false))) : null,
+                'is_rescheduled'      => $s->rescheduled_until !== null,
+                'reschedule_reason'   => $s->reschedule_reason,
+                'reschedule_count'    => $s->reschedule_count ?? 0,
+                'return_reason'       => $s->return_reason,
+                'returned_at'         => $s->returned_at?->timezone('Asia/Manila')->format('M d, Y h:i A'),
                 'received_at'         => $s->received_at ? $s->received_at->format('M d, Y h:i A') : null,
                 'sorted_at'           => $s->sorted_at ? $s->sorted_at->format('M d, Y h:i A') : null,
                 'assigned_at'         => $s->assigned_at ? $s->assigned_at->format('M d, Y h:i A') : null,

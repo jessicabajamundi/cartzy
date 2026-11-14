@@ -401,6 +401,8 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::post('/parcels/receive-all',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveAllParcels'])->name('parcels.receive-all');
     Route::post('/parcels/{id}/receive',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');
     Route::post('/parcels/scan', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'scanParcel'])->name('parcels.scan');
+    Route::post('/parcels/{id}/reschedule', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'rescheduleDelivery'])->name('parcels.reschedule');
+    Route::post('/parcels/{id}/return', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'returnToSeller'])->name('parcels.return');
 
     // 5. Sorting of Parcels
     Route::get('/sorting', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sorting'])->name('sorting');

@@ -47,6 +47,7 @@ class OrderTracking
             'cancelled' => 'Order cancelled',
             'assigned' => 'Courier assigned',
             'unassigned' => 'Awaiting courier assignment',
+            'rescheduled' => 'Delivery rescheduled',
         ];
         $steps = [[
             'label' => 'Order placed', 'detail' => 'Your order was received.',
@@ -107,10 +108,15 @@ class OrderTracking
         $terminal = $order->status === 'cancelled' ? 'cancelled' : $shipment?->status;
         $delivered = $terminal === 'delivered' || in_array($order->status, ['delivered', 'completed'], true);
         $attention = match ($terminal) {
-            'cancelled' => 'This order was cancelled. No further delivery is expected.',
+            'cancelled' => $order->note ?: 'This order was cancelled. No further delivery is expected.',
             'failed' => 'The latest delivery attempt was unsuccessful. Await a confirmed retry or contact the seller for assistance.',
-            'returned' => 'This parcel was returned to the sender. Contact the seller about the next steps.',
-            default => $order->cancellation_status === 'pending' ? 'Your cancellation request is awaiting seller review.' : null,
+            'returned' => $shipment?->return_reason ?: 'This parcel was returned to the sender. Contact the seller about the next steps.',
+            default => match (true) {
+                $shipment?->rescheduled_until && $shipment->rescheduled_until->isFuture() && !$delivered =>
+                    "Delivery rescheduled until " . $shipment->rescheduled_until->copy()->timezone('Asia/Manila')->format('M d, Y') . ". " . ($shipment->reschedule_reason ?: 'Waiting for available rider in your barangay.'),
+                $order->cancellation_status === 'pending' => 'Your cancellation request is awaiting seller review.',
+                default => null,
+            },
         };
 
         // Determine highest confirmed milestone reached so far
@@ -171,14 +177,28 @@ class OrderTracking
 
         $realtimeMap = $this->buildRealtimeMap($order, $current, $delivered, $terminal);
 
+        $eta = $terminal === 'cancelled'
+            ? 'Cancelled'
+            : ($delivered
+                ? 'Delivered'
+                : ($terminal === 'returned'
+                    ? 'Returned to sender'
+                    : ($shipment?->rescheduled_until && $shipment->rescheduled_until->isFuture()
+                        ? 'Rescheduled: ' . $shipment->rescheduled_until->copy()->timezone('Asia/Manila')->format('M d, Y')
+                        : 'Not confirmed by courier')));
+
         return [
             'order' => $order->order->reference,
             'tracking_no' => $shipment?->tracking_code ?? 'Not assigned yet',
             'courier' => $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Not assigned yet',
-            'rider' => $shipment?->rider?->user?->name ?? 'Not assigned yet',
+            'rider' => $hasRider ? $shipment->rider->user->name : 'Not assigned yet',
             'area' => $shipment?->delivery_area ?: 'Not recorded yet',
+            'rescheduled_until' => $format($shipment?->rescheduled_until),
+            'rescheduled_days_left' => $shipment?->rescheduled_until ? max(0, (int) ceil(now()->diffInDays($shipment->rescheduled_until, false))) : null,
+            'reschedule_reason' => $shipment?->reschedule_reason,
+            'return_reason' => $shipment?->return_reason,
             'attempts' => max((int) $shipment?->attempts, (int) $events->whereIn('status', ['out_for_delivery', 'failed', 'delivered'])->max('attempt')),
-            'eta' => $terminal === 'cancelled' ? 'Cancelled' : ($delivered ? 'Delivered' : ($terminal === 'returned' ? 'Returned to sender' : 'Not confirmed by courier')),
+            'eta' => $eta,
             'current_status' => $current,
             'last_update' => $format($lastRecorded) ?? 'No recorded update',
             'attention' => $attention,
@@ -242,7 +262,7 @@ class OrderTracking
             'distance_remaining_km' => $distanceRemainingKm,
             'speed_kmh' => $speedKmh,
             'eta_minutes' => $etaMinutes,
-            'status_label' => $delivered ? 'Delivered' : ($currentStatus === 'Out for delivery' ? 'Rider is on the way' : $currentStatus),
+            'status_label' => $delivered ? 'Delivered' : ($terminal === 'returned' ? 'Returned to sender' : ($shipment?->rescheduled_until && $shipment->rescheduled_until->isFuture() ? 'Delivery Rescheduled' : ($currentStatus === 'Out for delivery' ? 'Rider is on the way' : $currentStatus))),
             'origin' => [
                 'name' => $sellerName,
                 'address' => $sellerAddress,

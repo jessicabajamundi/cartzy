@@ -29,6 +29,11 @@ class Shipment extends Model
         'received_at',
         'sorted_at',
         'assigned_at',
+        'rescheduled_until',
+        'reschedule_reason',
+        'reschedule_count',
+        'return_reason',
+        'returned_at',
         'fee_minor',
         'cod_amount_minor',
         'cod_collected',
@@ -44,6 +49,9 @@ class Shipment extends Model
         'received_at'      => 'datetime',
         'sorted_at'        => 'datetime',
         'assigned_at'      => 'datetime',
+        'rescheduled_until'=> 'datetime',
+        'returned_at'      => 'datetime',
+        'reschedule_count' => 'integer',
     ];
 
     public function isDropoff(): bool

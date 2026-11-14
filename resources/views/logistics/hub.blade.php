@@ -164,6 +164,12 @@
                             <strong class="hub-code">{{ $parcel['tracking_code'] }}</strong>
                             @if($parcel['payment_method'] === 'COD')<span class="hub-tag cod">COD ₱{{ number_format($parcel['cod_amount'], 2) }}</span>@else<span class="hub-tag">Prepaid</span>@endif
                             @if($parcel['delivery_area'])<span class="hub-tag area">{{ $parcel['delivery_area'] }}</span>@endif
+                            @if(!empty($parcel['barangay']))<span class="hub-tag" style="background:#EEF2FF;color:#4338CA;font-weight:600;">📍 {{ $parcel['barangay'] }}</span>@endif
+                            @if(!empty($parcel['is_rescheduled']))
+                                <span class="hub-tag" style="background:#FEF3C7;color:#92400E;font-weight:700;" title="{{ $parcel['reschedule_reason'] ?? '' }}">
+                                    ⏳ Rescheduled ({{ $parcel['rescheduled_days_left'] !== null ? $parcel['rescheduled_days_left'].'d left' : 'active' }})
+                                </span>
+                            @endif
                             @if($tab === 'receive' && ($parcel['handover_method'] ?? 'pickup') === 'dropoff')<span class="hub-tag area">Seller drop-off</span>@endif
                         </div>
                         <p class="hub-recipient"><strong>{{ $parcel['recipient_name'] }}</strong> · {{ $parcel['recipient_address'] }}</p>
@@ -201,6 +207,28 @@
                                 </select>
                                 <button type="submit" class="hub-button primary" @disabled(!$riders)>{{ $tab === 'assigned' ? 'Change rider' : 'Assign' }}</button>
                             </form>
+                            <details class="hub-reschedule-details" style="margin-top: 8px; width: 100%;">
+                                <summary style="font-size: 11px; color: #6D28D9; font-weight: 600; cursor: pointer; text-decoration: underline;">
+                                    ⚠️ No rider in {{ $parcel['barangay'] ?? 'this area' }}? Reschedule / Cancel
+                                </summary>
+                                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px;">
+                                    <form method="POST" action="{{ route('logistics.parcels.reschedule', ['id' => $parcel['id']], false) }}" class="hub-once" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                        @csrf
+                                        <label style="font-size: 11px; font-weight: 600; color: #374151;">Palugit:</label>
+                                        <select name="days" style="padding: 3px 8px; font-size: 11px; border: 1px solid #CBD5E1; border-radius: 6px; background: #fff;">
+                                            <option value="2">2 Days Grace Period</option>
+                                            <option value="3" selected>3 Days Grace Period</option>
+                                        </select>
+                                        <input type="hidden" name="reason" value="No courier rider currently available in Brgy. {{ $parcel['barangay'] ?? $parcel['delivery_area'] }}. Delivery rescheduled with 2-3 days grace period.">
+                                        <button type="submit" class="hub-button" style="padding: 4px 10px; font-size: 11px; background: #F59E0B; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">⏳ Reschedule</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('logistics.parcels.return', ['id' => $parcel['id']], false) }}" class="hub-once" onsubmit="return confirm('Cancel this order and return parcel to seller? This will cancel the order, restore inventory stocks, and inform buyer/seller.');" style="display: flex; gap: 6px; align-items: center;">
+                                        @csrf
+                                        <input type="hidden" name="reason" value="No courier rider available for delivery in Brgy. {{ $parcel['barangay'] ?? $parcel['delivery_area'] }} after grace period. Order cancelled and returned to seller.">
+                                        <button type="submit" class="hub-button" style="padding: 4px 10px; font-size: 11px; background: #EF4444; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">↩ Return to Seller (RTS)</button>
+                                    </form>
+                                </div>
+                            </details>
                         @else
                             <span class="hub-assigned">✓ {{ $parcel['assigned_rider_name'] ?: 'Rider' }}</span>
                             <small>{{ $parcel['assigned_at'] ? 'Assigned '.$parcel['assigned_at'] : '' }}</small>
