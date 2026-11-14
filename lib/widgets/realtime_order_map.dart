@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
 /// Real-time interactive delivery map powered by free OpenStreetMap (OSM).
@@ -33,6 +35,12 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
 
   Timer? _ticker;
   List<LatLng> _routePoints = [];
+  List<LatLng> _traveledPoints = [];
+  List<double> _segmentLengths = [];
+  double _totalRouteMeters = 0.0;
+  double _totalDistanceKm = 12.8;
+  int _totalDurationMinutes = 24;
+
   late LatLng _origin;
   late LatLng _hub;
   late LatLng _destination;
@@ -116,6 +124,12 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
       if (data['progress_percent'] != null) {
         _progress = (double.tryParse('${data['progress_percent']}') ?? 75) / 100.0;
       }
+      if (data['total_distance_km'] != null) {
+        _totalDistanceKm = double.tryParse('${data['total_distance_km']}') ?? 12.8;
+      }
+      if (data['total_duration_minutes'] != null) {
+        _totalDurationMinutes = int.tryParse('${data['total_duration_minutes']}') ?? 24;
+      }
       if (data['distance_remaining_km'] != null) {
         _distanceRemainingKm = double.tryParse('${data['distance_remaining_km']}') ?? 1.8;
       }
@@ -130,70 +144,184 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
       }
     }
 
-    // Build route points
+    // Build route points from backend or street grid
     if (data != null && data['route'] is List && (data['route'] as List).isNotEmpty) {
       _routePoints = (data['route'] as List).map((pt) {
         final p = pt as List;
         return LatLng(double.parse('${p[0]}'), double.parse('${p[1]}'));
       }).toList();
     } else {
-      _routePoints = [
-        _origin,
-        LatLng(_origin.latitude * 0.65 + _hub.latitude * 0.35 + 0.002,
-            _origin.longitude * 0.65 + _hub.longitude * 0.35 - 0.003),
-        _hub,
-        LatLng(_hub.latitude * 0.65 + _destination.latitude * 0.35 - 0.002,
-            _hub.longitude * 0.65 + _destination.longitude * 0.35 + 0.003),
-        LatLng(_hub.latitude * 0.30 + _destination.latitude * 0.70 + 0.001,
-            _hub.longitude * 0.30 + _destination.longitude * 0.70 - 0.002),
-        _destination,
-      ];
+      _routePoints = _generateStreetGridPoints(_origin, _hub, _destination);
     }
 
+    _calculateRouteMetrics();
     _riderPosition = _interpolateRoutePosition(_progress);
+
+    // If route has few points (meaning it's not yet snapped to live street network), query OSRM:
+    if (_routePoints.length < 10) {
+      _fetchRoadRouteIfNeeded();
+    }
+  }
+
+  double _distMeters(LatLng p1, LatLng p2) {
+    const r = 6371000.0;
+    final dLat = (p2.latitude - p1.latitude) * math.pi / 180.0;
+    final dLng = (p2.longitude - p1.longitude) * math.pi / 180.0;
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(p1.latitude * math.pi / 180.0) *
+            math.cos(p2.latitude * math.pi / 180.0) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return r * c;
+  }
+
+  void _calculateRouteMetrics() {
+    _segmentLengths = [];
+    _totalRouteMeters = 0.0;
+    if (_routePoints.length <= 1) return;
+
+    for (int i = 0; i < _routePoints.length - 1; i++) {
+      final len = _distMeters(_routePoints[i], _routePoints[i + 1]);
+      _segmentLengths.add(len);
+      _totalRouteMeters += len;
+    }
+
+    if (_totalRouteMeters > 0) {
+      _totalDistanceKm = math.max(0.5, double.parse((_totalRouteMeters / 1000.0).toStringAsFixed(1)));
+    }
+  }
+
+  List<LatLng> _generateStreetGridPoints(LatLng origin, LatLng hub, LatLng dest) {
+    // Orthogonal road corridors that turn along street avenues instead of piercing buildings
+    final midLat1 = origin.latitude * 0.70 + hub.latitude * 0.30;
+    final midLat2 = hub.latitude * 0.50 + dest.latitude * 0.50;
+
+    return [
+      origin,
+      LatLng(midLat1, origin.longitude),
+      LatLng(midLat1, hub.longitude),
+      hub,
+      LatLng(midLat2, hub.longitude),
+      LatLng(midLat2, dest.longitude),
+      dest,
+    ];
+  }
+
+  Future<void> _fetchRoadRouteIfNeeded() async {
+    try {
+      final url = Uri.parse(
+        'https://router.project-osrm.org/route/v1/driving/'
+        '${_origin.longitude},${_origin.latitude};'
+        '${_hub.longitude},${_hub.latitude};'
+        '${_destination.longitude},${_destination.latitude}'
+        '?overview=full&geometries=geojson',
+      );
+
+      final response = await http.get(url, headers: {
+        'User-Agent': 'CartzyLogisticsApp/1.0 (contact@cartzy.shop)',
+        'Accept': 'application/json',
+      }).timeout(const Duration(seconds: 4));
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        if (json['code'] == 'Ok' &&
+            json['routes'] is List &&
+            (json['routes'] as List).isNotEmpty) {
+          final route = json['routes'][0] as Map;
+          final coords = (route['geometry']?['coordinates'] as List? ?? []);
+          if (coords.isNotEmpty) {
+            final points = coords.map((c) {
+              final pair = c as List;
+              return LatLng(double.parse('${pair[1]}'), double.parse('${pair[0]}'));
+            }).toList();
+
+            final distMeters = (route['distance'] as num?)?.toDouble() ?? 0;
+            final durSeconds = (route['duration'] as num?)?.toDouble() ?? 0;
+
+            if (mounted) {
+              setState(() {
+                _routePoints = points;
+                _totalDistanceKm = math.max(0.5, double.parse((distMeters / 1000.0).toStringAsFixed(1)));
+                _totalDurationMinutes = math.max(2, (durSeconds / 60.0).round());
+                _calculateRouteMetrics();
+                _riderPosition = _interpolateRoutePosition(_progress);
+                _distanceRemainingKm = math.max(0.1, double.parse(((1.0 - _progress) * _totalDistanceKm).toStringAsFixed(1)));
+                _etaMinutes = math.max(1, ((_distanceRemainingKm / math.max(15, _speedKmh)) * 60).round());
+              });
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // Keep existing street grid fallback
+    }
   }
 
   LatLng _interpolateRoutePosition(double progress) {
     if (_routePoints.isEmpty) return _destination;
-    if (_routePoints.length == 1 || progress <= 0) return _routePoints.first;
-    if (progress >= 1.0) return _routePoints.last;
+    if (_routePoints.length == 1 || progress <= 0) {
+      _traveledPoints = [_routePoints.first];
+      return _routePoints.first;
+    }
+    if (progress >= 1.0) {
+      _traveledPoints = List.from(_routePoints);
+      return _routePoints.last;
+    }
 
-    final totalSegs = _routePoints.length - 1;
-    final scaled = progress * totalSegs;
-    final segIdx = scaled.floor().clamp(0, totalSegs - 1);
-    final factor = scaled - segIdx;
+    if (_segmentLengths.isEmpty || _totalRouteMeters <= 0) {
+      _calculateRouteMetrics();
+    }
 
-    final p1 = _routePoints[segIdx];
-    final p2 = _routePoints[math.min(segIdx + 1, _routePoints.length - 1)];
+    final targetMeters = progress * _totalRouteMeters;
+    double accumulated = 0.0;
+    final traveled = <LatLng>[_routePoints.first];
 
-    // Calculate heading/bearing
-    final dLng = (p2.longitude - p1.longitude) * math.pi / 180.0;
-    final lat1 = p1.latitude * math.pi / 180.0;
-    final lat2 = p2.latitude * math.pi / 180.0;
-    final y = math.sin(dLng) * math.cos(lat2);
-    final x = math.cos(lat1) * math.sin(lat2) -
-        math.sin(lat1) * math.cos(lat2) * math.cos(dLng);
-    _bearing = (math.atan2(y, x) * 180.0 / math.pi + 360.0) % 360.0;
+    for (int i = 0; i < _segmentLengths.length; i++) {
+      final segLen = _segmentLengths[i];
+      if (accumulated + segLen >= targetMeters || i == _segmentLengths.length - 1) {
+        final factor = segLen > 0 ? ((targetMeters - accumulated) / segLen).clamp(0.0, 1.0) : 0.0;
+        final p1 = _routePoints[i];
+        final p2 = _routePoints[math.min(i + 1, _routePoints.length - 1)];
 
-    return LatLng(
-      p1.latitude + (p2.latitude - p1.latitude) * factor,
-      p1.longitude + (p2.longitude - p1.longitude) * factor,
-    );
+        // Calculate exact street heading/bearing
+        final dLng = (p2.longitude - p1.longitude) * math.pi / 180.0;
+        final lat1 = p1.latitude * math.pi / 180.0;
+        final lat2 = p2.latitude * math.pi / 180.0;
+        final y = math.sin(dLng) * math.cos(lat2);
+        final x = math.cos(lat1) * math.sin(lat2) -
+            math.sin(lat1) * math.cos(lat2) * math.cos(dLng);
+        _bearing = (math.atan2(y, x) * 180.0 / math.pi + 360.0) % 360.0;
+
+        final current = LatLng(
+          p1.latitude + (p2.latitude - p1.latitude) * factor,
+          p1.longitude + (p2.longitude - p1.longitude) * factor,
+        );
+        traveled.add(current);
+        _traveledPoints = traveled;
+        return current;
+      }
+      accumulated += segLen;
+      traveled.add(_routePoints[i + 1]);
+    }
+
+    _traveledPoints = List.from(_routePoints);
+    return _routePoints.last;
   }
 
   void _startLiveSimulation() {
     if (!_isLive) return;
 
-    _ticker = Timer.periodic(const Duration(milliseconds: 2500), (_) {
+    _ticker = Timer.periodic(const Duration(milliseconds: 1500), (_) {
       if (!mounted) return;
       if (_progress < 0.98) {
         setState(() {
-          _progress = math.min(0.98, _progress + 0.003);
+          _progress = math.min(0.98, _progress + 0.0015);
           _riderPosition = _interpolateRoutePosition(_progress);
           _distanceRemainingKm =
-              math.max(0.1, double.parse(((1.0 - _progress) * 12.8).toStringAsFixed(1)));
+              math.max(0.1, double.parse(((1.0 - _progress) * _totalDistanceKm).toStringAsFixed(1)));
           _speedKmh = 28 + (DateTime.now().second % 9);
-          _etaMinutes = math.max(2, (_distanceRemainingKm / _speedKmh * 60).round());
+          _etaMinutes = math.max(1, ((1.0 - _progress) * _totalDurationMinutes).round());
         });
       }
     });
@@ -253,16 +381,29 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
                 maxZoom: 19,
               ),
 
-              // Polyline route
+              // Polyline route along actual road network
               if (_routePoints.length > 1)
                 PolylineLayer(
                   polylines: [
-                    // Main Route
+                    // Outer street corridor glow / casing
+                    Polyline(
+                      points: _routePoints,
+                      color: const Color(0xFF564B68).withValues(alpha: 0.20),
+                      strokeWidth: 7.0,
+                    ),
+                    // Full route along the road
                     Polyline(
                       points: _routePoints,
                       color: const Color(0xFF564B68),
-                      strokeWidth: 4.5,
+                      strokeWidth: 4.0,
                     ),
+                    // Already traversed road path in vibrant emerald green
+                    if (_traveledPoints.length > 1)
+                      Polyline(
+                        points: _traveledPoints,
+                        color: const Color(0xFF10B981),
+                        strokeWidth: 4.5,
+                      ),
                   ],
                 ),
 
@@ -382,7 +523,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
               ),
               const SizedBox(width: 8),
               Text(
-                'LIVE OSM GPS',
+                'LIVE ROAD GPS',
                 style: GoogleFonts.dmSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
