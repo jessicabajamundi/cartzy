@@ -72,6 +72,10 @@ class BuyerOrder {
   final String? cancellationStatus;
   final OrderReport? report;
   final bool canReport;
+  final int? refundDaysLeft;
+  final bool refundExpired;
+  final bool isCod;
+  final bool codHolding;
   final String store;
 
   /// One of [BuyerOrder.statuses].
@@ -89,6 +93,10 @@ class BuyerOrder {
     required this.cancellationStatus,
     required this.report,
     required this.canReport,
+    this.refundDaysLeft,
+    this.refundExpired = false,
+    this.isCod = false,
+    this.codHolding = false,
     required this.store,
     required this.status,
     required this.date,
@@ -118,6 +126,10 @@ class BuyerOrder {
             ? OrderReport.fromJson(Map<String, dynamic>.from(json['report'] as Map))
             : null,
         canReport: json['can_report'] == true,
+        refundDaysLeft: json['refund_days_left'] != null ? _int(json['refund_days_left']) : null,
+        refundExpired: json['refund_expired'] == true,
+        isCod: json['is_cod'] == true,
+        codHolding: json['cod_holding'] == true,
         store: json['store']?.toString() ?? 'Cartzy Seller',
         status: json['status']?.toString() ?? 'to_ship',
         date: json['date']?.toString() ?? '',

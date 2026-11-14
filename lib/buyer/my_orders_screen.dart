@@ -1026,7 +1026,19 @@ class _OrderCard extends StatelessWidget {
       if (order.canCancel)
         _OrderButton(label: 'Cancel order', icon: Icons.close_rounded, onTap: onCancel),
       if (order.canReport)
-        _OrderButton(label: 'Report problem', icon: Icons.flag_outlined, onTap: onReport),
+        _OrderButton(
+          label: order.refundDaysLeft != null
+              ? 'Report / Refund (${order.refundDaysLeft}d)'
+              : 'Report / Refund',
+          icon: Icons.flag_outlined,
+          onTap: onReport,
+        )
+      else if (order.refundExpired)
+        const _OrderButton(
+          label: 'Refund closed (7d expired)',
+          icon: Icons.lock_clock_outlined,
+          onTap: null,
+        ),
       if (status != 'cancelled' && status != 'to_receive')
         _OrderButton(label: 'Track order', icon: Icons.location_on_outlined, onTap: onTrack),
       if (status == 'to_pay')
