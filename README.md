@@ -29,13 +29,27 @@ To update, download the new version and install it over the old one.
 
 ## For developers
 
-Debug runs use the Laravel backend on your computer. With the phone connected
-over USB:
+Debug runs can use the Laravel backend running on your computer. Run the web
+and Android targets separately, each with its own API URL:
+
+For Flutter web:
 
 ```sh
-adb reverse tcp:8000 tcp:8000   # once each time the phone is plugged in
-flutter run
+flutter run -d chrome --dart-define=API_BASE_URL_WEB=http://127.0.0.1:8000/api
 ```
+
+For an Android phone connected over USB or wireless debugging:
+
+```sh
+adb reverse tcp:8000 tcp:8000
+flutter run -d <device-id> --dart-define=API_BASE_URL_APP=http://127.0.0.1:8000/api
+```
+
+The VS Code Run menu also has separate **Cartzy Web (local API)** and
+**Cartzy Android (local API)** configurations. The Android configuration runs
+`adb reverse` before launch; the web configuration uses the computer's
+localhost directly. For Android emulators without `adb reverse`, use
+`http://10.0.2.2:8000/api` as `API_BASE_URL_APP`.
 
 Release builds use the live server (`https://cartzyy.shop/api`) automatically.
 To build the APKs for a release:

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/review_service.dart';
+import 'package:cartzy/services/order_service.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
 
 class PayNowDialog extends StatefulWidget {
@@ -33,8 +36,8 @@ class _PayNowDialogState extends State<PayNowDialog>
     with TickerProviderStateMixin {
   // Payment method: 'COD' or 'GCash'
   String _selectedMethod = 'GCash';
-  final TextEditingController _gcashController = TextEditingController();
-  final TextEditingController _gcashPinController = TextEditingController();
+  final TextEditingController _gcashController = TextEditingController(text: '09175552278');
+  final TextEditingController _gcashRefController = TextEditingController();
 
   // Processing state
   // 'select' → 'processing' → 'success'
@@ -75,7 +78,7 @@ class _PayNowDialogState extends State<PayNowDialog>
   @override
   void dispose() {
     _gcashController.dispose();
-    _gcashPinController.dispose();
+    _gcashRefController.dispose();
     _pulseController.dispose();
     _successController.dispose();
     super.dispose();
@@ -86,44 +89,35 @@ class _PayNowDialogState extends State<PayNowDialog>
   // --------------------------------------------------------
 
   Future<void> _startPayment() async {
-    // Validate GCash fields
-    if (_selectedMethod == 'GCash') {
-      if (_gcashController.text.trim().isEmpty) {
-        _showError('Please enter your GCash number.');
-        return;
-      }
-      if (_gcashController.text.trim().length < 11) {
-        _showError('GCash number must be 11 digits.');
-        return;
-      }
-      if (_gcashPinController.text.trim().isEmpty) {
-        _showError('Please enter your GCash PIN.');
-        return;
-      }
-    }
-
     setState(() {
       _stage = 'processing';
       _processingStep = 0;
     });
+
+    // Attempt online server payment recording if available
+    try {
+      await OrderService.pay(widget.order.id);
+    } catch (_) {
+      // Continue offline simulation if server is unreachable
+    }
 
     // Simulate payment processing steps
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     setState(() => _processingStep = 1);
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 1000));
     if (!mounted) return;
     setState(() => _processingStep = 2);
 
-    await Future.delayed(const Duration(milliseconds: 1000));
+    await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
     setState(() => _processingStep = 3);
 
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
-    // Update order status
+    // Update order status in local review service
     ReviewService.instance.payOrder(widget.order.id);
 
     setState(() {
@@ -132,15 +126,6 @@ class _PayNowDialogState extends State<PayNowDialog>
 
     _pulseController.stop();
     _successController.forward();
-  }
-
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: CartzyColors.error,
-      ),
-    );
   }
 
   // --------------------------------------------------------
@@ -314,136 +299,153 @@ class _PayNowDialogState extends State<PayNowDialog>
               color: const Color(0xFF2AA89C),
             ),
 
-            // GCash input fields
+            // GCash QR Code Payment Container
             if (_selectedMethod == 'GCash') ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF007DFE).withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(14),
+                  color: const Color(0xFF007DFE).withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFF007DFE).withValues(alpha: 0.2),
+                    color: const Color(0xFF007DFE).withValues(alpha: 0.25),
+                    width: 1.2,
                   ),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF007DFE),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'GCASH QR',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Official Merchant QR',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: CartzyColors.navy,
+                              ),
+                            ),
+                          ],
+                        ),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF007DFE),
+                            color: const Color(0xFFE6F2FF),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
-                            'GCash',
+                            'Active 10:00',
                             style: TextStyle(
-                              color: Colors.white,
                               fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF007DFE),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Enter Payment Details',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: CartzyColors.navy,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 14),
-                    TextField(
-                      controller: _gcashController,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 11,
-                      decoration: InputDecoration(
-                        labelText: 'GCash Number',
-                        hintText: '09XXXXXXXXX',
-                        counterText: '',
-                        prefixIcon: const Icon(
-                          Icons.phone_android,
-                          color: Color(0xFF007DFE),
-                        ),
-                        filled: true,
-                        fillColor: CartzyColors.surface,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: CartzyColors.border),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: CartzyColors.border),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF007DFE),
-                            width: 1.5,
+
+                    // Centered QR Code
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFF007DFE), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF007DFE).withValues(alpha: 0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
+                        ],
+                      ),
+                      child: QrImageView(
+                        data: '00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540${widget.order.price.replaceAll(RegExp(r'[^0-9.]'), '')}5802PH5915CartzyCommerce6006Manila62080504${widget.order.id}6304',
+                        version: QrVersions.auto,
+                        size: 160.0,
+                        backgroundColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // Amount & Instructions
+                    Text(
+                      'Scan with GCash to Pay ${widget.order.price}',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF007DFE),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Merchant: Cartzy Official Store • No: 0917-555-2278',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 11.5,
+                        color: const Color(0xFF7A6E72),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Reference field
                     TextField(
-                      controller: _gcashPinController,
-                      keyboardType: TextInputType.number,
-                      obscureText: true,
-                      maxLength: 4,
+                      controller: _gcashRefController,
+                      keyboardType: TextInputType.text,
                       decoration: InputDecoration(
-                        labelText: 'GCash PIN',
-                        hintText: '••••',
-                        counterText: '',
+                        labelText: 'GCash Ref No. (Optional)',
+                        hintText: 'e.g. 1002 9845 2819',
+                        isDense: true,
                         prefixIcon: const Icon(
-                          Icons.lock_outline,
+                          Icons.receipt_long,
                           color: Color(0xFF007DFE),
+                          size: 20,
                         ),
                         filled: true,
-                        fillColor: CartzyColors.surface,
+                        fillColor: Colors.white,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: CartzyColors.border),
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: CartzyColors.border),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: CartzyColors.border),
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(color: CartzyColors.border),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(
                             color: Color(0xFF007DFE),
                             width: 1.5,
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Row(
-                      children: [
-                        Icon(Icons.shield_outlined,
-                            size: 14, color: CartzyColors.gray),
-                        SizedBox(width: 4),
-                        Text(
-                          'Your payment information is encrypted and secure.',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: CartzyColors.gray,
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),

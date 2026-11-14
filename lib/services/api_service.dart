@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 import 'package:http/http.dart' as http;
 
 import 'auth_service.dart';
@@ -19,16 +19,23 @@ class ApiException implements Exception {
 
 class ApiService {
   static const String _productionBaseUrl = 'https://cartzyy.shop/api';
+  static const String _sharedBaseUrl = String.fromEnvironment('API_BASE_URL');
+  static const String _webBaseUrl = String.fromEnvironment('API_BASE_URL_WEB');
+  static const String _appBaseUrl = String.fromEnvironment('API_BASE_URL_APP');
+  static const String _platformBaseUrl = kIsWeb ? _webBaseUrl : _appBaseUrl;
 
   /// The server this build always uses, or empty to try the local
   /// development servers below:
-  /// - `--dart-define=API_BASE_URL=...` wins when given.
+  /// - `API_BASE_URL` overrides both platforms when given.
+  /// - `API_BASE_URL_WEB` and `API_BASE_URL_APP` override one platform each.
   /// - Otherwise release builds (the APK people install) use the live site,
   ///   so they never depend on a developer's PC.
   /// - Debug runs (`flutter run`) use the local Laravel server.
-  static const String _fixedBaseUrl = String.fromEnvironment('API_BASE_URL') != ''
-      ? String.fromEnvironment('API_BASE_URL')
-      : (kReleaseMode ? _productionBaseUrl : '');
+  static const String _fixedBaseUrl = _sharedBaseUrl != ''
+      ? _sharedBaseUrl
+      : (_platformBaseUrl != ''
+          ? _platformBaseUrl
+          : (kReleaseMode ? _productionBaseUrl : ''));
 
   /// Active base URL.
   /// - Debug default 'http://127.0.0.1:8000/api' works on physical Android phones
@@ -38,11 +45,18 @@ class ApiService {
       ? _fixedBaseUrl
       : 'http://127.0.0.1:8000/api';
 
-  static final List<String> _localCandidateUrls = [
-    'http://127.0.0.1:8000/api',
-    'http://192.168.100.188:8000/api',
-    'http://10.0.2.2:8000/api',
-  ];
+  static final List<String> _localCandidateUrls = kIsWeb
+      ? [
+          'http://127.0.0.1:8000/api',
+          'http://localhost:8000/api',
+          _productionBaseUrl,
+        ]
+      : [
+          'http://127.0.0.1:8000/api',
+          'http://192.168.18.129:8000/api',
+          'http://10.0.2.2:8000/api',
+          _productionBaseUrl,
+        ];
 
   /// Rewrites loopback hosts (127.0.0.1 or localhost) in image URLs to match
   /// the active base URL host (e.g. 10.0.2.2 on Android emulator or Wi-Fi IP).

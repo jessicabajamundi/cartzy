@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/review_service.dart';
+import 'package:cartzy/services/order_service.dart';
 import 'package:cartzy/widgets/cartzy_product_image.dart';
+import 'package:cartzy/widgets/realtime_order_map.dart';
 import 'package:cartzy/buyer/order_history_screen.dart';
+import 'package:cartzy/buyer/order_tracking_screen.dart';
 
 // ============================================================
 // TRACK ORDER SCREEN — Delivery Updates & Parcel Tracking
@@ -28,6 +31,24 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
   final TextEditingController _trackingController = TextEditingController();
   Order? _trackedOrder;
   bool _hasSearched = false;
+  List<BuyerOrder> _serverOrders = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadServerOrders();
+  }
+
+  Future<void> _loadServerOrders() async {
+    try {
+      final data = await OrderService.fetchOrders();
+      if (mounted) {
+        setState(() {
+          _serverOrders = data.orders;
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -44,9 +65,9 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
         return;
       }
 
-      final orders = ReviewService.instance.orders;
+      final allOrders = _allOrders;
       try {
-        _trackedOrder = orders.firstWhere((o) {
+        _trackedOrder = allOrders.firstWhere((o) {
           final idMatch = o.id.toLowerCase() == query ||
               o.id.toLowerCase().replaceAll('-', '') == query.replaceAll('-', '');
           final nameMatch = o.productName.toLowerCase().contains(query);
@@ -58,9 +79,28 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     });
   }
 
+  List<Order> get _allOrders {
+    final list = List<Order>.from(ReviewService.instance.orders);
+    for (final so in _serverOrders) {
+      if (!list.any((o) => o.id.toLowerCase() == so.reference.toLowerCase())) {
+        list.add(Order(
+          id: so.reference,
+          productName: so.items.isNotEmpty ? so.items.first.name : 'Cartzy Package',
+          status: so.status == 'to_receive'
+              ? 'To Receive'
+              : (so.status == 'completed' ? 'To Review' : 'To Ship'),
+          price: '₱${so.total.toStringAsFixed(2)}',
+          quantity: so.items.fold<int>(0, (sum, i) => sum + i.qty),
+          image: so.items.isNotEmpty ? so.items.first.image : '',
+        ));
+      }
+    }
+    return list;
+  }
+
   List<Order> get _activeParcels {
     // Orders currently in transit / shipping
-    return ReviewService.instance.orders
+    return _allOrders
         .where((o) => o.status == 'To Ship' || o.status == 'To Receive')
         .toList();
   }
@@ -678,6 +718,18 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
 
           const Divider(height: 1, color: Color(0xFFF0E8EA)),
 
+          // Realtime OpenStreetMap Tracking Map
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: isMobile ? 16 : 20, vertical: 12),
+            child: RealtimeOrderMap(
+              orderReference: order.id,
+              status: order.status,
+              height: 320,
+            ),
+          ),
+
+          const Divider(height: 1, color: Color(0xFFF0E8EA)),
+
           // Progress Timeline
           Padding(
             padding: EdgeInsets.all(isMobile ? 16 : 20),
@@ -740,13 +792,33 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flexible(
-                  child: Text(
-                    'Need help with this order?',
+                TextButton.icon(
+                  onPressed: () {
+                    final matchingServerOrder = _serverOrders.cast<BuyerOrder?>().firstWhere(
+                          (so) => so?.reference.toLowerCase() == order.id.toLowerCase(),
+                          orElse: () => null,
+                        );
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => OrderTrackingScreen(
+                          sellerOrderId: matchingServerOrder?.sellerOrderId ?? 0,
+                          reference: order.id,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.timeline, size: 16, color: Color(0xFF564B68)),
+                  label: Text(
+                    'Full Delivery Timeline',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
-                      color: const Color(0xFF7A6F7B),
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF564B68),
                     ),
+                  ),
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
                   ),
                 ),
                 TextButton(

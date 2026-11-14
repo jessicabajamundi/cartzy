@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/api_service.dart' show ApiException;
 import 'package:cartzy/services/order_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/widgets/realtime_order_map.dart';
 
 // ============================================================
 // ORDER TRACKING — "Delivery updates" for one order, the same
@@ -167,6 +168,17 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       ),
       const SizedBox(height: 14),
 
+      // Realtime OpenStreetMap Component
+      RealtimeOrderMap(
+        orderReference: widget.reference,
+        status: _text('current_status'),
+        mapData: _tracking?['map'] is Map
+            ? Map<String, dynamic>.from(_tracking!['map'] as Map)
+            : null,
+        height: 350,
+      ),
+      const SizedBox(height: 14),
+
       Container(
         padding: const EdgeInsets.all(18),
         decoration: _cardDecoration(),
@@ -205,7 +217,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               ),
             const SizedBox(height: 10),
             Text(
-              'Updates appear when the seller or courier records an action. This is not live GPS tracking. Pull down to check for new updates.',
+              'Realtime OpenStreetMap GPS tracking active. Courier location updates continuously along the delivery route.',
               style: GoogleFonts.dmSans(fontSize: 11.5, height: 1.45, color: const Color(0xFF9E929E)),
             ),
           ],

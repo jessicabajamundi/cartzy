@@ -5,7 +5,7 @@ import 'auth_service.dart';
 
 class GoogleSignInService {
   /// App Package Name on Android
-  static const String packageName = 'com.example.cartzy';
+  static const String packageName = 'com.cartzy.com';
 
   /// Permanent Release Keystore SHA-1 (used by GitHub Actions & Release builds)
   static const String releaseSha1 =
@@ -15,9 +15,9 @@ class GoogleSignInService {
   static const String debugSha1 =
       'CF:2C:DE:F2:2A:B6:AB:F8:63:C7:B0:F7:61:90:88:49:0D:45:0B:68';
 
-  /// Web Client ID from Google Cloud project (460041836799)
+  /// Web Client ID from Firebase project cartzy-60c16 (101895319279)
   static const String webClientId =
-      '460041836799-5np8c0dfg22jjr7sav3cd82uousu9eaq.apps.googleusercontent.com';
+      '101895319279-vaj3oocot8tar0kk6tjkd9fajmht6mq0.apps.googleusercontent.com';
 
   static final GoogleSignIn _googleSignInWithServer = GoogleSignIn(
     scopes: ['email', 'profile'],
@@ -30,27 +30,36 @@ class GoogleSignInService {
 
   /// Triggers native Google Sign-In and authenticates with the Cartzy Laravel API.
   /// Clears any cached session first so the user is always prompted with the account picker.
-  /// Automatically tries with serverClientId first, then falls back to direct client if
-  /// a project client ID mismatch occurs.
+  /// Uses direct native authentication first (bypasses serverClientId cross-project issues).
   static Future<Map<String, dynamic>?> signIn() async {
     try {
+      try {
+        await _googleSignInDirect.signOut();
+      } catch (_) {}
       try {
         await _googleSignInWithServer.signOut();
       } catch (_) {}
 
       GoogleSignInAccount? account;
       try {
-        account = await _googleSignInWithServer.signIn();
+        // Try direct native authentication first (bypasses serverClientId cross-project issues)
+        account = await _googleSignInDirect.signIn();
       } on PlatformException catch (e) {
         final str = e.toString().toLowerCase();
-        // If developer_error (Code 10) occurs with serverClientId, retry with direct client
-        if (str.contains('developer_error') ||
+        // If direct failed, attempt with serverClientId as fallback
+        if (str.contains('12500') ||
+            str.contains('sign_in_failed') ||
+            str.contains('developer_error') ||
             str.contains(': 10:') ||
             str.contains('status: 10')) {
           try {
-            await _googleSignInDirect.signOut();
+            await _googleSignInWithServer.signOut();
           } catch (_) {}
-          account = await _googleSignInDirect.signIn();
+          try {
+            account = await _googleSignInWithServer.signIn();
+          } catch (_) {
+            rethrow;
+          }
         } else {
           rethrow;
         }
@@ -65,6 +74,7 @@ class GoogleSignInService {
         email: account.email,
         name: account.displayName,
         googleId: account.id,
+        avatar: account.photoUrl,
       );
     } on PlatformException catch (e) {
       final friendly = getReadableErrorMessage(e);
@@ -99,11 +109,13 @@ class GoogleSignInService {
       return 'Hindi makakonekta sa Google. Pakisuri ang iyong internet connection.';
     }
 
-    // Developer / Configuration error (Code 10)
+    // Developer / Configuration error (Code 10 or Code 12500)
     if (str.contains('developer_error') ||
         str.contains(': 10:') ||
-        str.contains('status: 10')) {
-      return 'Google Sign-In: Kailangang idagdag ang SHA-1 fingerprint sa Google Cloud Console:\n$releaseSha1 (Package: $packageName)';
+        str.contains('status: 10') ||
+        str.contains('12500') ||
+        str.contains('sign_in_failed')) {
+      return 'Google Sign-In configuration error (12500): Kailangang idagdag ang SHA-1 fingerprint sa Google Cloud / Firebase Console:\n$releaseSha1 (Package: $packageName)';
     }
 
     return 'Google Sign-In: ${error.toString().replaceFirst('Exception: ', '')}';

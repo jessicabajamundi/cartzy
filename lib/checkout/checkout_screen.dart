@@ -349,8 +349,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           content: Text(
-            'Order ${placed.reference} has been placed via Cash on Delivery.\n\n'
-            'Prepare ₱${_formatCurrency(placed.total)} for the rider upon delivery.',
+            _selectedPaymentMethod == 'GCash'
+                ? 'Order ${placed.reference} has been placed via GCash QR Code.\n\nTotal: ₱${_formatCurrency(placed.total)}\n\nYou can view and track your delivery in My Orders.'
+                : 'Order ${placed.reference} has been placed via Cash on Delivery.\n\nPrepare ₱${_formatCurrency(placed.total)} for the rider upon delivery.',
             style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF4A3E47), height: 1.4),
           ),
           actions: [
@@ -1209,85 +1210,97 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Option 2: GCash (Unavailable)
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFEDE5E8)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEDF3F8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'G',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2E6B9E),
+          // Option 2: GCash QR Code
+          GestureDetector(
+            onTap: () => setState(() => _selectedPaymentMethod = 'GCash'),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _selectedPaymentMethod == 'GCash'
+                      ? const Color(0xFF007DFE)
+                      : const Color(0xFFEDE5E8),
+                  width: _selectedPaymentMethod == 'GCash' ? 1.5 : 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF007DFE),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        'G',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              'GCash',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF7A6E72),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'GCash QR',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF282133),
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3ECEE),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Unavailable',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF8E8286),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE6F2FF),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'Instant Payment',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF007DFE),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        'Online payments are not available yet. Please use COD.',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 12,
-                          color: const Color(0xFFA09498),
+                          ],
                         ),
-                      ),
-                    ],
+                        Text(
+                          'Scan merchant QR with your GCash app for faster dispatch.',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 12,
+                            color: const Color(0xFF7A6E72),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const Icon(
-                  Icons.radio_button_off,
-                  color: Color(0xFFE2D8DB),
-                  size: 20,
-                ),
-              ],
+                  Icon(
+                    _selectedPaymentMethod == 'GCash'
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                    color: _selectedPaymentMethod == 'GCash'
+                        ? const Color(0xFF007DFE)
+                        : const Color(0xFFD0C4C8),
+                    size: 20,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 14),
