@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/api_service.dart' show ApiException;
@@ -38,10 +39,21 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   String? _error;
   bool _loading = true;
 
+  Timer? _livePollTimer;
+  String? _lastStatus;
+  int _lastDoneCount = 0;
+  String? _lastRecordedUpdate;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _livePollTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -53,10 +65,20 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       final tracking =
           await (widget.loadTracking ?? OrderService.fetchTracking)(widget.sellerOrderId);
       if (!mounted) return;
+
+      final steps = (tracking['steps'] as List? ?? const []);
+      final doneCount = steps.where((s) => s is Map && s['done'] == true).length;
+
+      _lastStatus = tracking['current_status']?.toString();
+      _lastRecordedUpdate = tracking['last_update']?.toString();
+      _lastDoneCount = doneCount;
+
       setState(() {
         _tracking = tracking;
         _loading = false;
       });
+
+      _startRealtimePolling();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -66,6 +88,114 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             : "Couldn't reach the Cartzy server. Check your connection and try again.";
       });
     }
+  }
+
+  void _startRealtimePolling() {
+    _livePollTimer?.cancel();
+    // Poll every 3 seconds for live tracking updates
+    _livePollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _pollSilentUpdate());
+  }
+
+  Future<void> _pollSilentUpdate() async {
+    if (!mounted) return;
+    try {
+      final tracking =
+          await (widget.loadTracking ?? OrderService.fetchTracking)(widget.sellerOrderId);
+      if (!mounted) return;
+
+      final newStatus = tracking['current_status']?.toString();
+      final newUpdate = tracking['last_update']?.toString();
+      final steps = (tracking['steps'] as List? ?? const []);
+      final doneCount = steps.where((s) => s is Map && s['done'] == true).length;
+
+      final hasChanged = (_lastStatus != null && newStatus != _lastStatus) ||
+          (_lastDoneCount > 0 && doneCount > _lastDoneCount) ||
+          (_lastRecordedUpdate != null && newUpdate != null && newUpdate != _lastRecordedUpdate);
+
+      if (hasChanged) {
+        _lastStatus = newStatus;
+        _lastDoneCount = doneCount;
+        _lastRecordedUpdate = newUpdate;
+
+        setState(() {
+          _tracking = tracking;
+        });
+
+        _notifyUpdate(newStatus ?? 'Status updated', tracking);
+      } else {
+        // Silently update live telemetry coordinates if map is moving
+        if (mounted && _tracking != null && tracking['map'] != null) {
+          setState(() {
+            _tracking!['map'] = tracking['map'];
+          });
+        }
+      }
+    } catch (_) {
+      // Background poll failure is silent
+    }
+  }
+
+  void _notifyUpdate(String newStatus, Map<String, dynamic> data) {
+    if (!mounted) return;
+    final steps = (data['steps'] as List? ?? const []);
+    Map? latestStep;
+    for (int i = steps.length - 1; i >= 0; i--) {
+      if (steps[i] is Map && steps[i]['done'] == true) {
+        latestStep = steps[i] as Map;
+        break;
+      }
+    }
+    final detail = latestStep?['detail']?.toString();
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(7),
+              decoration: const BoxDecoration(
+                color: Color(0xFF10B981),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Delivery Status Updated',
+                    style: GoogleFonts.dmSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$newStatus${detail != null ? ' · $detail' : ''}',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFF261E30),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   String _text(String key, [String fallback = '—']) {

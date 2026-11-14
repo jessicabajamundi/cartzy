@@ -45,9 +45,10 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
   double _bearing = 45.0;
   bool _isLive = true;
 
-  String _riderName = 'Carlos Santos';
-  String _riderVehicle = 'Honda Click 125i · NC-48291';
-  String _riderPhone = '0917-555-0192';
+  bool _hasAssignedRider = false;
+  String? _riderName;
+  String? _riderVehicle;
+  String _courierName = 'Cartzy Express';
 
   @override
   void initState() {
@@ -60,6 +61,15 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
 
     _initCoordinates();
     _startLiveSimulation();
+  }
+
+  @override
+  void didUpdateWidget(RealtimeOrderMap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.mapData != oldWidget.mapData || widget.status != oldWidget.status) {
+      _initCoordinates();
+      if (mounted) setState(() {});
+    }
   }
 
   void _initCoordinates() {
@@ -91,9 +101,17 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
       }
       if (data['rider'] is Map) {
         final r = data['rider'] as Map;
-        _riderName = r['name']?.toString() ?? _riderName;
-        _riderVehicle = r['vehicle']?.toString() ?? _riderVehicle;
-        _riderPhone = r['phone']?.toString() ?? _riderPhone;
+        final name = r['name']?.toString().trim();
+        _hasAssignedRider = (r['assigned'] == true) &&
+            name != null &&
+            name.isNotEmpty &&
+            name != 'Not assigned yet' &&
+            name != 'Carlos Santos';
+        _riderName = _hasAssignedRider ? name : null;
+        _riderVehicle = _hasAssignedRider ? r['vehicle']?.toString() : null;
+        if (r['courier'] != null && r['courier'].toString().isNotEmpty) {
+          _courierName = r['courier'].toString();
+        }
       }
       if (data['progress_percent'] != null) {
         _progress = (double.tryParse('${data['progress_percent']}') ?? 75) / 100.0;
@@ -438,30 +456,32 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
       ),
       child: Row(
         children: [
-          // Rider Avatar / Vehicle Icon
+          // Rider / Courier Icon
           Container(
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withValues(alpha: 0.12),
+              color: _hasAssignedRider
+                  ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                  : const Color(0xFF564B68).withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.two_wheeler,
-              color: Color(0xFF047857),
+            child: Icon(
+              _hasAssignedRider ? Icons.two_wheeler : Icons.local_shipping_outlined,
+              color: _hasAssignedRider ? const Color(0xFF047857) : const Color(0xFF564B68),
               size: 22,
             ),
           ),
           const SizedBox(width: 10),
 
-          // Rider Details
+          // Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  _riderName,
+                  _hasAssignedRider ? (_riderName ?? 'Assigned Rider') : _courierName,
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -471,7 +491,9 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  _riderVehicle,
+                  _hasAssignedRider
+                      ? (_riderVehicle ?? 'Motorcycle')
+                      : 'Awaiting rider assignment · Route active',
                   style: GoogleFonts.dmSans(
                     fontSize: 11,
                     color: const Color(0xFF7A6F7B),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'api_service.dart';
 import 'auth_service.dart';
 
@@ -197,23 +199,64 @@ class OrderService {
     required int addressId,
     required List<Map<String, dynamic>> items,
     String paymentMethod = 'COD',
+    String? gcashReference,
+    String? receiptPath,
   }) async {
-    final response = await ApiService.post(
-      '/orders',
-      {
+    Map<String, dynamic> response;
+    if (receiptPath != null && receiptPath.isNotEmpty) {
+      final fields = <String, String>{
         'checkout_key': checkoutKey,
         'payment_method': paymentMethod,
-        'address_id': addressId,
-        'items': items,
-      },
-      token: AuthService.token,
-    );
+        'address_id': addressId.toString(),
+        'items': jsonEncode(items),
+        if (gcashReference != null && gcashReference.trim().isNotEmpty)
+          'gcash_reference': gcashReference.trim(),
+      };
+      response = await ApiService.postMultipart(
+        '/orders',
+        fields,
+        files: {'receipt': receiptPath},
+        token: AuthService.token,
+      );
+    } else {
+      response = await ApiService.post(
+        '/orders',
+        {
+          'checkout_key': checkoutKey,
+          'payment_method': paymentMethod,
+          'address_id': addressId,
+          'items': items,
+          if (gcashReference != null && gcashReference.trim().isNotEmpty)
+            'gcash_reference': gcashReference.trim(),
+        },
+        token: AuthService.token,
+      );
+    }
     final order = Map<String, dynamic>.from(response['order'] as Map? ?? const {});
     return PlacedOrder(
       reference: order['reference']?.toString() ?? '',
       total: double.tryParse(order['total']?.toString() ?? '') ?? 0,
       message: response['message']?.toString() ?? 'Order placed successfully!',
     );
+  }
+
+  static Future<Map<String, dynamic>> fetchSellerPaymentInfo({
+    List<int>? productIds,
+    int? sellerId,
+  }) async {
+    final params = <String, String>{};
+    if (productIds != null && productIds.isNotEmpty) {
+      params['product_ids'] = productIds.join(',');
+    }
+    if (sellerId != null) {
+      params['seller_id'] = '$sellerId';
+    }
+    final query = params.isEmpty ? '' : '?${Uri(queryParameters: params).query}';
+    final response = await ApiService.get(
+      '/checkout/seller-payment-info$query',
+      token: AuthService.token,
+    );
+    return Map<String, dynamic>.from(response);
   }
 
   static Future<BuyerOrdersData> fetchOrders() async {

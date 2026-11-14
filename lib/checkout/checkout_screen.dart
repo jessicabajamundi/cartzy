@@ -16,6 +16,7 @@ import 'package:cartzy/widgets/warehouse_note.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/widgets/gcash_checkout_sheet.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final VoidCallback onBack;
@@ -250,7 +251,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         '${random.nextInt(1 << 32).toRadixString(36)}';
   }
 
-  Future<void> _handlePlaceOrder() async {
+  Future<void> _handlePlaceOrder({String? gcashReference, String? receiptPath}) async {
     if (_placing) return;
     if ((AuthService.token ?? '').isEmpty) {
       showCartzyFlash(context, 'Please log in to place your order');
@@ -298,6 +299,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         checkoutKey: _checkoutKey,
         addressId: addressId,
         paymentMethod: _selectedPaymentMethod,
+        gcashReference: gcashReference,
+        receiptPath: receiptPath,
         items: [
           for (final item in lines)
             {
@@ -329,6 +332,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
+  void _handleGcashNext(double totalPayment) {
+    if (_placing) return;
+    if ((AuthService.token ?? '').isEmpty) {
+      showCartzyFlash(context, 'Please log in to place your order');
+      return;
+    }
+    if (_deliveryAddress == null) {
+      showCartzyFlash(context, 'Add your delivery address before proceeding to payment');
+      return;
+    }
+    final addressId = int.tryParse(_deliveryAddress!['id'] ?? '');
+    if (addressId == null) {
+      showCartzyFlash(context, 'Please choose one of your saved delivery addresses');
+      return;
+    }
+    if (orderItems.isEmpty) {
+      showCartzyFlash(context, 'Select at least one item in your cart to check out');
+      return;
+    }
+
+    final cart = CartService.instance;
+    final productIds = cart.selectedItems
+        .map((i) => i.productId)
+        .whereType<int>()
+        .toSet()
+        .toList();
+
+    GCashCheckoutSheet.show(
+      context,
+      totalAmount: totalPayment,
+      productIds: productIds,
+      onConfirmOrder: (ref, receiptPath) async {
+        await _handlePlaceOrder(gcashReference: ref, receiptPath: receiptPath);
+      },
+    );
+  }
+
   Future<void> _showOrderPlacedDialog(PlacedOrder placed) async {
     // Grab the navigator now: closing checkout below unmounts this screen.
     final navigator = Navigator.of(context, rootNavigator: true);
@@ -350,7 +390,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           content: Text(
             _selectedPaymentMethod == 'GCash'
-                ? 'Order ${placed.reference} has been placed via GCash QR Code.\n\nTotal: ₱${_formatCurrency(placed.total)}\n\nYou can view and track your delivery in My Orders.'
+                ? 'Order ${placed.reference} has been placed via GCash QR.\n\nTotal: ₱${_formatCurrency(placed.total)}\n\nYour payment receipt is submitted and pending seller/admin verification. You will be notified once approved.'
                 : 'Order ${placed.reference} has been placed via Cash on Delivery.\n\nPrepare ₱${_formatCurrency(placed.total)} for the rider upon delivery.',
             style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF4A3E47), height: 1.4),
           ),
@@ -1306,7 +1346,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 14),
 
           Text(
-            'No payment is collected now. Prepare ₱${_formatCurrency(totalPayment)} for delivery.',
+            _selectedPaymentMethod == 'GCash'
+                ? 'Tap Next to view the seller\'s GCash QR code and enter your payment reference.'
+                : 'No payment is collected now. Prepare ₱${_formatCurrency(totalPayment)} for delivery.',
             style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
           ),
         ],
@@ -1407,7 +1449,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                   Text(
-                    'Pay on delivery',
+                    _selectedPaymentMethod == 'GCash' ? 'Pay via GCash QR' : 'Pay on delivery',
                     style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF8E8286)),
                   ),
                 ],
@@ -1440,7 +1482,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Cash on Delivery',
+                _selectedPaymentMethod == 'GCash' ? 'GCash QR' : 'Cash on Delivery',
                 style: GoogleFonts.dmSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -1451,10 +1493,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Place order button
+          // Place order / Next button
           _BlendButton(
             height: 52,
-            onTap: _deliveryAddress == null || _placing ? null : _handlePlaceOrder,
+            onTap: _deliveryAddress == null || _placing
+                ? null
+                : (_selectedPaymentMethod == 'GCash'
+                    ? () => _handleGcashNext(totalPayment)
+                    : _handlePlaceOrder),
             child: Row(
               children: [
                 if (_placing) ...[
@@ -1466,7 +1512,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(width: 10),
                 ],
                 Text(
-                  _placing ? 'Placing order…' : 'Place order',
+                  _placing
+                      ? 'Placing order…'
+                      : (_selectedPaymentMethod == 'GCash' ? 'Next: Pay via GCash QR' : 'Place order'),
                   style: GoogleFonts.dmSans(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
