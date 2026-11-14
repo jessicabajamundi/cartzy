@@ -32,7 +32,7 @@ class ReturnController extends Controller
                 'pickup_address' => $case->pickup_address, 'scheduled_date' => $case->scheduled_date?->toDateString(),
                 'tracking_code' => $case->tracking_code, 'logistics_provider_id' => $case->logistics_provider_id,
                 'rider_id' => $case->rider_id, 'events' => $case->events->map->only(['status', 'notes', 'created_at']),
-                'refund' => $request->user()->role !== 'logistics' ? $case->refund : null,
+                'refund' => $case->refund,
             ]), 'current_page' => $cases->currentPage(), 'last_page' => $cases->lastPage()]);
         }
         $layout = match ($request->user()->role) {
@@ -66,7 +66,7 @@ class ReturnController extends Controller
             'reject', 'appeal', 'collect', 'receive' => [],
             default => abort(404),
         };
-        if ($action === 'refund') abort_unless($request->user()->isAdmin(), 403);
+        if ($action === 'refund') abort_unless($request->user()->isAdmin() || $request->user()->role === 'logistics', 403);
         $data = $request->validate($rules);
         $path = null;
         try {
@@ -91,7 +91,6 @@ class ReturnController extends Controller
     public function proof(Request $request, int $id)
     {
         $this->active($request);
-        abort_if($request->user()->role === 'logistics', 403);
         $case = ReturnCase::visibleTo($request->user())->with('refund')->findOrFail($id);
         $path = $case->refund?->proof_path;
         abort_unless($path && Storage::disk('local')->exists($path), 404);

@@ -27,8 +27,8 @@ class AdminDispute extends Model
         'report_only' => 'Just let Cartzy know',
     ];
 
-    /** Days after delivery a buyer can still report a problem. */
-    public const REPORT_WINDOW_DAYS = 15;
+    /** Days after delivery a buyer can still report a problem / request a refund (Cartzy 7-day policy). */
+    public const REPORT_WINDOW_DAYS = 7;
 
     protected $fillable = [
         'order_id', 'seller_order_id', 'reporter_id', 'category', 'requested_resolution', 'subject',

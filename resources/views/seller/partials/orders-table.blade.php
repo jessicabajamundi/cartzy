@@ -51,6 +51,17 @@
     <td class="so-total">
         <strong>₱{{ number_format($order->buyerDueMinor() / 100, 2) }}</strong>
         <small>{{ strtoupper($payment?->payment_method ?? 'COD') }} · {{ ucfirst(str_replace('_', ' ', $payment?->payment_status ?? 'pending')) }}</small>
+        @if(($payment?->payment_method ?? 'cod') === 'cod')
+            @if($shipment?->isCodRemitted())
+                <small style="display:block; color:#16a34a; font-weight:700;">✓ COD Remitted by Hub ({{ strtoupper($shipment->cod_remittance_method ?? 'GCash') }})</small>
+            @elseif($shipment?->isCodHolding())
+                <small style="display:block; color:#ea580c; font-weight:700;">⏳ COD Escrow ({{ $shipment->codHoldingDaysRemaining() }}d holding)</small>
+            @elseif($shipment?->isCodEligibleForRemittance())
+                <small style="display:block; color:#0284c7; font-weight:700;">✓ 7d Passed · Awaiting Hub Remittance</small>
+            @endif
+        @else
+            <small style="display:block; color:#007DFE; font-weight:700;">Direct Online Payment</small>
+        @endif
         @php $latestPay = $payment?->payments?->first(); @endphp
         @if($latestPay?->provider_ref)
             <small style="display:block; color:#007DFE; font-weight:700;">Ref: {{ $latestPay->provider_ref }}</small>

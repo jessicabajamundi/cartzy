@@ -224,6 +224,18 @@
                                         <td class="so-total">
                                             <strong>₱{{ number_format($order->buyerDueMinor() / 100, 2) }}</strong>
                                             <small>{{ strtoupper($payment?->payment_method ?? 'COD') }} · {{ ucfirst(str_replace('_', ' ', $payment?->payment_status ?? 'pending')) }}</small>
+                                            @php $sShip = $order->shipment; @endphp
+                                            @if(($payment?->payment_method ?? 'cod') === 'cod')
+                                                @if($sShip?->isCodRemitted())
+                                                    <small style="display:block; color:#16a34a; font-weight:700;">✓ COD Remitted by Hub</small>
+                                                @elseif($sShip?->isCodHolding())
+                                                    <small style="display:block; color:#ea580c; font-weight:700;">⏳ Escrow ({{ $sShip->codHoldingDaysRemaining() }}d holding)</small>
+                                                @elseif($sShip?->isCodEligibleForRemittance())
+                                                    <small style="display:block; color:#0284c7; font-weight:700;">✓ Awaiting Hub Remittance</small>
+                                                @endif
+                                            @else
+                                                <small style="display:block; color:#007DFE; font-weight:700;">Direct Online Payment</small>
+                                            @endif
                                         </td>
                                         <td class="so-status">
                                             @if($isDelivered)

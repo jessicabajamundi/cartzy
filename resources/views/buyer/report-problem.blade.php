@@ -18,7 +18,7 @@
         <header class="report-heading">
             <p class="report-eyebrow">WE'RE HERE TO HELP</p>
             <h1>Report a problem</h1>
-            <p>Tell us what went wrong with order <strong>{{ $order->reference }}</strong> from <strong>{{ $sellerOrder->seller?->name ?? 'this store' }}</strong>. Cartzy will review your report and reply in your Notifications.</p>
+            <p>Tell us what went wrong with order <strong>{{ $order->reference }}</strong> from <strong>{{ $sellerOrder->seller?->name ?? 'this store' }}</strong>. Under Cartzy policy, returns and refunds are accepted within <strong>7 days</strong> of delivery. The seller reviews all refund requests, and approved COD refunds are disbursed directly by logistics.</p>
         </header>
 
         @if($errors->any())

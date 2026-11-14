@@ -106,7 +106,7 @@ class SellerOrder extends Model
         return $this->reports()->where('status', 'open')->latest('id')->first();
     }
 
-    /** Buyers can report any order, up to a set number of days after it was delivered. */
+    /** Buyers can report/refund any order up to 7 days after it was delivered. */
     public function canBeReported(): bool
     {
         if (!in_array($this->status, ['delivered', 'completed'], true)) {
@@ -114,6 +114,36 @@ class SellerOrder extends Model
         }
 
         return !$this->delivered_at || $this->delivered_at->gt(now()->subDays(AdminDispute::REPORT_WINDOW_DAYS));
+    }
+
+    public function isCod(): bool
+    {
+        return ($this->order?->payment_method === 'cod') || ($this->shipment?->cod_amount_minor > 0);
+    }
+
+    public function isOnlinePayment(): bool
+    {
+        return !$this->isCod();
+    }
+
+    public function refundWindowDaysRemaining(): ?int
+    {
+        if (!in_array($this->status, ['delivered', 'completed'], true) || !$this->delivered_at) {
+            return null;
+        }
+        $deadline = $this->delivered_at->copy()->addDays(AdminDispute::REPORT_WINDOW_DAYS);
+        if (now()->greaterThanOrEqualTo($deadline)) {
+            return 0;
+        }
+        return max(1, (int) ceil(now()->diffInSeconds($deadline) / 86400));
+    }
+
+    public function isRefundWindowExpired(): bool
+    {
+        if (!in_array($this->status, ['delivered', 'completed'], true) || !$this->delivered_at) {
+            return false;
+        }
+        return $this->delivered_at->copy()->addDays(AdminDispute::REPORT_WINDOW_DAYS)->isPast();
     }
 
     public function messages()

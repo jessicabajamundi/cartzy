@@ -2264,4 +2264,175 @@ class LogisticsPortalController extends Controller
             ];
         })->toArray();
     }
+
+    /**
+     * COD Remittances & 7-Day Escrow Desk
+     */
+    public function codRemittances(Request $request)
+    {
+        $provider = $this->provider();
+        $tab = $request->query('tab', 'all');
+        $search = trim($request->query('search', ''));
+
+        $baseQuery = Shipment::where('logistics_provider_id', $provider->id)
+            ->where('cod_collected', true)
+            ->where('cod_amount_minor', '>', 0)
+            ->where('status', 'delivered')
+            ->with([
+                'sellerOrder.seller.user',
+                'sellerOrder.order.buyer',
+                'sellerOrder.reports.returnCase.refund',
+                'codRemittedBy',
+                'rider.user',
+            ]);
+
+        $allShipments = (clone $baseQuery)->get();
+
+        $stats = [
+            'total_cod_collected' => (int) $allShipments->sum('cod_amount_minor'),
+            'held_in_escrow'      => (int) $allShipments->filter(fn ($s) => $s->isCodHolding())->sum('cod_amount_minor'),
+            'held_in_escrow_count'=> $allShipments->filter(fn ($s) => $s->isCodHolding())->count(),
+            'ready_to_remit'      => (int) $allShipments->filter(fn ($s) => $s->isCodEligibleForRemittance())->sum('cod_amount_minor'),
+            'ready_to_remit_count'=> $allShipments->filter(fn ($s) => $s->isCodEligibleForRemittance())->count(),
+            'total_remitted'      => (int) $allShipments->filter(fn ($s) => $s->isCodRemitted())->sum('cod_amount_minor'),
+            'total_remitted_count'=> $allShipments->filter(fn ($s) => $s->isCodRemitted())->count(),
+            'refund_pending_count'=> ReturnCase::where(function ($q) use ($provider) {
+                    $q->where('logistics_provider_id', $provider->id)
+                      ->orWhereHas('dispute.sellerOrder.shipment', fn ($sq) => $sq->where('logistics_provider_id', $provider->id));
+                })->where('status', 'refund_pending')->count(),
+        ];
+
+        if ($search !== '') {
+            $baseQuery->where(function ($q) use ($search) {
+                $q->where('tracking_code', 'like', "%{$search}%")
+                  ->orWhereHas('sellerOrder.order', fn ($sq) => $sq->where('reference', 'like', "%{$search}%"))
+                  ->orWhereHas('sellerOrder.seller', fn ($sq) => $sq->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $shipments = $baseQuery->latest('updated_at')->paginate(20)->withQueryString();
+
+        $pendingRefundCases = ReturnCase::where(function ($q) use ($provider) {
+                $q->where('logistics_provider_id', $provider->id)
+                  ->orWhereHas('dispute.sellerOrder.shipment', fn ($sq) => $sq->where('logistics_provider_id', $provider->id));
+            })
+            ->where('status', 'refund_pending')
+            ->with(['dispute.sellerOrder.seller', 'dispute.order.buyer', 'events'])
+            ->latest()
+            ->get();
+
+        return view('logistics.cod-remittance', compact('provider', 'stats', 'shipments', 'tab', 'search', 'pendingRefundCases'));
+    }
+
+    /**
+     * Remit COD funds to Seller after 7-day holding period
+     */
+    public function remitCodToSeller(Request $request, int $id)
+    {
+        $provider = $this->provider();
+        $shipment = Shipment::where('logistics_provider_id', $provider->id)
+            ->where('status', 'delivered')
+            ->where('cod_collected', true)
+            ->findOrFail($id);
+
+        abort_unless($shipment->isCodEligibleForRemittance(), 422, 'This COD payment is still held in the 7-day escrow protection period or has an open refund dispute.');
+
+        $data = $request->validate([
+            'method'    => ['required', 'string', 'in:gcash,bank,cash'],
+            'reference' => ['required', 'string', 'max:150'],
+            'notes'     => ['nullable', 'string', 'max:500'],
+        ]);
+
+        DB::transaction(function () use ($shipment, $data, $provider, $request) {
+            $shipment->update([
+                'cod_remitted_at'       => now(),
+                'cod_remitted_by'       => $request->user()->id,
+                'cod_remittance_method' => $data['method'],
+                'cod_remittance_ref'    => $data['reference'],
+                'cod_remittance_notes'  => $data['notes'] ?? null,
+            ]);
+
+            $sellerUserId = $shipment->sellerOrder?->seller?->user_id;
+            $orderRef = $shipment->sellerOrder?->order?->reference ?? $shipment->tracking_code;
+            $amountFormatted = number_format($shipment->cod_amount_minor / 100, 2);
+            $methodUpper = strtoupper($data['method']);
+
+            if ($sellerUserId) {
+                NotificationService::notify(
+                    $sellerUserId,
+                    'cod_remittance',
+                    'COD Remittance Received',
+                    "Logistics Hub ({$provider->name}) remitted ₱{$amountFormatted} for Order {$orderRef} via {$methodUpper} (Ref: {$data['reference']}). The 7-day holding period has completed.",
+                    route('seller.orders')
+                );
+            }
+
+            \App\Models\ActivityLog::forUser(
+                $request->user(),
+                'cod_remitted_to_seller',
+                "Remitted ₱{$amountFormatted} for parcel {$shipment->tracking_code} to {$shipment->sellerOrder?->seller?->name} via {$methodUpper} Ref: {$data['reference']}."
+            );
+        });
+
+        return back()->with('success', 'COD remittance successfully sent to seller!');
+    }
+
+    /**
+     * Batch remit all eligible COD shipments (7+ days held)
+     */
+    public function batchRemitEligibleCod(Request $request)
+    {
+        $provider = $this->provider();
+        $data = $request->validate([
+            'method'    => ['required', 'string', 'in:gcash,bank,cash'],
+            'reference' => ['required', 'string', 'max:150'],
+            'notes'     => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $eligible = Shipment::where('logistics_provider_id', $provider->id)
+            ->where('status', 'delivered')
+            ->where('cod_collected', true)
+            ->whereNull('cod_remitted_at')
+            ->where('cod_amount_minor', '>', 0)
+            ->get()
+            ->filter(fn ($s) => $s->isCodEligibleForRemittance());
+
+        if ($eligible->isEmpty()) {
+            return back()->with('info', 'No eligible COD shipments are ready for remittance. Eligible parcels must be delivered at least 7 days ago with no open disputes.');
+        }
+
+        $count = 0;
+        $totalMinor = 0;
+
+        DB::transaction(function () use ($eligible, $data, $provider, $request, &$count, &$totalMinor) {
+            foreach ($eligible as $shipment) {
+                $shipment->update([
+                    'cod_remitted_at'       => now(),
+                    'cod_remitted_by'       => $request->user()->id,
+                    'cod_remittance_method' => $data['method'],
+                    'cod_remittance_ref'    => $data['reference'] . "-{$shipment->id}",
+                    'cod_remittance_notes'  => $data['notes'] ?? 'Batch remittance',
+                ]);
+
+                $sellerUserId = $shipment->sellerOrder?->seller?->user_id;
+                $orderRef = $shipment->sellerOrder?->order?->reference ?? $shipment->tracking_code;
+                $amountFormatted = number_format($shipment->cod_amount_minor / 100, 2);
+
+                if ($sellerUserId) {
+                    NotificationService::notify(
+                        $sellerUserId,
+                        'cod_remittance',
+                        'COD Remittance Received',
+                        "Logistics Hub remitted ₱{$amountFormatted} for Order {$orderRef} via " . strtoupper($data['method']) . " (Ref: {$data['reference']}-{$shipment->id}).",
+                        route('seller.orders')
+                    );
+                }
+                $count++;
+                $totalMinor += $shipment->cod_amount_minor;
+            }
+        });
+
+        $totalFormatted = number_format($totalMinor / 100, 2);
+        return back()->with('success', "Batch remittance complete: {$count} parcel(s) remitted to sellers totaling ₱{$totalFormatted}.");
+    }
 }

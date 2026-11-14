@@ -40,7 +40,16 @@
                 <button type="button" class="buyer-order-secondary" data-cancel-order="{{ route('orders.cancel', $o['seller_order_id']) }}" data-order-reference="{{ $o['id'] }}" aria-haspopup="dialog">Cancel order</button>
             @endif
             @if($o['can_report'] ?? false)
-                <a href="{{ route('orders.report', $o['seller_order_id']) }}" class="buyer-order-secondary buyer-order-report-link">Report problem</a>
+                <a href="{{ route('orders.report', $o['seller_order_id']) }}" class="buyer-order-secondary buyer-order-report-link" title="Eligible for return/refund within 7 days of delivery">
+                    Report / Refund
+                    @if(isset($o['refund_days_left']) && $o['refund_days_left'] !== null)
+                        <span style="display:inline-block; margin-left:4px; padding:1px 6px; font-size:10px; font-weight:700; background:#e0f2fe; color:#0369a1; border-radius:10px;">{{ $o['refund_days_left'] }}d left</span>
+                    @endif
+                </a>
+            @elseif(!empty($o['refund_expired']))
+                <span class="buyer-order-secondary" style="opacity:0.6; cursor:not-allowed; background:#f3f4f6; color:#9ca3af;" title="Delivered over 7 days ago. The 7-day return/refund window has expired.">
+                    Refund closed (7d expired)
+                </span>
             @endif
             @if(!in_array($o['status'], ['cancelled', 'to_receive'], true))
                 <a href="{{ $trackUrl }}" class="buyer-order-secondary">Track order</a>

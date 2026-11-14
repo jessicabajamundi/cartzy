@@ -429,4 +429,9 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     // 10. Account Management
     Route::get('/account', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'account'])->name('account');
     Route::post('/account/update', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'updateAccount'])->name('account.update');
+
+    // 11. COD Remittance & 7-Day Escrow Desk
+    Route::get('/cod-remittances', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'codRemittances'])->name('cod_remittances');
+    Route::post('/cod-remittances/{id}/remit', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'remitCodToSeller'])->whereNumber('id')->name('cod_remittances.remit');
+    Route::post('/cod-remittances/batch-remit', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'batchRemitEligibleCod'])->name('cod_remittances.batch');
 });

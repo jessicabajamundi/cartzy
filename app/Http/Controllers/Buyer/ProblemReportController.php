@@ -28,6 +28,9 @@ class ProblemReportController extends Controller
             return redirect()->route('buyer.dashboard', ['tab' => 'orders'])
                 ->with('success', "You already reported a problem on this order (case #{$open->id}). Our team is reviewing it.");
         }
+        if ($sellerOrder->isRefundWindowExpired()) {
+            abort(403, 'The 7-day refund request period has expired. Orders delivered more than 7 days ago can no longer be refunded.');
+        }
         abort_unless($sellerOrder->canBeReported(), 403, 'This order can no longer be reported.');
         $defaultAddress = Address::where('user_id', Auth::id())->where('is_default', true)->first();
 
@@ -49,6 +52,9 @@ class ProblemReportController extends Controller
     public function createReport(Request $request, int $id): AdminDispute
     {
         $sellerOrder = $this->sellerOrder($id);
+        if ($sellerOrder->isRefundWindowExpired()) {
+            abort(403, 'The 7-day refund request period has expired. Orders delivered more than 7 days ago can no longer be refunded.');
+        }
         abort_unless($sellerOrder->canBeReported(), 403, 'This order can no longer be reported.');
         $needsPhotos = AdminDispute::CATEGORIES[$request->input('category')][1] ?? false;
 

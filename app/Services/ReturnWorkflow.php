@@ -11,7 +11,16 @@ class ReturnWorkflow
     public function open(AdminDispute $report): ?ReturnCase
     {
         if (!in_array($report->requested_resolution, ['refund', 'return_refund'], true)) return null;
-        $case = ReturnCase::firstOrCreate(['admin_dispute_id' => $report->id]);
+        $so = $report->sellerOrder;
+        $logisticsId = $so?->shipment?->logistics_provider_id ?? $so?->logistics_provider_id;
+        $case = ReturnCase::firstOrCreate(
+            ['admin_dispute_id' => $report->id],
+            [
+                'status' => 'requested',
+                'logistics_provider_id' => $logisticsId,
+                'amount_minor' => $so ? $so->buyerDueMinor() : 0,
+            ]
+        );
         if ($case->wasRecentlyCreated) {
             $case->events()->create(['user_id' => $report->reporter_id, 'status' => 'requested', 'notes' => 'Buyer requested seller review.']);
         }
@@ -132,7 +141,10 @@ class ReturnWorkflow
                     $case->update(['status' => $data['result'] === 'accepted' ? 'refund_pending' : 'inspection_failed', 'inspection_notes' => $notes]);
                     break;
                 case 'refund':
-                    abort_unless($admin, 403);
+                    $isLogistics = $actor->role === 'logistics' && $actor->logisticsProvider
+                        && ($case->logistics_provider_id === $actor->logisticsProvider->id
+                            || $report->sellerOrder?->shipment?->logistics_provider_id === $actor->logisticsProvider->id);
+                    abort_unless($admin || $isLogistics, 403, 'Only administrators or the handling logistics partner holding COD funds can disburse this refund.');
                     $this->requireState($case, ['refund_pending']);
                     $this->paidOrder($case, $order);
                     $this->checkAmount($case, $order, $case->amount_minor);
@@ -143,8 +155,9 @@ class ReturnWorkflow
                     $totalRefunded = RefundTransaction::where('order_id', $order->id)->sum('amount_minor');
                     $order->update(['payment_status' => $totalRefunded >= $order->total_minor ? 'refunded' : 'partially_refunded']);
                     $case->update(['status' => 'refunded']);
+                    $disbursedBy = $isLogistics ? ('Logistics Hub ('.$actor->logisticsProvider->name.')') : 'Administration';
                     $report->update(['status' => 'resolved', 'resolved_at' => now(),
-                        'admin_notes' => 'Refund payment recorded: PHP '.number_format($case->amount_minor / 100, 2).'. '.$notes]);
+                        'admin_notes' => "Refund payment disbursed by {$disbursedBy}: PHP ".number_format($case->amount_minor / 100, 2).'. '.$notes]);
                     break;
                 default:
                     abort(422, 'Unknown return action.');
