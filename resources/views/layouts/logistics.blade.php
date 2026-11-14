@@ -37,6 +37,7 @@
         'Parcel operations' => [
             'pickups' => ['Pickup requests', 'truck'],
             'hub' => ['Hub desk', 'box'],
+            'scan' => ['Scan parcel', 'scan'],
             'returns' => ['Return parcels', 'refresh'],
             'cod_remittances' => ['COD Remittance & Escrow', 'wallet'],
             'monitoring' => ['Delivery monitoring', 'activity'],

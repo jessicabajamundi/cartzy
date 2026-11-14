@@ -1299,6 +1299,234 @@ class LogisticsPortalController extends Controller
         return back()->with('success', $msg);
     }
 
+    /**
+     * Scan Parcel page: Viewfinder camera waybill scanner to monitor live status & whereabouts.
+     */
+    public function scan(Request $request)
+    {
+        $hub = Auth::user();
+        $provider = $this->provider();
+        $code = trim((string) ($request->query('code') ?? $request->query('tracking_code') ?? ''));
+
+        $initialParcel = null;
+        if (!empty($code)) {
+            $normalized = \App\Services\RiderParcelScan::normalize($code);
+            $shipment = Shipment::where('logistics_provider_id', $provider->id)
+                ->where(function ($q) use ($normalized) {
+                    $q->where('tracking_code', $normalized)
+                      ->orWhereHas('sellerOrder.order', fn ($oq) => $oq->where('reference', $normalized));
+                })->first();
+
+            if (!$shipment) {
+                $shipment = Shipment::where('tracking_code', $normalized)
+                    ->orWhereHas('sellerOrder.order', fn ($oq) => $oq->where('reference', $normalized))
+                    ->first();
+            }
+
+            if ($shipment) {
+                $initialParcel = $this->formatParcelMonitoringDetails($shipment, $provider);
+            }
+        }
+
+        // Get recent shipments under this hub for quick-select
+        $recentParcels = Shipment::where('logistics_provider_id', $provider->id)
+            ->with(['sellerOrder.order.buyer', 'rider.user'])
+            ->latest('updated_at')
+            ->take(6)
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'tracking_code' => $s->tracking_code,
+                'status' => $s->status,
+                'recipient' => $s->sellerOrder?->order?->shipping_address['recipient'] ?? ($s->sellerOrder?->order?->buyer?->name ?? 'Recipient'),
+                'updated_at' => $s->updated_at?->diffForHumans(),
+            ]);
+
+        return view('logistics.scan', compact('hub', 'provider', 'initialParcel', 'recentParcels', 'code'));
+    }
+
+    /**
+     * API / JSON endpoint to look up parcel by scanned barcode or tracking code.
+     */
+    public function lookupParcel(Request $request)
+    {
+        $provider = $this->provider();
+        $code = trim((string) ($request->input('code') ?? $request->input('tracking_code') ?? $request->query('code') ?? ''));
+
+        $normalized = \App\Services\RiderParcelScan::normalize($code);
+        if (empty($normalized)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide a valid tracking number or scan a waybill barcode/QR code.',
+            ], 422);
+        }
+
+        $shipment = Shipment::where('logistics_provider_id', $provider->id)
+            ->where(function ($q) use ($normalized) {
+                $q->where('tracking_code', $normalized)
+                  ->orWhereHas('sellerOrder.order', fn ($oq) => $oq->where('reference', $normalized));
+            })->first();
+
+        if (!$shipment) {
+            $shipment = Shipment::where('tracking_code', $normalized)
+                ->orWhereHas('sellerOrder.order', fn ($oq) => $oq->where('reference', $normalized))
+                ->first();
+        }
+
+        if (!$shipment) {
+            return response()->json([
+                'success' => false,
+                'message' => "No waybill or parcel found matching \"{$code}\".",
+            ], 404);
+        }
+
+        $data = $this->formatParcelMonitoringDetails($shipment, $provider);
+
+        return response()->json([
+            'success' => true,
+            'parcel' => $data,
+        ]);
+    }
+
+    /**
+     * Helper to format detailed monitoring and whereabouts data for a shipment.
+     */
+    private function formatParcelMonitoringDetails(Shipment $shipment, LogisticsProvider $provider): array
+    {
+        $shipment->loadMissing([
+            'sellerOrder.seller.user',
+            'sellerOrder.order.buyer',
+            'sellerOrder.items',
+            'rider.user',
+            'pickupRider.user',
+            'deliveryEvents.user',
+            'logisticsProvider',
+        ]);
+
+        $order = $shipment->sellerOrder?->order;
+        $seller = $shipment->sellerOrder?->seller;
+        $shipping = is_array($order?->shipping_address) ? $order->shipping_address : json_decode($order?->shipping_address ?? '[]', true);
+
+        $recipientName = $shipping['recipient'] ?? ($order?->buyer?->name ?? 'Recipient');
+        $recipientPhone = $shipping['phone'] ?? ($order?->buyer?->phone ?? 'N/A');
+        $recipientAddress = $shipping['address'] ?? ($order?->buyer?->address ?? 'Destination Address');
+        $barangay = $shipping['barangay'] ?? self::extractBarangay($shipment);
+
+        // Seller pickup address
+        $pickupAddress = $seller?->pickupAddress?->formatted_address 
+            ?? ($seller?->user?->address ?? 'Store pickup location');
+
+        // Status metadata
+        $deliveryStatus = match ($shipment->status) {
+            'out_for_delivery' => 'out_for_delivery',
+            'in_transit'       => 'in_transit',
+            'delivered'        => 'delivered',
+            'failed'           => 'failed',
+            'returned'         => 'returned',
+            'picked_up'        => 'picked_up',
+            'assigned'         => 'assigned',
+            default            => $shipment->received_at ? 'at_hub' : 'pending_pickup',
+        };
+
+        $statusLabels = [
+            'pending_pickup'   => 'Awaiting Pickup from Seller',
+            'picked_up'        => 'Picked Up by Courier',
+            'at_hub'           => 'At Sorting Hub Desk',
+            'assigned'         => 'Assigned to Delivery Rider',
+            'in_transit'       => 'In Transit between Hubs',
+            'out_for_delivery' => 'Out for Delivery (On the road)',
+            'delivered'        => 'Delivered to Recipient',
+            'failed'           => 'Delivery Attempt Failed',
+            'returned'         => 'Returned to Seller',
+        ];
+
+        // Current whereabouts description
+        $whereabouts = match ($deliveryStatus) {
+            'out_for_delivery' => "On the road with Rider {$shipment->rider?->user?->name} ({$shipment->rider?->vehicle_type} {$shipment->rider?->plate_no}) en route to {$recipientName}.",
+            'assigned'         => "Dispatched to Rider {$shipment->rider?->user?->name} at {$provider->name}; preparing for route departure.",
+            'at_hub'           => "At sorting hub ({$provider->name}) in {$shipment->delivery_area} sorting bin.",
+            'picked_up'        => "Collected by First-Mile Courier {$shipment->pickupRider?->user?->name} heading to sorting hub.",
+            'delivered'        => "Successfully delivered and completed at recipient address.",
+            'returned'         => "Returned to store: {$seller?->name}.",
+            'failed'           => "Delivery attempt uncompleted. Rescheduled at hub.",
+            default            => "Registered in logistics network; awaiting courier handover.",
+        };
+
+        // Events list
+        $events = $shipment->deliveryEvents->map(fn ($e) => [
+            'id' => $e->id,
+            'status' => $e->status,
+            'status_label' => Str::headline(str_replace('_', ' ', $e->status)),
+            'note' => $e->note,
+            'occurred_at_human' => $e->occurred_at?->diffForHumans(),
+            'occurred_at' => $e->occurred_at?->timezone('Asia/Manila')->format('M d, Y · g:i A'),
+            'user' => $e->user?->name,
+        ])->values()->all();
+
+        // If no events exist yet, create a baseline event
+        if (empty($events)) {
+            $events[] = [
+                'id' => 0,
+                'status' => 'created',
+                'status_label' => 'Waybill Generated',
+                'note' => 'Waybill created and ready for logistics pickup.',
+                'occurred_at_human' => $shipment->created_at?->diffForHumans(),
+                'occurred_at' => $shipment->created_at?->timezone('Asia/Manila')->format('M d, Y · g:i A'),
+                'user' => $seller?->name ?? 'System',
+            ];
+        }
+
+        return [
+            'id' => $shipment->id,
+            'tracking_code' => $shipment->tracking_code,
+            'order_reference' => $order?->reference ?? ('ORD-' . $shipment->seller_order_id),
+            'status' => $shipment->status,
+            'delivery_status' => $deliveryStatus,
+            'status_label' => $statusLabels[$deliveryStatus] ?? Str::headline($shipment->status),
+            'whereabouts' => $whereabouts,
+            'hub_name' => $provider->name,
+            'hub_address' => $provider->address ?? 'Metro South Sorting & Fulfillment Hub',
+            'delivery_area' => $shipment->delivery_area ?: 'Pending Area Allocation',
+            'barangay' => $barangay,
+            'recipient_name' => $recipientName,
+            'recipient_phone' => $recipientPhone,
+            'recipient_address' => $recipientAddress,
+            'seller_name' => $seller?->name ?? ($seller?->user?->name ?? 'Store Partner'),
+            'seller_phone' => $seller?->user?->phone ?? 'N/A',
+            'seller_address' => $pickupAddress,
+            'items' => $shipment->sellerOrder?->items?->pluck('product_name')->implode(', ') ?: 'Order Package Items',
+            'items_count' => $shipment->sellerOrder?->items?->count() ?? 1,
+            'weight_kg' => $shipment->weight_kg ?: 1.0,
+            'payment_method' => $order?->payment_method === 'cod' ? 'COD' : 'Prepaid',
+            'cod_amount' => $order?->payment_method === 'cod' ? ($shipment->cod_amount_minor / 100) : 0.00,
+            'assigned_rider' => $shipment->rider ? [
+                'id' => $shipment->rider->id,
+                'user_id' => $shipment->rider->user_id,
+                'name' => $shipment->rider->user?->name ?? 'Assigned Rider',
+                'phone' => $shipment->rider->user?->phone ?? 'N/A',
+                'vehicle' => $shipment->rider->vehicle_type ?? 'Motorcycle',
+                'plate_no' => $shipment->rider->plate_no ?? 'NQ-4812',
+                'rating' => number_format($shipment->rider->rating ?? 5.0, 1),
+            ] : null,
+            'pickup_courier' => $shipment->pickupRider ? [
+                'name' => $shipment->pickupRider->user?->name,
+                'vehicle' => $shipment->pickupRider->vehicle_type,
+                'plate_no' => $shipment->pickupRider->plate_no,
+            ] : null,
+            'is_rescheduled' => $shipment->rescheduled_until !== null,
+            'rescheduled_until' => $shipment->rescheduled_until?->timezone('Asia/Manila')->format('M d, Y'),
+            'rescheduled_days_left' => $shipment->rescheduled_until ? max(0, (int) ceil(now()->diffInDays($shipment->rescheduled_until, false))) : null,
+            'reschedule_reason' => $shipment->reschedule_reason,
+            'return_reason' => $shipment->return_reason,
+            'received_at' => $shipment->received_at?->timezone('Asia/Manila')->format('M d, Y · g:i A'),
+            'updated_at' => $shipment->updated_at?->timezone('Asia/Manila')->format('M d, Y · g:i A'),
+            'events' => $events,
+            'monitoring_url' => route('logistics.monitoring', ['search' => $shipment->tracking_code]),
+            'print_url' => route('logistics.waybills', ['ids' => $shipment->seller_order_id]),
+            'chat_url' => $shipment->rider?->user_id ? route('logistics.chat', ['contact' => $shipment->rider->user_id]) : null,
+        ];
+    }
+
     public function receiveAllParcels(Request $request)
     {
         [$received, $sorted] = DB::transaction(fn () => $this->runReceiveAll($this->provider()));
