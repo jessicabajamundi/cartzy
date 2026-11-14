@@ -7,7 +7,7 @@ import 'package:cartzy/widgets/patch_notes_dialog.dart';
 
 class AppUpdateService {
   /// The current app release version (fallback if PackageInfo is unavailable).
-  static String currentAppVersion = '1.2.26';
+  static String currentAppVersion = '1.2.27';
   static bool _initialized = false;
 
   /// GitHub repository release endpoint for Cartzy.
@@ -15,7 +15,7 @@ class AppUpdateService {
       'https://api.github.com/repos/jessicabajamundi/cartzy/releases/latest';
 
   static const String defaultReleasePage =
-      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.2.26';
+      'https://github.com/jessicabajamundi/cartzy/releases/tag/v1.2.27';
 
   static const String _keyLastSeenPatch = 'cartzy_last_seen_patch_version';
 
