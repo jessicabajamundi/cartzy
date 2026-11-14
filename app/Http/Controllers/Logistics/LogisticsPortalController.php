@@ -1147,6 +1147,127 @@ class LogisticsPortalController extends Controller
             : "{$shipment->tracking_code} received. Waiting for an online rider; choose a delivery area in the Sort tab if needed.");
     }
 
+    /**
+     * Scan a parcel's QR code or barcode at the Logistics Hub.
+     * Transitions status from Pickup to Received at Sorting Hub.
+     */
+    
+    public function scanParcel(Request $request)
+    {
+        $provider = $this->provider();
+        $code = trim((string) ($request->input('code') ?? $request->input('tracking_code') ?? $request->input('q') ?? ''));
+
+        $normalized = \App\Services\RiderParcelScan::normalize($code);
+        if (empty($normalized)) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Please provide or scan a valid tracking number or QR code.'], 422);
+            }
+            return back()->with('error', 'Please provide or scan a valid tracking number or QR code.');
+        }
+
+        $shipment = Shipment::where('logistics_provider_id', $provider->id)
+            ->where(function ($q) use ($normalized) {
+                $q->where('tracking_code', $normalized)
+                  ->orWhereHas('sellerOrder.order', fn ($oq) => $oq->where('reference', $normalized));
+            })->first();
+
+        // If not found under this provider, check across shipments
+        if (!$shipment) {
+            $shipment = Shipment::where('tracking_code', $normalized)
+                ->orWhereHas('sellerOrder.order', fn ($oq) => $oq->where('reference', $normalized))
+                ->first();
+        }
+
+        if (!$shipment) {
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => "No parcel found matching \"{$code}\"."], 404);
+            }
+            return back()->with('error', "No parcel found matching \"{$code}\".");
+        }
+
+        if ($shipment->received_at) {
+            $msg = "Parcel {$shipment->tracking_code} was already scanned and received at the sorting hub.";
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'already_received' => true,
+                    'message' => $msg,
+                    'parcel' => [
+                        'tracking_code' => $shipment->tracking_code,
+                        'status' => 'received_at_hub',
+                        'delivery_area' => $shipment->delivery_area,
+                    ],
+                ]);
+            }
+            return back()->with('success', $msg);
+        }
+
+        // Process Scan: Transition from Pickup -> Received at Sorting Hub
+        $area = DB::transaction(function () use ($shipment, $provider) {
+            $locked = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+
+            // 1. Mark picked up by courier if not already recorded
+            $hasPickedUp = DeliveryEvent::where('shipment_id', $locked->id)->where('status', 'picked_up')->exists();
+            if (!$hasPickedUp && $locked->status !== 'picked_up') {
+                DeliveryEvent::create([
+                    'shipment_id' => $locked->id,
+                    'status'      => 'picked_up',
+                    'attempt'     => DeliveryEvent::nextAttempt($locked->id, 'picked_up'),
+                    'user_id'     => Auth::id(),
+                    'note'        => 'Parcel collected and handed over to logistics partner.',
+                    'occurred_at' => now(),
+                ]);
+            }
+
+            if ($locked->sellerOrder && !in_array($locked->sellerOrder->status, ['shipped', 'delivered', 'completed'], true)) {
+                $locked->sellerOrder->update(['status' => 'shipped']);
+            }
+
+            // 2. Mark received at sorting hub
+            $locked->update([
+                'received_at' => now(),
+                'status'      => 'unassigned',
+            ]);
+
+            DeliveryEvent::create([
+                'shipment_id' => $locked->id,
+                'status'      => 'received_at_hub',
+                'attempt'     => DeliveryEvent::nextAttempt($locked->id, 'received_at_hub'),
+                'user_id'     => Auth::id(),
+                'note'        => 'Parcel scanned and received at sorting hub.',
+                'occurred_at' => now(),
+            ]);
+
+            // Notify buyer in real-time
+            if ($buyerId = $locked->sellerOrder?->order?->buyer_id) {
+                \App\Services\NotificationService::notify(
+                    $buyerId,
+                    'order_status',
+                    'Parcel received at sorting hub',
+                    "Your parcel {$locked->tracking_code} was scanned and received at {$provider->name}.",
+                    route('buyer.dashboard')
+                );
+            }
+
+            return $locked->delivery_area;
+        });
+
+        $msg = "✓ Parcel {$shipment->tracking_code} scanned! Moved to Received at Sorting Hub.";
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $msg,
+                'parcel' => [
+                    'tracking_code' => $shipment->tracking_code,
+                    'status' => 'received_at_hub',
+                    'delivery_area' => $area,
+                ],
+            ]);
+        }
+
+        return back()->with('success', $msg);
+    }
+
     public function receiveAllParcels(Request $request)
     {
         [$received, $sorted] = DB::transaction(fn () => $this->runReceiveAll($this->provider()));

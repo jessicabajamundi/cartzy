@@ -107,6 +107,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/addresses/{id}/default', [AddressController::class, 'setDefault'])->whereNumber('id');
         Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->whereNumber('id');
 
+        Route::get('/checkout/seller-payment-info', [OrderController::class, 'sellerPaymentInfo']);
         Route::get('/orders', [OrderController::class, 'index']);
         Route::post('/orders', [OrderController::class, 'store'])->middleware('throttle:10,1');
         Route::get('/orders/{id}/tracking', [OrderController::class, 'tracking']);

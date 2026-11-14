@@ -28,12 +28,14 @@ class BuyerOrders
 
     public function status(SellerOrder $so): string
     {
+        $hasPaidProof = !empty($so->order->payments->first()?->provider_ref) || !empty($so->order->payments->first()?->receipt_path);
+
         return match (true) {
             $so->status === 'cancelled'                                   => 'cancelled',
             in_array($so->status, ['delivered', 'completed'], true)       => 'completed',
             $so->status === 'shipped'                                     => 'to_receive',
             in_array(optional($so->shipment)->status, ['picked_up', 'in_transit', 'out_for_delivery'], true) => 'to_receive',
-            $so->order->payment_method === 'wallet' && $so->order->payment_status === 'pending' => 'to_pay',
+            $so->order->payment_method === 'wallet' && $so->order->payment_status === 'pending' && !$hasPaidProof => 'to_pay',
             default                                                       => 'to_ship',
         };
     }
@@ -69,6 +71,13 @@ class BuyerOrders
                 'COD', 'CASH ON DELIVERY'     => 'COD',
                 default                       => strtoupper((string) ($order->payments->first()->method ?? $order->payment_method)),
             },
+            'payment_status'      => $order->payment_status,
+            'payment_ref'         => $order->payments->first()?->provider_ref,
+            'payment_receipt_url' => $order->payments->first()?->receipt_url,
+            'is_payment_verified' => $order->payment_status === 'paid',
+            'payment_note'        => ($order->payment_status === 'pending' && !empty($order->payments->first()?->provider_ref))
+                ? 'Payment receipt submitted · Pending verification'
+                : null,
             'items'    => $so->items->map(fn ($i) => [
                 'id'        => $i->id,
                 'name'      => $i->product_name,

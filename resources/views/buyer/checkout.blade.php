@@ -193,24 +193,28 @@
                             <h4 style="margin:0; font-size:15px; font-weight:800; color:#0b2545;">Scan to Pay with GCash</h4>
                         </div>
                         <p style="margin:0 0 16px; font-size:13px; color:#4a5568; line-height:1.5;">
-                            Scan the merchant QR code using your GCash app to pay the exact amount. Your order will be confirmed immediately.
+                            Scan the seller's GCash QR code using your GCash app to pay the exact amount. Your order will be confirmed upon payment verification.
                         </p>
                         
                         <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:center; background:#fff; padding:18px; border-radius:14px; border:1px solid #D0E4FF;">
                             <div style="text-align:center;">
                                 <div style="display:inline-block; padding:10px; background:#fff; border:2px solid #007DFE; border-radius:12px; box-shadow:0 4px 12px rgba(0,125,254,0.12);">
-                                    <img id="gcash-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?data=00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540{{ number_format($total, 2, '.', '') }}5802PH5915CartzyCommerce6006Manila6304&size=180x180&margin=4" alt="GCash Payment QR Code" style="width:180px; height:180px; display:block;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'180\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23f7fafc\'/><rect x=\'10\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'65\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'10\' y=\'65\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><text x=\'50\' y=\'55\' font-size=\'10\' font-weight=\'bold\' fill=\'%23007DFE\' text-anchor=\'middle\'>GCASH QR</text></svg>';">
+                                    @if(!empty($primarySeller?->gcash_qr_url))
+                                        <img id="gcash-qr-img" src="{{ $primarySeller->gcash_qr_url }}" alt="Seller GCash QR Code" style="width:180px; height:180px; object-fit:contain; display:block;">
+                                    @else
+                                        <img id="gcash-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?data=00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540{{ number_format($total, 2, '.', '') }}5802PH5915CartzyCommerce6006Manila6304&size=180x180&margin=4" alt="GCash Payment QR Code" style="width:180px; height:180px; display:block;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'180\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23f7fafc\'/><rect x=\'10\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'65\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'10\' y=\'65\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><text x=\'50\' y=\'55\' font-size=\'10\' font-weight=\'bold\' fill=\'%23007DFE\' text-anchor=\'middle\'>GCASH QR</text></svg>';">
+                                    @endif
                                 </div>
-                                <div style="margin-top:8px; font-size:11px; font-weight:700; color:#007DFE; letter-spacing:0.5px;">OFFICIAL MERCHANDISE QR</div>
+                                <div style="margin-top:8px; font-size:11px; font-weight:700; color:#007DFE; letter-spacing:0.5px;">{{ !empty($primarySeller?->gcash_qr_url) ? 'SELLER GCASH QR' : 'OFFICIAL MERCHANDISE QR' }}</div>
                             </div>
                             <div style="flex:1; min-width:200px;">
                                 <div style="margin-bottom:10px;">
-                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Merchant</span>
-                                    <strong style="font-size:14px; color:#1a202c;">Cartzy Philippines Official</strong>
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Seller / Merchant</span>
+                                    <strong style="font-size:14px; color:#1a202c;">{{ $primarySeller?->gcash_name ?: ($primarySeller?->name ?: 'Cartzy Official Store') }}</strong>
                                 </div>
                                 <div style="margin-bottom:10px;">
                                     <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">GCash Account No.</span>
-                                    <strong style="font-size:14px; font-family:monospace; color:#007DFE;">0917-555-2278</strong>
+                                    <strong style="font-size:14px; font-family:monospace; color:#007DFE;">{{ $primarySeller?->gcash_number ?: '0917-555-2278' }}</strong>
                                 </div>
                                 <div style="margin-bottom:14px;">
                                     <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Total Amount to Pay</span>

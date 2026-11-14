@@ -101,9 +101,20 @@ class CheckoutController extends Controller
         $productDiscount = round($originalSubtotal - $subtotal, 2);
         $totalSavings = $productDiscount + $discount + $voucherDiscount + $shopVoucherDiscount + $shopShippingDiscount;
 
+        $primarySeller = null;
+        foreach ($checkoutItems as $ci) {
+            if (!empty($ci['product_id'])) {
+                $p = \App\Models\Product::find($ci['product_id']);
+                if ($p?->seller) { $primarySeller = $p->seller; break; }
+            }
+        }
+        if (!$primarySeller) {
+            $primarySeller = \App\Models\Seller::where('status', 'approved')->first();
+        }
+
         return view('buyer.checkout', compact('user', 'checkoutItems', 'selectedKeys', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress', 'destination',
             'totalQuantity', 'originalSubtotal', 'productDiscount', 'totalSavings', 'hasUnavailableItems', 'itemVoucherOptions', 'shippingVoucherOptions', 'selectedItemVoucher',
-            'selectedShippingVoucher', 'voucherDiscount', 'storeItems', 'shippingQuotes', 'shopNames', 'shopDiscountGroups', 'shopShippingGroups', 'shopVoucherDiscount', 'shopShippingDiscount'));
+            'selectedShippingVoucher', 'voucherDiscount', 'storeItems', 'shippingQuotes', 'shopNames', 'shopDiscountGroups', 'shopShippingGroups', 'shopVoucherDiscount', 'shopShippingDiscount', 'primarySeller'));
     }
 
     /** The voucher the buyer asked for (if usable), "none" for no voucher, otherwise the best one. */

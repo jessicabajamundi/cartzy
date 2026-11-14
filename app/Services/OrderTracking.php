@@ -64,6 +64,35 @@ class OrderTracking
                 'delivered' => $order->delivered_at,
                 default => null,
             };
+
+            // "picked_up" must remain pending until physically picked up or received at the hub
+            if ($status === 'picked_up') {
+                $isPickedUp = ($event !== null)
+                    || ($shipment?->status === 'picked_up')
+                    || ($shipment?->pickup_rider_id !== null)
+                    || ($shipment?->received_at !== null);
+
+                $steps[] = [
+                    'label' => $label,
+                    'detail' => $detail,
+                    'time' => $isPickedUp ? ($format($time ?? $shipment?->received_at) ?? 'Time not recorded') : 'Awaiting courier collection',
+                    'done' => $isPickedUp,
+                ];
+                continue;
+            }
+
+            // "received_at_hub" is only confirmed if scanned at hub or received_at is set
+            if ($status === 'received_at_hub') {
+                $isReceivedAtHub = ($event !== null) || ($shipment?->received_at !== null);
+                $steps[] = [
+                    'label' => $label,
+                    'detail' => $detail,
+                    'time' => $isReceivedAtHub ? ($format($time ?? $shipment?->received_at) ?? 'Time not recorded') : 'Awaiting update',
+                    'done' => $isReceivedAtHub,
+                ];
+                continue;
+            }
+
             $confirmed = $event !== null || $time !== null
                 || ($status === 'packed' && in_array($order->status, ['packed', 'ready_to_ship', 'shipped', 'delivered', 'completed'], true))
                 || ($status === $shipment?->status)
@@ -173,8 +202,10 @@ class OrderTracking
         $sellerName = $order->seller?->store_name ?? $order->seller?->name ?? 'Seller Warehouse';
         $sellerAddress = $order->seller?->pickup_address ?? 'Central Logistics Warehouse, Quezon City';
 
-        $riderName = $shipment?->rider?->user?->name ?? 'Carlos Santos';
-        $riderPhone = $shipment?->rider?->user?->phone ?? '+63 917 555 0192';
+        $hasRider = !empty($shipment?->rider_id) && !empty($shipment?->rider?->user?->name);
+        $riderName = $hasRider ? $shipment->rider->user->name : null;
+        $riderPhone = $hasRider ? $shipment->rider->user->phone : null;
+        $riderVehicle = $hasRider && $shipment->rider->vehicle_plate ? ('Motorcycle · Plate ' . $shipment->rider->vehicle_plate) : null;
         $courierName = $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Cartzy Express';
 
         // Derive coordinates based on destination text or realistic Metro Manila route
@@ -232,9 +263,10 @@ class OrderTracking
                 'lng' => $destCoords[1],
             ],
             'rider' => [
+                'assigned' => $hasRider,
                 'name' => $riderName,
                 'phone' => $riderPhone,
-                'vehicle' => 'Motorcycle · Plate ' . ($shipment?->rider?->vehicle_plate ?: 'NC-48291'),
+                'vehicle' => $riderVehicle,
                 'courier' => $courierName,
                 'lat' => $riderLoc[0],
                 'lng' => $riderLoc[1],
@@ -323,7 +355,7 @@ class OrderTracking
 
         $y = sin($dLng) * cos($lat2);
         $x = cos($lat1) * sin($lat2) - sin($lat1) * cos($lat2) * cos($dLng);
-        $bearing = (rad2deg(atan2($y, $x)) + 360) % 360;
+        $bearing = fmod(rad2deg(atan2($y, $x)) + 360, 360);
 
         return round($bearing, 1);
     }

@@ -24,7 +24,7 @@ class SellerPortalController extends Controller
     }
 
     /** Everything the seller orders table reads for each row. */
-    private const ORDERS_TABLE_RELATIONS = ['order.buyer', 'items.variant', 'items.product.coverImage', 'logisticsProvider', 'shipment.deliveryEvents', 'shipment.logisticsProvider', 'shipment.rider.user'];
+    private const ORDERS_TABLE_RELATIONS = ['order.buyer', 'order.payments', 'items.variant', 'items.product.coverImage', 'logisticsProvider', 'shipment.deliveryEvents', 'shipment.logisticsProvider', 'shipment.rider.user'];
 
     /** One short promo video per product; browsers can play both of these formats. */
     private const VIDEO_RULE = 'nullable|file|mimetypes:video/mp4,video/webm|max:'.(Product::MEDIA_BUDGET_MB * 1024);
@@ -359,6 +359,75 @@ class SellerPortalController extends Controller
 
         return redirect()->route('seller.courier', ['status' => 'ready_to_ship', 'order' => $id])
             ->with('success', 'Parcel is ready. Choose pickup from your shop or drop-off at a logistics partner.');
+    }
+
+    public function verifyPayment(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'decision' => ['required', 'string', 'in:approved,rejected'],
+            'notes'    => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $sellerOrder = $this->ordersQuery()->findOrFail($id);
+        $order = $sellerOrder->order;
+        $payment = $order->payments()->latest()->first();
+
+        abort_unless($payment, 404, 'No payment record found for this order.');
+
+        $decision = $data['decision'];
+        $notes = $data['notes'] ?? null;
+
+        DB::transaction(function () use ($order, $payment, $decision, $notes) {
+            if ($decision === 'approved') {
+                $payment->update([
+                    'status'             => 'completed',
+                    'verified_at'        => now(),
+                    'verified_by'        => Auth::id(),
+                    'verification_notes' => $notes,
+                ]);
+                $order->update(['payment_status' => 'paid']);
+
+                \App\Models\ActivityLog::forUser(
+                    $order->buyer_id,
+                    'payment_approved',
+                    "Order {$order->reference} GCash payment verified by seller."
+                );
+
+                \App\Services\NotificationService::notify(
+                    $order->buyer_id,
+                    'payment',
+                    'Payment Verified',
+                    "Your GCash payment for order {$order->reference} has been approved by the seller! Your order will now be prepared.",
+                    route('buyer.dashboard', ['tab' => 'orders'])
+                );
+            } else {
+                $payment->update([
+                    'status'             => 'rejected',
+                    'verified_at'        => now(),
+                    'verified_by'        => Auth::id(),
+                    'verification_notes' => $notes ?: 'Payment receipt could not be verified.',
+                ]);
+                $order->update(['payment_status' => 'payment_rejected']);
+
+                \App\Models\ActivityLog::forUser(
+                    $order->buyer_id,
+                    'payment_rejected',
+                    "Order {$order->reference} GCash payment was rejected by seller."
+                );
+
+                \App\Services\NotificationService::notify(
+                    $order->buyer_id,
+                    'payment',
+                    'Payment Rejected',
+                    "Your GCash payment receipt for order {$order->reference} was rejected: " . ($notes ?: 'Receipt could not be verified.') . " Please contact the seller.",
+                    route('buyer.dashboard', ['tab' => 'orders'])
+                );
+            }
+        });
+
+        \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+
+        return back()->with('success', $decision === 'approved' ? 'Payment approved! Order is now ready to pack.' : 'Payment marked as rejected.');
     }
 
     public function printWaybill(int $id)
@@ -1784,5 +1853,44 @@ class SellerPortalController extends Controller
         \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
 
         return back()->with('success', 'Pickup address saved.');
+    }
+
+    public function updateGcash(Request $request)
+    {
+        $shop = $this->shop();
+        abort_unless($shop, 422, 'Save your store profile first.');
+
+        $data = $request->validate([
+            'gcash_name'      => ['nullable', 'string', 'max:100'],
+            'gcash_number'    => ['nullable', 'string', 'max:20'],
+            'gcash_qr'        => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:3072'],
+            'remove_gcash_qr' => ['nullable', 'boolean'],
+        ], [
+            'gcash_qr.image' => 'The GCash QR must be an image file (JPG, PNG, WebP).',
+            'gcash_qr.max'   => 'The QR image must not exceed 3MB.',
+        ]);
+
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $oldQr = $shop->gcash_qr_path;
+        $updates = [
+            'gcash_name'   => $data['gcash_name'] ?? null,
+            'gcash_number' => $data['gcash_number'] ?? null,
+        ];
+
+        if ($request->hasFile('gcash_qr') && $request->file('gcash_qr')->isValid()) {
+            $updates['gcash_qr_path'] = $request->file('gcash_qr')->store('seller_gcash_qr', 'public');
+        } elseif ($request->boolean('remove_gcash_qr')) {
+            $updates['gcash_qr_path'] = null;
+        }
+
+        $shop->update($updates);
+
+        if ($oldQr && array_key_exists('gcash_qr_path', $updates) && !preg_match('~^(https?://|/)~', $oldQr)) {
+            DB::afterCommit(fn () => $disk->delete($oldQr));
+        }
+
+        \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
+
+        return back()->with('success', 'GCash payment details updated successfully.');
     }
 }

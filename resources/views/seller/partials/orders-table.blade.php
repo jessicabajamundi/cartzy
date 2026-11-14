@@ -51,6 +51,15 @@
     <td class="so-total">
         <strong>₱{{ number_format($order->buyerDueMinor() / 100, 2) }}</strong>
         <small>{{ strtoupper($payment->payment_method) }} · {{ ucfirst(str_replace('_', ' ', $payment->payment_status)) }}</small>
+        @php $latestPay = $payment->payments->first(); @endphp
+        @if($latestPay?->provider_ref)
+            <small style="display:block; color:#007DFE; font-weight:700;">Ref: {{ $latestPay->provider_ref }}</small>
+        @endif
+        @if($latestPay?->receipt_url)
+            <a href="{{ $latestPay->receipt_url }}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:3px; font-size:11px; color:#007DFE; text-decoration:underline; font-weight:700; margin-top:2px;">
+                <span>View Receipt ↗</span>
+            </a>
+        @endif
     </td>
     <td class="so-status"><span class="badge {{ $statusLabel }}">{{ ucfirst(str_replace('_', ' ', $statusLabel)) }}</span></td>
     <td class="so-next">
@@ -70,7 +79,25 @@
                 <a class="button small" href="{{ route('seller.courier', ['status' => 'ready_to_ship', 'order' => $order->id]) }}">Pickup or drop-off</a>
                 @if($shipment?->isDropoff())<span class="so-hint">Drop off at the selected logistics partner</span>@endif
             @elseif($awaitingPayment)
-                <span class="so-hint">Waiting for payment</span>
+                @if($latestPay && ($latestPay->provider_ref || $latestPay->receipt_path))
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <span class="so-hint" style="color:#d97706; font-weight:700; font-size:11px;">Verify Payment</span>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                            <form method="POST" action="{{ route('seller.orders.payment-verify', $order) }}" style="display:inline;">
+                                @csrf
+                                <input type="hidden" name="decision" value="approved">
+                                <button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:#fff;" onclick="return confirm('Approve this GCash payment receipt?');">Approve</button>
+                            </form>
+                            <form method="POST" action="{{ route('seller.orders.payment-verify', $order) }}" style="display:inline;">
+                                @csrf
+                                <input type="hidden" name="decision" value="rejected">
+                                <button class="button small secondary" type="submit" style="color:#dc2626;" onclick="return confirm('Reject this GCash payment receipt?');">Reject</button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <span class="so-hint">Waiting for payment</span>
+                @endif
             @elseif($awaitingRider)
                 <span class="so-hint">Waiting for rider pickup</span>
             @else

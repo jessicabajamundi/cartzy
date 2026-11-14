@@ -34,7 +34,7 @@ class OrderPlacement
      * @param  \App\Models\Address|null  $address  A saved address of this buyer to ship to (the mobile app picks one);
      *         its recipient, phone and province are used. Null falls back to the default address when the text matches.
      */
-    public function place(User $buyer, array $cartItems, string $paymentMethod, string $deliveryAddress, ?array $voucherIds = null, ?\App\Models\Address $address = null): Order
+    public function place(User $buyer, array $cartItems, string $paymentMethod, string $deliveryAddress, ?array $voucherIds = null, ?\App\Models\Address $address = null, ?string $providerRef = null, ?string $receiptPath = null): Order
     {
         if ($address && $address->user_id !== $buyer->id) {
             throw new RuntimeException('Please choose one of your own saved addresses.');
@@ -46,7 +46,7 @@ class OrderPlacement
             throw new RuntimeException('Your cart is empty.');
         }
 
-        return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress, $voucherIds, $address) {
+        return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress, $voucherIds, $address, $providerRef, $receiptPath) {
             $defaultAddress = $address ?? \App\Models\Address::where('user_id', $buyer->id)->where('is_default', true)->first();
             $useDefaultContact = $defaultAddress && ($address !== null || $defaultAddress->formatted_address === $deliveryAddress);
             $provider = LogisticsProvider::query()->orderBy('id')->first();
@@ -224,8 +224,12 @@ class OrderPlacement
             }
 
             Payment::create([
-                'order_id' => $order->id, 'method' => $normalizedMethod,
-                'amount_minor' => $totalMinor, 'status' => 'pending',
+                'order_id' => $order->id,
+                'method' => $normalizedMethod,
+                'amount_minor' => $totalMinor,
+                'status' => 'pending',
+                'provider_ref' => $providerRef,
+                'receipt_path' => $receiptPath,
             ]);
 
             $vouchers->record($order, [...array_values($selection), ...array_values($shopSelection), ...array_values($shopShippingSelection)]);

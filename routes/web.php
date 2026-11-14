@@ -22,6 +22,10 @@ use Illuminate\Support\Facades\Route;
 // Public Marketplace Homepage (Buyer facing)
 // On an Android phone's browser the home page is the "get the app" page.
 Route::get('/', [\App\Http\Controllers\HomeController::class, 'index'])->middleware(\App\Http\Middleware\AndroidVisitorsGetTheApp::class)->name('home');
+Route::view('/privacy', 'legal.privacy')->name('privacy');
+Route::view('/privacy-policy', 'legal.privacy');
+Route::view('/terms', 'legal.terms')->name('terms');
+Route::view('/terms-of-service', 'legal.terms');
 Route::get('/sale', [\App\Http\Controllers\HomeController::class, 'sale'])->name('sale');
 Route::get('/products/{id}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 Route::post('/buddy/chat', [\App\Http\Controllers\BuddyController::class, 'chat'])->middleware('throttle:buddy')->name('buddy.chat');
@@ -245,6 +249,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/orders', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orders'])->name('orders');
         Route::get('/order-history', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orderHistory'])->name('order-history');
         Route::post('/orders/{id}/pack', [\App\Http\Controllers\Seller\SellerPortalController::class, 'packOrder'])->name('orders.pack');
+        Route::post('/orders/{id}/payment-verify', [\App\Http\Controllers\Seller\SellerPortalController::class, 'verifyPayment'])->whereNumber('id')->name('orders.payment-verify');
         Route::post('/orders/{id}/cancellation', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reviewCancellation'])->name('orders.cancellation');
         Route::get('/orders/{id}/waybill', [\App\Http\Controllers\Seller\SellerPortalController::class, 'printWaybill'])->name('orders.waybill');
 
@@ -309,6 +314,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/account', [\App\Http\Controllers\Seller\SellerPortalController::class, 'account'])->name('account');
         Route::post('/account/profile', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateProfile'])->name('account.profile');
         Route::post('/account/address', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateAddress'])->name('account.address');
+        Route::post('/account/gcash', [\App\Http\Controllers\Seller\SellerPortalController::class, 'updateGcash'])->name('account.gcash');
     });
 
     Route::post('/chat/typing', [\App\Http\Controllers\Seller\MessageController::class, 'recordTyping'])->middleware('auth')->name('chat.typing');
@@ -394,6 +400,7 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::post('/hub-desk/process-all', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'processAll'])->name('hub.process-all');
     Route::post('/parcels/receive-all',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveAllParcels'])->name('parcels.receive-all');
     Route::post('/parcels/{id}/receive',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');
+    Route::post('/parcels/scan', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'scanParcel'])->name('parcels.scan');
 
     // 5. Sorting of Parcels
     Route::get('/sorting', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'sorting'])->name('sorting');

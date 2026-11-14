@@ -16,11 +16,25 @@ class Seller extends Model
         'description',
         'logo_path',
         'banner_path',
+        'gcash_qr_path',
+        'gcash_name',
+        'gcash_number',
         'status',
         'rejection_reason',
         'commission_bps',
         'pickup_address_id',
     ];
+
+    public function getGcashQrUrlAttribute(): ?string
+    {
+        if (empty($this->gcash_qr_path)) {
+            return null;
+        }
+        if (str_starts_with($this->gcash_qr_path, 'http://') || str_starts_with($this->gcash_qr_path, 'https://')) {
+            return $this->gcash_qr_path;
+        }
+        return asset('storage/' . ltrim($this->gcash_qr_path, '/'));
+    }
 
     protected $casts = [
         'commission_bps' => 'integer',

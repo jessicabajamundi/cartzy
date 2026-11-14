@@ -71,9 +71,18 @@ class OrderController extends Controller
      */
     public function store(Request $request, OrderPlacement $placement, ProductPricing $pricing)
     {
+        if ($request->has('items') && is_string($request->input('items'))) {
+            $decoded = json_decode($request->input('items'), true);
+            if (is_array($decoded)) {
+                $request->merge(['items' => $decoded]);
+            }
+        }
+
         $data = $request->validate([
             'checkout_key' => ['required', 'string', 'max:64'],
             'payment_method' => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
+            'gcash_reference' => ['nullable', 'string', 'max:50'],
+            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'address_id' => ['required', 'integer'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => ['nullable', 'integer'],
@@ -89,7 +98,12 @@ class OrderController extends Controller
         $user = $request->user();
         $cacheKey = "api-checkout:{$user->id}:{$data['checkout_key']}";
 
-        return Cache::lock($cacheKey.':lock', 30)->block(15, function () use ($data, $user, $cacheKey, $placement, $pricing) {
+        $receiptPath = null;
+        if ($request->hasFile('receipt') && $request->file('receipt')->isValid()) {
+            $receiptPath = $request->file('receipt')->store('payment_receipts', 'public');
+        }
+
+        return Cache::lock($cacheKey.':lock', 30)->block(15, function () use ($data, $user, $cacheKey, $placement, $pricing, $receiptPath) {
             // Same tap sent twice (e.g. a retry after a slow network): answer with the first order.
             if ($orderId = Cache::get($cacheKey)) {
                 $order = Order::find($orderId);
@@ -131,7 +145,7 @@ class OrderController extends Controller
             $chosenMethod = in_array(strtoupper(trim((string) ($data['payment_method'] ?? 'COD'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
 
             try {
-                $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address);
+                $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address, $data['gcash_reference'] ?? null, $receiptPath);
             } catch (RuntimeException $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
             }
@@ -150,9 +164,10 @@ class OrderController extends Controller
 
     private function placedJson(Order $order): array
     {
-        $order->loadMissing('sellerOrders');
+        $order->loadMissing('sellerOrders.seller');
         $isCod = $order->payment_method === 'cod';
         $totalFormatted = $order->total_minor / 100;
+        $primarySeller = $order->sellerOrders->first()?->seller;
 
         $json = [
             'message' => "Order {$order->reference} placed successfully! Your order is being prepared for dispatch.",
@@ -167,17 +182,60 @@ class OrderController extends Controller
         ];
 
         if (!$isCod) {
+            $latestPayment = $order->payments()->latest()->first();
             $json['order']['gcash'] = [
-                'merchant_name' => 'Cartzy Official Store',
-                'merchant_number' => '0917-555-2278',
+                'merchant_name' => $primarySeller?->gcash_name ?: ($primarySeller?->name ?: 'Cartzy Official Store'),
+                'merchant_number' => $primarySeller?->gcash_number ?: '0917-555-2278',
+                'qr_url' => $primarySeller?->gcash_qr_url,
                 'amount' => $totalFormatted,
                 'reference' => $order->reference,
+                'provider_ref' => $latestPayment?->provider_ref,
+                'receipt_url' => $latestPayment?->receipt_url,
+                'payment_status' => $latestPayment?->status ?? 'pending',
+                'verification_status' => 'pending_verification',
                 'qr_data' => "00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540" . sprintf("%02d", strlen((string)$totalFormatted)) . $totalFormatted . "5802PH5915Cartzy Commerce6006Manila62" . sprintf("%02d", strlen($order->reference) + 4) . "05" . sprintf("%02d", strlen($order->reference)) . $order->reference . "6304",
                 'expiry_minutes' => 15,
             ];
         }
 
         return $json;
+    }
+
+    public function sellerPaymentInfo(Request $request)
+    {
+        $productIds = $request->input('product_ids', []);
+        if (is_string($productIds)) {
+            $productIds = array_filter(array_map('trim', explode(',', $productIds)));
+        }
+
+        $seller = null;
+        if (!empty($productIds)) {
+            $product = \App\Models\Product::whereIn('id', $productIds)->with('seller')->first();
+            if ($product && $product->seller) {
+                $seller = $product->seller;
+            } else {
+                try {
+                    $seller = app(\App\Services\CatalogStores::class)->storeFor((string) reset($productIds));
+                } catch (\Throwable $e) {}
+            }
+        }
+
+        if (!$seller && $request->has('seller_id')) {
+            $seller = \App\Models\Seller::find($request->input('seller_id'));
+        }
+
+        if (!$seller) {
+            $seller = \App\Models\Seller::where('status', 'approved')->first();
+        }
+
+        return response()->json([
+            'seller_id'     => $seller?->id,
+            'store_name'    => $seller?->name ?? 'Cartzy Official Store',
+            'gcash_name'    => $seller?->gcash_name ?: ($seller?->name ?? 'Cartzy Commerce'),
+            'gcash_number'  => $seller?->gcash_number ?: '0917-555-2278',
+            'gcash_qr_url'  => $seller?->gcash_qr_url,
+            'has_custom_qr' => !empty($seller?->gcash_qr_url),
+        ]);
     }
 
     public function tracking(Request $request, string $id)

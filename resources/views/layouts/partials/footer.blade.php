@@ -128,10 +128,14 @@
 
         </div>
 
-        <!-- Bottom Copyright -->
+        <!-- Bottom Copyright & Legal Links -->
         <div class="pt-6 flex flex-col sm:flex-row items-center justify-between text-gray-400 gap-4 text-sm">
-            <div>
-                &copy; 2026 cartzy. All Rights Reserved.
+            <div class="flex items-center gap-4 flex-wrap">
+                <span>&copy; {{ date('Y') }} cartzy. All Rights Reserved.</span>
+                <span class="text-gray-300">|</span>
+                <a href="{{ route('privacy') }}" class="text-gray-500 hover:text-black hover:underline transition">Privacy Policy</a>
+                <span class="text-gray-300">|</span>
+                <a href="{{ route('terms') }}" class="text-gray-500 hover:text-black hover:underline transition">Terms of Service</a>
             </div>
             <div class="text-[13px] text-gray-400">
                 <span>Philippines &middot; Verified Online Marketplace</span>

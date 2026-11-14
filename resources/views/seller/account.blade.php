@@ -409,6 +409,80 @@
     @endif
 </section>
 
+<!-- 5. GCash Payment Settings -->
+<section class="panel" style="margin-top: 24px;">
+    <div class="panel-header">
+        <div>
+            <h2>GCash Payment QR &amp; Account</h2>
+            <small>Buyers paying via GCash QR at checkout will see your store's uploaded QR code and account details</small>
+        </div>
+    </div>
+
+    @if($shop)
+        <form class="panel-body form-grid" method="POST" action="{{ route('seller.account.gcash') }}" enctype="multipart/form-data">
+            @csrf
+
+            @php
+                $gcashQrUrl = $shop->gcash_qr_url;
+            @endphp
+
+            <div class="full" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; padding:16px; background:var(--surface-sunken, #f8fafc); border-radius:var(--radius-md, 12px); border:1px solid var(--line, #e2e8f0);">
+                <div style="text-align:center;">
+                    <div id="gcash-qr-preview-box" style="width:160px; height:160px; border:2px dashed var(--line, #cbd5e1); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#fff; position:relative;">
+                        @if($gcashQrUrl)
+                            <img id="gcash-qr-preview-img" src="{{ $gcashQrUrl }}" alt="GCash QR Code" style="width:100%; height:100%; object-fit:contain;">
+                        @else
+                            <div id="gcash-qr-placeholder" style="text-align:center; padding:12px; color:var(--ink-muted, #94a3b8);">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="margin:0 auto 6px; display:block;">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                                <span style="font-size:12px; font-weight:600;">No QR uploaded</span>
+                            </div>
+                        @endif
+                    </div>
+                    @if($gcashQrUrl)
+                        <label style="display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:12px; color:#ef4444; cursor:pointer;">
+                            <input type="checkbox" name="remove_gcash_qr" value="1">
+                            Remove QR
+                        </label>
+                    @endif
+                </div>
+
+                <div style="flex:1; min-width:220px;">
+                    <strong style="display:block; margin-bottom:4px; font-size:14px; color:var(--ink, #1e293b);">Upload GCash QR Code</strong>
+                    <p style="margin:0 0 12px; font-size:12.5px; color:var(--ink-muted, #64748b); line-height:1.4;">
+                        Upload the QR code image from your GCash app (Generate QR / Receive Money). Supported: JPG, PNG, WebP (up to 3MB).
+                    </p>
+                    <input type="file" name="gcash_qr" id="gcash-qr-file-input" accept="image/png,image/jpeg,image/webp" style="font-size:13px;">
+                </div>
+            </div>
+
+            <label>
+                GCash Account Name
+                <input type="text" name="gcash_name" value="{{ old('gcash_name', $shop->gcash_name ?? $user->name) }}" maxlength="100" placeholder="e.g. Maria Santos">
+                <small style="color:var(--ink-muted, #64748b);">The recipient name registered to your GCash account</small>
+            </label>
+
+            <label>
+                GCash Mobile Number
+                <input type="text" name="gcash_number" value="{{ old('gcash_number', $shop->gcash_number ?? $user->phone) }}" maxlength="20" placeholder="e.g. 09171234567">
+                <small style="color:var(--ink-muted, #64748b);">The 11-digit mobile number linked to your GCash wallet</small>
+            </label>
+
+            <div class="full" style="display:flex; justify-content:flex-end;">
+                <button type="submit" class="button">Save GCash payment details</button>
+            </div>
+        </form>
+    @else
+        <div class="panel-body muted">
+            Save your store profile first to configure GCash payments.
+        </div>
+    @endif
+</section>
+
 <script>
 function calculateSellerAge(dateStr) {
     const input = document.getElementById('owner_birthday');
@@ -481,6 +555,28 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             preview.innerHTML = original;
         }
+    });
+})();
+
+(function () {
+    const input = document.getElementById('gcash-qr-file-input');
+    const box = document.getElementById('gcash-qr-preview-box');
+    if (!input || !box) return;
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 3 * 1024 * 1024) {
+            alert('Please choose an image up to 3 MB.');
+            input.value = '';
+            return;
+        }
+        const img = document.createElement('img');
+        img.alt = 'GCash QR preview';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.src = URL.createObjectURL(file);
+        box.replaceChildren(img);
     });
 })();
 </script>
