@@ -29,12 +29,26 @@ class AuthController extends Controller
             'name' => $user->name,
             'first_name' => $parts[0] ?? '',
             'last_name' => $parts[1] ?? '',
+            'middle_initial' => $user->middle_initial ?? '',
             'email' => $user->email,
             'phone' => $user->phone,
+            'sex' => $user->sex ?? '',
+            'gender' => $user->sex ?? '',
+            'avatar' => $user->avatar ? asset('storage/' . ltrim($user->avatar, '/')) : null,
             'role' => $user->role === User::ROLE_COURIER ? 'rider' : $user->role,
             'status' => $user->status,
             'email_verified' => $user->email_verified_at !== null,
             'birthday' => $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : null,
+            'street_address' => $user->street_address ?? '',
+            'address' => $user->address ?? '',
+            'barangay' => $user->barangay ?? '',
+            'city' => $user->city ?? '',
+            'province' => $user->province ?? '',
+            'region' => $user->region ?? '',
+            'postal_code' => $user->postal_code ?? '',
+            'id_type' => $user->id_type ?? '',
+            'id_number' => $user->id_number ?? '',
+            'cart_count' => $user->cart?->items?->count() ?? 0,
             // Riders and couriers: first_mile opens the courier dashboard, last_mile the rider one.
             'courier_type' => $user->role === User::ROLE_COURIER ? $user->rider?->courier_type : null,
             // Riders' home address; hubs match them to nearby work by barangay.
@@ -569,6 +583,119 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token,
             'user' => self::userJson($user),
+        ]);
+    }
+
+    /**
+     * Update current authenticated user profile (buyer, etc.).
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if (is_string($request->input('phone'))) {
+            $phone = preg_replace('/[\s\-]/', '', $request->input('phone'));
+            if (preg_match('/\A\+639[0-9]{9}\z/', $phone)) {
+                $phone = '0' . substr($phone, 3);
+            }
+            $request->merge(['phone' => $phone]);
+        }
+
+        $unusedNumber = function ($attribute, $value, $fail) use ($user) {
+            $variants = [$value, '+63' . substr($value, 1), '63' . substr($value, 1)];
+            if (User::where('id', '<>', $user->id)->whereIn('phone', $variants)->exists()) {
+                $fail('This mobile number is already in use.');
+            }
+        };
+
+        $validated = $request->validate([
+            'name'           => ['required', 'string', 'max:255'],
+            'middle_initial' => ['nullable', 'string', 'max:10'],
+            'phone'          => ['nullable', 'bail', 'string', 'regex:/\A09[0-9]{9}\z/', $unusedNumber],
+            'sex'            => ['nullable', 'string', 'max:50'],
+            'birthday'       => ['nullable', 'string', 'max:20'],
+            'street_address' => ['nullable', 'string', 'max:255'],
+            'barangay'       => ['nullable', 'string', 'max:100'],
+            'city'           => ['nullable', 'string', 'max:100'],
+            'province'       => ['nullable', 'string', 'max:100'],
+            'region'         => ['nullable', 'string', 'max:100'],
+            'postal_code'    => ['nullable', 'string', 'max:20'],
+            'address'        => ['nullable', 'string', 'max:500'],
+            'id_type'        => ['nullable', 'string', 'max:100'],
+            'id_number'      => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $birthday = null;
+        $age = null;
+        if (!empty($validated['birthday'])) {
+            try {
+                $parsed = \Carbon\Carbon::parse($validated['birthday']);
+                $birthday = $parsed->toDateString();
+                $age = max(0, (int) $parsed->age);
+            } catch (\Throwable $e) {}
+        }
+
+        $updateData = [
+            'name' => $validated['name'],
+            'middle_initial' => $validated['middle_initial'] ?? $user->middle_initial,
+            'phone' => $validated['phone'] ?? $user->phone,
+            'sex' => $validated['sex'] ?? $user->sex,
+        ];
+        if ($birthday !== null) {
+            $updateData['birthday'] = $birthday;
+            $updateData['age'] = $age;
+        }
+
+        if (isset($validated['street_address'])) $updateData['street_address'] = $validated['street_address'];
+        if (isset($validated['barangay'])) $updateData['barangay'] = $validated['barangay'];
+        if (isset($validated['city'])) $updateData['city'] = $validated['city'];
+        if (isset($validated['province'])) $updateData['province'] = $validated['province'];
+        if (isset($validated['region'])) $updateData['region'] = $validated['region'];
+        if (isset($validated['postal_code'])) $updateData['postal_code'] = $validated['postal_code'];
+
+        if (!empty($validated['address'])) {
+            $updateData['address'] = $validated['address'];
+        } elseif (!empty($updateData['street_address'])) {
+            $parts = array_filter([
+                $updateData['street_address'] ?? null,
+                !empty($updateData['barangay']) ? 'Brgy. ' . $updateData['barangay'] : null,
+                $updateData['city'] ?? null,
+                $updateData['province'] ?? null,
+                $updateData['region'] ?? null,
+                $updateData['postal_code'] ?? null,
+            ]);
+            $updateData['address'] = implode(', ', $parts);
+        }
+
+        if (!empty($validated['id_type'])) {
+            $updateData['id_type'] = $validated['id_type'];
+        }
+        if (isset($validated['id_number'])) {
+            $updateData['id_number'] = $validated['id_number'];
+        }
+
+        $user->update($updateData);
+
+        if ($user->isBuyer()) {
+            \App\Models\Buyer::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'name' => $user->name,
+                    'middle_initial' => $user->middle_initial,
+                    'sex' => $user->sex,
+                    'birthday' => $user->birthday,
+                    'age' => $user->age,
+                    'phone' => $user->phone,
+                ]
+            );
+        }
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user' => self::userJson($user->fresh()),
         ]);
     }
 }

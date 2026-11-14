@@ -9,20 +9,23 @@ class BuyerCart
 {
     private function cart(): ?Cart
     {
-        if (!auth()->user()?->isBuyer()) return null;
+        $user = auth()->user();
+        if (!$user?->isBuyer()) return null;
 
-        return DB::transaction(function () {
-            $cart = Cart::firstOrCreate(['user_id' => auth()->id()]);
+        return DB::transaction(function () use ($user) {
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
             $cart = Cart::whereKey($cart->id)->lockForUpdate()->firstOrFail();
             // Import the current buyer's old session cart once, without replacing saved items.
-            if (!session()->has('database_cart_owner') && session()->has('cart')) {
-                foreach (session('cart', []) as $key => $item) {
-                    $cart->items()->firstOrCreate(['cart_key' => $key], [
-                        'snapshot' => $item, 'quantity' => $item['quantity'], 'selected' => true,
-                    ]);
+            if (request()->hasSession()) {
+                if (!session()->has('database_cart_owner') && session()->has('cart')) {
+                    foreach (session('cart', []) as $key => $item) {
+                        $cart->items()->firstOrCreate(['cart_key' => $key], [
+                            'snapshot' => $item, 'quantity' => $item['quantity'], 'selected' => true,
+                        ]);
+                    }
                 }
+                session()->put('database_cart_owner', $user->id);
             }
-            session()->put('database_cart_owner', auth()->id());
             return $cart;
         });
     }
@@ -32,13 +35,19 @@ class BuyerCart
         $cart = $this->cart();
         if (!$cart) return [];
         $items = [];
-        foreach ($cart->items()->with('variant.product.coverImage')->get() as $row) {
+        foreach ($cart->items()->with(['variant.product.coverImage', 'variant.product.seller'])->get() as $row) {
             $item = $row->snapshot;
             if (!$item && $row->variant) {
                 $variant = $row->variant;
-                $item = ['id' => $variant->product_id, 'name' => $variant->product?->name ?? 'Deleted product',
-                    'price' => $variant->price, 'variation' => $variant->name,
-                    'image' => $variant->resolved_image_url];
+                $item = [
+                    'id' => $variant->product_id,
+                    'product_id' => $variant->product_id,
+                    'name' => $variant->product?->name ?? 'Deleted product',
+                    'price' => $variant->price,
+                    'variation' => $variant->name,
+                    'image' => $variant->resolved_image_url,
+                    'store' => $variant->product?->seller?->name ?? 'Cartzy Store',
+                ];
             }
             if (!$item) continue;
             if ($row->product_variant_id) $item['variant_id'] = $row->product_variant_id;
@@ -46,18 +55,28 @@ class BuyerCart
                 $pricedVariant = app(ProductPricing::class)->variant($item);
                 if ($pricedVariant) {
                     $item['variant_id'] = $pricedVariant->id;
+                    $item['product_id'] = $pricedVariant->product_id;
                     $item['price'] = $pricedVariant->sale_price_minor / 100;
                     $item['original_price'] = $pricedVariant->price;
                     $item['stock'] = (int) $pricedVariant->stock;
+                    if ($pricedVariant->product?->seller) {
+                        $item['store'] = $pricedVariant->product->seller->name;
+                    }
                 }
             } catch (\RuntimeException $e) {
                 // Keep unavailable items removable; order placement rejects them.
                 $item['unavailable'] = true;
             }
             $key = $row->cart_key ?? 'variant_'.$row->product_variant_id;
-            $items[$key] = array_merge($item, ['cart_key' => $key, 'quantity' => $row->quantity, 'selected' => $row->selected]);
+            $items[$key] = array_merge($item, [
+                'cart_key' => $key,
+                'quantity' => $row->quantity,
+                'selected' => (bool) $row->selected,
+            ]);
         }
-        session()->put('cart', $items);
+        if (request()->hasSession()) {
+            session()->put('cart', $items);
+        }
         return $items;
     }
 
@@ -105,7 +124,14 @@ class BuyerCart
         $cart = $this->cart();
         abort_unless($cart, 401);
         $cart->items()->delete();
-        session()->put('cart', []);
+        if (request()->hasSession()) {
+            session()->put('cart', []);
+        }
+    }
+
+    public function toggleSelected(string $key, bool $selected): void
+    {
+        $this->rowsForKeys([$key])->update(['selected' => $selected]);
     }
 
     public function select(array $keys): void

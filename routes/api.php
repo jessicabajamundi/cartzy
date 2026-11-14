@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
     Route::post('/account/password', [AuthController::class, 'changePassword']);
+    Route::match(['put', 'post'], '/account/profile', [AuthController::class, 'updateProfile']);
     Route::get('/account/activity', [ActivityController::class, 'index']);
 
     // Rider time in / time out: scan the QR code shown on the hub's Time in / time out page.
@@ -136,6 +137,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/wishlist/refs', [WishlistController::class, 'refs']);
         Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->middleware('throttle:60,1');
         Route::delete('/wishlist/{ref}', [WishlistController::class, 'destroy'])->middleware('throttle:60,1');
+
+        // Buyer Shopping Cart (Synced with Web)
+        Route::get('/cart', [\App\Http\Controllers\Api\CartController::class, 'index']);
+        Route::post('/cart/add', [\App\Http\Controllers\Api\CartController::class, 'store']);
+        Route::put('/cart/items/{cartKey}', [\App\Http\Controllers\Api\CartController::class, 'update']);
+        Route::put('/cart/items/{cartKey}/select', [\App\Http\Controllers\Api\CartController::class, 'toggleSelect']);
+        Route::post('/cart/selection', [\App\Http\Controllers\Api\CartController::class, 'selection']);
+        Route::delete('/cart/items/{cartKey}', [\App\Http\Controllers\Api\CartController::class, 'destroy']);
+        Route::delete('/cart/clear', [\App\Http\Controllers\Api\CartController::class, 'clear']);
+        Route::post('/cart/sync', [\App\Http\Controllers\Api\CartController::class, 'sync']);
     });
 });
 

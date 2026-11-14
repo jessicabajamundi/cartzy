@@ -146,6 +146,17 @@ class OrderController extends Controller
 
             try {
                 $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address, $data['gcash_reference'] ?? null, $receiptPath);
+
+                // Clean up ordered items from the server cart so mobile and web remain synchronized
+                $cartKeysToRemove = [];
+                foreach ($items as $it) {
+                    if (!empty($it['variant_id'])) {
+                        $cartKeysToRemove[] = 'variant_'.$it['variant_id'];
+                    }
+                }
+                if (!empty($cartKeysToRemove)) {
+                    app(\App\Services\BuyerCart::class)->remove($cartKeysToRemove);
+                }
             } catch (RuntimeException $e) {
                 return response()->json(['message' => $e->getMessage()], 422);
             }
