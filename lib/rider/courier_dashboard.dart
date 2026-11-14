@@ -322,6 +322,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
   // ── Profile ─────────────────────────────────────────────────
   List<Widget> _profileTab(CourierDashboardData d) {
     final c = d.courier;
+
     return [
       const _PageTitle('Profile', 'Your courier details on file with your hub.'),
       _Card(
@@ -342,11 +343,19 @@ class _CourierDashboardState extends State<CourierDashboard> {
       ),
       const SizedBox(height: 8),
       Text('To change these details, contact your hub.', style: _sub),
-      const SizedBox(height: 16),
+      const SizedBox(height: 14),
       _Card(
         child: Row(
           children: [
-            const Icon(Icons.home_outlined, color: CartzyColors.brandDeep),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EFF7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.home_outlined, color: CartzyColors.brandDeep, size: 18),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -371,26 +380,34 @@ class _CourierDashboardState extends State<CourierDashboard> {
           ],
         ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 10),
       _Card(
         onTap: _showPatchNotes,
         child: Row(
           children: [
-            const Icon(Icons.auto_awesome_outlined, color: CartzyColors.brandDeep),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.auto_awesome_outlined, color: Color(0xFFD97706), size: 18),
+            ),
             const SizedBox(width: 12),
             Expanded(child: Text("What's new for riders & couriers", style: _title)),
             const Icon(Icons.chevron_right_rounded, color: _muted),
           ],
         ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 14),
       OutlinedButton.icon(
         onPressed: widget.onLogout,
         icon: const Icon(Icons.logout_rounded, size: 18),
         label: Text('Log out', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFD32F2F),
-          side: const BorderSide(color: Color(0xFFF5C6C6)),
+          foregroundColor: const Color(0xFFDC2626),
+          side: const BorderSide(color: Color(0xFFFECACA)),
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
