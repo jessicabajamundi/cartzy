@@ -51,6 +51,12 @@ class AuthController extends Controller
             'cart_count' => $user->cart?->items?->count() ?? 0,
             // Riders and couriers: first_mile opens the courier dashboard, last_mile the rider one.
             'courier_type' => $user->role === User::ROLE_COURIER ? $user->rider?->courier_type : null,
+            'vehicle_type' => $user->role === User::ROLE_COURIER ? $user->rider?->vehicle_type : null,
+            'plate_no' => $user->role === User::ROLE_COURIER ? $user->rider?->plate_no : null,
+            'area' => $user->role === User::ROLE_COURIER ? $user->rider?->area : null,
+            'rating' => $user->role === User::ROLE_COURIER ? ($user->rider?->rating ?? 5.0) : null,
+            'is_active' => $user->role === User::ROLE_COURIER ? ($user->rider?->is_active ?? true) : null,
+            'hub_name' => $user->role === User::ROLE_COURIER ? ($user->rider?->logisticsProvider?->name ?? 'Metro South Sorting & Fulfillment Hub') : null,
             // Riders' home address; hubs match them to nearby work by barangay.
             'home_address' => $user->role === User::ROLE_COURIER ? self::homeAddress($user) : null,
         ];
