@@ -177,6 +177,8 @@ class OrderTracking
 
         $realtimeMap = $this->buildRealtimeMap($order, $current, $delivered, $terminal);
 
+        $hasRider = !empty($shipment?->rider_id) && !empty($shipment?->rider?->user?->name);
+
         $eta = $terminal === 'cancelled'
             ? 'Cancelled'
             : ($delivered
@@ -225,7 +227,8 @@ class OrderTracking
         $hasRider = !empty($shipment?->rider_id) && !empty($shipment?->rider?->user?->name);
         $riderName = $hasRider ? $shipment->rider->user->name : null;
         $riderPhone = $hasRider ? $shipment->rider->user->phone : null;
-        $riderVehicle = $hasRider && $shipment->rider->vehicle_plate ? ('Motorcycle · Plate ' . $shipment->rider->vehicle_plate) : null;
+        $plate = $hasRider ? ($shipment->rider->plate_no ?? $shipment->rider->vehicle_plate ?? null) : null;
+        $riderVehicle = $hasRider ? (ucfirst($shipment->rider->vehicle_type ?? 'Motorcycle') . ($plate ? ' · Plate ' . $plate : '')) : null;
         $courierName = $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Cartzy Express';
 
         // Derive coordinates based on destination text or realistic Metro Manila route

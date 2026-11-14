@@ -50,8 +50,8 @@
     </td>
     <td class="so-total">
         <strong>₱{{ number_format($order->buyerDueMinor() / 100, 2) }}</strong>
-        <small>{{ strtoupper($payment->payment_method) }} · {{ ucfirst(str_replace('_', ' ', $payment->payment_status)) }}</small>
-        @php $latestPay = $payment->payments->first(); @endphp
+        <small>{{ strtoupper($payment?->payment_method ?? 'COD') }} · {{ ucfirst(str_replace('_', ' ', $payment?->payment_status ?? 'pending')) }}</small>
+        @php $latestPay = $payment?->payments?->first(); @endphp
         @if($latestPay?->provider_ref)
             <small style="display:block; color:#007DFE; font-weight:700;">Ref: {{ $latestPay->provider_ref }}</small>
         @endif
@@ -83,12 +83,12 @@
                     <div style="display:flex; flex-direction:column; gap:4px;">
                         <span class="so-hint" style="color:#d97706; font-weight:700; font-size:11px;">Verify Payment</span>
                         <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                            <form method="POST" action="{{ route('seller.orders.payment-verify', $order) }}" style="display:inline;">
+                            <form method="POST" action="{{ route('seller.orders.payment-verify', ['id' => $order->id]) }}" style="display:inline;">
                                 @csrf
                                 <input type="hidden" name="decision" value="approved">
                                 <button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:#fff;" onclick="return confirm('Approve this GCash payment receipt?');">Approve</button>
                             </form>
-                            <form method="POST" action="{{ route('seller.orders.payment-verify', $order) }}" style="display:inline;">
+                            <form method="POST" action="{{ route('seller.orders.payment-verify', ['id' => $order->id]) }}" style="display:inline;">
                                 @csrf
                                 <input type="hidden" name="decision" value="rejected">
                                 <button class="button small secondary" type="submit" style="color:#dc2626;" onclick="return confirm('Reject this GCash payment receipt?');">Reject</button>
