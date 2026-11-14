@@ -124,9 +124,9 @@
                         @foreach($stockAlerts as $stockAlert)
                             <li>
                                 <a class="restock-item" href="{{ route('seller.inventory', ['search' => $stockAlert->sku]) }}">
-                                    <span class="restock-thumb">@if($stockAlert->product->coverImage || $stockAlert->image_url)<img src="{{ $stockAlert->resolved_image_url }}" alt="" loading="lazy">@else{{ mb_strtoupper(mb_substr($stockAlert->product->name, 0, 1)) }}@endif</span>
+                                    <span class="restock-thumb">@if(($stockAlert->product?->coverImage) || $stockAlert->image_url)<img src="{{ $stockAlert->resolved_image_url }}" alt="" loading="lazy">@else{{ mb_strtoupper(mb_substr($stockAlert->product?->name ?? 'P', 0, 1)) }}@endif</span>
                                     <span class="restock-item-text">
-                                        <strong>{{ $stockAlert->product->name }}</strong>
+                                        <strong>{{ $stockAlert->product?->name ?? 'Product' }}</strong>
                                         <small>{{ $stockAlert->name }}@if($stockAlert->sku) &middot; SKU {{ $stockAlert->sku }}@endif</small>
                                     </span>
                                     <span class="restock-pill {{ $stockAlert->stock > 0 ? 'is-low' : 'is-out' }}">{{ $stockAlert->stock > 0 ? $stockAlert->stock.' left' : 'Out of stock' }}</span>

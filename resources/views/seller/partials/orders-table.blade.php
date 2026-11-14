@@ -10,25 +10,25 @@
     $handedOver = in_array($order->status, ['delivered', 'completed'], true)
         || ($shipment && !in_array($shipment->status, ['unassigned', 'assigned'], true));
     $canPack = in_array($order->status, ['pending', 'accepted', 'packed'], true)
-        && !in_array($payment->payment_status, ['refunded', 'partially_refunded'], true)
-        && ($payment->payment_method === 'cod' || $payment->payment_status === 'paid');
+        && !in_array($payment?->payment_status, ['refunded', 'partially_refunded'], true)
+        && (($payment?->payment_method ?? 'cod') === 'cod' || $payment?->payment_status === 'paid');
     $awaitingPayment = in_array($order->status, ['pending', 'accepted', 'packed'], true)
-        && !$canPack && !in_array($payment->payment_status, ['refunded', 'partially_refunded'], true);
+        && !$canPack && !in_array($payment?->payment_status, ['refunded', 'partially_refunded'], true);
     $needsPickup = $order->status === 'ready_to_ship' && (!$shipment || ($shipment->status === 'unassigned' && !$shipment->received_at));
     $awaitingRider = $order->status === 'ready_to_ship' && !$needsPickup;
-    $address = $payment->shipping_address ?? [];
+    $address = $payment?->shipping_address ?? [];
     $tracking = app(\App\Services\OrderTracking::class)->build($order);
     $manilaTime = fn ($date) => $date?->copy()->timezone('Asia/Manila')->format('M d, Y · h:i A');
     $shippedAt = $shipment?->deliveryEvents->firstWhere('status', 'picked_up')?->occurred_at;
 @endphp
 <tr>
     <td class="so-order">
-        <strong>{{ $payment->reference }}</strong>
-        <small>{{ $order->created_at->format('M j, Y · g:i A') }}</small>
+        <strong>{{ $payment?->reference ?? 'ORD-'.$order->id }}</strong>
+        <small>{{ $order->created_at ? $order->created_at->timezone('Asia/Manila')->format('M j, Y · g:i A') : 'N/A' }}</small>
         @if($shipment?->tracking_code)<small class="so-tracking">{{ $shipment->tracking_code }}</small>@endif
     </td>
     <td class="so-buyer">
-        <strong>{{ $payment->buyer?->name }}</strong>
+        <strong>{{ $payment?->buyer?->name ?? 'Buyer' }}</strong>
     </td>
     <td class="so-items">
         @if($firstItem)
@@ -121,12 +121,12 @@
                 <a class="button small secondary so-print" href="{{ route('seller.orders.waybill', ['id' => $order->id, 'print' => 1]) }}">@include('seller.partials.icon', ['name' => 'printer', 'size' => 16])<span>Print waybill</span></a>
             @endif
             <button type="button" class="so-details" popovertarget="so-details-{{ $order->id }}">Details</button>
-            <a class="so-chat" href="{{ route('seller.chat', ['contact' => $order->id]) }}" aria-label="Message buyer for {{ $payment->reference }}" title="Message buyer">@include('seller.partials.icon', ['name' => 'chat', 'size' => 18])</a>
+            <a class="so-chat" href="{{ route('seller.chat', ['contact' => $order->id]) }}" aria-label="Message buyer for {{ $payment?->reference ?? 'order' }}" title="Message buyer">@include('seller.partials.icon', ['name' => 'chat', 'size' => 18])</a>
         </div>
         @if($order->status === 'cancelled' && $order->note)<small class="so-note">{{ $order->note }}</small>@endif
-        <div class="so-popover" id="so-details-{{ $order->id }}" popover aria-label="Details for {{ $payment->reference }}">
+        <div class="so-popover" id="so-details-{{ $order->id }}" popover aria-label="Details for {{ $payment?->reference ?? 'order' }}">
             <h3>Delivery details</h3>
-            <p>{{ $address['recipient'] ?? $payment->buyer?->name }} · {{ $address['phone'] ?? $payment->buyer?->phone ?? 'No phone number' }}</p>
+            <p>{{ $address['recipient'] ?? $payment?->buyer?->name ?? 'Recipient' }} · {{ $address['phone'] ?? $payment?->buyer?->phone ?? 'No phone number' }}</p>
             <p>{{ $address['address'] ?? implode(', ', array_filter(Arr::only($address, ['line1', 'barangay', 'city', 'province', 'postal_code']))) }}</p>
             @if($shippedAt)<p>Shipped: {{ $manilaTime($shippedAt) }}</p>@endif
             @if($order->delivered_at)<p>Delivered: {{ $manilaTime($order->delivered_at) }}</p>@endif
