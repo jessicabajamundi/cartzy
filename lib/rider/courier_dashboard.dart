@@ -425,7 +425,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
             ),
             const Divider(height: 1, color: _line),
             item(Icons.qr_code_scanner_rounded, 'Scan parcel', _scanParcel),
-            item(Icons.badge_outlined, 'Time in / time out', _openAttendance),
+            item(Icons.badge_outlined, 'Attendance (Time in / out)', _openAttendance),
             item(Icons.notifications_none_rounded, 'Notifications', _openNotifications),
             item(Icons.auto_awesome_outlined, "What's new", _showPatchNotes),
             const Spacer(),

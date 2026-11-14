@@ -134,7 +134,7 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
         backgroundColor: CartzyColors.brandDark,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Text('Time in / time out', style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700)),
+        title: Text('Attendance (Time in / out)', style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700)),
         actions: [
           IconButton(
             tooltip: 'Flashlight',

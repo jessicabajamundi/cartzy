@@ -1026,7 +1026,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Time in / time out',
+                        'Attendance (Time in / out)',
                         style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: CartzyColors.brand900),
                       ),
                       const SizedBox(height: 2),
