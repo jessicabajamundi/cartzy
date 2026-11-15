@@ -569,20 +569,69 @@ class _CartScreenState extends State<CartScreen>
       children: [
         _buildSelectAllBar(),
         const SizedBox(height: 12),
-        for (var i = 0; i < items.length; i++)
+        for (final shop in CartService.instance.shopGroups.entries) ...[
+          _buildShopSelectionBar(shop.key, shop.value.first.shopName),
+          const SizedBox(height: 8),
+          for (final item in shop.value)
           _StaggeredEntrance(
-            key: ValueKey('entrance-${items[i].id}'),
+            key: ValueKey('entrance-${item.id}'),
             controller: _entrance,
-            index: i,
+            index: items.indexOf(item),
             child: _SwipeToRemove(
-              key: ValueKey('swipe-${items[i].id}'),
-              peek: peekFirst && i == 0,
-              onRemoved: () => _removeItem(items[i]),
+              key: ValueKey('swipe-${item.id}'),
+              peek: peekFirst && item == items.first,
+              onRemoved: () => _removeItem(item),
               builder: (context, remove) =>
-                  _buildItemCard(items[i], i, remove),
+                  _buildItemCard(item, items.indexOf(item), remove),
             ),
           ),
+          const SizedBox(height: 12),
+        ],
       ],
+    );
+  }
+
+  Widget _buildShopSelectionBar(String shopKey, String shopName) {
+    final state = CartService.instance.shopSelectionState(shopKey);
+    void toggle() => CartService.instance.toggleShopSelection(shopKey, state != true);
+
+    return Container(
+      key: ValueKey('shop-$shopKey'),
+      padding: const EdgeInsets.fromLTRB(8, 6, 14, 6),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _CartPalette.line)),
+      ),
+      child: Row(
+        children: [
+          Semantics(
+            label: 'Select all products from $shopName',
+            child: _BlendCheckbox(value: state, onTap: toggle),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: toggle,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(shopName, style: GoogleFonts.dmSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: CartzyColors.textOf(context, light: _CartPalette.ink),
+                  )),
+                  Text('Select all in this shop', style: GoogleFonts.dmSans(
+                    fontSize: 11.5,
+                    color: CartzyColors.mutedOf(context, light: _CartPalette.muted),
+                  )),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -600,7 +649,7 @@ class _CartScreenState extends State<CartScreen>
           _BlendCheckbox(value: state, onTap: _toggleSelectAll),
           const SizedBox(width: 4),
           Text(
-            'Select all',
+            'Select all products',
             style: GoogleFonts.dmSans(
               fontSize: 13,
               fontWeight: FontWeight.w700,

@@ -28,6 +28,7 @@ class CartItem {
 
   /// Store / Seller name
   final String? store;
+  final int? sellerId;
 
   CartItem({
     required this.id,
@@ -43,9 +44,14 @@ class CartItem {
     this.variantId,
     this.stock,
     this.store,
+    this.sellerId,
   });
 
   String get safeName => name.isNotEmpty ? name : 'Product';
+  String get shopName =>
+      store?.trim().isNotEmpty == true ? store!.trim() : 'Cartzy Store';
+  String get shopKey =>
+      sellerId != null ? 'seller:$sellerId' : 'store:$shopName';
   String get safeImage => image ?? '';
   String get safeCategory => category ?? '';
   String get safeVariation {
@@ -77,22 +83,28 @@ class CartItem {
         'variantId': variantId,
         'stock': stock,
         'store': store,
+        'sellerId': sellerId,
       };
 
   factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
         id: json['cart_key']?.toString() ?? (json['id']?.toString() ?? ''),
         name: json['name']?.toString() ?? '',
         price: (json['price'] as num?)?.toDouble() ?? 0.0,
-        originalPrice: json['originalPrice']?.toString() ?? json['original_price']?.toString(),
+        originalPrice: json['originalPrice']?.toString() ??
+            json['original_price']?.toString(),
         image: json['image']?.toString() ?? '',
         category: json['category']?.toString() ?? '',
         variation: json['variation']?.toString() ?? '',
         quantity: (json['quantity'] as num?)?.toInt() ?? 1,
         selected: json['selected'] as bool? ?? true,
-        productId: (json['productId'] as num?)?.toInt() ?? (json['product_id'] as num?)?.toInt(),
-        variantId: (json['variantId'] as num?)?.toInt() ?? (json['variant_id'] as num?)?.toInt(),
+        productId: (json['productId'] as num?)?.toInt() ??
+            (json['product_id'] as num?)?.toInt(),
+        variantId: (json['variantId'] as num?)?.toInt() ??
+            (json['variant_id'] as num?)?.toInt(),
         stock: (json['stock'] as num?)?.toInt(),
         store: json['store']?.toString(),
+        sellerId: (json['sellerId'] as num?)?.toInt() ??
+            (json['seller_id'] as num?)?.toInt(),
       );
 }
 
@@ -183,6 +195,31 @@ class CartService extends ChangeNotifier {
 
   List<CartItem> get items => List.unmodifiable(_items);
 
+  Map<String, List<CartItem>> get shopGroups {
+    final groups = <String, List<CartItem>>{};
+    for (final item in _items) {
+      (groups[item.shopKey] ??= []).add(item);
+    }
+    return groups;
+  }
+
+  bool? shopSelectionState(String shopKey) {
+    final selectable =
+        _items.where((i) => i.shopKey == shopKey && !i.isOutOfStock).toList();
+    if (selectable.isEmpty || selectable.every((i) => !i.selected)) {
+      return false;
+    }
+    return selectable.every((i) => i.selected) ? true : null;
+  }
+
+  void toggleShopSelection(String shopKey, bool selected) {
+    for (final item in _items.where((i) => i.shopKey == shopKey)) {
+      item.selected = selected && !item.isOutOfStock;
+    }
+    notifyListeners();
+    _syncSelectAllToServer();
+  }
+
   bool _isLoadingFromServer = false;
   bool get isLoadingFromServer => _isLoadingFromServer;
 
@@ -217,7 +254,10 @@ class CartService extends ChangeNotifier {
   /// Syncs any local offline cart items into the server cart.
   Future<void> syncLocalCartToServer() async {
     final token = AuthService.token;
-    if (token == null || token.isEmpty || !AuthService.isLoggedIn || _items.isEmpty) {
+    if (token == null ||
+        token.isEmpty ||
+        !AuthService.isLoggedIn ||
+        _items.isEmpty) {
       return;
     }
     try {
@@ -255,16 +295,20 @@ class CartService extends ChangeNotifier {
     final token = AuthService.token;
     if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
     try {
-      final res = await ApiService.post('/cart/add', {
-        'id': productId ?? variantId ?? DateTime.now().millisecondsSinceEpoch,
-        'product_id': productId,
-        'variant_id': variantId,
-        'name': name,
-        'price': price,
-        'image': image,
-        'variation': variation,
-        'quantity': quantity,
-      }, token: token);
+      final res = await ApiService.post(
+          '/cart/add',
+          {
+            'id':
+                productId ?? variantId ?? DateTime.now().millisecondsSinceEpoch,
+            'product_id': productId,
+            'variant_id': variantId,
+            'name': name,
+            'price': price,
+            'image': image,
+            'variation': variation,
+            'quantity': quantity,
+          },
+          token: token);
       final rawList = res['items'] as List? ?? [];
       if (rawList.isNotEmpty) {
         final serverItems = rawList
@@ -285,9 +329,12 @@ class CartService extends ChangeNotifier {
     final token = AuthService.token;
     if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
     try {
-      await ApiService.put('/cart/items/${Uri.encodeComponent(item.id)}', {
-        'quantity': item.quantity,
-      }, token: token);
+      await ApiService.put(
+          '/cart/items/${Uri.encodeComponent(item.id)}',
+          {
+            'quantity': item.quantity,
+          },
+          token: token);
     } catch (e) {
       debugPrint('[CartService] _syncQuantityToServer error: $e');
     }
@@ -297,7 +344,8 @@ class CartService extends ChangeNotifier {
     final token = AuthService.token;
     if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
     try {
-      await ApiService.delete('/cart/items/${Uri.encodeComponent(id)}', token: token);
+      await ApiService.delete('/cart/items/${Uri.encodeComponent(id)}',
+          token: token);
     } catch (e) {
       debugPrint('[CartService] _syncRemoveFromServer error: $e');
     }
@@ -307,9 +355,12 @@ class CartService extends ChangeNotifier {
     final token = AuthService.token;
     if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
     try {
-      await ApiService.put('/cart/items/${Uri.encodeComponent(item.id)}/select', {
-        'selected': item.selected,
-      }, token: token);
+      await ApiService.put(
+          '/cart/items/${Uri.encodeComponent(item.id)}/select',
+          {
+            'selected': item.selected,
+          },
+          token: token);
     } catch (e) {
       debugPrint('[CartService] _syncSelectionToServer error: $e');
     }
@@ -320,9 +371,12 @@ class CartService extends ChangeNotifier {
     if (token == null || token.isEmpty || !AuthService.isLoggedIn) return;
     try {
       final selectedKeys = selectedItems.map((i) => i.id).toList();
-      await ApiService.post('/cart/selection', {
-        'selected_items': selectedKeys,
-      }, token: token);
+      await ApiService.post(
+          '/cart/selection',
+          {
+            'selected_items': selectedKeys,
+          },
+          token: token);
     } catch (e) {
       debugPrint('[CartService] _syncSelectAllToServer error: $e');
     }
@@ -349,8 +403,7 @@ class CartService extends ChangeNotifier {
   int get selectedItemCount => selectedItems.length;
 
   /// Sum of all item quantities in the cart.
-  int get totalUnits =>
-      _items.fold<int>(0, (sum, item) => sum + item.quantity);
+  int get totalUnits => _items.fold<int>(0, (sum, item) => sum + item.quantity);
 
   /// Sum of quantities for selected items.
   int get selectedUnits =>
@@ -431,7 +484,8 @@ class CartService extends ChangeNotifier {
   }
 
   /// How many of this product/variant are already in the cart.
-  int quantityInCart({int? productId, int? variantId, String? name, String variation = ''}) {
+  int quantityInCart(
+      {int? productId, int? variantId, String? name, String variation = ''}) {
     final i = _indexOf(
       name: name ?? '',
       variation: variation,
@@ -459,9 +513,8 @@ class CartService extends ChangeNotifier {
     int? stock,
   }) {
     final parsedPrice = parsePrice(price);
-    final effectiveImage = image.isNotEmpty
-        ? image
-        : CartzyProductImages.getImage(name, category);
+    final effectiveImage =
+        image.isNotEmpty ? image : CartzyProductImages.getImage(name, category);
 
     final index = _indexOf(
       name: name,
@@ -473,7 +526,8 @@ class CartService extends ChangeNotifier {
     final current = existing?.quantity ?? 0;
     final limit = stock ?? existing?.stock;
     final wanted = quantity < 1 ? 1 : quantity;
-    final target = limit == null ? current + wanted : (current + wanted).clamp(0, limit);
+    final target =
+        limit == null ? current + wanted : (current + wanted).clamp(0, limit);
     final added = (target - current).clamp(0, wanted);
 
     if (existing != null) {
@@ -668,7 +722,8 @@ class CartService extends ChangeNotifier {
     // Items saved before ids were stored: find the product by its name.
     for (final item in targets.where((i) => i.productId == null)) {
       try {
-        final found = await CatalogService.fetchProducts(query: item.name, perPage: 10);
+        final found =
+            await CatalogService.fetchProducts(query: item.name, perPage: 10);
         for (final p in found) {
           if (p.id != null && _norm(p.name) == _norm(item.name)) {
             item.productId = p.id;
@@ -716,7 +771,8 @@ class CartService extends ChangeNotifier {
       } else if (item.quantity > stock) {
         item.quantity = stock;
         changed = true;
-        notes.add('${item.safeName}: only $stock left, so your quantity was updated.');
+        notes.add(
+            '${item.safeName}: only $stock left, so your quantity was updated.');
       }
     }
 
