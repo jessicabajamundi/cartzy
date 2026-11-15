@@ -29,10 +29,12 @@ import 'package:cartzy/auth/email_verification_screen.dart';
 import 'package:cartzy/widgets/access_denied_screen.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
 import 'package:cartzy/services/app_update_service.dart';
+import 'package:cartzy/services/local_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppUpdateService.init();
+  await LocalNotificationService.init();
   runApp(const CartzyApp());
 }
 
@@ -42,6 +44,7 @@ class CartzyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: LocalNotificationService.navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Cartzy',
       theme: CartzyTheme.lightTheme,
@@ -63,7 +66,7 @@ class CartzyHome extends StatefulWidget {
   State<CartzyHome> createState() => _CartzyHomeState();
 }
 
-class _CartzyHomeState extends State<CartzyHome> {
+class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
   late String currentRoute = widget.initialRoute;
   bool _hasCheckedUpdates = false;
 
@@ -82,9 +85,24 @@ class _CartzyHomeState extends State<CartzyHome> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initSession();
     if (widget.initialRoute != 'splash') {
       _triggerUpdateCheck();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    LocalNotificationService.stopPolling();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && AuthService.isAuthenticated) {
+      LocalNotificationService.checkForNewNotifications();
     }
   }
 
@@ -115,9 +133,11 @@ class _CartzyHomeState extends State<CartzyHome> {
   set loggedInUser(Map<String, dynamic>? user) {
     _loggedInUser = user;
     if (user == null) {
+      LocalNotificationService.stopPolling();
       AuthService.clearSession();
     } else {
       AuthService.setSession(user: user, token: AuthService.token);
+      LocalNotificationService.startPolling();
     }
   }
 
