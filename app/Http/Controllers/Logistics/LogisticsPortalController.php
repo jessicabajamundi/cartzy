@@ -8,6 +8,7 @@ use App\Models\DeliveryEvent;
 use App\Models\LogisticsMessage;
 use App\Models\LogisticsProvider;
 use App\Models\PickupRequest;
+use App\Models\ReturnCase;
 use App\Models\Rider;
 use App\Models\Shipment;
 use App\Models\User;
