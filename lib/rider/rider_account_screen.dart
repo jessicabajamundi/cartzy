@@ -1070,81 +1070,28 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
     );
   }
 
-  // ── 6. Bottom Sign Out Card ───────────────────────────────────
+  // ── 6. Bottom Logout Button ───────────────────────────────────
   Widget _buildSignOutCard() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFECE7EF)),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 600;
-
-          final textContent = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Sign Out of Courier Rider Portal',
-                style: GoogleFonts.dmSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1E1B2E),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'Always sign out when finishing your shift or sharing devices.',
-                style: GoogleFonts.dmSans(
-                  fontSize: 11.5,
-                  color: const Color(0xFF8A7780),
-                ),
-              ),
-            ],
-          );
-
-          final logoutBtn = OutlinedButton.icon(
-            onPressed: widget.onLogout ?? _confirmLogout,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFFDC2626),
-              side: const BorderSide(color: Color(0xFFFECACA)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            ),
-            icon: const Icon(Icons.logout, size: 14, color: Color(0xFFDC2626)),
-            label: Text(
-              'Logout Session',
-              style: GoogleFonts.dmSans(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFFDC2626),
-              ),
-            ),
-          );
-
-          if (isMobile) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                textContent,
-                const SizedBox(height: 10),
-                logoutBtn,
-              ],
-            );
-          }
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(child: textContent),
-              const SizedBox(width: 10),
-              logoutBtn,
-            ],
-          );
-        },
+      child: OutlinedButton.icon(
+        onPressed: widget.onLogout ?? _confirmLogout,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFFDC2626),
+          side: const BorderSide(color: Color(0xFFFECACA)),
+          minimumSize: const Size.fromHeight(48),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
+        icon: const Icon(Icons.logout, size: 16, color: Color(0xFFDC2626)),
+        label: Text(
+          'Logout Session',
+          style: GoogleFonts.dmSans(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFFDC2626),
+          ),
+        ),
       ),
     );
   }
