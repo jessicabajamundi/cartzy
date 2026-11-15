@@ -252,6 +252,7 @@ class CartController extends Controller
                 'selected'       => $selected,
                 'stock'          => isset($item['stock']) ? (int) $item['stock'] : null,
                 'store'          => (string) ($item['store'] ?? 'Cartzy Store'),
+                'seller_id'      => isset($item['seller_id']) ? (int) $item['seller_id'] : null,
             ];
         }
 

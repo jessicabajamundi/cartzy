@@ -51,7 +51,7 @@
                         <div class="grid grid-cols-12 gap-4 p-4 sm:p-5 bg-gray-50/80 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
                             <div class="col-span-6 flex items-center gap-3">
                                 <input type="checkbox" id="cart-select-all" checked aria-label="Select all items" style="width:18px;height:18px;accent-color:#6F6382;cursor:pointer;flex-shrink:0">
-                                <label for="cart-select-all" class="cursor-pointer">Select all</label>
+                                <label for="cart-select-all" class="cursor-pointer">Select all products</label>
                             </div>
                             <div class="col-span-2 text-center">Unit Price</div>
                             <div class="col-span-2 text-center">Quantity</div>
@@ -60,7 +60,17 @@
 
                         {{-- Items list --}}
                         <div class="divide-y divide-gray-100">
-                            @foreach($cart as $key => $item)
+                            @foreach($shopGroups as $shopItems)
+                            <section class="cart-shop-group">
+                                <div class="flex flex-wrap items-center gap-3 p-4 sm:px-5 bg-gray-50/50 border-b border-gray-100">
+                                    <input type="checkbox" id="cart-shop-select-{{ $loop->index }}" class="cart-shop-checkbox" aria-label="Select all products from {{ $shopItems->first()['store'] ?? 'Cartzy Store' }}" style="width:18px;height:18px;accent-color:#6F6382;cursor:pointer;flex-shrink:0">
+                                    <label for="cart-shop-select-{{ $loop->index }}" class="flex flex-wrap items-center gap-x-3 gap-y-1 cursor-pointer text-sm font-bold text-gray-900">
+                                        <span>{{ $shopItems->first()['store'] ?? 'Cartzy Store' }}</span>
+                                        <span class="text-xs font-medium text-gray-500">Select all in this shop</span>
+                                    </label>
+                                </div>
+                                <div class="divide-y divide-gray-100">
+                            @foreach($shopItems as $key => $item)
                                 <div class="p-4 sm:p-5 grid grid-cols-12 gap-4 items-center hover:bg-gray-50/50 transition" id="cart-row-{{ $key }}">
                                     {{-- Product Info --}}
                                     <div class="col-span-6 flex items-center gap-3 sm:gap-4">
@@ -120,6 +130,9 @@
                                         <span>{{ \App\Support\WarehouseShipping::NOTE }}</span>
                                     </p>
                                 </div>
+                            @endforeach
+                                </div>
+                            </section>
                             @endforeach
                         </div>
                     </div>

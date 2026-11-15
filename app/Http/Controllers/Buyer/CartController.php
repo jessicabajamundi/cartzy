@@ -24,7 +24,12 @@ class CartController extends Controller
         $discount = (count($cart) > 0 && $subtotal >= 1000) ? 50.00 : 0.00;
         $total = max(0, $subtotal + $shippingFee - $discount);
 
-        return view('buyer.cart', compact('cart', 'subtotal', 'shippingFee', 'discount', 'total'));
+        $shopGroups = collect($cart)->groupBy(
+            fn ($item) => isset($item['seller_id']) ? 'seller:'.$item['seller_id'] : 'store:'.($item['store'] ?? 'Cartzy Store'),
+            preserveKeys: true,
+        );
+
+        return view('buyer.cart', compact('cart', 'shopGroups', 'subtotal', 'shippingFee', 'discount', 'total'));
     }
 
     /**

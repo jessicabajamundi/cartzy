@@ -71,4 +71,22 @@ class CartSelectionTest extends TestCase
             ->assertSee('name="selected_items[]"', false)
             ->assertSee('js/cart-selection.js');
     }
+
+    public function test_cart_groups_products_by_seller_with_a_separate_shop_selection(): void
+    {
+        $cart = $this->cart();
+        $cart['watch_black'] += ['seller_id' => 10, 'store' => 'Watch Shop'];
+        $cart['watch_white'] += ['seller_id' => 20, 'store' => 'Watch Shop'];
+        $cart['watch_blue'] = array_merge($cart['watch_black'], ['cart_key' => 'watch_blue', 'variation' => 'Blue']);
+
+        $this->actingAs(User::factory()->create())->withSession(['cart' => $cart])
+            ->get(route('cart.index'))->assertOk()
+            ->assertViewHas('shopGroups', fn ($groups) => $groups->keys()->all() === ['seller:10', 'seller:20']
+                && $groups['seller:10']->keys()->all() === ['watch_black', 'watch_blue']
+                && $groups['seller:20']->keys()->all() === ['watch_white'])
+            ->assertSee('Select all products')
+            ->assertSee('id="cart-shop-select-0"', false)
+            ->assertSee('id="cart-shop-select-1"', false)
+            ->assertDontSee('id="cart-shop-select-2"', false);
+    }
 }

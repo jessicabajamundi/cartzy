@@ -46,6 +46,13 @@
             selectAll.checked = boxes.length > 0 && selected.length === boxes.length;
             selectAll.indeterminate = selected.length > 0 && selected.length < boxes.length;
         }
+        document.querySelectorAll('.cart-shop-group').forEach(group => {
+            const shopBoxes = [...group.querySelectorAll('.cart-item-checkbox')];
+            const shopSelect = group.querySelector('.cart-shop-checkbox');
+            const selectedCount = shopBoxes.filter(box => box.checked).length;
+            shopSelect.checked = shopBoxes.length > 0 && selectedCount === shopBoxes.length;
+            shopSelect.indeterminate = selectedCount > 0 && selectedCount < shopBoxes.length;
+        });
         if (button) {
             button.disabled = selected.length === 0;
         }
@@ -80,6 +87,16 @@
             saveSelection();
         });
     }
+
+    document.querySelectorAll('.cart-shop-checkbox').forEach(shopSelect => {
+        shopSelect.addEventListener('change', () => {
+            shopSelect.closest('.cart-shop-group').querySelectorAll('.cart-item-checkbox').forEach(box => {
+                box.checked = shopSelect.checked;
+            });
+            update();
+            saveSelection();
+        });
+    });
 
     boxes.forEach(box => {
         box.addEventListener('change', () => {
@@ -261,7 +278,9 @@
                 }
 
                 // Animate removal and update totals
+                const shopGroup = row.closest('.cart-shop-group');
                 row.remove();
+                if (shopGroup && !shopGroup.querySelector('.cart-item-checkbox')) shopGroup.remove();
                 boxes = [...document.querySelectorAll('.cart-item-checkbox')];
                 update();
 

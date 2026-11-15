@@ -60,6 +60,7 @@ class BuyerCart
                     $item['original_price'] = $pricedVariant->price;
                     $item['stock'] = (int) $pricedVariant->stock;
                     if ($pricedVariant->product?->seller) {
+                        $item['seller_id'] = $pricedVariant->product->seller->id;
                         $item['store'] = $pricedVariant->product->seller->name;
                     }
                 }
