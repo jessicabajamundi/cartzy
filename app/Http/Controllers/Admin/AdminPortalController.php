@@ -28,7 +28,7 @@ class AdminPortalController extends Controller
 
     private function applicants()
     {
-        return User::where('role', '!=', User::ROLE_ADMIN)
+        return User::whereNotIn('role', [User::ROLE_ADMIN, User::ROLE_COURIER])
             ->where(fn ($q) => $q->whereNotNull('id_photo')->orWhere('status', 'pending')
                 ->orWhereIn('id_status', ['pending', 'verified', 'rejected']));
     }
@@ -263,15 +263,16 @@ class AdminPortalController extends Controller
     }
 
     /**
-     * Workspace 2b: Merchant & Partner Account Registrations (Seller, Courier, Logistics Onboarding)
+     * Workspace 2b: Merchant & Partner Account Registrations (Seller & Logistics Hub Onboarding)
      */
     public function registrations(Request $request)
     {
-        // All pending accounts go to registrations section since they are not yet registered
-        $baseQuery = User::where(function ($q) {
-            $q->where('status', 'pending')
-              ->orWhereIn('role', ['seller', 'logistics', 'courier']);
-        });
+        // Rider/courier registrations are handled by their Logistics partner, not Admin.
+        $baseQuery = User::where('role', '!=', User::ROLE_COURIER)
+            ->where(function ($q) {
+                $q->where('status', 'pending')
+                  ->orWhereIn('role', ['seller', 'logistics']);
+            });
 
         $statusCounts = [
             'all' => (clone $baseQuery)->count(),
@@ -540,7 +541,7 @@ class AdminPortalController extends Controller
             'reason' => ['required_if:status,rejected', 'nullable', 'string', 'max:2000'],
         ]);
         DB::transaction(function () use ($data, $id) {
-            $user = User::where('role', '!=', 'admin')->lockForUpdate()->findOrFail($id);
+            $user = User::whereNotIn('role', [User::ROLE_ADMIN, User::ROLE_COURIER])->lockForUpdate()->findOrFail($id);
             $approved = $data['status'] === 'approved';
             abort_if($approved && !$user->id_photo, 422, 'An uploaded identity document is required before approval.');
             $user->update([
@@ -1016,7 +1017,7 @@ class AdminPortalController extends Controller
         $counts = [
             'products' => Product::withTrashed()->where(fn ($q) => $q->where('is_active', false)->orWhereNotNull('deleted_at'))->count(),
             'users' => User::where('role', '!=', User::ROLE_ADMIN)->whereIn('status', ['archived', 'removed', 'suspended', 'deactivated'])->count(),
-            'registrations' => User::where('role', '!=', User::ROLE_ADMIN)->where(fn ($q) => $q->where('id_status', 'rejected')->orWhere('status', 'rejected'))->count(),
+            'registrations' => User::whereNotIn('role', [User::ROLE_ADMIN, User::ROLE_COURIER])->where(fn ($q) => $q->where('id_status', 'rejected')->orWhere('status', 'rejected'))->count(),
             'disputes' => DB::table('admin_disputes')->where('status', 'resolved')->count(),
         ];
 
@@ -1070,7 +1071,7 @@ class AdminPortalController extends Controller
 
             $users = $query->latest('updated_at')->paginate(15)->withQueryString();
         } elseif ($tab === 'registrations') {
-            $query = User::where('role', '!=', User::ROLE_ADMIN)
+            $query = User::whereNotIn('role', [User::ROLE_ADMIN, User::ROLE_COURIER])
                 ->where(fn ($q) => $q->where('id_status', 'rejected')->orWhere('status', 'rejected'));
 
             if ($request->filled('role')) {

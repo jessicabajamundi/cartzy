@@ -100,7 +100,7 @@ class AppServiceProvider extends ServiceProvider
                     return 0;
                 }
                 try {
-                    return \App\Models\User::whereIn('role', ['seller', 'logistics', 'courier'])
+                    return \App\Models\User::whereIn('role', ['seller', 'logistics'])
                         ->where('status', 'pending')
                         ->count();
                 } catch (\Throwable $e) {

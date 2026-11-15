@@ -12,11 +12,14 @@ use App\Models\Rider;
 use App\Models\Shipment;
 use App\Models\User;
 use App\Services\DeliveryAssignment;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -476,6 +479,13 @@ class LogisticsPortalController extends Controller
         }
 
         $riders = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")->latest()->orderByDesc('id')->paginate(12)->withQueryString()->through(function ($r) {
+            $idPhoto = $r->user?->id_photo;
+            $idPhotoUrl = $idPhoto
+                ? ((str_starts_with($idPhoto, 'http') || str_starts_with($idPhoto, '/'))
+                    ? $idPhoto
+                    : Storage::disk('public')->url($idPhoto))
+                : null;
+
             return [
                 'id'               => $r->id,
                 'name'             => $r->user->name ?? 'Rider',
@@ -491,6 +501,7 @@ class LogisticsPortalController extends Controller
                 'applied_at'       => $r->created_at ? $r->created_at->format('M d, Y') : now()->format('M d, Y'),
                 'rejection_reason' => $r->rejection_reason,
                 'area'             => $r->area ?: 'Not assigned',
+                'id_photo'         => $idPhotoUrl,
             ];
         });
 
@@ -525,8 +536,12 @@ class LogisticsPortalController extends Controller
     public function updateRiderStatus(Request $request, $id)
     {
         $provider = $this->provider();
-        $status   = $request->input('status');
-        $reason   = $request->input('reason', '');
+        $data = $request->validate([
+            'status' => ['required', 'in:approved,rejected,suspended,pending'],
+            'reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $status = $data['status'];
+        $reason = trim((string) ($data['reason'] ?? ''));
 
         $rider = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($id);
         $rider->status           = $status;
@@ -536,10 +551,31 @@ class LogisticsPortalController extends Controller
             if ($rider->user) {
                 $rider->user->is_suspended = false;
                 $rider->user->status = 'active';
+                $rider->user->id_status = 'verified';
+                $rider->user->id_verified_at = now();
+                $rider->user->id_rejection_reason = null;
                 $rider->user->save();
             }
         } elseif ($status === 'rejected') {
             $rider->is_active = false;
+            if ($rider->user) {
+                $rider->user->is_suspended = false;
+                $rider->user->status = 'rejected';
+                $rider->user->id_status = 'rejected';
+                $rider->user->id_verified_at = null;
+                $rider->user->id_rejection_reason = $reason !== '' ? $reason : null;
+                $rider->user->save();
+            }
+        } elseif ($status === 'pending') {
+            $rider->is_active = false;
+            if ($rider->user) {
+                $rider->user->is_suspended = false;
+                $rider->user->status = 'pending';
+                $rider->user->id_status = 'pending';
+                $rider->user->id_verified_at = null;
+                $rider->user->id_rejection_reason = null;
+                $rider->user->save();
+            }
         } elseif ($status === 'suspended') {
             $rider->is_active = false;
             if ($rider->user) {
@@ -549,6 +585,32 @@ class LogisticsPortalController extends Controller
             }
         }
         $rider->save();
+
+        if ($rider->user && in_array($status, ['approved', 'rejected'], true)) {
+            $approved = $status === 'approved';
+            $partnerName = $provider->name ?: 'your logistics partner';
+            try {
+                NotificationService::notify(
+                    $rider->user->id,
+                    $approved ? 'registration_approved' : 'registration_rejected',
+                    $approved ? 'Rider Application Approved' : 'Rider Application Update',
+                    $approved
+                        ? "Congratulations! Your rider/courier registration has been approved by {$partnerName}."
+                        : "Your rider/courier registration was not approved by {$partnerName}." . ($reason !== '' ? " Reason: {$reason}" : ''),
+                    url('/login')
+                );
+            } catch (\Throwable $e) {
+                Log::info('Rider registration in-app notification skipped: ' . $e->getMessage());
+            }
+
+            try {
+                if ($rider->user->email) {
+                    Mail::to($rider->user->email)->send(new \App\Mail\RegistrationDecisionMail($rider->user, $status, $reason !== '' ? $reason : null));
+                }
+            } catch (\Throwable $e) {
+                Log::info('Rider registration email notification skipped: ' . $e->getMessage());
+            }
+        }
 
         $msg = match ($status) {
             'approved' => 'Rider status updated to Approved (Active).',

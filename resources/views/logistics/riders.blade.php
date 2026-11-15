@@ -62,7 +62,7 @@
                 @forelse($riders as $rider)
                     @php($state = $rider['status'] === 'approved' ? ($rider['is_active'] ? 'active' : 'inactive') : $rider['status'])
                     <tr>
-                        <td data-label="Rider"><div class="rider-person"><span class="rider-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($rider['name'], 0, 1)) }}</span><div><strong>{{ $rider['name'] }}</strong><a href="mailto:{{ $rider['email'] }}">{{ $rider['email'] }}</a>@if($rider['phone'])<a href="tel:{{ $rider['phone'] }}">{{ $rider['phone'] }}</a>@else<small>No phone provided</small>@endif</div></div></td>
+                        <td data-label="Rider"><div class="rider-person"><span class="rider-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($rider['name'], 0, 1)) }}</span><div><strong>{{ $rider['name'] }}</strong><a href="mailto:{{ $rider['email'] }}">{{ $rider['email'] }}</a>@if($rider['phone'])<a href="tel:{{ $rider['phone'] }}">{{ $rider['phone'] }}</a>@else<small>No phone provided</small>@endif @if(!empty($rider['id_photo']))<a href="{{ $rider['id_photo'] }}" target="_blank" rel="noopener">View ID ↗</a>@endif</div></div></td>
                         <td data-label="Courier type">
                             <form method="POST" action="{{ route('logistics.riders.type', $rider['id']) }}" class="rider-type-form">@csrf
                                 <label class="rider-sr-only" for="courier-type-{{ $rider['id'] }}">Courier type for {{ $rider['name'] }}</label>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 @section('page_title', 'Store & Partner Registrations')
-@section('page_description', 'Review and approve onboarding applications for new merchant stores (Sellers), delivery riders (Couriers), and logistics hubs.')
+@section('page_description', 'Review and approve onboarding applications for new merchant stores (Sellers) and logistics hubs.')
 
 @section('content')
 <!-- Quick Navigation Switcher between Registrations and ID Checks -->
@@ -30,7 +30,7 @@
         </div>
         <span>Total Partner Applications</span>
         <strong>{{ number_format($statusCounts['all']) }}</strong>
-        <small>Total merchant, courier & hub accounts</small>
+        <small>Total merchant & hub accounts</small>
     </a>
 
     <a class="stat-card" href="{{ route('admin.registrations', ['status' => 'pending']) }}" style="@if($statusCounts['pending'] > 0) border-top-color: #D97706; background: #FFFDF5; @endif">
@@ -48,7 +48,7 @@
             <span class="metric-icon" style="background: #E8F5E9; color: #2E7D32;">@include('admin.partials.icon', ['name' => 'box'])</span>
             <span>Active Partners</span>
         </div>
-        <span>Approved Stores & Couriers</span>
+        <span>Approved Stores & Hubs</span>
         <strong>{{ number_format($statusCounts['active']) }}</strong>
         <small>Authorized partners actively operating</small>
     </a>
@@ -85,7 +85,6 @@
             <select name="role">
                 <option value="">All Partner Roles</option>
                 <option value="seller" @selected(request('role') === 'seller')>Seller (Merchant Store)</option>
-                <option value="courier" @selected(request('role') === 'courier')>Courier (Delivery Rider)</option>
                 <option value="logistics" @selected(request('role') === 'logistics')>Logistics (Hub Operator)</option>
                 <option value="buyer" @selected(request('role') === 'buyer')>Buyer (Customer)</option>
             </select>
