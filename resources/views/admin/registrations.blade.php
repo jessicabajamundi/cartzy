@@ -5,7 +5,7 @@
 @section('content')
 <!-- Quick Navigation Switcher between Registrations and ID Checks -->
 <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--line); padding-bottom: 14px;">
-    <a href="{{ route('admin.registrations') }}" class="button" style="font-size: 12px; gap: 8px; border-radius: 20px; min-height: 38px; padding: 6px 16px; background: var(--accent); border-color: var(--accent); color: #fff;">
+    <a href="{{ route('admin.registrations') }}" class="button" style="font-size: 12px; gap: 8px; border-radius: 20px; min-height: 38px; padding: 6px 16px; background: var(--accent); border-color: var(--accent); color: var(--dm-on-light, #fff);">
         @include('admin.partials.icon', ['name' => 'file'])
         <span>Store & Partner Registrations</span>
         @if(!empty($adminPendingRegistrationsCount))
@@ -244,7 +244,7 @@
 
                             <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
                                 @if($user->seller_type)
-                                    <span class="badge" style="background: var(--accent-light); color: var(--accent); font-size: 9px;">
+                                    <span class="badge" style="background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); font-size: 9px;">
                                         {{ ucwords(str_replace('_', ' ', $user->seller_type)) }}
                                     </span>
                                 @endif
@@ -299,7 +299,7 @@
                                     </a>
                                 </div>
                             @else
-                                <small class="muted" style="color: #DC2626;">⚠️ No Gov't ID attached</small>
+                                <small class="muted" style="color: var(--dm-red-ink, #DC2626);">⚠️ No Gov't ID attached</small>
                             @endif
 
                             @if(!$dtiUrl && !$secUrl && !$birUrl && !$idDocUrl)
@@ -311,7 +311,7 @@
                     <!-- 4. Onboarding Status -->
                     <td>
                         @if($isPending)
-                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; padding: 4px 10px;">
+                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-on-light, #B45309); font-weight: 700; padding: 4px 10px;">
                                 ⏳ Pending Onboarding
                             </span>
                             <small class="muted" style="margin-top: 5px; display: block;">Awaiting approval to sell</small>

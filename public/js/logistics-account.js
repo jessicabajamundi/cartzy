@@ -101,7 +101,7 @@
         inlineError.className = 'account-field-error';
         inlineError.id = 'account-error-birthday';
         inlineError.style.display = 'none';
-        inlineError.style.color = '#dc2626';
+        inlineError.style.color = 'var(--dm-red-ink, #dc2626)';
         inlineError.style.fontWeight = '600';
         inlineError.style.fontSize = '12px';
         inlineError.style.marginTop = '4px';

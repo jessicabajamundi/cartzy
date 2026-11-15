@@ -680,7 +680,7 @@
 
                 <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: var(--dm-blue-surface, #eff6ff); border: 1px solid var(--dm-border, #bfdbfe); border-radius: 8px; font-size: 13px; color: var(--dm-blue-ink, #1e40af);">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
+                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: var(--dm-blue-ink, #1d4ed8);"></span></span>
                         <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
                     </div>
                     <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: var(--dm-muted, #64748b);"></div>
@@ -1007,7 +1007,7 @@
 
     .rider-field-error {
         font-size: 0.76rem;
-        color: #ef4444;
+        color: var(--dm-red-ink, #ef4444);
         margin-top: 3px;
         display: none;
         font-weight: 600;
@@ -1018,7 +1018,7 @@
     }
 
     .required-star {
-        color: #ef4444;
+        color: var(--dm-red-ink, #ef4444);
         font-weight: 700;
     }
 
@@ -1132,7 +1132,7 @@
     .rider-file-pill-ready {
         font-size: 0.72rem;
         font-weight: 700;
-        color: var(--dm-green-ink, #065f46);
+        color: var(--dm-on-light, #065f46);
         background: #d1fae5;
         padding: 3px 8px;
         border-radius: 9999px;
@@ -1154,7 +1154,7 @@
     }
 
     .rider-clear-file-btn:hover {
-        color: #ef4444;
+        color: var(--dm-red-ink, #ef4444);
         background: var(--dm-red-surface, #fee2e2);
     }
 
@@ -1358,7 +1358,7 @@
         width: 38%;
         height: 48px;
         background: linear-gradient(120deg, var(--brand-soft, #FAF9FB), var(--rose-light, #FCEAE6));
-        color: var(--brand-dark, #564B68);
+        color: var(--dm-accent-ink, var(--brand-dark, #564B68));
         border: 1px solid var(--rose-primary, #D4A69A);
         border-radius: 12px;
         font-size: 0.95rem;

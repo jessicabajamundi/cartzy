@@ -35,7 +35,7 @@
         <tr class="{{ $status === 'failed' ? 'monitor-failed-row' : '' }}"><td data-label="Parcel & recipient"><strong class="monitor-code">{{ $parcel['tracking_code'] }}</strong><span class="monitor-recipient">{{ $parcel['recipient_name'] }}</span><details class="monitor-details"><summary>Delivery details</summary><p>{{ $parcel['recipient_address'] }}</p><p>{{ $parcel['items'] }}</p>@if($parcel['recipient_phone'])<a href="tel:{{ $parcel['recipient_phone'] }}" aria-label="Call recipient {{ $parcel['recipient_name'] }}">{{ $parcel['recipient_phone'] }}</a>@endif</details></td>
         <td data-label="Area & rider">
             <strong>{{ $parcel['delivery_area'] ?: 'Area not set' }}</strong>
-            @if(!empty($parcel['barangay']))<small style="color:#4338CA;font-weight:600;">📍 Brgy. {{ $parcel['barangay'] }}</small>@endif
+            @if(!empty($parcel['barangay']))<small style="color:var(--dm-blue-ink, #4338CA);font-weight:600;">📍 Brgy. {{ $parcel['barangay'] }}</small>@endif
             <small>{{ $parcel['assigned_rider_name'] ?: 'No rider assigned' }}</small>
             @if(!empty($parcel['is_rescheduled']))
                 <small style="color:var(--dm-gold-ink, #B45309);font-weight:700;">⏳ Rescheduled ({{ $parcel['rescheduled_days_left'] !== null ? $parcel['rescheduled_days_left'].'d left' : 'active' }})</small>
@@ -47,7 +47,7 @@
             @if($status === 'delivered')
                 <span class="monitor-done">✓ Completed</span>
             @elseif($status === 'returned')
-                <span class="monitor-done" style="color:#DC2626;font-weight:600;">↩ Returned to Seller</span>
+                <span class="monitor-done" style="color:var(--dm-red-ink, #DC2626);font-weight:600;">↩ Returned to Seller</span>
             @else
                 <div style="display:flex;flex-direction:column;gap:4px;">
                     @if($parcel['assigned_rider_user_id'])
@@ -60,7 +60,7 @@
                         <a class="monitor-button subtle" href="{{ route('logistics.assignments', ['area'=>$parcel['delivery_area'] ?: 'all']) }}">Assign a rider</a>
                     @endif
                     <details style="font-size:11px;margin-top:2px;">
-                        <summary style="cursor:pointer;color:#7C3AED;font-weight:600;">Reschedule / Return</summary>
+                        <summary style="cursor:pointer;color:var(--dm-blue-ink, #7C3AED);font-weight:600;">Reschedule / Return</summary>
                         <div style="background:var(--dm-surface, #F8FAFC);border:1px solid var(--dm-border, #E2E8F0);padding:6px;border-radius:6px;margin-top:4px;display:flex;flex-direction:column;gap:4px;">
                             <form method="POST" action="{{ route('logistics.parcels.reschedule', ['id' => $parcel['id']], false) }}" style="display:flex;gap:4px;align-items:center;">
                                 @csrf
@@ -68,11 +68,11 @@
                                     <option value="2">2 Days</option>
                                     <option value="3" selected>3 Days</option>
                                 </select>
-                                <button type="submit" style="padding:2px 6px;font-size:10px;background:#F59E0B;color:#fff;border:none;border-radius:4px;cursor:pointer;">⏳ Reschedule</button>
+                                <button type="submit" style="padding:2px 6px;font-size:10px;background:#F59E0B;color:var(--dm-on-light, #fff);border:none;border-radius:4px;cursor:pointer;">⏳ Reschedule</button>
                             </form>
                             <form method="POST" action="{{ route('logistics.parcels.return', ['id' => $parcel['id']], false) }}" onsubmit="return confirm('Cancel this order and return parcel to seller?');">
                                 @csrf
-                                <button type="submit" style="width:100%;padding:2px 6px;font-size:10px;background:#EF4444;color:#fff;border:none;border-radius:4px;cursor:pointer;">↩ Cancel & RTS</button>
+                                <button type="submit" style="width:100%;padding:2px 6px;font-size:10px;background:#EF4444;color:var(--dm-on-light, #fff);border:none;border-radius:4px;cursor:pointer;">↩ Cancel & RTS</button>
                             </form>
                         </div>
                     </details>

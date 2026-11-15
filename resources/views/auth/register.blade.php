@@ -114,7 +114,7 @@
         <div id="step-1">
             <!-- Role Selection: Buyer or Seller -->
             <div class="role-selection-wrapper" id="standardRoleWrapper" style="display: {{ old('role', $selectedRole ?? 'buyer') === 'logistics' ? 'none' : 'block' }};">
-                <label class="field-label" style="margin-bottom: 8px;">I want to register as <span style="color:#ef4444">*</span></label>
+                <label class="field-label" style="margin-bottom: 8px;">I want to register as <span style="color:var(--dm-red-ink, #ef4444)">*</span></label>
                 <div class="role-grid">
                     <div class="role-option {{ old('role', $selectedRole ?? 'buyer') === 'buyer' ? 'selected' : '' }}" id="roleOptionBuyer" onclick="selectRole('buyer')">
                         <div class="role-option-icon">
@@ -164,7 +164,7 @@
 
             <div class="form-grid-2 name-row mb-4">
                 <div>
-                    <label class="field-label" for="first_name">First name <span style="color:#ef4444">*</span></label>
+                    <label class="field-label" for="first_name">First name <span style="color:var(--dm-red-ink, #ef4444)">*</span></label>
                     <div class="input-group">
                         <input
                             type="text"
@@ -179,10 +179,10 @@
                             required
                         >
                     </div>
-                    <p id="first_name_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('first_name')) hidden @endif>{{ $errors->first('first_name') }}</p>
+                    <p id="first_name_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" @if (!$errors->has('first_name')) hidden @endif>{{ $errors->first('first_name') }}</p>
                 </div>
                 <div>
-                    <label class="field-label" for="last_name">Last name <span style="color:#ef4444">*</span></label>
+                    <label class="field-label" for="last_name">Last name <span style="color:var(--dm-red-ink, #ef4444)">*</span></label>
                     <div class="input-group">
                         <input
                             type="text"
@@ -197,7 +197,7 @@
                             required
                         >
                     </div>
-                    <p id="last_name_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('last_name')) hidden @endif>{{ $errors->first('last_name') }}</p>
+                    <p id="last_name_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" @if (!$errors->has('last_name')) hidden @endif>{{ $errors->first('last_name') }}</p>
                 </div>
             </div>
 
@@ -228,7 +228,7 @@
                     >
                 </div>
                 <p id="phone_hint" style="font-size:12px; line-height:1.5; color:var(--dm-ink, #4b5563); margin:6px 0 20px;">+63 Philippines · Enter 10 digits starting with 9.</p>
-                <p id="phone_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('phone')) hidden @endif>{{ $errors->first('phone') }}</p>
+                <p id="phone_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" @if (!$errors->has('phone')) hidden @endif>{{ $errors->first('phone') }}</p>
             </div>
 
             <!-- Birthday applies to individual account registrations. -->
@@ -258,7 +258,7 @@
                         onchange="autoCalcAge(this.value); validateRegistrationBirthday()"
                     >
                 </div>
-                <p id="birthday_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('birthday')) hidden @endif>{{ $errors->first('birthday') }}</p>
+                <p id="birthday_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" @if (!$errors->has('birthday')) hidden @endif>{{ $errors->first('birthday') }}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
                     <p style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin: 0;">You must be at least 18 years old to register.</p>
                     <span id="birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: var(--dm-green-ink, #059669);"></span>
@@ -290,7 +290,7 @@
             </div>
 
             <div class="mb-4">
-                <label class="field-label" for="email">Email address <span style="color:#ef4444">*</span></label>
+                <label class="field-label" for="email">Email address <span style="color:var(--dm-red-ink, #ef4444)">*</span></label>
                 <div class="input-group">
                     <span class="input-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -310,11 +310,11 @@
                         required
                     >
                 </div>
-                <p id="email_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('email')) hidden @endif>{{ $errors->first('email') }}</p>
+                <p id="email_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" @if (!$errors->has('email')) hidden @endif>{{ $errors->first('email') }}</p>
             </div>
 
             <div class="mb-4">
-                <label class="field-label" for="register_password">Password <span style="color:#ef4444">*</span></label>
+                <label class="field-label" for="register_password">Password <span style="color:var(--dm-red-ink, #ef4444)">*</span></label>
                 <div class="input-group">
                     <span class="input-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -344,12 +344,12 @@
                         </svg>
                     </button>
                 </div>
-                <p id="register_password_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('password')) hidden @endif>{{ $errors->first('password') }}</p>
+                <p id="register_password_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" @if (!$errors->has('password')) hidden @endif>{{ $errors->first('password') }}</p>
                 <p style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin-top: 6px; margin-bottom: 14px;">Use at least 8 characters, one uppercase letter, one lowercase letter, one number, and one symbol.</p>
             </div>
 
             <div class="mb-6">
-                <label class="field-label" for="password_confirmation">Confirm password <span style="color:#ef4444">*</span></label>
+                <label class="field-label" for="password_confirmation">Confirm password <span style="color:var(--dm-red-ink, #ef4444)">*</span></label>
                 <div class="input-group">
                     <span class="input-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -379,7 +379,7 @@
                         </svg>
                     </button>
                 </div>
-                <p id="password_confirmation_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" hidden></p>
+                <p id="password_confirmation_error" role="alert" style="color:var(--dm-red-ink, #ef4444); font-size:13px; margin-top:6px;" hidden></p>
                 <p id="password-entry-note" style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
             </div>
 
@@ -389,7 +389,7 @@
                 <div class="logistics-terms-prompt-row">
                     <span>Please read and agree to the</span>
                     <button type="button" class="logistics-terms-link" id="openLogisticsTermsBtn" aria-haspopup="dialog" aria-controls="logisticsTermsDialog">Cartzy Logistics Terms &amp; Conditions and Privacy Policy</button>
-                    <span style="color:#ef4444; font-weight: 700;">*</span>
+                    <span style="color:var(--dm-red-ink, #ef4444); font-weight: 700;">*</span>
                     <span id="logisticsTermsAgreedBadge" class="logistics-terms-agreed-pill" style="display: {{ old('terms_agreed') ? 'inline-flex' : 'none' }};">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 12px; height: 12px; margin-right: 3px;" aria-hidden="true">
                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -397,7 +397,7 @@
                         Agreed
                     </span>
                 </div>
-                <p id="logistics_terms_error" class="seller-field-error" role="alert" style="color: #ef4444; font-size: 12.5px; margin-top: 5px; font-weight: 500;" @unless($errors->has('terms_agreed')) hidden @endunless>
+                <p id="logistics_terms_error" class="seller-field-error" role="alert" style="color: var(--dm-red-ink, #ef4444); font-size: 12.5px; margin-top: 5px; font-weight: 500;" @unless($errors->has('terms_agreed')) hidden @endunless>
                     {{ $errors->first('terms_agreed') ?: 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.' }}
                 </p>
             </div>
@@ -446,7 +446,7 @@
 
                 <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: var(--dm-blue-surface, #eff6ff); border: 1px solid var(--dm-border, #bfdbfe); border-radius: 8px; font-size: 13px; color: var(--dm-blue-ink, #1e40af);">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
+                        <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: var(--dm-blue-ink, #1d4ed8);"></span></span>
                         <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
                     </div>
                     <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: var(--dm-muted, #64748b);"></div>
@@ -708,7 +708,7 @@
                         <label class="logistics-terms-checkbox-label" for="modal_logistics_terms_agreed" style="margin: 0; width: 100%;">
                             <input type="checkbox" id="modal_logistics_terms_agreed">
                             <span>
-                                I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:#ef4444">*</span>
+                                I have read and agree to the <strong>Cartzy Logistics Terms &amp; Conditions and Privacy Policy</strong> <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                             </span>
                         </label>
                         <div class="logistics-terms-modal-actions" style="margin-top: 14px;">
@@ -1004,7 +1004,7 @@
         width: 38%;
         height: 50px;
         background: linear-gradient(120deg, var(--brand-soft, #FAF9FB), var(--rose-light, #FCEAE6));
-        color: var(--brand-dark, #564B68);
+        color: var(--dm-accent-ink, var(--brand-dark, #564B68));
         border: 1px solid var(--rose-primary, #D4A69A);
         border-radius: 16px;
         font-size: 0.95rem;

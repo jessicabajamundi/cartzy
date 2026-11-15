@@ -179,7 +179,7 @@
                                 @if($isPdf)
                                     <div class="id-pdf-placeholder">
                                         <span style="font-size: 20px;">📄</span>
-                                        <small style="font-weight: 600; color: #DC2626; font-size: 10px;">PDF Document</small>
+                                        <small style="font-weight: 600; color: var(--dm-red-ink, #DC2626); font-size: 10px;">PDF Document</small>
                                     </div>
                                 @else
                                     <div class="id-thumb-img-wrap">
@@ -313,7 +313,7 @@
                 <div class="modal-doc-inspector">
                     <div class="doc-toolbar">
                         <div style="display: flex; gap: 4px; align-items: center;">
-                            <span id="current-doc-label" style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase;">Government ID Document</span>
+                            <span id="current-doc-label" style="font-size: 11px; font-weight: 700; color: var(--dm-accent-ink, var(--accent)); text-transform: uppercase;">Government ID Document</span>
                         </div>
                         <div class="doc-controls">
                             <button type="button" class="doc-btn" id="btn-zoom-in" title="Zoom in">+</button>
@@ -533,11 +533,11 @@
 .id-status-card strong { margin: 12px 0 4px; font-size: 32px; line-height: 1.1; letter-spacing: -1px; }
 .id-status-description { color: var(--muted); font-size: 12px; }
 .id-review-guide { padding: 20px 24px; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 14px; background: #eeebf440; }
-.id-guide-heading { display: flex; align-items: center; gap: 10px; color: var(--accent); }
+.id-guide-heading { display: flex; align-items: center; gap: 10px; color: var(--dm-accent-ink, var(--accent)); }
 .id-guide-heading h2 { font-size: 13px; color: var(--ink); }
 .id-review-guide ul { list-style: none; display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 0; margin: 14px 0 0; }
 .id-review-guide li { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-.id-review-guide li span { font-size: 10px; font-weight: 700; color: var(--accent); background: var(--surface); border: 1px solid var(--line); padding: 3px 6px; border-radius: 5px; }
+.id-review-guide li span { font-size: 10px; font-weight: 700; color: var(--dm-accent-ink, var(--accent)); background: var(--surface); border: 1px solid var(--line); padding: 3px 6px; border-radius: 5px; }
 .id-review-panel { padding: 0; overflow: hidden; border-radius: 16px; }
 .id-queue-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 24px; }
 .id-queue-heading h2 { font-size: 20px; margin: 5px 0; }
@@ -817,7 +817,7 @@
 .modal-status-banner.pending {
     background: #FEF3C7;
     border: 1px solid #FCD34D;
-    color: var(--dm-gold-ink, #92400E);
+    color: var(--dm-on-light, #92400E);
 }
 
 .modal-status-banner.verified {

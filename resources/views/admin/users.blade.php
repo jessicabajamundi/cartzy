@@ -120,7 +120,7 @@
             <input type="hidden" name="status" id="status-modal-action" value="suspended">
             
             <label class="user-status-modal-label">
-                <span id="status-modal-reason-label">Reason for suspension <strong style="color: #dc2626;">*</strong></span>
+                <span id="status-modal-reason-label">Reason for suspension <strong style="color: var(--dm-red-ink, #dc2626);">*</strong></span>
                 <textarea name="reason" id="status-modal-reason-input" class="user-status-modal-textarea" rows="4" required placeholder="Type the reason for this action here..."></textarea>
             </label>
 
@@ -194,7 +194,7 @@
         margin-bottom: 18px;
         border-radius: 14px;
         background: #fef3c7;
-        color: var(--dm-gold-ink, #b45309);
+        color: var(--dm-on-light, #b45309);
         flex-shrink: 0;
     }
     .user-status-modal-badge.deactivate {
@@ -203,7 +203,7 @@
     }
     .user-status-modal-badge.danger {
         background: var(--dm-elevated, #fef2f2) !important;
-        color: #dc2626 !important;
+        color: var(--dm-red-ink, #dc2626) !important;
     }
     .user-status-modal-title {
         font-size: 20px;

@@ -171,7 +171,7 @@
                     <tr>
                         <td colspan="6">
                             <div class="empty">
-                                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--focus);">
+                                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--dm-red-ink, var(--focus));">
                                     @include('admin.partials.icon', ['name' => 'archive'])
                                 </div>
                                 <strong>No archived products found</strong>
@@ -310,7 +310,7 @@
                     <tr>
                         <td colspan="6">
                             <div class="empty">
-                                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--focus);">
+                                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--dm-red-ink, var(--focus));">
                                     @include('admin.partials.icon', ['name' => 'users'])
                                 </div>
                                 <strong>No suspended or deactivated accounts</strong>
@@ -415,7 +415,7 @@
                     <tr>
                         <td colspan="6">
                             <div class="empty">
-                                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--focus);">
+                                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--dm-red-ink, var(--focus));">
                                     @include('admin.partials.icon', ['name' => 'file'])
                                 </div>
                                 <strong>No rejected applications</strong>
@@ -486,7 +486,7 @@
             </article>
         @empty
             <div class="empty">
-                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--focus);">
+                <div style="display: flex; justify-content: center; margin-bottom: 12px; color: var(--dm-red-ink, var(--focus));">
                     @include('admin.partials.icon', ['name' => 'shield'])
                 </div>
                 <strong>No resolved disputes in archive</strong>
@@ -515,7 +515,7 @@
         <form id="remove-user-form" method="POST" action="">
             @csrf
             <label class="user-status-modal-label">
-                <span>Reason for removal <strong style="color: #dc2626;">*</strong></span>
+                <span>Reason for removal <strong style="color: var(--dm-red-ink, #dc2626);">*</strong></span>
                 <textarea name="removal_reason" id="remove-reason-input" class="user-status-modal-textarea" rows="4" required placeholder="Type the reason why this account is being removed..."></textarea>
             </label>
 
@@ -589,12 +589,12 @@
         margin-bottom: 18px;
         border-radius: 14px;
         background: #fef3c7;
-        color: var(--dm-gold-ink, #b45309);
+        color: var(--dm-on-light, #b45309);
         flex-shrink: 0;
     }
     .user-status-modal-badge.danger {
         background: var(--dm-elevated, #fef2f2) !important;
-        color: #dc2626 !important;
+        color: var(--dm-red-ink, #dc2626) !important;
     }
     .user-status-modal-title {
         font-size: 20px;

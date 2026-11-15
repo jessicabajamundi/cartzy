@@ -121,7 +121,7 @@ body.auth-split-page {
     z-index: 2;
 }
 .auth-visual__caption > span {
-    color: var(--rose-deep);
+    color: var(--dm-red-ink, var(--rose-deep));
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -187,7 +187,7 @@ body.auth-split-page {
 }
 .auth-split-page .btn-back-shop:hover {
     background: transparent !important;
-    color: var(--brand-lavender);
+    color: var(--dm-accent-ink, var(--brand-lavender));
     transform: translateX(-4px);
 }
 .auth-split-page .btn-back-shop svg {
@@ -315,7 +315,7 @@ body.auth-split-page {
     transition: color 0.18s ease;
 }
 .auth-split-page .forgot-link:hover {
-    color: var(--brand-lavender) !important;
+    color: var(--dm-accent-ink, var(--brand-lavender)) !important;
     text-decoration: underline !important;
 }
 
@@ -408,7 +408,7 @@ body.auth-split-page {
     transition: color 0.18s ease;
 }
 .auth-split-page .auth-foot a:hover {
-    color: var(--brand-lavender);
+    color: var(--dm-accent-ink, var(--brand-lavender));
     text-decoration: underline;
 }
 
@@ -427,7 +427,7 @@ body.auth-split-page {
 .auth-split-page .step-label {
     font-size: 0.82rem;
     font-weight: 700;
-    color: var(--brand-lavender);
+    color: var(--dm-accent-ink, var(--brand-lavender));
     transition: color 0.2s ease;
 }
 .auth-split-page .step-label.inactive {
@@ -480,7 +480,7 @@ body.auth-split-page {
     height: 40px;
     border-radius: 10px;
     background: var(--brand-soft);
-    color: var(--brand-lavender);
+    color: var(--dm-accent-ink, var(--brand-lavender));
     display: flex;
     align-items: center;
     justify-content: center;

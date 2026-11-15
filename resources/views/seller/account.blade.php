@@ -112,12 +112,12 @@
             </div>
 
             <label class="full">
-                Business name / Store name <span style="color:#ef4444">*</span>
+                Business name / Store name <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="text" name="store_name" value="{{ old('store_name', $shop?->name ?? $user->business_name) }}" maxlength="255" required placeholder="e.g. Acme Lifestyle Store">
             </label>
 
             <label class="full">
-                Line of business (Category) <span style="color:#ef4444">*</span>
+                Line of business (Category) <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <select name="line_of_business" required style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink);">
                     <option value="">Select line of business</option>
                     @foreach($lineOfBusinessList as $cat)
@@ -127,7 +127,7 @@
             </label>
 
             <label class="full">
-                Contact No. (Store hotline / Mobile) <span style="color:#ef4444">*</span>
+                Contact No. (Store hotline / Mobile) <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" placeholder="09171234567" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)" required>
             </label>
 
@@ -155,17 +155,17 @@
             <input type="hidden" name="store_name" value="{{ $shop?->name ?? $user->business_name ?? 'My Store' }}">
 
             <label>
-                First name <span style="color:#ef4444">*</span>
+                First name <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="text" name="first_name" value="{{ $firstName }}" required maxlength="120" placeholder="First name"
                     oninput="const err = document.getElementById('seller_first_name_error'); if(/[^\p{L}\p{M} ]/u.test(this.value)){err.hidden=false; this.style.borderColor='#ef4444';} else {err.hidden=true; this.style.borderColor='';}">
-                <small id="seller_first_name_error" style="color:#ef4444; font-weight: 500;" hidden>Special characters and numbers are not allowed.</small>
+                <small id="seller_first_name_error" style="color:var(--dm-red-ink, #ef4444); font-weight: 500;" hidden>Special characters and numbers are not allowed.</small>
             </label>
 
             <label>
-                Last name <span style="color:#ef4444">*</span>
+                Last name <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="text" name="last_name" value="{{ $lastName }}" required maxlength="120" placeholder="Last name"
                     oninput="const err = document.getElementById('seller_last_name_error'); if(/[^\p{L}\p{M} ]/u.test(this.value)){err.hidden=false; this.style.borderColor='#ef4444';} else {err.hidden=true; this.style.borderColor='';}">
-                <small id="seller_last_name_error" style="color:#ef4444; font-weight: 500;" hidden>Special characters and numbers are not allowed.</small>
+                <small id="seller_last_name_error" style="color:var(--dm-red-ink, #ef4444); font-weight: 500;" hidden>Special characters and numbers are not allowed.</small>
             </label>
 
             <label>
@@ -174,7 +174,7 @@
             </label>
 
             <label>
-                Sex <span style="color:#ef4444">*</span>
+                Sex <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <select name="sex" required style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink);">
                     <option value="">Select sex</option>
                     <option value="Male" @selected(old('sex', $user->sex) === 'Male')>Male</option>
@@ -184,7 +184,7 @@
             </label>
 
             <label>
-                Birthday <span style="color:#ef4444">*</span>
+                Birthday <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="date" name="birthday" id="owner_birthday" value="{{ old('birthday', $user->birthday ? \Carbon\Carbon::parse($user->birthday)->format('Y-m-d') : '') }}" max="{{ now()->subYearsNoOverflow(18)->toDateString() }}" required oninput="calculateSellerAge(this.value)" onchange="calculateSellerAge(this.value)">
                 <small>You must be at least 18 years old.</small>
             </label>
@@ -337,12 +337,12 @@
 
             <!-- Contact Person & Phone -->
             <label>
-                Contact person / Recipient <span style="color:#ef4444">*</span>
+                Contact person / Recipient <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="text" name="recipient" value="{{ $valRecipient }}" required maxlength="255" placeholder="Full name of warehouse contact">
             </label>
 
             <label>
-                Phone number <span style="color:#ef4444">*</span>
+                Phone number <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="tel" name="phone" value="{{ $valPhone }}" required maxlength="11" inputmode="numeric" pattern="[0-9]{1,11}" placeholder="e.g. 09171234567" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)">
             </label>
 
@@ -358,7 +358,7 @@
             </label>
 
             <label>
-                Province (Dropdown) <span style="color:#ef4444">*</span>
+                Province (Dropdown) <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <select name="province" class="psgc-province" required data-initial="{{ $valProvince }}" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink);">
                     <option value="">Select Province</option>
                     @if($valProvince)
@@ -368,7 +368,7 @@
             </label>
 
             <label>
-                City / Municipality (Dropdown) <span style="color:#ef4444">*</span>
+                City / Municipality (Dropdown) <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <select name="city" class="psgc-city" required data-initial="{{ $valCity }}" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink);">
                     <option value="">Select City / Municipality</option>
                     @if($valCity)
@@ -378,7 +378,7 @@
             </label>
 
             <label>
-                Barangay (Dropdown) <span style="color:#ef4444">*</span>
+                Barangay (Dropdown) <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <select name="barangay" class="psgc-barangay" required data-initial="{{ $valBarangay }}" style="width:100%; padding:10px 14px; border:1px solid var(--line); border-radius:var(--radius-sm); background:var(--surface); color:var(--ink);">
                     <option value="">Select Barangay</option>
                     @if($valBarangay)
@@ -389,12 +389,12 @@
 
             <!-- Manual Entry: Street & Postal Code -->
             <label class="full">
-                Street, Building, Unit / House number (Manual entry) <span style="color:#ef4444">*</span>
+                Street, Building, Unit / House number (Manual entry) <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="text" name="line1" value="{{ $valLine1 }}" required maxlength="500" placeholder="e.g. Unit 204, San Lorenzo Bldg, 124 Rizal Avenue">
             </label>
 
             <label>
-                Postal code <span style="color:#ef4444">*</span>
+                Postal code <span style="color:var(--dm-red-ink, #ef4444)">*</span>
                 <input type="text" name="postal_code" value="{{ $valPostal }}" required minlength="4" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" title="Postal code must contain exactly 4 digits." placeholder="e.g. 1000" oninput="this.value = this.value.replace(/\D/g, '').slice(0, 4)">
             </label>
 
@@ -444,7 +444,7 @@
                         @endif
                     </div>
                     @if($gcashQrUrl)
-                        <label style="display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:12px; color:#ef4444; cursor:pointer;">
+                        <label style="display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:12px; color:var(--dm-red-ink, #ef4444); cursor:pointer;">
                             <input type="checkbox" name="remove_gcash_qr" value="1">
                             Remove QR
                         </label>
@@ -453,7 +453,7 @@
 
                 <div style="flex:1; min-width:220px;">
                     <strong style="display:block; margin-bottom:4px; font-size:14px; color:var(--ink, #1e293b);">Upload GCash QR Code</strong>
-                    <p style="margin:0 0 12px; font-size:12.5px; color:var(--ink-muted, #64748b); line-height:1.4;">
+                    <p style="margin:0 0 12px; font-size:12.5px; color:var(--dm-blue-ink, var(--ink-muted, #64748b)); line-height:1.4;">
                         Upload the QR code image from your GCash app (Generate QR / Receive Money). Supported: JPG, PNG, WebP (up to 3MB).
                     </p>
                     <input type="file" name="gcash_qr" id="gcash-qr-file-input" accept="image/png,image/jpeg,image/webp" style="font-size:13px;">
@@ -463,13 +463,13 @@
             <label>
                 GCash Account Name
                 <input type="text" name="gcash_name" value="{{ old('gcash_name', $shop->gcash_name ?? $user->name) }}" maxlength="100" placeholder="e.g. Maria Santos">
-                <small style="color:var(--ink-muted, #64748b);">The recipient name registered to your GCash account</small>
+                <small style="color:var(--dm-blue-ink, var(--ink-muted, #64748b));">The recipient name registered to your GCash account</small>
             </label>
 
             <label>
                 GCash Mobile Number
                 <input type="text" name="gcash_number" value="{{ old('gcash_number', $shop->gcash_number ?? $user->phone) }}" maxlength="20" placeholder="e.g. 09171234567">
-                <small style="color:var(--ink-muted, #64748b);">The 11-digit mobile number linked to your GCash wallet</small>
+                <small style="color:var(--dm-blue-ink, var(--ink-muted, #64748b));">The 11-digit mobile number linked to your GCash wallet</small>
             </label>
 
             <div class="full" style="display:flex; justify-content:flex-end;">

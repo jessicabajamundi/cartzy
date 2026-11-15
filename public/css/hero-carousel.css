@@ -42,24 +42,24 @@
     pointer-events: none;
 }
 .market-hero__copy { position: relative; z-index: 1; width: 54%; max-width: 700px; }
-.market-hero__eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; color: var(--hero-accent); font-size: 11px; font-weight: 900; letter-spacing: 0.13em; line-height: 1.5; text-transform: uppercase; }
+.market-hero__eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; color: var(--dm-red-ink, var(--hero-accent)); font-size: 11px; font-weight: 900; letter-spacing: 0.13em; line-height: 1.5; text-transform: uppercase; }
 .market-hero__edit { padding-left: 12px; border-left: 1px solid var(--hero-rose); color: var(--dm-muted, #776b75); font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; }
 .market-hero .market-hero__title { margin: 0; font-family: inherit; font-size: clamp(33px, 3.45vw, 64px); font-weight: 900; line-height: 1.1; letter-spacing: -0.045em; }
-.market-hero__title span { display: block; margin-top: 6px; color: var(--hero-accent); }
+.market-hero__title span { display: block; margin-top: 6px; color: var(--dm-red-ink, var(--hero-accent)); }
 .market-hero__description { max-width: 365px; margin: 22px 0 0; color: var(--dm-ink, #655a62); font-size: 15px; line-height: 1.85; }
 .market-hero__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 24px; margin-top: 28px; }
 .market-hero__cta { display: inline-flex; align-items: center; justify-content: center; gap: 18px; min-height: 48px; padding: 11px 13px 11px 21px; border: 1px solid #d4a69a66; border-radius: 8px; background: linear-gradient(120deg, var(--hero-ink), var(--brand-dark, #564b68)); box-shadow: 0 5px 14px #28213312; color: #fff; font-size: 11px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; transition: background 180ms, box-shadow 180ms, transform 180ms; }
 .market-hero__cta > span { display: grid; place-items: center; flex-shrink: 0; width: 27px; height: 27px; border-radius: 5px; background: #d4a69a26; color: #f5cfc7; font-size: 17px; font-weight: 400; }
 .market-hero__cta:hover { background: var(--hero-accent); box-shadow: 0 6px 18px #8c5a502b; transform: translateY(-1px); }
 .market-hero__secondary { display: inline-flex; align-items: center; gap: 9px; min-height: 44px; color: var(--hero-ink); font-size: 13px; font-weight: 700; text-decoration: none; }
-.market-hero__secondary:hover { color: var(--hero-accent); text-decoration: underline; text-underline-offset: 5px; }
-.market-hero__secondary span { color: var(--hero-accent); font-size: 18px; }
+.market-hero__secondary:hover { color: var(--dm-red-ink, var(--hero-accent)); text-decoration: underline; text-underline-offset: 5px; }
+.market-hero__secondary span { color: var(--dm-red-ink, var(--hero-accent)); font-size: 18px; }
 .market-hero__controls { position: absolute; inset: auto 26px 18px var(--hero-gutter); z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .market-hero [hidden] { display: none !important; }
-.market-hero__caption { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--hero-accent); font-size: 12px; font-weight: 700; letter-spacing: 0.035em; }
+.market-hero__caption { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--dm-red-ink, var(--hero-accent)); font-size: 12px; font-weight: 700; letter-spacing: 0.035em; }
 .market-hero__caption-mark { width: 22px; height: 2px; background: linear-gradient(90deg, var(--hero-rose), var(--brand-primary, #a8a0b2)); }
 .market-hero__navigation { display: flex; align-items: center; gap: 7px; }
-.market-hero__count { margin-right: 14px; color: var(--hero-accent); white-space: nowrap; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.14em; }
+.market-hero__count { margin-right: 14px; color: var(--dm-red-ink, var(--hero-accent)); white-space: nowrap; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.14em; }
 .market-hero button { display: inline-grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; padding: 0; color: var(--hero-ink); border: 0; cursor: pointer; }
 .market-hero .market-hero__arrow { border: 1px solid #d4a69a66; border-radius: 50%; background: var(--dm-elevated, #fff9f7); transition: background 180ms, border-color 180ms; }
 .market-hero__arrow:hover { background: var(--accent-light, #fceae6); border-color: var(--hero-rose); }

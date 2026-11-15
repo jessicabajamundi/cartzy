@@ -33,7 +33,7 @@
             .hub-coverage ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
             .hub-coverage li{display:flex;justify-content:space-between;gap:10px;font-size:12px;border-bottom:1px solid var(--line);padding-bottom:5px}
             .hub-coverage .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-            .hub-coverage .chip{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--accent-light);color:var(--accent)}
+            .hub-coverage .chip{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--accent-light);color:var(--dm-accent-ink, var(--accent))}
         </style>
         <div>
             <span class="eyebrow">HUB LOCATION</span>
@@ -331,8 +331,8 @@ if (window.Chart) {
             interaction: { mode: 'index', intersect: false },
             plugins: { legend: { display: false }, tooltip: { backgroundColor: '#3E354C', padding: 12, cornerRadius: 6 } },
             scales: {
-                y: { beginAtZero: true, border: { display: false }, grid: { color: '#EEEAE8' }, ticks: { precision: 0, padding: 10, color: '#77717C' } },
-                x: { border: { display: false }, grid: { display: false }, ticks: { color: '#77717C', padding: 8 } }
+                y: { beginAtZero: true, border: { display: false }, grid: { color: '#EEEAE8'}, ticks: { precision: 0, padding: 10, color: '#77717C' } },
+                x: { border: { display: false }, grid: { display: false }, ticks: { color: '#77717C', padding: 8} }
             }
         }
     });

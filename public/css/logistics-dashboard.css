@@ -39,7 +39,7 @@
 .operations-location { color:#e0d6e6; font-size:12px; margin-top:12px; }
 .operations-heading-actions { flex-direction:column; align-items:flex-end; gap:14px; }
 .operations-heading-actions time { color:#e5dce9; }
-.operations-button { border:1px solid var(--dm-border, #ecc4b6); background:#ecc4b6; color:var(--dm-ink, #443347); border-radius:9px; padding:12px 17px; box-shadow:0 4px 14px #30213720; }
+.operations-button { border:1px solid var(--dm-border, #ecc4b6); background:#ecc4b6; color:var(--dm-on-light, var(--dm-ink, #443347)); border-radius:9px; padding:12px 17px; box-shadow:0 4px 14px #30213720; }
 .operations-button:hover { background:#f5d7cc; border-color:var(--dm-border, #f5d7cc); }
 .operations-filter-card { border-radius:14px; padding:16px 18px; gap:14px; box-shadow:0 3px 12px #564b6805; }
 .operations-filter-icon-box { width:38px; height:38px; border-radius:11px; background:var(--dm-elevated, #f1eaf5); }
@@ -63,13 +63,13 @@
 .operations-metric-label { min-height:30px; color:var(--dm-ink, #64586f); font-weight:700; }
 .operations-metric-label svg { box-sizing:content-box; width:17px; height:17px; padding:8px; border-radius:10px; color:var(--dm-muted, #746082); background:var(--dm-elevated, #eee7f3); }
 .operations-metric:first-child .operations-metric-label svg { background:var(--dm-elevated, #e1d5eb); }
-.operations-metric:nth-child(4) .operations-metric-label svg { background:#efd6cc; color:var(--dm-muted, #916458); }
+.operations-metric:nth-child(4) .operations-metric-label svg { background:#efd6cc; color:var(--dm-on-light, var(--dm-muted, #916458)); }
 .operations-metric strong { font-size:34px; color:var(--dm-ink, #483953); }
 .operations-metric-detail { color:var(--dm-muted, #716479); }
 .operations-queue { gap:10px; padding:16px 0 22px; }
 .operations-queue a, .operations-queue a:first-child, .operations-queue a + a {
     border:1px solid var(--dm-border, #e9e1ec); background:#eee8f280; border-radius:9px;
-    padding:11px 12px; line-height:1.5; flex-wrap:wrap; color:var(--dm-muted, #695c75);
+    padding:11px 12px; line-height:1.5; flex-wrap:wrap; color:var(--dm-on-light, var(--dm-muted, #695c75));
 }
 .operations-queue a.queue-attention { background:#f5e9e480; border-color:var(--dm-border, #edddd6); }
 .operations-queue a:hover { background:var(--dm-elevated, #e8dfed); }

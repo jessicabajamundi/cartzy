@@ -204,7 +204,7 @@
     const variantInput = document.getElementById('pd-variant-input');
     const chips = document.querySelectorAll('[data-pick]');
     const current = options.find(item => String(item.id) === variantInput?.value);
-    const picked = { color: current?.color ?? '', size: current?.size ?? '' };
+    const picked = { color: current?.color ?? '', size: current?.size ?? ''};
     const setGallery = option => {
         photos = [...new Set(option.images || (option.image ? [option.image] : []))];
         thumbs.forEach(thumb => { thumb.hidden = !photos.includes(thumb.dataset.photo); });

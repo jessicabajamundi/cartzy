@@ -672,7 +672,7 @@ window.markAllNotificationsAsRead = function () {
         const riderIcon = L.divIcon({
             html: '<div style="position:relative; width:40px; height:40px; display:flex; align-items:center; justify-content:center;">' +
                     '<span style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(16,185,129,0.35); animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></span>' +
-                    '<div style="position:relative; background:#10B981; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2.5px solid var(--dm-border, #fff); box-shadow:0 4px 12px rgba(16,185,129,0.4);">🏍️</div>' +
+                    '<div style="position:relative; background:#10B981; color:var(--dm-on-light, #fff); width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2.5px solid var(--dm-border, #fff); box-shadow:0 4px 12px rgba(16,185,129,0.4);">🏍️</div>' +
                   '</div>',
             className: 'osm-rider-icon',
             iconSize: [40, 40],
@@ -707,8 +707,7 @@ window.markAllNotificationsAsRead = function () {
                 weight: 5,
                 opacity: 0.8,
                 dashArray: '8, 8',
-                lineJoin: 'round'
-            }).addTo(map);
+                lineJoin: 'round'}).addTo(map);
 
             map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
         }

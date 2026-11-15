@@ -13,7 +13,7 @@
 .commerce-orbit { position:absolute; width:116px; height:104px; border:1px solid var(--dm-border, #E6D5CF); border-radius:38px; transform:rotate(-16deg); }
 .commerce-art-icon { display:grid; place-items:center; width:88px; height:88px; border:1px solid var(--dm-border, #DED5E7); border-radius:27px; background:linear-gradient(140deg,var(--dm-elevated, #F0EAF6),var(--dm-elevated, #E6DFEE)); color:var(--dm-muted, #6F6382); box-shadow:0 8px 20px -12px #564B6850; }
 .commerce-art-icon svg { width:40px; height:40px; }
-.commerce-art-spark { position:absolute; right:1px; bottom:6px; display:grid; place-items:center; width:28px; height:28px; border:4px solid var(--dm-border, white); border-radius:50%; background:#C08B7F; color:white; font-size:17px; line-height:1; }
+.commerce-art-spark { position:absolute; right:1px; bottom:6px; display:grid; place-items:center; width:28px; height:28px; border:4px solid var(--dm-border, white); border-radius:50%; background:#C08B7F; color:var(--dm-on-light, white); font-size:17px; line-height:1; }
 .commerce-empty h3 { font:700 clamp(21px,2.5vw,26px)/1.3 'Inter',sans-serif; letter-spacing:-.5px; color:var(--dm-ink, #3E354C); margin:0; }
 .commerce-empty-copy { max-width:440px; margin:12px auto 24px; color:var(--dm-muted, #80738A); font-size:14px; line-height:1.8; }
 .commerce-button { display:inline-flex; align-items:center; justify-content:center; gap:20px; min-height:44px; padding:12px 22px; border-radius:10px; background:#655274; color:white; font:700 13px/1.5 'Inter',sans-serif; text-decoration:none; transition:background .15s; }

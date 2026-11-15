@@ -19,7 +19,7 @@
 .collection-card__arrow{display:flex;align-items:center;justify-content:center;width:28px;height:28px;flex-shrink:0;border:1px solid #b76e79;border-radius:50%;background:var(--dm-elevated, #f9f6fb);color:var(--dm-red-ink, #9e5863);font-size:16px;transition:background .2s,color .2s}
 .collection-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px #b76e7924}
 .collection-card:hover img{transform:scale(1.04)}
-.collection-card:hover .collection-card__arrow{background:#b76e79;color:#fff}
+.collection-card:hover .collection-card__arrow{background:#b76e79;color:var(--dm-on-light, #fff)}
 .shop-collections a:focus-visible,.shop-collections button:focus-visible{outline:3px solid #b76e79;outline-offset:3px}
 .shop-collections__directory{margin-top:18px;padding-top:18px;border-top:1.5px solid #b76e79}
 .shop-collections__directory h3{margin:0 0 12px;font-size:20px;font-weight:600}

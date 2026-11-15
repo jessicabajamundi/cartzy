@@ -1,7 +1,7 @@
 /* Cartzy logistics: plum foundations and rose-gold accents. */
 .logistics-portal { background:var(--dm-elevated, #F6F4F8); color:var(--dm-ink, #3E354C); }
 .logistics-portal :is(h1,h2,h3,h4,.font-heading) { font-family:'Inter',sans-serif; letter-spacing:-.025em; }
-.logistics-portal ::selection { background:#A8A0B2; color:white; }
+.logistics-portal ::selection { background:#A8A0B2; color:var(--dm-on-light, white); }
 .logistics-portal ::-webkit-scrollbar-track { background:var(--dm-elevated, #F6F4F8); }
 .logistics-portal ::-webkit-scrollbar-thumb { background:#D4CADC; }
 .logistics-portal :is(a,button,input,select,textarea):focus-visible { outline:2px solid #A38AB5; outline-offset:3px; }
@@ -303,7 +303,7 @@
     padding: 0 5px;
     border-radius: 999px;
     background: #ef4444;
-    color: #ffffff;
+    color: var(--dm-on-light, #ffffff);
     font-size: 10px;
     font-weight: 800;
     line-height: 1;

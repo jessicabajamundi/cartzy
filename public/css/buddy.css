@@ -86,7 +86,7 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-chips { display: flex; gap: 7px; padding: 0 12px 10px; overflow-x: auto; scrollbar-width: none; background: var(--buddy-soft); }
 .buddy-chips:empty { display: none; }
 .buddy-chips::-webkit-scrollbar { display: none; }
-.buddy-chip { flex: none; min-height: 34px; padding: 6px 13px; border: 1.500px solid var(--buddy-rose); border-radius: 999px; color: var(--dm-muted, #8C5A50); background: var(--buddy-blush); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .15s, background .15s; }
+.buddy-chip { flex: none; min-height: 34px; padding: 6px 13px; border: 1.500px solid var(--buddy-rose); border-radius: 999px; color: var(--dm-on-light, var(--dm-muted, #8C5A50)); background: var(--buddy-blush); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .15s, background .15s; }
 .buddy-chip:hover { transform: translateY(-2px); background: var(--dm-elevated, #FCEAE6); }
 .buddy-chip:focus-visible { outline: 2px solid var(--buddy-rose-deep); outline-offset: 1px; }
 .buddy-compose { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--buddy-line); background: var(--dm-surface, white); }

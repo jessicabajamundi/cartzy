@@ -51,7 +51,7 @@
             <span>Refunded orders</span>
             @include('seller.partials.icon', ['name' => 'wallet', 'size' => 18])
         </div>
-        <div class="metric-value" style="color: #7c3aed;">{{ number_format($summary['refunded_orders']) }}</div>
+        <div class="metric-value" style="color: var(--dm-blue-ink, #7c3aed);">{{ number_format($summary['refunded_orders']) }}</div>
         <small>Processed returns &amp; refunds</small>
     </div>
     <div class="metric-card">

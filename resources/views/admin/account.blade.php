@@ -6,7 +6,7 @@
     .admin-password-field { position: relative; display: block; width: 100%; }
     .admin-password-field input { padding-right: 60px; }
     .admin-password-toggle svg { display: block; width: 20px; height: 20px; margin: auto; }
-    .admin-password-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); min-width: 48px; min-height: 36px; padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; }
+    .admin-password-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); min-width: 48px; min-height: 36px; padding: 4px 8px; border: 0; border-radius: 6px; background: transparent; color: var(--dm-accent-ink, var(--accent)); font: inherit; font-weight: 600; cursor: pointer; }
     .admin-password-toggle:hover { background: var(--canvas); }
     .admin-password-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 </style>
@@ -35,14 +35,14 @@
             </span>
             <input type="password" name="current_password" required autocomplete="current-password">
             @error('current_password')
-                <small style="color: #dc2626; margin-top: 4px;">{{ $message }} <a href="javascript:void(0)" onclick="toggleAdminForgotMode()" style="font-weight: 700; text-decoration: underline; color: inherit;">Reset with OTP instead</a></small>
+                <small style="color: var(--dm-red-ink, #dc2626); margin-top: 4px;">{{ $message }} <a href="javascript:void(0)" onclick="toggleAdminForgotMode()" style="font-weight: 700; text-decoration: underline; color: inherit;">Reset with OTP instead</a></small>
             @enderror
         </label>
         
         <label>New password
             <input type="password" name="password" minlength="10" required autocomplete="new-password">
             @error('password')
-                <small style="color: #dc2626; margin-top: 4px;">{{ $message }}</small>
+                <small style="color: var(--dm-red-ink, #dc2626); margin-top: 4px;">{{ $message }}</small>
             @enderror
         </label>
         

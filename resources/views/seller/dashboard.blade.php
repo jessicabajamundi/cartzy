@@ -229,12 +229,12 @@
                                                 @if($sShip?->isCodRemitted())
                                                     <small style="display:block; color:var(--dm-green-ink, #16a34a); font-weight:700;">✓ COD Remitted by Hub</small>
                                                 @elseif($sShip?->isCodHolding())
-                                                    <small style="display:block; color:#ea580c; font-weight:700;">⏳ Escrow ({{ $sShip->codHoldingDaysRemaining() }}d holding)</small>
+                                                    <small style="display:block; color:var(--dm-gold-ink, #ea580c); font-weight:700;">⏳ Escrow ({{ $sShip->codHoldingDaysRemaining() }}d holding)</small>
                                                 @elseif($sShip?->isCodEligibleForRemittance())
-                                                    <small style="display:block; color:#0284c7; font-weight:700;">✓ Awaiting Hub Remittance</small>
+                                                    <small style="display:block; color:var(--dm-blue-ink, #0284c7); font-weight:700;">✓ Awaiting Hub Remittance</small>
                                                 @endif
                                             @else
-                                                <small style="display:block; color:#007DFE; font-weight:700;">Direct Online Payment</small>
+                                                <small style="display:block; color:var(--dm-blue-ink, #007DFE); font-weight:700;">Direct Online Payment</small>
                                             @endif
                                         </td>
                                         <td class="so-status">

@@ -61,7 +61,7 @@
         }
         ::selection {
             background-color: #A8A0B2;
-            color: #ffffff;
+            color: var(--dm-on-light, #ffffff);
         }
 
         /* Utility to hide native scrollbar while keeping smooth scroll */

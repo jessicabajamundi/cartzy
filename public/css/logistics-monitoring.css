@@ -54,7 +54,7 @@
 .monitor-cod { color:var(--dm-gold-ink, #995e50); white-space:nowrap; }
 .monitor-prepaid { color:var(--dm-muted, #6f6382); }
 .monitor-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 9px; border-radius:6px; font-size:11px; font-weight:700; white-space:nowrap; background:var(--dm-elevated, #eee8f4); color:var(--dm-muted, #6f6382); }
-.monitor-badge.failed { color:var(--dm-gold-ink, #8c4d3e); background:#f3dbd0; border:1px solid var(--dm-border, #e7c6b9); }
+.monitor-badge.failed { color:var(--dm-on-light, var(--dm-gold-ink, #8c4d3e)); background:#f3dbd0; border:1px solid var(--dm-border, #e7c6b9); }
 .monitor-badge.out_for_delivery { background:#6f6382; color:white; }
 .monitor-badge.in_transit { background:var(--dm-elevated, #e9dff2); color:var(--dm-ink, #59416d); }
 .monitor-badge.at_hub { background:var(--dm-elevated, #f6ebe6); color:var(--dm-muted, #886154); }

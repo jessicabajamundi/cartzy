@@ -36,7 +36,7 @@
     padding: 4px 8px;
     border-radius: 5px;
     background: var(--accent-light, #FCEAE6);
-    color: var(--discovery-rose);
+    color: var(--dm-red-ink, var(--discovery-rose));
     font-size: 10px;
     line-height: 1.2;
     font-weight: 700;
@@ -51,8 +51,8 @@
     color: var(--discovery-ink);
     margin: 0;
 }
-#daily-discover-section .discovery-intro { margin: 6px 0 0; font-size: 12px; font-weight: 400; line-height: 1.6; color: var(--discovery-muted); }
-#daily-discover-section .discovery-browse { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; color: var(--brand-dark, #564B68); background: var(--accent-soft, #FFF5F3); border: 1px solid var(--discovery-border); border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 700; line-height: 1.5; white-space: nowrap; padding: 9px 14px; text-decoration: none; transition: background .2s, border-color .2s; }
+#daily-discover-section .discovery-intro { margin: 6px 0 0; font-size: 12px; font-weight: 400; line-height: 1.6; color: var(--dm-red-ink, var(--discovery-muted)); }
+#daily-discover-section .discovery-browse { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 40px; color: var(--dm-accent-ink, var(--brand-dark, #564B68)); background: var(--accent-soft, #FFF5F3); border: 1px solid var(--discovery-border); border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 700; line-height: 1.5; white-space: nowrap; padding: 9px 14px; text-decoration: none; transition: background .2s, border-color .2s; }
 #daily-discover-section .discovery-browse svg { width: 14px; height: 14px; flex-shrink: 0; }
 #daily-discover-section .discovery-browse:hover { background: var(--accent-light, #FCEAE6); border-color: var(--discovery-rose); }
 #daily-discover-section .daily-discover-grid {
@@ -94,7 +94,7 @@
     align-items: center;
     gap: 4px;
     background: var(--brand-darkest, #282133);
-    color: #FFF;
+    color: var(--dm-on-light, #FFF);
     border-radius: 999px;
     padding: 4px 9px 4px 5px;
     font-size: 10.5px;
@@ -109,9 +109,9 @@
 
 /* Store · name · tags */
 #daily-discover-section .discovery-info { display: grid; gap: 4px; align-content: start; }
-#daily-discover-section .discovery-store-link { overflow: hidden; color: var(--discovery-muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
-#daily-discover-section .discovery-store-link:hover { color: var(--discovery-rose); text-decoration: underline; text-underline-offset: 2px; }
-#daily-discover-section .discovery-tag { justify-self: start; margin-top: 4px; padding: 2px 7px; border: 1px solid var(--accent-muted, #F5CFC7); border-radius: 4px; background: var(--accent-soft, #FFF5F3); color: var(--discovery-rose); font-size: 10.5px; font-weight: 700; line-height: 1.4; }
+#daily-discover-section .discovery-store-link { overflow: hidden; color: var(--dm-red-ink, var(--discovery-muted)); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; text-decoration: none; }
+#daily-discover-section .discovery-store-link:hover { color: var(--dm-red-ink, var(--discovery-rose)); text-decoration: underline; text-underline-offset: 2px; }
+#daily-discover-section .discovery-tag { justify-self: start; margin-top: 4px; padding: 2px 7px; border: 1px solid var(--accent-muted, #F5CFC7); border-radius: 4px; background: var(--accent-soft, #FFF5F3); color: var(--dm-red-ink, var(--discovery-rose)); font-size: 10.5px; font-weight: 700; line-height: 1.4; }
 #daily-discover-section .discovery-wishlist {
     position: relative;
     z-index: 1;
@@ -122,7 +122,7 @@
     border: 1px solid var(--discovery-border);
     border-radius: 50%;
     background: var(--dm-surface, #FFFFFFF2);
-    color: var(--discovery-rose);
+    color: var(--dm-red-ink, var(--discovery-rose));
     box-shadow: 0 3px 12px #30293812;
     cursor: pointer;
     transition: color .2s, background .2s, box-shadow .2s;
@@ -131,8 +131,8 @@
 #daily-discover-section .discovery-actions { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: end; gap: 8px; margin-top: 10px; }
 #daily-discover-section .discovery-actions > button { min-width: 0; min-height: 44px; margin-top: 0 !important; }
 #daily-discover-section .discovery-actions .discovery-wishlist-form { margin: 0; }
-#daily-discover-section .discovery-wishlist:hover { background: var(--accent-light, #FCEAE6); color: var(--discovery-rose); box-shadow: 0 4px 14px #984C5B20; }
-#daily-discover-section .discovery-wishlist[aria-pressed="true"] { color: var(--discovery-rose); background: var(--accent-light, #FCEAE6); border-color: var(--accent-deep, #C08B7F); }
+#daily-discover-section .discovery-wishlist:hover { background: var(--accent-light, #FCEAE6); color: var(--dm-red-ink, var(--discovery-rose)); box-shadow: 0 4px 14px #984C5B20; }
+#daily-discover-section .discovery-wishlist[aria-pressed="true"] { color: var(--dm-red-ink, var(--discovery-rose)); background: var(--accent-light, #FCEAE6); border-color: var(--accent-deep, #C08B7F); }
 #daily-discover-section .discovery-wishlist[aria-pressed="true"] svg { fill: currentColor; }
 #daily-discover-section .discovery-wishlist:disabled { cursor: wait; opacity: .6; }
 #daily-discover-section .discovery-card h3 {
@@ -146,16 +146,16 @@
     -webkit-line-clamp: 2;
     margin: 0;
 }
-#daily-discover-section .discovery-card h3:hover { color: var(--discovery-rose); }
+#daily-discover-section .discovery-card h3:hover { color: var(--dm-red-ink, var(--discovery-rose)); }
 
 /* Price · rating · stock, pinned to the bottom so every card lines up */
 #daily-discover-section .discovery-pricing { display: grid; gap: 6px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--brand-border, #E1DDE7); }
 #daily-discover-section .discovery-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
 #daily-discover-section .discovery-price-now { color: var(--discovery-ink); font-size: 21px; font-weight: 700; letter-spacing: -.03em; line-height: 1.2; }
-#daily-discover-section .discovery-currency { margin-right: 1px; color: var(--discovery-rose); font-size: .68em; font-weight: 700; vertical-align: .18em; }
+#daily-discover-section .discovery-currency { margin-right: 1px; color: var(--dm-red-ink, var(--discovery-rose)); font-size: .68em; font-weight: 700; vertical-align: .18em; }
 #daily-discover-section .discovery-price-was { color: var(--dm-muted, #9A90A3); font-size: 12px; }
-#daily-discover-section .discovery-rating { display: flex; align-items: center; gap: 8px; color: var(--discovery-muted); font-size: 12px; line-height: 1.4; }
-#daily-discover-section .discovery-score { display: inline-flex; align-items: center; gap: 3px; color: var(--brand-dark, #564B68); font-weight: 700; }
+#daily-discover-section .discovery-rating { display: flex; align-items: center; gap: 8px; color: var(--dm-red-ink, var(--discovery-muted)); font-size: 12px; line-height: 1.4; }
+#daily-discover-section .discovery-score { display: inline-flex; align-items: center; gap: 3px; color: var(--dm-accent-ink, var(--brand-dark, #564B68)); font-weight: 700; }
 #daily-discover-section .discovery-score > span { color: #D9A13B; font-size: 13px; }
 #daily-discover-section .discovery-dot { width: 3px; height: 3px; border-radius: 50%; background: #C9C1CF; }
 #daily-discover-section .discovery-stock { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--dm-muted, #3F7A55); font-size: 12px; font-weight: 700; line-height: 1.4; }
@@ -204,8 +204,8 @@
 }
 #daily-discover-section .discovery-card button[onclick] svg { width: 17px !important; height: 17px !important; flex-shrink: 0; }
 #daily-discover-section :is(a, button):focus-visible { outline: 2px solid var(--discovery-rose); outline-offset: 3px; }
-#daily-discover-section .discovery-footer { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px 24px; padding: 24px 16px; margin-top: 28px; border: 1px solid var(--discovery-border); border-radius: 18px; background: var(--accent-soft, #FFF5F3); color: var(--discovery-muted); font-size: 14px; }
-#daily-discover-section .discovery-footer a { color: var(--discovery-rose); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+#daily-discover-section .discovery-footer { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px 24px; padding: 24px 16px; margin-top: 28px; border: 1px solid var(--discovery-border); border-radius: 18px; background: var(--accent-soft, #FFF5F3); color: var(--dm-red-ink, var(--discovery-muted)); font-size: 14px; }
+#daily-discover-section .discovery-footer a { color: var(--dm-red-ink, var(--discovery-rose)); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 @media (min-width: 700px) { #daily-discover-section .daily-discover-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }
 @media (min-width: 1000px) { #daily-discover-section .daily-discover-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
 @media (min-width: 1300px) { #daily-discover-section .daily-discover-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; gap: 20px !important; } }
@@ -249,7 +249,7 @@
 }
 #daily-discover-section .discovery-pagination[hidden] { display: none; }
 #daily-discover-section .discovery-page-summary {
-    color: var(--discovery-muted);
+    color: var(--dm-red-ink, var(--discovery-muted));
     font-size: 12px;
     text-align: right;
     margin: 0;
@@ -265,7 +265,7 @@
     border: 1px solid var(--discovery-border);
     border-radius: 8px;
     background: var(--dm-surface, #fff);
-    color: var(--brand-dark, #564B68);
+    color: var(--dm-accent-ink, var(--brand-dark, #564B68));
     font: 700 13px 'Inter', sans-serif;
     cursor: pointer;
     transition: background .18s, border-color .18s;
@@ -273,11 +273,11 @@
 #daily-discover-section .discovery-page-controls button:hover:not(:disabled) { background: var(--accent-soft, #FFF5F3); border-color: var(--discovery-rose); }
 #daily-discover-section .discovery-page-controls button[aria-current="page"] {
     background: var(--brand-darkest, #282133);
-    color: #fff;
+    color: var(--dm-on-light, #fff);
     border-color: var(--brand-darkest, #282133);
     box-shadow: 0 3px 8px #28213318;
 }
 #daily-discover-section .discovery-page-controls button[aria-current="page"]:hover { background: var(--brand-dark, #564B68); }
 #daily-discover-section .discovery-page-controls button:disabled { opacity: .4; cursor: default; }
-#daily-discover-section .discovery-page-controls > span { color: var(--discovery-muted); }
+#daily-discover-section .discovery-page-controls > span { color: var(--dm-red-ink, var(--discovery-muted)); }
 #daily-discover-section .discovery-footer { margin-top: 28px; }

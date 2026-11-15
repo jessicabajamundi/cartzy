@@ -42,14 +42,14 @@ input, select, textarea { accent-color: var(--accent); }
 .topbar { height: 68px; padding: 0 32px; background: var(--dm-surface, #ffffffed); border-bottom-color: var(--line); }
 .topbar .inline { font-size: 11px; color: var(--muted); gap: 12px; }
 .topbar .inline strong { color: var(--accent-hover); font-weight: 600; }
-.breadcrumb { margin: 0 12px; color: var(--focus); }
+.breadcrumb { margin: 0 12px; color: var(--dm-red-ink, var(--focus)); }
 .topbar-actions { display: flex; align-items: center; gap: 20px; }
 .topbar-account { border-left: 1px solid var(--line); padding-left: 16px; display: inline-flex; }
 .topbar-avatar { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--brand-blend); color: var(--dm-muted, #62427f); border: 3px solid var(--dm-border, #fff); box-shadow: 0 0 0 1px var(--line); font-weight: 650; font-size: 14px; }
 .topbar .button { min-height: 36px; padding: 7px 13px; font-size: 11px; border-radius: 8px; }
 .topbar-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: var(--muted); transition: background .18s, border-color .18s; }
 .topbar-icon:hover { background: var(--accent-light); color: var(--muted); }
-.topbar-icon .badge[data-notification-count] { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid var(--dm-border, #fff); border-radius: 9px; background: var(--rose-gold); color: #fff; font-size: 10px; font-weight: 700; line-height: 14px; text-align: center; }
+.topbar-icon .badge[data-notification-count] { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 4px; border: 2px solid var(--dm-border, #fff); border-radius: 9px; background: var(--rose-gold); color: var(--dm-on-light, #fff); font-size: 10px; font-weight: 700; line-height: 14px; text-align: center; }
 .topbar-icon .badge[hidden] { display: none; }
 .topbar-logout { margin: 0; display: inline-flex; }
 @media (max-width: 600px) { .topbar { padding: 0 16px; height: 60px; } .topbar-account { display: none; } .topbar-actions { gap: 10px; } }
@@ -57,7 +57,7 @@ input, select, textarea { accent-color: var(--accent); }
 /* ─── Page shell and headings ─── */
 main { max-width: 1540px; padding: 28px 32px; }
 .page-heading { margin-bottom: 23px; }
-.eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--accent); margin-bottom: 6px; }
+.eyebrow { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--dm-accent-ink, var(--accent)); margin-bottom: 6px; }
 .subtitle { font-size: 12px; color: var(--muted); }
 .date-label { font-size: 11px; border-radius: 7px; padding: 8px 12px; box-shadow: none; }
 .page-footer { font-size: 10px; color: var(--muted); border-top-color: var(--line); }
@@ -99,7 +99,7 @@ main { max-width: 1540px; padding: 28px 32px; }
     color: var(--muted);
 }
 .button.small { min-height: 36px; padding: 7px 13px; font-size: 11px; border-radius: 8px; }
-.button.text, .button.text:hover { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent); }
+.button.text, .button.text:hover { min-height: 0; padding: 0; border: 0; background: none; color: var(--dm-accent-ink, var(--accent)); }
 .button.text:hover { text-decoration: underline; }
 .button.danger, .button.archive-delete-button { background: #89574E; border-color: #89574E; color: #fff; }
 .button.danger:hover, .button.archive-delete-button:hover { background: #6B3F37; border-color: #6B3F37; color: #fff; }
@@ -144,7 +144,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-color: var(--focus); box-shadow: none; }
 
 /* ─── Badges (admin .badge, .good, .warning, .danger) ─── */
-.badge { display: inline-flex; align-items: center; padding: 4px 10px; border: 0; border-radius: 20px; background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 600; text-transform: capitalize; }
+.badge { display: inline-flex; align-items: center; padding: 4px 10px; border: 0; border-radius: 20px; background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); font-size: 11px; font-weight: 600; text-transform: capitalize; }
 .badge.delivered, .badge.completed, .badge.active, .badge.paid, .badge.good { background: var(--dm-elevated, #edf5ef); color: var(--dm-ink, #39704c); }
 .badge.pending, .badge.ready_to_ship, .badge.packed, .badge.warning { background: var(--dm-gold-surface, #fbf1df); color: var(--dm-gold-ink, #886325); }
 .badge.cancelled, .badge.archived, .badge.danger { background: #89574E; color: #fff; }
@@ -207,7 +207,7 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 
 /* Topbar icons and small round controls get a gentle pop. */
 .topbar-icon { transition: background .18s, color .18s, transform .2s cubic-bezier(.34, 1.56, .64, 1); }
-.topbar-icon:hover { transform: translateY(-2px); color: var(--accent); }
+.topbar-icon:hover { transform: translateY(-2px); color: var(--dm-accent-ink, var(--accent)); }
 .topbar-icon:active { transform: scale(.92); }
 .topbar-avatar { transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), box-shadow .2s; }
 .topbar-account:hover .topbar-avatar { transform: scale(1.06); box-shadow: 0 0 0 1px #E8C6BE, 0 6px 14px -6px rgba(137, 94, 97, .6); }
@@ -250,10 +250,10 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 .so-hint { color: var(--muted); font-size: 12px; }
 .so-handover { display: inline-flex; align-items: center; gap: 6px; color: var(--dm-ink, #39704c); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .so-print { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.so-details { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.so-details { padding: 0; border: 0; background: none; color: var(--dm-accent-ink, var(--accent)); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
 .so-details:hover { color: var(--accent-hover); text-decoration: underline; }
 .so-chat { display: inline-flex; color: var(--muted); }
-.so-chat:hover { color: var(--accent); }
+.so-chat:hover { color: var(--dm-accent-ink, var(--accent)); }
 .so-cancellation { flex-basis: 100%; }
 .so-cancellation .inline { margin-top: 8px; }
 .so-next .so-note { max-width: 340px; white-space: pre-line; }
@@ -267,5 +267,5 @@ button.primary:hover { animation-duration: 2.4s; box-shadow: 0 10px 22px -12px r
 .so-history { margin: 0; padding: 0; list-style: none; }
 .so-history li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .so-history time { flex-shrink: 0; white-space: nowrap; }
-.so-waybill-link { display: inline-block; margin-top: 14px; color: var(--accent); font-size: 12px; font-weight: 700; text-decoration: none; }
+.so-waybill-link { display: inline-block; margin-top: 14px; color: var(--dm-accent-ink, var(--accent)); font-size: 12px; font-weight: 700; text-decoration: none; }
 .so-waybill-link:hover { color: var(--accent-hover); text-decoration: underline; }

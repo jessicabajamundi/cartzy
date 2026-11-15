@@ -102,7 +102,7 @@
 .buyer-voucher-cta{display:inline-flex}
 .buyer-voucher-group{margin:6px 0 -4px;font-size:13px;font-weight:800;color:var(--dm-ink, #3E354C)}
 .buyer-voucher.is-shop .buyer-voucher-stub{background:linear-gradient(160deg,#a25369,#7c4a6b)}
-.buyer-voucher-shop{color:var(--dm-red-ink, #a25369)!important;font-weight:700;font-size:11px!important;letter-spacing:.04em;text-transform:uppercase}
+.buyer-voucher-shop{color:var(--dm-red-ink, #a25369) !important;font-weight:700;font-size:11px!important;letter-spacing:.04em;text-transform:uppercase}
 a.buyer-voucher-status{text-decoration:none}
 a.buyer-voucher-status:hover{text-decoration:underline}
 @media(max-width:520px){.buyer-voucher-grid{grid-template-columns:1fr}.buyer-voucher-stub{width:96px}.buyer-voucher-stub strong{font-size:13px}.buyer-voucher-code>div{flex-direction:column}.buyer-voucher-code button{padding:11px}}

@@ -87,7 +87,7 @@
             <input type="text" maxlength="1" class="auth-input fp-otp-digit" id="otp6" inputmode="numeric" pattern="[0-9]" style="width: 48px; height: 52px; text-align: center; font-size: 1.3rem; font-weight: 800; padding: 0 !important; letter-spacing: 0;" onkeyup="fpOtpNav(this, null, 'otp5')">
         </div>
 
-        <div id="fp-otp-error" style="display:none; text-align:center; font-size:0.82rem; color:#ef4444; font-weight:600; margin-bottom:12px;"></div>
+        <div id="fp-otp-error" style="display:none; text-align:center; font-size:0.82rem; color:var(--dm-red-ink, #ef4444); font-weight:600; margin-bottom:12px;"></div>
 
         <button type="button" class="btn-primary" id="fp-verify-btn" onclick="fpVerifyOtp()">
             <span id="fp-verify-text">Verify Code</span>
@@ -145,7 +145,7 @@
                 </button>
             </div>
 
-            <div id="fp-pw-error" style="display:none; font-size:0.82rem; color:#ef4444; font-weight:600; margin-bottom:12px;"></div>
+            <div id="fp-pw-error" style="display:none; font-size:0.82rem; color:var(--dm-red-ink, #ef4444); font-weight:600; margin-bottom:12px;"></div>
 
             <button type="submit" class="btn-primary">Reset Password</button>
         </form>

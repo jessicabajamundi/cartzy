@@ -98,7 +98,7 @@ new Chart(document.getElementById('reportChart'), {
             { label: 'Delivered', data: @json($reportData['chart']['delivered']), borderColor: '#8C5A50', backgroundColor: 'rgba(140,90,80,0.06)', borderWidth: 2, tension: 0.35, fill: true, pointRadius: 3, pointBackgroundColor: '#8C5A50' },
         ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top', align: 'end' } }, scales: { y: { beginAtZero: true, grid: { color: '#F1EFF5' } }, x: { grid: { display: false } } } }
+    options: { responsive: true, plugins: { legend: { position: 'top', align: 'end' } }, scales: { y: { beginAtZero: true, grid: { color: '#F1EFF5'} }, x: { grid: { display: false } } } }
 });
 </script>
 @endpush

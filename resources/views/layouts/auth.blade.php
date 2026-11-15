@@ -327,7 +327,7 @@
         .auth-portals div { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; font-size: 0.86rem; }
         .auth-portals a { padding: 2px 0; color: var(--rose-dark, #8C5A50); font-weight: 800; text-decoration: none; transition: color .18s ease; }
         .auth-portals a + a::before { content: "|"; display: inline-block; margin: 0 8px; color: #d1d5db; font-weight: 400; }
-        .auth-portals a:hover { color: var(--brand-lavender, #6F6382); text-decoration: underline; }
+        .auth-portals a:hover { color: var(--dm-accent-ink, var(--brand-lavender, #6F6382)); text-decoration: underline; }
         .auth-portals a:focus-visible { outline: 2px solid #564B68; outline-offset: 2px; border-radius: 4px; }
 
         .alert {
@@ -337,7 +337,7 @@
         }
         .alert-success { background: var(--dm-green-surface, #F0FDF4); border: 1px solid var(--dm-border, #BBF7D0); border-left: 4px solid #16A34A; color: var(--dm-green-ink, #166534); font-weight: 600; }
         .alert-info    { background: var(--dm-surface, #FAF8FC); border: 1px solid var(--dm-border, #E1DDE7); border-left: 4px solid #6F6382; color: var(--dm-ink, #564B68); font-weight: 600; box-shadow: 0 2px 8px rgba(111, 99, 130, 0.06); }
-        .alert-error   { background: var(--dm-elevated, #FFF1F2); border: 1px solid var(--dm-border, #FECDD3); border-left: 4px solid #BE123C; color: #BE123C; font-weight: 600; display: block; }
+        .alert-error   { background: var(--dm-elevated, #FFF1F2); border: 1px solid var(--dm-border, #FECDD3); border-left: 4px solid #BE123C; color: var(--dm-red-ink, #BE123C); font-weight: 600; display: block; }
 
         .auth-notice {
             display: flex;

@@ -125,7 +125,7 @@
                                     {{ $product->name }}
                                 </strong>
                                 <small style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                    <span style="font-weight: 600; color: var(--accent);">{{ $product->category?->name ?? 'Uncategorized' }}</span>
+                                    <span style="font-weight: 600; color: var(--dm-accent-ink, var(--accent));">{{ $product->category?->name ?? 'Uncategorized' }}</span>
                                     @if($product->gender && $product->gender !== 'unisex')
                                         <span class="badge" style="font-size: 9px; padding: 1px 6px;">{{ ucfirst($product->gender) }}</span>
                                     @endif
@@ -176,7 +176,7 @@
                         </small>
                         @if($product->discount_type)
                             <small>
-                                <span class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #92400E); margin-top: 4px;">
+                                <span class="badge" style="background: #FEF3C7; color: var(--dm-on-light, #92400E); margin-top: 4px;">
                                     Sale: {{ $product->discount_type === 'percentage' ? number_format($product->discount_value) . '% OFF' : '₱' . number_format($product->discount_value, 2) . ' OFF' }}
                                 </span>
                             </small>
@@ -186,7 +186,7 @@
                     <!-- 4. Approval Status -->
                     <td>
                         @if($product->isPending())
-                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; padding: 4px 10px;">
+                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-on-light, #B45309); font-weight: 700; padding: 4px 10px;">
                                 ⏳ Pending Review
                             </span>
                             <small class="muted" style="margin-top: 5px;">Awaiting admin decision</small>
@@ -400,7 +400,7 @@
                             </div>
                             <div id="details-discount-wrap" style="display: none;">
                                 <small class="muted" style="display: block;">Discount</small>
-                                <span id="details-discount-badge" class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #92400E); font-weight: 600;"></span>
+                                <span id="details-discount-badge" class="badge" style="background: #FEF3C7; color: var(--dm-on-light, #92400E); font-weight: 600;"></span>
                             </div>
                             <div>
                                 <small class="muted" style="display: block;">Category</small>
@@ -681,7 +681,7 @@
 .modal-status-banner.pending {
     background: #FEF3C7;
     border: 1px solid #FCD34D;
-    color: var(--dm-gold-ink, #92400E);
+    color: var(--dm-on-light, #92400E);
 }
 
 .modal-status-banner.approved {

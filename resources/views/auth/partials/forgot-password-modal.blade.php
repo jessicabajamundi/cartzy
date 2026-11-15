@@ -93,7 +93,7 @@
             <div class="lm-resend-row">
                 Didn't receive the code?
                 <button type="button" class="lm-link" id="fpm-resend-link" onclick="fpmResendOtp()">Resend code</button>
-                <span id="fpm-resend-timer" style="display: none; color: var(--lm-rose-dark); font-weight: 700;"></span>
+                <span id="fpm-resend-timer" style="display: none; color: var(--dm-red-ink, var(--lm-rose-dark)); font-weight: 700;"></span>
             </div>
         </div>
 

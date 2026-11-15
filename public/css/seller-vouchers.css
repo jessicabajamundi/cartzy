@@ -12,7 +12,7 @@
 .sv-quick-card:hover { border-color: var(--sv-rose); box-shadow: 0 8px 20px -12px #a2536966; transform: translateY(-1px); }
 .sv-quick-card strong { display: block; font-size: 14px; }
 .sv-quick-card small { display: block; margin-top: 2px; color: var(--muted, #776e83); font-size: 12.5px; }
-.sv-quick-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--sv-rose-soft); color: var(--sv-rose); font-size: 18px; font-weight: 800; }
+.sv-quick-icon { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--sv-rose-soft); color: var(--dm-red-ink, var(--sv-rose)); font-size: 18px; font-weight: 800; }
 
 .sv-metrics { margin-bottom: 16px; }
 .sv-howto { margin-bottom: 18px; padding: 12px 16px; border: 1px solid var(--sv-line); border-radius: 12px; background: var(--brand-soft, #faf9fb); font-size: 13px; }
@@ -45,7 +45,7 @@
 .sv-terms { margin: 0; color: var(--muted, #776e83); font-size: 13px; }
 .sv-meta { display: flex; flex-wrap: wrap; gap: 6px; }
 .sv-chip, .sv-code { padding: 2px 9px; border: 1px solid var(--sv-line); border-radius: 6px; font-size: 12px; }
-.sv-code { border-style: dashed; border-color: var(--sv-rose); color: var(--sv-rose); font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; letter-spacing: .04em; }
+.sv-code { border-style: dashed; border-color: var(--sv-rose); color: var(--dm-red-ink, var(--sv-rose)); font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; letter-spacing: .04em; }
 .sv-usage { display: flex; align-items: center; gap: 10px; max-width: 360px; }
 .sv-usage-bar { flex: 1; height: 6px; overflow: hidden; border-radius: 3px; background: var(--brand-light, #f1eff5); }
 .sv-usage-bar > span { display: block; height: 100%; border-radius: 3px; background: var(--sv-rose); }
@@ -63,7 +63,7 @@
 .sv-step legend { float: left; width: 100%; padding: 0; }
 .sv-step legend + * { clear: both; }
 .sv-step h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 16px; }
-.sv-step h2 span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sv-rose-soft); color: var(--sv-rose); font-size: 13px; font-weight: 800; }
+.sv-step h2 span { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sv-rose-soft); color: var(--dm-red-ink, var(--sv-rose)); font-size: 13px; font-weight: 800; }
 .sv-step[disabled] { opacity: .6; }
 .sv-step label { margin-bottom: 4px; }
 .sv-step label input { margin-top: 6px; }
@@ -95,7 +95,7 @@
 .sv-code-input .button { flex: none; }
 .sv-quick-dates { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; font-size: 12.5px; color: var(--muted, #776e83); }
 .sv-pill { padding: 5px 12px; border: 1px solid var(--sv-line); border-radius: 999px; background: var(--dm-surface, #fff); color: var(--brand-ink, #282133); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-.sv-pill:hover { border-color: var(--sv-rose); color: var(--sv-rose); }
+.sv-pill:hover { border-color: var(--sv-rose); color: var(--dm-red-ink, var(--sv-rose)); }
 .sv-form-actions { display: flex; justify-content: flex-end; gap: 10px; }
 
 /* Live preview */
@@ -108,7 +108,7 @@
 .sv-ticket-stub strong { font-size: 16px; line-height: 1.15; }
 .sv-ticket-stub small { overflow: hidden; font-size: 9.5px; font-weight: 700; letter-spacing: .1em; text-overflow: ellipsis; opacity: .9; }
 .sv-ticket-body { display: grid; align-content: center; gap: 2px; min-width: 0; padding: 12px 14px; }
-.sv-ticket-shop { overflow: hidden; color: var(--sv-rose); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; }
+.sv-ticket-shop { overflow: hidden; color: var(--dm-red-ink, var(--sv-rose)); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-overflow: ellipsis; white-space: nowrap; }
 .sv-ticket-body strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .sv-ticket-body small { color: var(--muted, #776e83); font-size: 12px; }
 .sv-summary { display: grid; gap: 10px; margin: 16px 0 0; font-size: 13px; }

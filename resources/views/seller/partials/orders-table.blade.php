@@ -55,19 +55,19 @@
             @if($shipment?->isCodRemitted())
                 <small style="display:block; color:var(--dm-green-ink, #16a34a); font-weight:700;">✓ COD Remitted by Hub ({{ strtoupper($shipment->cod_remittance_method ?? 'GCash') }})</small>
             @elseif($shipment?->isCodHolding())
-                <small style="display:block; color:#ea580c; font-weight:700;">⏳ COD Escrow ({{ $shipment->codHoldingDaysRemaining() }}d holding)</small>
+                <small style="display:block; color:var(--dm-gold-ink, #ea580c); font-weight:700;">⏳ COD Escrow ({{ $shipment->codHoldingDaysRemaining() }}d holding)</small>
             @elseif($shipment?->isCodEligibleForRemittance())
-                <small style="display:block; color:#0284c7; font-weight:700;">✓ 7d Passed · Awaiting Hub Remittance</small>
+                <small style="display:block; color:var(--dm-blue-ink, #0284c7); font-weight:700;">✓ 7d Passed · Awaiting Hub Remittance</small>
             @endif
         @else
-            <small style="display:block; color:#007DFE; font-weight:700;">Direct Online Payment</small>
+            <small style="display:block; color:var(--dm-blue-ink, #007DFE); font-weight:700;">Direct Online Payment</small>
         @endif
         @php $latestPay = $payment?->payments?->first(); @endphp
         @if($latestPay?->provider_ref)
-            <small style="display:block; color:#007DFE; font-weight:700;">Ref: {{ $latestPay->provider_ref }}</small>
+            <small style="display:block; color:var(--dm-blue-ink, #007DFE); font-weight:700;">Ref: {{ $latestPay->provider_ref }}</small>
         @endif
         @if($latestPay?->receipt_url)
-            <a href="{{ $latestPay->receipt_url }}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:3px; font-size:11px; color:#007DFE; text-decoration:underline; font-weight:700; margin-top:2px;">
+            <a href="{{ $latestPay->receipt_url }}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:3px; font-size:11px; color:var(--dm-blue-ink, #007DFE); text-decoration:underline; font-weight:700; margin-top:2px;">
                 <span>View Receipt ↗</span>
             </a>
         @endif
@@ -97,12 +97,12 @@
                             <form method="POST" action="{{ route('seller.orders.payment-verify', ['id' => $order->id]) }}" style="display:inline;">
                                 @csrf
                                 <input type="hidden" name="decision" value="approved">
-                                <button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:#fff;" onclick="return confirm('Approve this GCash payment receipt?');">Approve</button>
+                                <button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:var(--dm-on-light, #fff);" onclick="return confirm('Approve this GCash payment receipt?');">Approve</button>
                             </form>
                             <form method="POST" action="{{ route('seller.orders.payment-verify', ['id' => $order->id]) }}" style="display:inline;">
                                 @csrf
                                 <input type="hidden" name="decision" value="rejected">
-                                <button class="button small secondary" type="submit" style="color:#dc2626;" onclick="return confirm('Reject this GCash payment receipt?');">Reject</button>
+                                <button class="button small secondary" type="submit" style="color:var(--dm-red-ink, #dc2626);" onclick="return confirm('Reject this GCash payment receipt?');">Reject</button>
                             </form>
                         </div>
                     </div>

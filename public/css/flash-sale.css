@@ -27,7 +27,7 @@
 .flash-image-placeholder { display: grid; place-items: center; height: 100%; color: #b5a4bf; }
 /* Photo badges: same pills as Daily Discover */
 .flash-offer-label { position: absolute; top: 10px; right: 10px; max-width: calc(100% - 110px); padding: 4px 9px; border-radius: 999px; background: var(--accent-dark, #8C5A50); color: #fff; font-size: 11px; font-weight: 700; line-height: 1.2; box-shadow: 0 2px 6px #8C5A503d; }
-.flash-seller-badge { position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px 4px 6px; border-radius: 999px; background: var(--brand-darkest, #282133); color: #fff; font-size: 10.5px; font-weight: 700; line-height: 1.2; letter-spacing: .01em; box-shadow: 0 2px 6px #2821332e; }
+.flash-seller-badge { position: absolute; top: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px 4px 6px; border-radius: 999px; background: var(--brand-darkest, #282133); color: var(--dm-on-light, #fff); font-size: 10.5px; font-weight: 700; line-height: 1.2; letter-spacing: .01em; box-shadow: 0 2px 6px #2821332e; }
 .flash-seller-badge svg { width: 12px; height: 12px; flex: none; color: #C9A86A; }
 .flash-actions { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: end; gap: 8px; }
 .flash-actions .flash-cart-form { min-width: 0; }

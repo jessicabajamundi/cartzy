@@ -70,7 +70,7 @@
             font-weight: 700;
             line-height: 1.08;
         }
-        h1 em { font-style: italic; color: var(--lavender); }
+        h1 em { font-style: italic; color: var(--dm-accent-ink, var(--lavender)); }
         .ra-lead {
             margin: 0 auto 22px;
             max-width: 380px;

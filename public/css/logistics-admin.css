@@ -30,7 +30,7 @@ body.logistics-admin .text-gray-700 { color: var(--ink); }
 body.logistics-admin .logistics-content { background: transparent; padding: 28px 32px; }
 body.logistics-admin .nav-link .nav-count { margin-left: auto; font-size: 10px; padding: 2px 7px; }
 body.logistics-admin .topbar-bell { position: relative; }
-body.logistics-admin .topbar-bell-count { position: absolute; top: -5px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; border: 2px solid var(--surface); border-radius: 99px; background: var(--rose-ink); color: var(--dm-on-accent, var(--surface)); font-size: 9px; font-weight: 700; line-height: 1; }
+body.logistics-admin .topbar-bell-count { position: absolute; top: -5px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; border: 2px solid var(--surface); border-radius: 99px; background: var(--rose-ink); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); font-size: 9px; font-weight: 700; line-height: 1; }
 body.logistics-admin .notice.success { background: var(--accent-light); border-color: var(--focus-ring); color: var(--accent-hover); }
 body.logistics-admin .notice ul { margin: 6px 0 0 18px; }
 @media (max-width: 900px) { body.logistics-admin .logistics-content { padding: 24px; } }
@@ -53,13 +53,13 @@ body.logistics-admin :is(.operations-location, .notice-subtitle) {
     margin: 0; max-width: 720px; font-size: 12px; line-height: 1.6; color: var(--muted);
 }
 body.logistics-admin :is(.operations-kicker, .pickup-kicker, .rider-eyebrow, .monitor-eyebrow, .notice-eyebrow, .hub-chat-eyebrow, .hub-eyebrow, .modal-eyebrow) {
-    margin: 0; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent);
+    margin: 0; font-size: 9px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--dm-accent-ink, var(--accent));
 }
 /* The dashboard heading is a dark banner, like the admin overview banner: light text on plum. */
 body.logistics-admin .operations-dashboard .operations-heading :is(h1, h2) { color: var(--dm-on-accent, var(--surface)); }
 body.logistics-admin .operations-dashboard .operations-heading .operations-kicker { color: #F6D9D0; }
 body.logistics-admin .operations-dashboard .operations-heading :is(.operations-location, .operations-heading-actions time) { color: #FFFFFFC7; }
-body.logistics-admin .pickup-heading-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--accent-light); color: var(--accent); }
+body.logistics-admin .pickup-heading-icon { width: 46px; height: 46px; border-radius: 12px; background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); }
 body.logistics-admin .hub-chat-label { border-color: var(--line); background: var(--surface); color: var(--muted); border-radius: 8px; font-size: 11px; }
 @media (max-width: 760px) {
     body.logistics-admin :is(.operations-heading, .pickup-heading, .rider-heading, .monitor-heading, .notice-heading, .hub-chat-heading, .hub-heading) { flex-direction: column; align-items: flex-start; }
@@ -115,11 +115,11 @@ body.logistics-admin .att-countdown-bar span { background: var(--accent); }
 /* ---------- Buttons -> admin .button ---------- */
 body.logistics-admin :is(.operations-button, .operations-filter-submit-btn, .btn-dispatch-nearest, .btn-select-rider, .rider-primary, .monitor-button.primary, .notice-button, .hub-button.primary, .hub-primary-button, .pickup-search button, .monitor-search button, .rider-search button[type="submit"]) {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 16px;
-    background: var(--accent); border: 1px solid var(--accent); border-radius: 9px; color: var(--dm-on-accent, var(--surface));
+    background: var(--accent); border: 1px solid var(--accent); border-radius: 9px; color: var(--dm-on-light, var(--dm-on-accent, var(--surface)));
     font: inherit; font-size: 12px; font-weight: 600; line-height: 1.5; box-shadow: none; transform: none; text-decoration: none;
 }
 body.logistics-admin :is(.operations-button, .operations-filter-submit-btn, .btn-dispatch-nearest, .btn-select-rider, .rider-primary, .monitor-button.primary, .notice-button, .hub-button.primary, .hub-primary-button, .pickup-search button, .monitor-search button, .rider-search button[type="submit"]):hover {
-    background: var(--accent-hover); border-color: var(--accent-hover); color: var(--dm-on-accent, var(--surface)); transform: none;
+    background: var(--accent-hover); border-color: var(--accent-hover); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); transform: none;
 }
 body.logistics-admin :is(.operations-preset-btn, .btn-choose-other, .btn-confirm-plain, .btn-modal-cancel, .btn-change-rider, .rider-button:not(.rider-primary):not(.rider-danger), .monitor-button:not(.primary), .hub-button.secondary, .hub-chat-refresh, .notice-empty-link, .modal-close-btn, .operations-reset-link) {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 8px 14px;
@@ -134,45 +134,45 @@ body.logistics-admin .modal-close-btn { min-height: 34px; width: 34px; padding: 
 body.logistics-admin :is(.btn-unassign-rider, .rider-danger, .rider-reject-confirm, .rider-dropdown-item-danger) {
     background: var(--rose-soft); border: 1px solid var(--rose-border); border-radius: 9px; color: var(--rose-ink); font-weight: 600;
 }
-body.logistics-admin :is(.btn-unassign-rider, .rider-danger, .rider-reject-confirm):hover { background: var(--rose-ink); border-color: var(--rose-ink); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin :is(.btn-unassign-rider, .rider-danger, .rider-reject-confirm):hover { background: var(--rose-ink); border-color: var(--rose-ink); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 body.logistics-admin .hub-chat-send { background: var(--accent); border-radius: 9px; }
 body.logistics-admin .hub-chat-send:hover { background: var(--accent-hover); }
-body.logistics-admin :is(.operations-text-link, .monitor-clear, .hub-link) { color: var(--accent); font-size: 12px; font-weight: 600; }
+body.logistics-admin :is(.operations-text-link, .monitor-clear, .hub-link) { color: var(--dm-accent-ink, var(--accent)); font-size: 12px; font-weight: 600; }
 body.logistics-admin :is(.hub-button, .btn-dispatch-nearest, .operations-button):disabled { opacity: .55; cursor: wait; }
 
 /* ---------- Tabs ---------- */
 body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) { border-color: var(--line); }
 body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) :is(a, button) { color: var(--muted); font-size: 12px; font-weight: 600; }
 body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) :is(a, button):is([aria-current], [aria-pressed="true"], .is-active) { color: var(--accent-hover); border-color: var(--accent); }
-body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) :is(a, button) span { background: var(--accent-light); color: var(--accent); border-radius: 20px; font-size: 10px; font-weight: 600; }
-body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) :is(a, button):is([aria-current], [aria-pressed="true"]) span { background: var(--accent); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) :is(a, button) span { background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); border-radius: 20px; font-size: 10px; font-weight: 600; }
+body.logistics-admin :is(.pickup-tabs, .rider-filters, .monitor-tabs, .notice-tabs) :is(a, button):is([aria-current], [aria-pressed="true"]) span { background: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 /* Pickup tabs are pills: the active one is filled like an admin primary button. */
 body.logistics-admin .pickup-tabs a { border-radius: 9px; }
-body.logistics-admin .pickup-tabs a[aria-current] { background: var(--accent); border-color: var(--accent); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin .pickup-tabs a[aria-current] { background: var(--accent); border-color: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 body.logistics-admin .pickup-tabs a[aria-current] span { background: #FFFFFF33; color: var(--dm-on-accent, var(--surface)); }
 body.logistics-admin .pickup-card-heading :is(h2, h3) { font-family: inherit; font-size: 17px; font-weight: 650; letter-spacing: -.3px; color: var(--ink); }
-body.logistics-admin :is(.assigned-label, .suggestion-kicker, .rider-group-heading) { color: var(--accent); }
+body.logistics-admin :is(.assigned-label, .suggestion-kicker, .rider-group-heading) { color: var(--dm-accent-ink, var(--accent)); }
 body.logistics-admin .assigned-status-dot { color: var(--accent-hover); }
 body.logistics-admin .rider-phone-link { color: var(--accent-hover); }
 body.logistics-admin .assigned-meta { color: var(--muted); }
 body.logistics-admin .pickup-note { background: var(--rose-soft); border-color: var(--rose-border); color: var(--rose-ink); border-radius: 10px; }
 body.logistics-admin .hub-chat-filters button { border-radius: 20px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: 11px; font-weight: 600; }
-body.logistics-admin .hub-chat-filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin .hub-chat-filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 body.logistics-admin .hub-step { border-color: var(--line); border-radius: 13px; box-shadow: 0 3px 8px #34243f03; }
 body.logistics-admin .hub-step[aria-current] { border-color: var(--accent); background: var(--accent-light); box-shadow: inset 0 -3px var(--accent); }
-body.logistics-admin .hub-step-number { background: var(--accent-light); color: var(--accent); }
-body.logistics-admin .hub-step[aria-current] .hub-step-number { background: var(--accent); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin .hub-step-number { background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); }
+body.logistics-admin .hub-step[aria-current] .hub-step-number { background: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 body.logistics-admin .hub-step.has-work .hub-step-count { background: var(--rose-light); color: var(--rose-ink); }
 
 /* ---------- Badges -> admin .badge ---------- */
 body.logistics-admin :is(.pickup-badge, .rider-badge, .monitor-badge, .notice-read-state, .suggestion-badge, .area-match-tag, .rider-area-chip, .hub-tag, .operations-status, .hub-chat-unread, .operations-feed-count) {
     display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 0; border-radius: 20px;
-    background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 600; line-height: 1.4; text-transform: none; letter-spacing: 0;
+    background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); font-size: 11px; font-weight: 600; line-height: 1.4; text-transform: none; letter-spacing: 0;
 }
 body.logistics-admin :is(.is-pending-badge, .rider-badge-pending, .rider-badge-suspended, .rider-badge-rejected, .monitor-badge.failed, .monitor-badge.rose, .hub-tag.cod) { background: var(--rose-light); color: var(--rose-ink); }
 body.logistics-admin :is(.is-dispatched-badge, .is-confirmed-badge, .rider-badge-active, .suggestion-badge.is-nearby, .hub-tag.area) { background: var(--accent-light); color: var(--accent-hover); }
 body.logistics-admin .rider-badge-inactive { background: var(--canvas); color: var(--muted); }
-body.logistics-admin .hub-chat-unread, body.logistics-admin .operations-feed-count { background: var(--accent); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin .hub-chat-unread, body.logistics-admin .operations-feed-count { background: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 
 /* ---------- Tables -> admin tables ---------- */
 body.logistics-admin :is(.operations-pickup-table, .rider-table, .monitor-table) { font-size: 13px; color: var(--ink); }
@@ -183,7 +183,7 @@ body.logistics-admin :is(.operations-pickup-table, .rider-table, .monitor-table)
 }
 body.logistics-admin :is(.operations-pickup-table, .rider-table, .monitor-table) td { padding: 16px 24px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 body.logistics-admin :is(.operations-pickup-table, .rider-table, .monitor-table) tbody tr:hover { background: var(--canvas); }
-body.logistics-admin :is(.rider-avatar, .pickup-avatar, .assigned-rider-avatar, .hub-chat-avatar, .notice-item-icon, .operations-activity-icon) { background: var(--accent-light); color: var(--accent); }
+body.logistics-admin :is(.rider-avatar, .pickup-avatar, .assigned-rider-avatar, .hub-chat-avatar, .notice-item-icon, .operations-activity-icon) { background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); }
 body.logistics-admin .hub-chat-avatar.rose, body.logistics-admin .operations-activity-icon.is-rose { background: var(--rose-light); color: var(--rose-ink); }
 
 /* ---------- Fields -> admin inputs ---------- */
@@ -198,7 +198,7 @@ body.logistics-admin :is(.pickup-search, .hub-chat-search) input { border: 0; ou
 /* ---------- Lists, chat and notifications ---------- */
 body.logistics-admin .notice-item { border-color: var(--line); }
 body.logistics-admin .notice-item.is-unread { background: var(--canvas); box-shadow: inset 3px 0 var(--accent); }
-body.logistics-admin .notice-item.is-unread .notice-item-icon { background: var(--accent-light); color: var(--accent); }
+body.logistics-admin .notice-item.is-unread .notice-item-icon { background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); }
 body.logistics-admin :is(.notice-empty-ring) { background: linear-gradient(140deg, var(--canvas), var(--accent-light)); border-color: var(--line); }
 body.logistics-admin .notice-empty-check { background: var(--accent); }
 body.logistics-admin .hub-chat-sidebar { border-color: var(--line); background: var(--surface); }
@@ -206,8 +206,8 @@ body.logistics-admin .hub-chat-contact { border-color: var(--line); }
 body.logistics-admin .hub-chat-contact[aria-current] { background: var(--accent-light); border-left-color: var(--accent); }
 body.logistics-admin .hub-chat-messages { background: var(--canvas); }
 body.logistics-admin .hub-chat-bubble { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
-body.logistics-admin .hub-chat-message.outgoing .hub-chat-bubble { background: var(--accent); border-color: var(--accent); color: var(--dm-on-accent, var(--surface)); }
-body.logistics-admin :is(.hub-chat-emoji-toggle, .hub-chat-suggestions button) { background: var(--accent-light); color: var(--accent); border-color: var(--line); }
+body.logistics-admin .hub-chat-message.outgoing .hub-chat-bubble { background: var(--accent); border-color: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
+body.logistics-admin :is(.hub-chat-emoji-toggle, .hub-chat-suggestions button) { background: var(--accent-light); color: var(--dm-accent-ink, var(--accent)); border-color: var(--line); }
 body.logistics-admin .hub-chat-composer { border-color: var(--line); border-radius: 12px; }
 body.logistics-admin .hub-chat-composer textarea { border: 0; outline: 0; background: transparent; resize: none; }
 body.logistics-admin .hub-chat-composer:focus-within { border-color: var(--focus); box-shadow: 0 0 0 2px var(--focus-ring); }
@@ -216,7 +216,7 @@ body.logistics-admin :is(.queue-dot, .chart-key) { background: var(--accent); }
 body.logistics-admin :is(.queue-attention .queue-dot, .chart-key-rose) { background: var(--rose-ink); }
 
 /* ---------- Floating chat bubble ---------- */
-body.logistics-admin .logistics-chat-bubble-form .chat-bubble { background: var(--accent); color: var(--dm-on-accent, var(--surface)); }
+body.logistics-admin .logistics-chat-bubble-form .chat-bubble { background: var(--accent); color: var(--dm-on-light, var(--dm-on-accent, var(--surface))); }
 body.logistics-admin .logistics-chat-bubble-form .chat-bubble:hover { background: var(--accent-hover); }
 /* While the floating chat bubble is showing, keep sticky save bars clear of it. */
 body.logistics-admin:has(#logistics-chat-bubble-wrap:not([hidden])) .account-savebar { margin-right: 84px; }
@@ -225,7 +225,7 @@ body.logistics-admin.is-chat-page :is(.logistics-chat-bubble-form, #logistics-ch
 
 /* ---------- Reports (admin components) ---------- */
 body.logistics-admin .reports-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-body.logistics-admin .reports-kpis .metric-heading .icon { width: 16px; height: 16px; color: var(--focus); }
+body.logistics-admin .reports-kpis .metric-heading .icon { width: 16px; height: 16px; color: var(--dm-red-ink, var(--focus)); }
 body.logistics-admin .reports-areas { display: flex; flex-direction: column; gap: 14px; }
 body.logistics-admin .reports-area-row { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; font-size: 12px; }
 body.logistics-admin .reports-area-row span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--ink); }

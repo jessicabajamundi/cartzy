@@ -140,8 +140,8 @@
 .lm-alert p { margin: 0; }
 .lm-alert p + p { margin-top: 4px; }
 .lm-alert-success { background: var(--dm-green-surface, #F0FDF4); color: var(--dm-green-ink, #166534); border: 1px solid var(--dm-border, #BBF7D0); }
-.lm-alert-info    { background: var(--lm-soft); color: var(--lm-lavender-dark); border: 1px solid var(--lm-line); font-weight: 500; }
-.lm-alert-error   { background: var(--dm-elevated, #FFF1F2); color: #BE123C; border: 1px solid var(--dm-border, #FECDD3); }
+.lm-alert-info    { background: var(--lm-soft); color: var(--dm-accent-ink, var(--lm-lavender-dark)); border: 1px solid var(--lm-line); font-weight: 500; }
+.lm-alert-error   { background: var(--dm-elevated, #FFF1F2); color: var(--dm-red-ink, #BE123C); border: 1px solid var(--dm-border, #FECDD3); }
 .lm-hint { display: inline-block; margin-top: 6px; color: inherit; font-weight: 800; text-decoration: underline; }
 
 /* Fields */
@@ -194,7 +194,7 @@
         linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
     box-shadow: 0 0 0 4px rgba(192, 139, 127, .14);
 }
-.lm-input-wrap:focus-within .lm-input-icon { color: var(--lm-rose-dark); }
+.lm-input-wrap:focus-within .lm-input-icon { color: var(--dm-red-ink, var(--lm-rose-dark)); }
 .lm-overlay .lm-input-wrap input.is-invalid { border-color: #F43F5E; background: var(--dm-elevated, #FFF7F8); }
 .lm-overlay input::-ms-reveal, .lm-overlay input::-ms-clear { display: none; }
 
@@ -219,10 +219,10 @@
 .lm-link {
     font-size: .75rem;
     font-weight: 700;
-    color: var(--lm-rose-dark);
+    color: var(--dm-red-ink, var(--lm-rose-dark));
     text-decoration: none;
 }
-.lm-link:hover { color: var(--lm-lavender-dark); text-decoration: underline; }
+.lm-link:hover { color: var(--dm-accent-ink, var(--lm-lavender-dark)); text-decoration: underline; }
 
 .lm-remember {
     display: inline-flex;
@@ -391,7 +391,7 @@
     height: 36px;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--dm-elevated, #F1EDF6) 0%, var(--dm-elevated, #F8ECE8) 100%);
-    color: var(--lm-lavender-dark);
+    color: var(--dm-accent-ink, var(--lm-lavender-dark));
     transition: background .18s, color .18s, box-shadow .18s;
 }
 .lm-role-icon svg { width: 18px; height: 18px; }
@@ -401,7 +401,7 @@
     padding: 1px 7px;
     border-radius: 999px;
     background: var(--dm-elevated, #FCEAE6);
-    color: var(--lm-rose-dark);
+    color: var(--dm-red-ink, var(--lm-rose-dark));
     font-size: .58rem;
     font-weight: 800;
     letter-spacing: .02em;
@@ -428,7 +428,7 @@
     box-shadow: 0 8px 16px -6px rgba(140, 90, 80, 0.6);
     transform: scale(1.1) rotate(-4deg);
 }
-.lm-role:hover .lm-role-name, .lm-role:focus-visible .lm-role-name { color: var(--lm-lavender-dark); }
+.lm-role:hover .lm-role-name, .lm-role:focus-visible .lm-role-name { color: var(--dm-accent-ink, var(--lm-lavender-dark)); }
 .lm-overlay .lm-role:active { transform: translateY(-1px) scale(.98); }
 
 /* ── Step 2: role badge (also the way back to the role picker) ── */
@@ -443,7 +443,7 @@
     background:
         linear-gradient(135deg, var(--dm-elevated, #F6F3F9), var(--dm-elevated, #FBF2EF)) padding-box,
         linear-gradient(135deg, rgba(111, 99, 130, .45), rgba(192, 139, 127, .55)) border-box;
-    color: var(--lm-lavender-dark);
+    color: var(--dm-accent-ink, var(--lm-lavender-dark));
     font: 800 .7rem 'Inter', system-ui, sans-serif;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -469,7 +469,7 @@
     padding: 3px 9px;
     border-radius: 999px;
     background: var(--dm-surface, #fff);
-    color: var(--lm-rose-dark);
+    color: var(--dm-red-ink, var(--lm-rose-dark));
     font-size: .62rem;
     letter-spacing: .06em;
     transition: background .2s, color .2s;
@@ -499,7 +499,7 @@
     margin-bottom: 10px;
     border-radius: 14px;
     background: var(--dm-elevated, #FCEAE6);
-    color: var(--lm-rose-dark);
+    color: var(--dm-red-ink, var(--lm-rose-dark));
 }
 .lm-app-icon svg { width: 24px; height: 24px; }
 .lm-app-title { margin: 0 0 4px; font-size: .95rem; font-weight: 800; color: var(--lm-ink); }
@@ -828,7 +828,7 @@ body.auth-modal-page {
     font-family: inherit;
     font-size: inherit;
     font-weight: 700;
-    color: var(--lm-lavender, #6F6382);
+    color: var(--dm-accent-ink, var(--lm-lavender, #6F6382));
     text-decoration: underline;
     text-underline-offset: 3px;
     cursor: pointer;
@@ -837,7 +837,7 @@ body.auth-modal-page {
     transition: color 0.15s ease, background-color 0.15s ease;
 }
 .logistics-terms-link:hover {
-    color: var(--lm-rose-dark, #8C5A50);
+    color: var(--dm-red-ink, var(--lm-rose-dark, #8C5A50));
     background-color: var(--dm-elevated, #F8ECE8);
 }
 
@@ -1081,7 +1081,7 @@ dialog.account-removed-dialog::backdrop {
     height: 54px;
     border-radius: 50%;
     background: var(--dm-red-surface, #fee2e2);
-    color: #dc2626;
+    color: var(--dm-red-ink, #dc2626);
     margin-bottom: 16px;
 }
 .account-removed-icon svg {
@@ -1170,7 +1170,7 @@ dialog.account-removed-dialog::backdrop {
     margin: 0 auto 10px;
     border-radius: 14px;
     background: linear-gradient(135deg, var(--dm-elevated, #F1EDF6) 0%, var(--dm-elevated, #F8ECE8) 100%);
-    color: var(--lm-rose-dark);
+    color: var(--dm-red-ink, var(--lm-rose-dark));
     box-shadow: 0 4px 12px rgba(140, 90, 80, 0.12);
 }
 .lm-icon-badge svg { width: 22px; height: 22px; }

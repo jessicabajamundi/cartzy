@@ -127,7 +127,7 @@
                 <strong>⏳ Pending Administrator Review:</strong>
                 <p style="margin: 3px 0 0; font-size: 12px; color: var(--dm-gold-ink, #78350F);">This product is currently under review by our admin team. It will appear live on the storefront once approved.</p>
             </div>
-            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; white-space: nowrap;">Pending Approval</span>
+            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-on-light, #B45309); font-weight: 700; white-space: nowrap;">Pending Approval</span>
         </div>
     @elseif($product->isRejected())
         <div style="background: var(--dm-elevated, #FFF5F5); border-left: 4px solid #E53E3E; padding: 14px 18px; border-radius: 10px; margin-bottom: 22px; font-size: 13px; color: var(--dm-red-ink, #9B2C2C); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">

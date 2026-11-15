@@ -186,7 +186,7 @@ function autoCalcAge(dateStr) {
             ageText.style.color = 'var(--dm-green-ink, #059669)';
         } else if (age >= 0) {
             ageText.textContent = `Age: ${age} (Must be 18+)`;
-            ageText.style.color = '#ef4444';
+            ageText.style.color = 'var(--dm-red-ink, #ef4444)';
         } else {
             ageText.textContent = '';
         }
@@ -910,7 +910,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 if (feedback) {
                     feedback.style.display = 'block';
-                    feedback.style.color = '#ef4444';
+                    feedback.style.color = 'var(--dm-red-ink, #ef4444)';
                     feedback.innerText = 'Please enter all 6 digits of the verification code.';
                 }
                 return;

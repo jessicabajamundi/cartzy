@@ -52,7 +52,7 @@
                 • <strong>Buyer Refunds:</strong> If buyer requests within 7 days and <em>Seller Approves</em>, Logistics disburses the refund from held COD funds. After 7 days, refunds are locked and funds are remitted to the seller.
             </div>
         </div>
-        <a href="{{ route('logistics.returns') }}" style="font-size: 12px; font-weight: 700; color: #7c3aed; text-decoration: none; padding: 8px 14px; border: 1px solid var(--dm-border, #c4b5fd); border-radius: 8px; background: var(--dm-surface, white); white-space: nowrap;">
+        <a href="{{ route('logistics.returns') }}" style="font-size: 12px; font-weight: 700; color: var(--dm-blue-ink, #7c3aed); text-decoration: none; padding: 8px 14px; border: 1px solid var(--dm-border, #c4b5fd); border-radius: 8px; background: var(--dm-surface, white); white-space: nowrap;">
             View Return Cases ({{ $stats['refund_pending_count'] }}) →
         </a>
     </div>
@@ -66,8 +66,8 @@
         </div>
 
         <div style="background: var(--dm-surface, white); border: 1px solid #fed7aa; border-radius: 12px; padding: 18px 20px; background: var(--dm-elevated, #fffaf5);">
-            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #c2410c; letter-spacing: 0.5px;">Held in 7-Day Escrow</div>
-            <div style="font-size: 22px; font-weight: 800; color: #ea580c; margin-top: 6px;">₱{{ number_format($stats['held_in_escrow'] / 100, 2) }}</div>
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--dm-gold-ink, #c2410c); letter-spacing: 0.5px;">Held in 7-Day Escrow</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--dm-gold-ink, #ea580c); margin-top: 6px;">₱{{ number_format($stats['held_in_escrow'] / 100, 2) }}</div>
             <div style="font-size: 11px; color: var(--dm-gold-ink, #9a3412); margin-top: 4px;">{{ $stats['held_in_escrow_count'] }} parcel(s) within 7-day window</div>
         </div>
 
@@ -84,8 +84,8 @@
         </div>
 
         <div style="background: var(--dm-surface, white); border: 1px solid var(--dm-border, #fbcfe8); border-radius: 12px; padding: 18px 20px; background: var(--dm-elevated, #fdf2f8);">
-            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #be185d; letter-spacing: 0.5px;">Pending COD Refunds</div>
-            <div style="font-size: 22px; font-weight: 800; color: #db2777; margin-top: 6px;">{{ $stats['refund_pending_count'] }}</div>
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--dm-red-ink, #be185d); letter-spacing: 0.5px;">Pending COD Refunds</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--dm-red-ink, #db2777); margin-top: 6px;">{{ $stats['refund_pending_count'] }}</div>
             <div style="font-size: 11px; color: var(--dm-red-ink, #9d174d); margin-top: 4px;">Seller approved · Hub to disburse</div>
         </div>
     </div>
@@ -98,7 +98,7 @@
                     <h2 style="font-size: 16px; font-weight: 700; color: var(--dm-red-ink, #9d174d); margin: 0; display: flex; align-items: center; gap: 8px;">
                         <span>💸</span> COD Refund Disbursal Queue (Seller Approved)
                     </h2>
-                    <p style="font-size: 12px; color: #be185d; margin: 4px 0 0;">These returns were approved by the seller. Logistics holds the COD payment and can now send the refund to the buyer.</p>
+                    <p style="font-size: 12px; color: var(--dm-red-ink, #be185d); margin: 4px 0 0;">These returns were approved by the seller. Logistics holds the COD payment and can now send the refund to the buyer.</p>
                 </div>
             </div>
             <div style="overflow-x: auto;">
@@ -126,7 +126,7 @@
                                     {{ $case->dispute->order->buyer?->name }}<br>
                                     <small style="color: var(--dm-muted, #6b6477);">{{ $case->dispute->contact_phone }}</small>
                                 </td>
-                                <td style="padding: 12px 10px; font-weight: 700; color: #db2777;">
+                                <td style="padding: 12px 10px; font-weight: 700; color: var(--dm-red-ink, #db2777);">
                                     ₱{{ number_format($case->amount_minor / 100, 2) }}
                                 </td>
                                 <td style="padding: 12px 10px; text-align: right;">
@@ -214,7 +214,7 @@
                             </td>
                             <td style="padding: 14px 10px;">
                                 @if(!empty($seller?->gcash_number))
-                                    <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--dm-blue-surface, #eff6ff); color: #1d4ed8; font-size: 11px; font-weight: 600;">
+                                    <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--dm-blue-surface, #eff6ff); color: var(--dm-blue-ink, #1d4ed8); font-size: 11px; font-weight: 600;">
                                         GCash: {{ $seller->gcash_number }}
                                     </span>
                                     @if(!empty($seller?->gcash_name))
@@ -234,7 +234,7 @@
                                     </span>
                                     <br><small style="color: var(--dm-muted, #6b6477);">Ref: {{ $shipment->cod_remittance_ref }} · {{ $shipment->cod_remitted_at?->timezone('Asia/Manila')->format('M j, Y') }}</small>
                                 @elseif($shipment->isCodHolding())
-                                    <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; background: var(--dm-elevated, #fffaf5); color: #c2410c; border: 1px solid #fed7aa; font-size: 11px; font-weight: 700;">
+                                    <span style="display: inline-block; padding: 3px 10px; border-radius: 12px; background: var(--dm-elevated, #fffaf5); color: var(--dm-gold-ink, #c2410c); border: 1px solid #fed7aa; font-size: 11px; font-weight: 700;">
                                         ⏳ Escrow: {{ $holdingDaysLeft }}d remaining
                                     </span>
                                     <br><small style="color: var(--dm-gold-ink, #9a3412);">Refund window open until {{ $shipment->codHoldingUntil()?->timezone('Asia/Manila')->format('M j, g:i A') }}</small>
@@ -251,7 +251,7 @@
                             </td>
                             <td style="padding: 14px 10px; text-align: right;">
                                 @if($shipment->isCodEligibleForRemittance())
-                                    <button type="button" onclick="openRemitModal('{{ $shipment->id }}', '{{ $shipment->tracking_code }}', '{{ $seller?->name }}', '{{ number_format($shipment->cod_amount, 2) }}', '{{ $seller?->gcash_number }}')" style="padding: 6px 14px; background: #16a34a; color: white; border: 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                                    <button type="button" onclick="openRemitModal('{{ $shipment->id }}', '{{ $shipment->tracking_code }}', '{{ $seller?->name }}', '{{ number_format($shipment->cod_amount, 2) }}', '{{ $seller?->gcash_number }}')" style="padding: 6px 14px; background: #16a34a; color: var(--dm-on-light, white); border: 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer;">
                                         Remit ₱{{ number_format($shipment->cod_amount, 2) }}
                                     </button>
                                 @elseif($shipment->isCodHolding())
@@ -309,7 +309,7 @@
                 </div>
                 <div id="modalGcashRow" style="display: flex; justify-content: space-between;">
                     <span style="color: var(--dm-muted, #6b6477);">Registered GCash:</span>
-                    <strong id="modalGcash" style="color: #1d4ed8;"></strong>
+                    <strong id="modalGcash" style="color: var(--dm-blue-ink, #1d4ed8);"></strong>
                 </div>
             </div>
 
@@ -338,7 +338,7 @@
                 <button type="button" onclick="document.getElementById('singleRemitModal').style.display = 'none'" style="padding: 9px 16px; border: 1px solid var(--dm-border, #d1d5db); background: var(--dm-surface, white); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--dm-ink, #374151);">
                     Cancel
                 </button>
-                <button type="submit" style="padding: 9px 18px; border: 0; background: #16a34a; color: white; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                <button type="submit" style="padding: 9px 18px; border: 0; background: #16a34a; color: var(--dm-on-light, white); border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
                     Confirm & Remit to Seller
                 </button>
             </div>

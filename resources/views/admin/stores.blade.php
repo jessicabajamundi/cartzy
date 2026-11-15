@@ -55,7 +55,7 @@
                             @include('admin.partials.icon', ['name' => 'external'])
                             <span>View shop</span>
                         </a>
-                        <button type="button" class="button subtle store-action store-action--remove" style="color: #dc2626; border-color: var(--dm-border, #fecaca);"
+                        <button type="button" class="button subtle store-action store-action--remove" style="color: var(--dm-red-ink, #dc2626); border-color: var(--dm-border, #fecaca);"
                             data-trigger-remove-store
                             data-store-id="{{ $store->id }}"
                             data-store-name="{{ $store->name }}"
@@ -89,7 +89,7 @@
         <form id="remove-store-form" method="POST" action="">
             @csrf
             <label class="user-status-modal-label">
-                <span>Reason for removal <strong style="color: #dc2626;">*</strong></span>
+                <span>Reason for removal <strong style="color: var(--dm-red-ink, #dc2626);">*</strong></span>
                 <textarea name="removal_reason" id="remove-store-reason-input" class="user-status-modal-textarea" rows="4" required placeholder="Type the reason why this store is being removed..."></textarea>
             </label>
 
@@ -112,7 +112,7 @@
     }
     .store-actions .button.store-action--suspended { color: var(--dm-gold-ink, #b45309); border-color: #fde68a; }
     .store-actions .button.store-action--deactivated { color: var(--dm-ink, #475569); border-color: var(--dm-border, #cbd5e1); }
-    .store-actions .button.store-action--view { color: #1d4ed8; border-color: var(--dm-border, #bfdbfe); }
+    .store-actions .button.store-action--view { color: var(--dm-blue-ink, #1d4ed8); border-color: var(--dm-border, #bfdbfe); }
     .store-actions .button.store-action--remove:hover { background: var(--dm-elevated, #fef2f2); color: var(--dm-red-ink, #b91c1c); border-color: #fca5a5; }
 
     #remove-store-modal {

@@ -401,7 +401,7 @@
     .route-step.completed .step-circle {
         border-color: #10b981;
         background: #10b981;
-        color: #ffffff;
+        color: var(--dm-on-light, #ffffff);
     }
     .step-label {
         font-size: 10.5px;

@@ -104,7 +104,7 @@
                             <span class="partner-company-icon" aria-hidden="true">@include('admin.partials.icon', ['name' => 'truck'])</span>
                             <strong style="font-size: 14px; color: var(--ink); line-height: 1.3; display: block;">{{ $provider->name }}</strong>
                             <small class="muted" style="display: block; margin-top: 2px; font-size: 12px;">Serves {{ $coverage }}</small>
-                            <button type="button" class="js-open-provider-modal" style="background: none; border: none; padding: 0; font-size: 12px; color: var(--accent); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 5px;">
+                            <button type="button" class="js-open-provider-modal" style="background: none; border: none; padding: 0; font-size: 12px; color: var(--dm-accent-ink, var(--accent)); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-top: 5px;">
                                 Review application →
                             </button>
                         </div>
@@ -127,11 +127,11 @@
                                 APPROVED
                             </span>
                         @elseif($isPending)
-                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
+                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-on-light, #B45309); font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
                                 PENDING
                             </span>
                         @elseif($isSuspended)
-                            <span class="badge danger" style="background: var(--dm-elevated, #FFF1F2); color: #BE123C; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
+                            <span class="badge danger" style="background: var(--dm-elevated, #FFF1F2); color: var(--dm-red-ink, #BE123C); font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
                                 SUSPENDED
                             </span>
                         @else
@@ -461,7 +461,7 @@
 }
 .logistics-tab-pill.active {
     background: var(--ink);
-    color: #fff;
+    color: var(--dm-on-light, #fff);
     box-shadow: 0 2px 6px rgba(40, 33, 51, 0.15);
 }
 .logistics-tab-count {

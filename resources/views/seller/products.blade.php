@@ -121,7 +121,7 @@
                     <span class="badge">{{ $product->sale_status }}: {{ $product->discount_type === 'percentage' ? number_format($product->discount_value, 2).'%' : '₱'.number_format($product->discount_value, 2) }} off per item</span>
                 @endif
                 @if($product->isPending())
-                    <span class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); border: 1px solid #FCD34D; font-weight: 700;">
+                    <span class="badge" style="background: #FEF3C7; color: var(--dm-on-light, #B45309); border: 1px solid #FCD34D; font-weight: 700;">
                         ⏳ Pending Approval
                     </span>
                 @elseif($product->isRejected())

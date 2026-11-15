@@ -248,7 +248,7 @@
                             callback: function(value) { return '₱' + value; },
                             font: { size: 10 }
                         },
-                        grid: { color: '#F3F4F6' }
+                        grid: { color: '#F3F4F6'}
                     },
                     y1: {
                         beginAtZero: true,
