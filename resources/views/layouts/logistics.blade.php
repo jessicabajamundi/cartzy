@@ -22,6 +22,7 @@
         <link rel="stylesheet" href="{{ asset('css/logistics-dashboard.css') }}?v={{ filemtime(public_path('css/logistics-dashboard.css')) }}">
     @endif
     <link rel="stylesheet" href="{{ asset('css/logistics-admin.css') }}?v={{ filemtime(public_path('css/logistics-admin.css')) }}">
+    @include('partials.dark-mode-head')
 </head>
 <body class="logistics-admin {{ request()->routeIs('logistics.chat*') ? 'is-chat-page' : '' }}">
 @php
@@ -83,6 +84,7 @@
     <header class="topbar">
         <div class="topbar-title"><button type="button" class="icon-button mobile-toggle" data-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open navigation">@include('admin.partials.icon', ['name' => 'menu'])</button><span>Logistics hub <span class="crumb">/</span> <strong>@yield('page_title', 'Dashboard')</strong></span></div>
         <div class="topbar-actions">
+            @include('partials.dark-mode-toggle')
             <a class="button subtle" href="{{ route('home') }}">View storefront @include('admin.partials.icon', ['name' => 'arrow'])</a>
             <a class="topbar-account" href="{{ route('logistics.account') }}" aria-label="Account management" title="{{ Auth::user()->name ?? 'Hub manager' }}"><span class="avatar">{{ mb_strtoupper(mb_substr(Auth::user()->name ?? 'H', 0, 1)) }}</span></a>
             <a class="icon-button topbar-bell" href="{{ route('logistics.notifications') }}" aria-label="Notifications, {{ $logisticsUnreadCount }} unread" title="Notifications">

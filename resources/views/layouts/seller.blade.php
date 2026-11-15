@@ -18,6 +18,7 @@
         <link rel="stylesheet" href="{{ asset('css/chat-popup.css') }}?v={{ filemtime(public_path('css/chat-popup.css')) }}">
         <link rel="stylesheet" href="{{ asset('css/seller-chat-popups.css') }}?v={{ filemtime(public_path('css/seller-chat-popups.css')) }}">
     @endif
+    @include('partials.dark-mode-head')
 </head>
 <body class="{{ request()->routeIs('seller.dashboard') ? 'seller-overview' : '' }}">
 @php($sellerMode = auth()->user()->isSeller())
@@ -71,6 +72,7 @@
             </div>
             @unless($sellerMode) @include('layouts.partials.account-navigation') @endunless
             <div class="topbar-actions">
+                @include('partials.dark-mode-toggle')
                 <a class="button secondary" href="{{ route('home') }}">View storefront @include('seller.partials.icon', ['name' => 'arrow-right'])</a>
                 @if($sellerMode)
                     <a class="topbar-account" href="{{ route('seller.account') }}" aria-label="My account" title="My account"><span class="topbar-avatar">{{ mb_strtoupper(mb_substr($shop?->name ?? auth()->user()->name, 0, 1)) }}</span></a>

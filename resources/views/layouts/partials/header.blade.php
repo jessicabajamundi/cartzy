@@ -51,6 +51,7 @@
 
             <!-- Action Links: 5 Icons, then Login & Sign up / Profile -->
             <div class="header-actions flex items-center gap-1 sm:gap-2 shrink-0">
+                @include('partials.dark-mode-toggle')
                 
                 {{-- Icons Group (5 navigation icons: Orders, Messages, Cart, Wishlist, Notifications) --}}
                 <div class="header-icons flex items-center gap-0.5">

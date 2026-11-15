@@ -186,6 +186,7 @@
     <link rel="stylesheet" href="{{ asset('css/blend-buttons.css') }}?v={{ filemtime(public_path('css/blend-buttons.css')) }}">
     @endif
 
+    @include('partials.dark-mode-head')
 </head>
 <body class="min-h-screen flex flex-col text-neutral-900 antialiased selection:bg-[#A8A0B2] selection:text-white">
 

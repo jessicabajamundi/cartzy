@@ -452,6 +452,7 @@
             <link rel="stylesheet" href="{{ asset('css/auth-split.css') }}">
         @endif
     @endif
+    @include('partials.dark-mode-head')
 </head>
 @hasSection('auth_modal')
 <body class="auth-split-page lm-page auth-modal-page">

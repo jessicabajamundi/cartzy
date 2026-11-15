@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}?v={{ filemtime(public_path('css/admin.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/buddy.css') }}?v={{ filemtime(public_path('css/buddy.css')) }}">
     @stack('styles')
+    @include('partials.dark-mode-head')
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -74,6 +75,7 @@
     <header class="topbar">
         <div class="topbar-title"><button type="button" class="icon-button mobile-toggle" data-sidebar-toggle aria-controls="admin-sidebar" aria-expanded="false" aria-label="Open navigation">@include('admin.partials.icon', ['name' => 'menu'])</button><span>Administration <span class="crumb">/</span> <strong>@yield('page_title', 'Overview')</strong></span></div>
         <div class="topbar-actions">
+            @include('partials.dark-mode-toggle')
             <a class="button subtle" href="{{ route('home') }}">View storefront @include('admin.partials.icon', ['name' => 'arrow'])</a>
             <a class="topbar-account" href="{{ route('admin.account') }}" aria-label="My account"><span class="avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span></a>
             <a class="icon-button" href="{{ route('admin.chat') }}" aria-label="Notifications" title="Notifications">@include('admin.partials.icon', ['name' => 'bell'])</a>
