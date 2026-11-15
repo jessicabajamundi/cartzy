@@ -1007,6 +1007,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                               category: item['category']?['name']?.toString() ?? '',
                               price: price,
                               originalPrice: regularPrice,
+                              description: item['description']?.toString(),
                               imageUrl: image != null ? ApiService.normalizeImageUrl(image) : null,
                               sellerName: _effectiveSellerName,
                               rating: rating,

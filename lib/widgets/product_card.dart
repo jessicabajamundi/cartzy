@@ -32,6 +32,7 @@ class ProductCard extends StatefulWidget {
   final bool inStock;
   final int? stock;
   final String? estimatedDelivery;
+  final String? description;
 
   const ProductCard({
     super.key,
@@ -52,6 +53,7 @@ class ProductCard extends StatefulWidget {
     this.inStock = true,
     this.stock,
     this.estimatedDelivery,
+    this.description,
   });
 
   /// Height of everything below the square photo. A card of width `w` needs

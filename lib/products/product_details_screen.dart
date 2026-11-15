@@ -27,6 +27,8 @@ class ProductDetailsScreen extends StatefulWidget {
   final String category;
   final String price;
   final String? originalPrice;
+  final int? discountPercent;
+  final String? description;
   final String? imageUrl;
   final String? sellerName;
   final String? badge;
@@ -43,6 +45,8 @@ class ProductDetailsScreen extends StatefulWidget {
     required this.category,
     required this.price,
     this.originalPrice,
+    this.discountPercent,
+    this.description,
     this.imageUrl,
     this.sellerName,
     this.badge,
@@ -149,10 +153,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     _category = widget.category;
     _price = widget.price;
     _originalPrice = widget.originalPrice;
+    _description = widget.description;
     _sellerName = widget.sellerName ?? 'Cartzy Store';
     _badge = widget.badge ?? '';
     _rating = widget.rating ?? 0;
     _soldCount = widget.soldCount ?? '0 sold';
+
+    if ((_originalPrice == null || _originalPrice!.isEmpty) &&
+        widget.discountPercent != null &&
+        widget.discountPercent! > 0) {
+      final current = _parsePrice(widget.price);
+      if (current > 0 && widget.discountPercent! < 100) {
+        final regular = current / (1 - (widget.discountPercent! / 100));
+        _originalPrice = CatalogService.peso(regular);
+      }
+    }
 
     RecentlyViewedService.record(RecentlyViewedProduct(
       productId: widget.productId,
@@ -293,7 +308,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             _inStock = data['in_stock'] as bool;
           }
           _gender = data['gender']?.toString();
-          _description = data['description']?.toString();
+          final rawDesc = data['description']?.toString().trim();
+          if (rawDesc != null && rawDesc.isNotEmpty) {
+            _description = rawDesc;
+          }
 
           // Full gallery images
           if (data['images'] is List) {
@@ -429,13 +447,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   }
 
   int get _discountPercent {
-    if (_originalPrice == null || _originalPrice!.isEmpty) return 0;
+    if (_originalPrice == null || _originalPrice!.isEmpty) {
+      return (widget.discountPercent != null && widget.discountPercent! > 0)
+          ? widget.discountPercent!
+          : 0;
+    }
     final current = _parsePrice(_price);
     final reg = _parsePrice(_originalPrice!);
     if (reg > current && reg > 0) {
       return (((reg - current) / reg) * 100).round();
     }
-    return 0;
+    return (widget.discountPercent != null && widget.discountPercent! > 0)
+        ? widget.discountPercent!
+        : 0;
   }
 
   double get _savingsAmount {
@@ -514,6 +538,57 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
         ),
       ),
     );
+  }
+
+  void _handleBuyNow() {
+    if (widget.isGuest || !AuthService.isAuthenticated) {
+      if (widget.onAddToCart != null) {
+        widget.onAddToCart!();
+      } else {
+        GuestCartScreen.open(context);
+      }
+      return;
+    }
+    if (!_inStock) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sorry, this variant is currently out of stock.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final effectiveImage = _galleryImages.isNotEmpty
+        ? _galleryImages[_currentImageIndex.clamp(0, _galleryImages.length - 1)]
+        : CartzyProductImages.getImage(_name, _category);
+
+    final result = CartService.instance.addItem(
+      name: _name,
+      price: _price,
+      originalPrice: _originalPrice,
+      image: effectiveImage,
+      category: _category,
+      variation: _variationDescription,
+      quantity: _quantity,
+      productId: widget.productId,
+      variantId: _selectedVariantId,
+      stock: _stockKnown ? _stock : null,
+    );
+
+    // Select this item in the cart for immediate purchase
+    try {
+      final cartItem = CartService.instance.items.firstWhere(
+        (item) => item.name == _name && item.variation == _variationDescription,
+        orElse: () => CartService.instance.items.last,
+      );
+      CartService.instance.selectOnly(cartItem.id);
+    } catch (_) {}
+
+    setState(() => _quantity = 1);
+
+    // Immediately open Cart ready for checkout
+    _navigateToCart();
   }
 
   /// Flies a copy of the product photo into the cart icon, then bounces the icon.
@@ -915,30 +990,30 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 const SizedBox(height: 14),
 
                 // ==========================================
-                // 7. SELLER STORE CARD
+                // 7. DESCRIPTION (RICH FORMATTED)
                 // ==========================================
-                _buildSellerCard(),
+                _buildDescriptionSection(),
 
                 const SizedBox(height: 14),
 
                 // ==========================================
-                // 8. AUTHENTIC GUARANTEE CALLOUT
-                // ==========================================
-                _buildAuthenticCallout(),
-
-                const SizedBox(height: 14),
-
-                // ==========================================
-                // 9. SPECIFICATIONS
+                // 8. SPECIFICATIONS
                 // ==========================================
                 _buildSpecSection(),
 
                 const SizedBox(height: 14),
 
                 // ==========================================
-                // 10. DESCRIPTION (RICH FORMATTED)
+                // 9. SELLER STORE CARD
                 // ==========================================
-                _buildDescriptionSection(),
+                _buildSellerCard(),
+
+                const SizedBox(height: 14),
+
+                // ==========================================
+                // 10. AUTHENTIC GUARANTEE CALLOUT
+                // ==========================================
+                _buildAuthenticCallout(),
 
                 const SizedBox(height: 14),
 
@@ -2138,13 +2213,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   }
 
   // ==========================================
-  // STICKY BOTTOM ACTION BAR
+  // STICKY BOTTOM ACTION BAR (Matching Web .pd-buy-row)
   // ==========================================
   Widget _buildBottomActionBar() {
     return Container(
       padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
+        left: 14,
+        right: 14,
         top: 10,
         bottom: MediaQuery.of(context).padding.bottom + 10,
       ),
@@ -2172,7 +2247,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           ),
           const SizedBox(width: 8),
 
-          // Favorite Button
+          // Favorite / Wishlist Button
           IconButton(
             style: IconButton.styleFrom(
               backgroundColor: const Color(0xFFF1F5F9),
@@ -2186,36 +2261,35 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             tooltip: 'Save to Wishlist',
             onPressed: _toggleWishlist,
           ),
+          const SizedBox(width: 8),
+
+          // Dedicated Add to Cart Icon Button (Matching Web .pd-cart-icon-btn)
+          IconButton(
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFFF1F5F9),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+              child: Icon(
+                _justAdded ? Icons.check_circle_rounded : Icons.shopping_cart_outlined,
+                key: ValueKey(_justAdded),
+                color: _canAdd ? CartzyColors.navy : const Color(0xFF94A3B8),
+                size: 20,
+              ),
+            ),
+            tooltip: 'Add to Cart',
+            onPressed: _canAdd ? _handleAddToCart : null,
+          ),
           const SizedBox(width: 10),
 
-          // Large Add to Cart / Buy Button
+          // Wide "Buy now" Button (Matching Web #pd-add / Buy now)
           Expanded(
             child: SizedBox(
               height: 48,
-              child: ElevatedButton.icon(
-                onPressed: _canAdd ? _handleAddToCart : null,
-                icon: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
-                  child: Icon(
-                    _justAdded ? Icons.check_circle_rounded : Icons.shopping_cart_outlined,
-                    key: ValueKey(_justAdded),
-                    size: 20,
-                  ),
-                ),
-                label: Text(
-                  !_inStock
-                      ? 'Sold Out'
-                      : _justAdded
-                          ? 'Added!'
-                          : _maxAddable <= 0
-                              ? 'Max stock in cart'
-                              : (_quantity > 1 ? 'Add to Cart ($_quantity)' : 'Add to Cart'),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              child: ElevatedButton(
+                onPressed: _canAdd ? _handleBuyNow : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: CartzyColors.coral,
                   foregroundColor: Colors.white,
@@ -2224,6 +2298,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  !_inStock
+                      ? 'Sold Out'
+                      : _maxAddable <= 0
+                          ? 'Max stock in cart'
+                          : 'Buy now',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),

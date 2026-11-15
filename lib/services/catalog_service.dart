@@ -63,6 +63,7 @@ class CatalogService {
       hasFreeShipping: true,
       saleEndsAt: DateTime.tryParse(json['sale_ends_at']?.toString() ?? ''),
       estimatedDelivery: json['estimated_delivery_badge']?.toString() ?? json['estimated_delivery']?.toString(),
+      description: json['description']?.toString(),
     );
   }
 

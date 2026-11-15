@@ -38,6 +38,9 @@ class ProductItem {
   /// Estimated delivery days based on distance (e.g. "⚡ Est. 1-2 days", "🚚 Est. 2-4 days").
   final String? estimatedDelivery;
 
+  /// Full text description of the product.
+  final String? description;
+
   const ProductItem({
     this.id,
     required this.name,
@@ -55,6 +58,7 @@ class ProductItem {
     this.hasFreeShipping = true,
     this.saleEndsAt,
     this.estimatedDelivery,
+    this.description,
   });
 
   String get effectiveImageUrl => (imageUrl != null && imageUrl!.isNotEmpty)
@@ -287,6 +291,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
           category: product.category,
           price: product.price,
           originalPrice: product.originalPrice,
+          discountPercent: product.discountPercent,
+          description: product.description,
           imageUrl: product.effectiveImageUrl,
           sellerName: product.sellerName,
           badge: product.badge,

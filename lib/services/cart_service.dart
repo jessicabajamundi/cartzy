@@ -619,6 +619,15 @@ class CartService extends ChangeNotifier {
     _syncSelectAllToServer();
   }
 
+  /// Selects only the given item (e.g. for Buy Now) and deselects all others.
+  void selectOnly(String itemId) {
+    for (final item in _items) {
+      item.selected = (item.id == itemId && !item.isOutOfStock);
+    }
+    notifyListeners();
+    _syncSelectAllToServer();
+  }
+
   /// Removes the items that were just checked out.
   void clearSelected() {
     final done = selectedItems.toSet();
