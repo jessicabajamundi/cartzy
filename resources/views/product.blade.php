@@ -166,7 +166,12 @@
                             <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>
                         </button>
                     @endif
-                    <button class="pd-button btn-blend" id="pd-add" type="submit" @disabled($selected['stock'] < 1)>{{ $selected['stock'] > 0 ? 'Add to cart' : 'Sold out' }}</button>
+                    <button type="button" class="pd-cart-icon-btn" id="pd-cart-icon-btn" aria-label="Add to cart" title="Add to cart" @disabled($selected['stock'] < 1)>
+                        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3c-.6.6-.2 1.7.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </button>
+                    <button class="pd-button btn-blend" id="pd-add" type="submit" name="buy_now" value="1" @disabled($selected['stock'] < 1)>{{ $selected['stock'] > 0 ? 'Buy now' : 'Sold out' }}</button>
                 </div>
                 <p class="pd-warehouse-note" id="pd-warehouse-note" role="status" data-threshold="{{ \App\Support\WarehouseShipping::THRESHOLD }}" hidden>
                     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V8l9-5 9 5v13M7 21v-8h10v8M7 17h10"/></svg>

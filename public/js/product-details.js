@@ -248,7 +248,15 @@
         quantity.value = Math.min(Math.max(Number(quantity.value) || 1, 1), option.stock);
         quantity.disabled = option.stock < 1;
         syncQuantity(true);
-        document.getElementById('pd-add').disabled = option.stock < 1;
+        const addButton = document.getElementById('pd-add');
+        if (addButton) {
+            addButton.disabled = option.stock < 1;
+            addButton.textContent = option.stock > 0 ? 'Buy now' : 'Sold out';
+        }
+        const cartIconBtn = document.getElementById('pd-cart-icon-btn');
+        if (cartIconBtn) {
+            cartIconBtn.disabled = option.stock < 1;
+        }
         setGallery(option);
     };
     const syncChips = () => chips.forEach(chip => {
@@ -461,24 +469,39 @@
     });
 })();
 
-// Add to cart without leaving the page, so the product photo can fly into the header cart.
+// Add to cart & Buy now handling
 (() => {
     const form = document.getElementById('pd-cart-form');
-    const button = document.getElementById('pd-add');
-    if (!form || !button || !window.fetch) return;
+    const buyButton = document.getElementById('pd-add');
+    const cartIconButton = document.getElementById('pd-cart-icon-btn');
+    if (!form || !window.fetch) return;
 
-    form.addEventListener('submit', async event => {
-        if (event.defaultPrevented) return;
-        event.preventDefault();
-        if (button.getAttribute('aria-busy') === 'true') return;
-        button.setAttribute('aria-busy', 'true');
-        button.disabled = true;
+    let isSubmitting = false;
+
+    async function handleCartSubmission(isBuyNow = false) {
+        if (isSubmitting) return;
+        const triggerBtn = isBuyNow ? buyButton : (cartIconButton || buyButton);
+        if (triggerBtn && triggerBtn.disabled && triggerBtn.getAttribute('aria-busy') !== 'true') return;
+
+        isSubmitting = true;
+        if (triggerBtn) {
+            triggerBtn.setAttribute('aria-busy', 'true');
+            triggerBtn.disabled = true;
+        }
+
         try {
+            const formData = new FormData(form);
+            if (isBuyNow) {
+                formData.set('buy_now', '1');
+            } else {
+                formData.delete('buy_now');
+            }
+
             const response = await fetch(form.action, {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                body: new FormData(form),
+                body: formData,
             });
             const data = await response.json().catch(() => null);
             if (response.status === 401) return window.location.assign(data?.redirect || '/register?from=cart');
@@ -486,17 +509,45 @@
             if (response.status === 422) throw new Error(Object.values(data?.errors || {}).flat()[0] || data?.message || 'Please check your selection.');
             if (!response.ok || !data?.success) throw new Error(data?.message || 'Could not add to cart. Please try again.');
 
-            const photo = document.getElementById('pd-main-image');
-            const photoShown = photo && !photo.hidden && photo.getBoundingClientRect().width > 0;
-            window.flyToHeader?.('cart', photoShown ? photo : button, photoShown ? (photo.currentSrc || photo.src) : null);
             window.updateCartBadge?.(data.cartCount);
             window.updateCartPopover?.(data.cart, data.cartCount);
+
+            if (isBuyNow) {
+                window.location.assign(data?.redirect || '/cart');
+                return;
+            }
+
+            if (cartIconButton) {
+                cartIconButton.classList.add('is-popping');
+                setTimeout(() => cartIconButton.classList.remove('is-popping'), 320);
+            }
+
+            const photo = document.getElementById('pd-main-image');
+            const photoShown = photo && !photo.hidden && photo.getBoundingClientRect().width > 0;
+            window.flyToHeader?.('cart', photoShown ? photo : (cartIconButton || buyButton), photoShown ? (photo.currentSrc || photo.src) : null);
             window.showToast?.('Added to your cart.', 'success');
         } catch (error) {
             window.showToast?.(error.message || 'Something went wrong. Please try again.', 'error');
         } finally {
-            button.removeAttribute('aria-busy');
-            button.disabled = false;
+            isSubmitting = false;
+            if (triggerBtn) {
+                triggerBtn.removeAttribute('aria-busy');
+                triggerBtn.disabled = false;
+            }
         }
+    }
+
+    if (cartIconButton) {
+        cartIconButton.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            handleCartSubmission(false);
+        });
+    }
+
+    form.addEventListener('submit', async event => {
+        if (event.defaultPrevented) return;
+        event.preventDefault();
+        handleCartSubmission(true);
     });
 })();

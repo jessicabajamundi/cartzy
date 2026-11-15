@@ -97,6 +97,23 @@ class CartController extends Controller
 
         $totalCount = count($cart);
 
+        if ($request->boolean('buy_now') || $request->input('action') === 'buy_now') {
+            app(\App\Services\BuyerCart::class)->select([$cartKey]);
+            $cart = app(\App\Services\BuyerCart::class)->all();
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success'    => true,
+                    'message'    => '✓ "' . $name . '" added to your cart!',
+                    'cartCount'  => $totalCount,
+                    'cart'       => array_values($cart),
+                    'redirect'   => route('cart.index'),
+                ]);
+            }
+
+            return redirect()->route('cart.index')->with('success', 'Added to cart!');
+        }
+
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success'    => true,
