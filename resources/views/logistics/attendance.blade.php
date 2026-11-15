@@ -1,8 +1,8 @@
 @extends('layouts.logistics')
-@section('title', 'Attendance (Time In / Time Out) | Logistics Hub | cartzy')
+@section('title', 'Attendance | Logistics Hub | cartzy')
 @section('page_eyebrow', 'COURIER & RIDER ATTENDANCE')
-@section('page_title', 'Attendance (Time in / time out)')
-@section('page_description', 'Couriers and riders open the Cartzy mobile app, tap Attendance (Time in / out), and scan this code. The first scan times them in, the next one times them out.')
+@section('page_title', 'Attendance')
+@section('page_description', 'Couriers and riders open the Cartzy mobile app, tap Attendance, and scan this code. The first scan times them in, the next one times them out.')
 @section('page_subtitle', 'Couriers and riders scan the hub QR code in the mobile app')
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/logistics-attendance.css') }}?v={{ filemtime(public_path('css/logistics-attendance.css')) }}">
@@ -48,7 +48,7 @@
         <div class="panel att-qr-card" id="att-qr-card" data-qr-url="{{ route('logistics.attendance.qr') }}" data-seconds-left="{{ $secondsLeft }}" data-window="{{ $windowSeconds }}" data-version="{{ $version }}">
             <header class="panel-header att-qr-top">
                 <div>
-                    <span class="eyebrow">SCAN FOR ATTENDANCE (TIME IN / OUT)</span>
+                    <span class="eyebrow">SCAN FOR ATTENDANCE</span>
                     <h2>{{ $provider->name }}</h2>
                     <p>Point the Courier or Rider mobile app scanner at this code.</p>
                 </div>

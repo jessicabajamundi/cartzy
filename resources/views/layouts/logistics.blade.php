@@ -33,7 +33,7 @@
         ],
         'Personnel & Attendance' => [
             'riders' => ['Rider & courier management', 'users'],
-            'attendance' => ['Attendance (Time in / out)', 'clock'],
+            'attendance' => ['Attendance', 'clock'],
         ],
         'Parcel operations' => [
             'pickups' => ['Pickup requests', 'truck'],
