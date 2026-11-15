@@ -107,56 +107,68 @@ class _CourierDashboardState extends State<CourierDashboard> {
   }
 
   // ── Layout ──────────────────────────────────────────────────
+  bool get _usesHeroHeader => _tab == 0 && !_loading && _data != null;
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: CartzyColors.background,
-      drawer: _buildMenu(),
-      bottomNavigationBar: _buildBottomNav(),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(child: _buildBody()),
-          ],
-        ),
+    final usesHero = _usesHeroHeader;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: usesHero ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: CartzyColors.background,
+        drawer: _buildMenu(),
+        bottomNavigationBar: _buildBottomNav(),
+        body: usesHero
+            ? _buildBody()
+            : SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    _buildHeader(),
+                    Expanded(child: _buildBody()),
+                  ],
+                ),
+              ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader({bool onGradient = false}) {
+    final fg = onGradient ? Colors.white : _ink;
     return SizedBox(
       height: 60,
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Menu',
-            icon: const Icon(Icons.menu_rounded, color: _ink, size: 26),
-            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
-          Expanded(
-            child: Text(
-              'cartzy',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: _ink),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: onGradient ? 8 : 0),
+        child: Row(
+          children: [
+            IconButton(
+              tooltip: 'Menu',
+              icon: Icon(Icons.menu_rounded, color: fg, size: 26),
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
-          ),
-          ValueListenableBuilder<int>(
-            valueListenable: NotificationService.unreadCountNotifier,
-            builder: (context, unread, _) => IconButton(
-              tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
-              onPressed: _openNotifications,
-              icon: Badge(
-                isLabelVisible: unread > 0,
-                label: Text(unread > 99 ? '99+' : '$unread'),
-                backgroundColor: const Color(0xFFD1495B),
-                child: const Icon(Icons.notifications_none_rounded, color: _ink, size: 26),
+            Expanded(
+              child: Text(
+                'cartzy',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: fg),
               ),
             ),
-          ),
-        ],
+            ValueListenableBuilder<int>(
+              valueListenable: NotificationService.unreadCountNotifier,
+              builder: (context, unread, _) => IconButton(
+                tooltip: unread > 0 ? 'Notifications, $unread unread' : 'Notifications',
+                onPressed: _openNotifications,
+                icon: Badge(
+                  isLabelVisible: unread > 0,
+                  label: Text(unread > 99 ? '99+' : '$unread'),
+                  backgroundColor: const Color(0xFFD1495B),
+                  child: Icon(Icons.notifications_none_rounded, color: fg, size: 26),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -176,17 +188,19 @@ class _CourierDashboardState extends State<CourierDashboard> {
     }
 
     final pages = [_homeTab, _pickupsTab, _historyTab, _profileTab];
-    return RefreshIndicator(
+    final usesHero = _tab == 0;
+    final list = RefreshIndicator(
       color: CartzyColors.burgundy,
       onRefresh: _load,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: usesHero ? const EdgeInsets.only(bottom: 24) : const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [
-          if (_error != null) _ErrorBanner(message: _error!, onRetry: _load),
+          if (!usesHero && _error != null) _ErrorBanner(message: _error!, onRetry: _load),
           ...pages[_tab](data),
         ],
       ),
     );
+    return usesHero ? MediaQuery.removePadding(context: context, removeTop: true, child: list) : list;
   }
 
   // ── Home ────────────────────────────────────────────────────
@@ -195,109 +209,111 @@ class _CourierDashboardState extends State<CourierDashboard> {
     final vehicle = [c.vehicleLabel, c.plateNo].whereType<String>().join(' · ');
 
     return [
-      // Who and what
+      // Full-bleed upper purple banner including header & status bar
       Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF4C4054), Color(0xFF7A5560)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(22),
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(0, MediaQuery.paddingOf(context).top, 0, 22),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(colors: [Color(0xFF4C4054), Color(0xFF7A5560)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              c.firstName.isEmpty ? 'Welcome' : 'Hi, ${c.firstName}',
-              style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                if (c.courierTypeLabel != null) _Chip('${c.courierTypeLabel} courier', Icons.local_shipping_outlined),
-                if (vehicle.isNotEmpty) _Chip(vehicle, Icons.directions_car_outlined),
-                if (c.hub != null) _Chip(c.hub!, Icons.warehouse_outlined),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: _scanParcel,
-                icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
-                label: Text('Scan Parcel', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 15)),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: _ink,
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 14),
-
-      // Shift
-      _Card(
-        onTap: _openAttendance,
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: (d.onShift ? _green : _muted).withValues(alpha: 0.12),
-              child: Icon(d.onShift ? Icons.timer_outlined : Icons.timer_off_outlined, color: d.onShift ? _green : _muted),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
+            _buildHeader(onGradient: true),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(d.onShift ? 'On shift' : 'Not on shift', style: _title),
-                  const SizedBox(height: 2),
                   Text(
-                    d.onShift
-                        ? (d.shiftSince != null ? 'Timed in at ${courierTime(d.shiftSince!)}' : 'Timed in')
-                        : 'Scan the QR code at your hub to time in',
-                    style: _sub,
+                    c.firstName.isEmpty ? 'Welcome' : 'Hi, ${c.firstName}',
+                    style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: Colors.white),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      if (c.courierTypeLabel != null) _Chip('${c.courierTypeLabel} courier', Icons.local_shipping_outlined),
+                      if (vehicle.isNotEmpty) _Chip(vehicle, Icons.directions_car_outlined),
+                      if (c.hub != null) _Chip(c.hub!, Icons.warehouse_outlined),
+                    ],
                   ),
                 ],
               ),
             ),
-            Text(d.onShift ? 'Time out' : 'Time in', style: _link),
           ],
         ),
       ),
-      const SizedBox(height: 14),
-
-      // Today
-      IntrinsicHeight(
-        child: Row(
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: _Stat(label: 'To pick up', value: d.pickupsToDo, sub: d.parcelsToCollect == 1 ? '1 parcel' : '${d.parcelsToCollect} parcels')),
-            const SizedBox(width: 10),
-            Expanded(child: _Stat(label: 'In vehicle', value: d.inVehicleCount, sub: 'for the hub')),
-            const SizedBox(width: 10),
-            Expanded(child: _Stat(label: 'At hub today', value: d.handedToHubToday, sub: '${d.collectedToday} collected')),
+            if (_error != null) _ErrorBanner(message: _error!, onRetry: _load),
+            // Shift
+            _Card(
+              onTap: _openAttendance,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: (d.onShift ? _green : _muted).withValues(alpha: 0.12),
+                    child: Icon(d.onShift ? Icons.timer_outlined : Icons.timer_off_outlined, color: d.onShift ? _green : _muted),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(d.onShift ? 'On shift' : 'Not on shift', style: _title),
+                        const SizedBox(height: 2),
+                        Text(
+                          d.onShift
+                              ? (d.shiftSince != null ? 'Timed in at ${courierTime(d.shiftSince!)}' : 'Timed in')
+                              : 'Scan the QR code at your hub to time in',
+                          style: _sub,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(d.onShift ? 'Time out' : 'Time in', style: _link),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Today
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: _Stat(label: 'To pick up', value: d.pickupsToDo, sub: d.parcelsToCollect == 1 ? '1 parcel' : '${d.parcelsToCollect} parcels')),
+                  const SizedBox(width: 10),
+                  Expanded(child: _Stat(label: 'In vehicle', value: d.inVehicleCount, sub: 'for the hub')),
+                  const SizedBox(width: 10),
+                  Expanded(child: _Stat(label: 'At hub today', value: d.handedToHubToday, sub: '${d.collectedToday} collected')),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            _SectionTitle('Next pickups', actionLabel: d.pickups.length > 2 ? 'See all' : null, onAction: () => setState(() => _tab = 1)),
+            if (d.pickups.isEmpty)
+              const _Empty(icon: Icons.inventory_2_outlined, text: 'No pickups assigned to you. When your hub assigns one, it shows up here.')
+            else
+              ...d.pickups.take(2).map((p) => _PickupCard(pickup: p)),
+            const SizedBox(height: 18),
+
+            const _SectionTitle('In your vehicle'),
+            if (d.inVehicle.isEmpty)
+              const _Empty(icon: Icons.local_shipping_outlined, text: 'Nothing in your vehicle. Parcels you accept at a seller show up here until the hub receives them.')
+            else
+              ...d.inVehicle.map((p) => _ParcelRow(parcel: p, when: p.at != null ? 'Picked up ${courierDay(p.at!)}, ${courierTime(p.at!)}' : null)),
           ],
         ),
       ),
-      const SizedBox(height: 22),
-
-      _SectionTitle('Next pickups', actionLabel: d.pickups.length > 2 ? 'See all' : null, onAction: () => setState(() => _tab = 1)),
-      if (d.pickups.isEmpty)
-        const _Empty(icon: Icons.inventory_2_outlined, text: 'No pickups assigned to you. When your hub assigns one, it shows up here.')
-      else
-        ...d.pickups.take(2).map((p) => _PickupCard(pickup: p)),
-      const SizedBox(height: 18),
-
-      const _SectionTitle('In your vehicle'),
-      if (d.inVehicle.isEmpty)
-        const _Empty(icon: Icons.local_shipping_outlined, text: 'Nothing in your vehicle. Parcels you accept at a seller show up here until the hub receives them.')
-      else
-        ...d.inVehicle.map((p) => _ParcelRow(parcel: p, when: p.at != null ? 'Picked up ${courierDay(p.at!)}, ${courierTime(p.at!)}' : null)),
     ];
   }
 
