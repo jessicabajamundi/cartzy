@@ -78,31 +78,31 @@
 
 @once
 <style>
-.buyer-voucher-code{background:#fff;border:1px solid #E1DDE7;border-radius:18px;padding:18px 20px}
-.buyer-voucher-code label{display:block;font-size:13px;font-weight:800;color:#3E354C;margin-bottom:8px}
+.buyer-voucher-code{background:var(--dm-surface, #fff);border:1px solid var(--dm-border, #E1DDE7);border-radius:18px;padding:18px 20px}
+.buyer-voucher-code label{display:block;font-size:13px;font-weight:800;color:var(--dm-ink, #3E354C);margin-bottom:8px}
 .buyer-voucher-code>div{display:flex;gap:8px}
-.buyer-voucher-code input{flex:1;min-width:0;border:1px solid #E1DDE7;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;text-transform:uppercase}
+.buyer-voucher-code input{flex:1;min-width:0;border:1px solid var(--dm-border, #E1DDE7);border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;text-transform:uppercase}
 .buyer-voucher-code input:focus{outline:none;border-color:#8d7a9e;box-shadow:0 0 0 3px #6f638220}
 .buyer-voucher-code button{border:0;border-radius:12px;background:#564B68;color:#fff;font-size:13px;font-weight:700;padding:0 18px;cursor:pointer;white-space:nowrap}
 .buyer-voucher-code button:hover{background:#3E354C}
-.buyer-voucher-error{color:#b45045;font-size:12px;margin-top:8px}
+.buyer-voucher-error{color:var(--dm-red-ink, #b45045);font-size:12px;margin-top:8px}
 .buyer-voucher-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
-.buyer-voucher{display:flex;background:#fff;border:1px solid #E1DDE7;border-radius:16px;overflow:hidden;min-height:118px}
-.buyer-voucher-stub{width:118px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;text-align:center;padding:14px 10px;background:linear-gradient(160deg,#6F6382,#564B68);color:#fff;border-right:2px dashed #fff}
+.buyer-voucher{display:flex;background:var(--dm-surface, #fff);border:1px solid var(--dm-border, #E1DDE7);border-radius:16px;overflow:hidden;min-height:118px}
+.buyer-voucher-stub{width:118px;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;text-align:center;padding:14px 10px;background:linear-gradient(160deg,#6F6382,#564B68);color:#fff;border-right:2px dashed var(--dm-border, #fff)}
 .buyer-voucher-stub span{font-size:9px;letter-spacing:1.5px;opacity:.8;font-weight:700}
 .buyer-voucher-stub strong{font-size:16px;font-weight:900;line-height:1.2}
 .buyer-voucher.is-shipping .buyer-voucher-stub{background:linear-gradient(160deg,#3d8a72,#28735d)}
 .buyer-voucher-body{padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
-.buyer-voucher-body h3{font-size:14px;font-weight:800;color:#282133;margin:0}
-.buyer-voucher-body p{font-size:12px;color:#756b80;margin:0;line-height:1.5}
+.buyer-voucher-body h3{font-size:14px;font-weight:800;color:var(--dm-ink, #282133);margin:0}
+.buyer-voucher-body p{font-size:12px;color:var(--dm-muted, #756b80);margin:0;line-height:1.5}
 .buyer-voucher-terms{font-weight:600}
-.buyer-voucher-status{margin-top:auto;font-size:11px;font-weight:700;color:#a56f60}
-.buyer-voucher-status.is-ready{color:#28735d}
+.buyer-voucher-status{margin-top:auto;font-size:11px;font-weight:700;color:var(--dm-gold-ink, #a56f60)}
+.buyer-voucher-status.is-ready{color:var(--dm-green-ink, #28735d)}
 .buyer-voucher.is-waiting .buyer-voucher-stub{filter:saturate(.45)}
 .buyer-voucher-cta{display:inline-flex}
-.buyer-voucher-group{margin:6px 0 -4px;font-size:13px;font-weight:800;color:#3E354C}
+.buyer-voucher-group{margin:6px 0 -4px;font-size:13px;font-weight:800;color:var(--dm-ink, #3E354C)}
 .buyer-voucher.is-shop .buyer-voucher-stub{background:linear-gradient(160deg,#a25369,#7c4a6b)}
-.buyer-voucher-shop{color:#a25369!important;font-weight:700;font-size:11px!important;letter-spacing:.04em;text-transform:uppercase}
+.buyer-voucher-shop{color:var(--dm-red-ink, #a25369)!important;font-weight:700;font-size:11px!important;letter-spacing:.04em;text-transform:uppercase}
 a.buyer-voucher-status{text-decoration:none}
 a.buyer-voucher-status:hover{text-decoration:underline}
 @media(max-width:520px){.buyer-voucher-grid{grid-template-columns:1fr}.buyer-voucher-stub{width:96px}.buyer-voucher-stub strong{font-size:13px}.buyer-voucher-code>div{flex-direction:column}.buyer-voucher-code button{padding:11px}}

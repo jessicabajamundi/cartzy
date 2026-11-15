@@ -12,7 +12,7 @@
 
 /* Stat cards (also act as quick filters) */
 .inv-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
-.inv-stat { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; background: #fff; border: 1px solid var(--brand-border, #e1dde7); border-radius: 14px; color: var(--brand-ink, #282133); text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.inv-stat { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; background: var(--dm-surface, #fff); border: 1px solid var(--brand-border, #e1dde7); border-radius: 14px; color: var(--brand-ink, #282133); text-decoration: none; transition: border-color .15s, box-shadow .15s; }
 .inv-stat:hover { border-color: var(--brand-focus, #a8a0b2); }
 .inv-stat[aria-current="page"] { border-color: var(--brand-deep, #564b68); box-shadow: 0 4px 14px rgba(40, 33, 51, .1); }
 .inv-stat-label { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-primary, #6f6382); }
@@ -26,10 +26,10 @@
 .inv-stat.is-out.has-value small { color: var(--red, #b24355); }
 
 /* Panel: filters + table */
-.inv-panel { background: #fff; border: 1px solid var(--brand-border, #e1dde7); border-radius: 14px; }
+.inv-panel { background: var(--dm-surface, #fff); border: 1px solid var(--brand-border, #e1dde7); border-radius: 14px; }
 .inv-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto; align-items: end; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--brand-border, #e1dde7); }
 .inv-field { display: flex; flex-direction: column; gap: 8px; margin: 0; font-size: 13px; font-weight: 600; color: var(--brand-ink, #282133); }
-.inv-field :is(input, select) { width: 100%; height: 44px; margin: 0; padding: 0 14px; border: 1px solid var(--brand-border, #e1dde7); border-radius: 10px; background: #fff; font: inherit; font-size: 14px; font-weight: 400; color: var(--brand-ink, #282133); }
+.inv-field :is(input, select) { width: 100%; height: 44px; margin: 0; padding: 0 14px; border: 1px solid var(--brand-border, #e1dde7); border-radius: 10px; background: var(--dm-surface, #fff); font: inherit; font-size: 14px; font-weight: 400; color: var(--brand-ink, #282133); }
 .inv-filter-actions { display: flex; align-items: center; gap: 10px; }
 .inv-filter-actions .button { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; }
 .inv-clear { font-size: 13px; font-weight: 600; color: var(--brand-muted, #776e83); }
@@ -58,12 +58,12 @@
 .inv-table td .inv-visibility.is-visible { color: var(--green, #1e7e5a); }
 
 .inv-actions { width: 1%; text-align: right; }
-.inv-edit-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid var(--brand-border, #e1dde7); border-radius: 10px; background: #fff; color: var(--brand-ink, #282133); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.inv-edit-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border: 1px solid var(--brand-border, #e1dde7); border-radius: 10px; background: var(--dm-surface, #fff); color: var(--brand-ink, #282133); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .inv-edit-btn:hover, .inv-edit-btn[aria-expanded="true"] { background: var(--brand-light, #f1eff5); border-color: var(--brand-focus, #a8a0b2); }
 
 /* Inline stock editor (opens under a row) */
 .inv-editor-row td { padding: 0 20px 20px; background: var(--brand-soft, #faf9fb); }
-.inv-editor { border: 1px solid var(--brand-border, #e1dde7); border-radius: 12px; background: #fff; }
+.inv-editor { border: 1px solid var(--brand-border, #e1dde7); border-radius: 12px; background: var(--dm-surface, #fff); }
 .inv-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 18px; border-bottom: 1px solid var(--brand-border, #e1dde7); }
 .inv-editor-head strong { display: block; font-size: 14px; color: var(--brand-ink, #282133); }
 .inv-editor-head span { font-size: 13px; color: var(--brand-muted, #776e83); }
@@ -72,14 +72,14 @@
 .inv-novariants, .inv-locked { margin: 0; padding: 14px 18px; font-size: 13px; color: var(--brand-muted, #776e83); }
 
 .inv-row { display: grid; grid-template-columns: minmax(0, 1fr) 130px auto; align-items: center; gap: 16px; padding: 12px 18px; transition: background .15s; }
-.inv-row + .inv-row { border-top: 1px solid #f0edf3; }
-.inv-row.is-changed { background: #fbf8ff; }
+.inv-row + .inv-row { border-top: 1px solid var(--dm-border, #f0edf3); }
+.inv-row.is-changed { background: var(--dm-surface, #fbf8ff); }
 .inv-variant strong { display: block; font-size: 14px; color: var(--brand-ink, #282133); overflow-wrap: anywhere; }
 .inv-variant small { display: block; margin-top: 2px; font-size: 12px; color: var(--brand-medium, #91879e); }
 .inv-row .inv-pill { justify-self: start; }
 
 .inv-qty { display: flex; align-items: center; gap: 10px; }
-.inv-stepper { display: inline-flex; align-items: center; border: 1px solid var(--brand-border, #e1dde7); border-radius: 10px; background: #fff; overflow: hidden; }
+.inv-stepper { display: inline-flex; align-items: center; border: 1px solid var(--brand-border, #e1dde7); border-radius: 10px; background: var(--dm-surface, #fff); overflow: hidden; }
 .inv-stepper button { width: 38px; height: 40px; padding: 0; border: 0; background: transparent; color: var(--brand-deep, #564b68); font-size: 18px; font-weight: 600; cursor: pointer; }
 .inv-stepper button:hover:not(:disabled) { background: var(--brand-light, #f1eff5); }
 .inv-stepper button:disabled { color: #cfc9d6; cursor: not-allowed; }
@@ -95,7 +95,7 @@
 .inv-savebar > div { display: flex; gap: 8px; }
 .inv-savebar .button.secondary { background: transparent; color: #fff; border-color: rgba(255, 255, 255, .35); }
 .inv-savebar .button.secondary:hover { background: rgba(255, 255, 255, .1); }
-.inv-savebar .button:not(.secondary) { background: #fff; color: var(--brand-ink, #282133); border-color: #fff; }
+.inv-savebar .button:not(.secondary) { background: var(--dm-surface, #fff); color: var(--brand-ink, #282133); border-color: var(--dm-border, #fff); }
 
 /* Empty state */
 .inv-empty { padding: 56px 24px; text-align: center; color: var(--brand-muted, #776e83); }

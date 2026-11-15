@@ -61,19 +61,19 @@
         height: 50px;
         margin-bottom: 16px;
         border-radius: 50%;
-        background: #f0eaf6;
+        background: var(--dm-elevated, #f0eaf6);
         color: var(--accent, #70558e);
     }
     .app-confirm-badge.danger {
-        background: #fee2e2;
+        background: var(--dm-red-surface, #fee2e2);
         color: #dc2626;
     }
     .app-confirm-badge.warning {
         background: #fef3c7;
-        color: #b45309;
+        color: var(--dm-gold-ink, #b45309);
     }
     .app-confirm-badge.info {
-        background: #f0eaf6;
+        background: var(--dm-elevated, #f0eaf6);
         color: var(--accent, #70558e);
     }
     #app-confirm-title {
@@ -92,7 +92,7 @@
     .app-confirm-note {
         font-size: 12px;
         line-height: 1.5;
-        color: #94a3b8;
+        color: var(--dm-muted, #94a3b8);
         margin: 8px 0 0;
     }
     .app-confirm-actions {

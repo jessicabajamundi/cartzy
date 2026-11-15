@@ -66,7 +66,7 @@
     min-width: 0;
     border: 1.5px solid var(--discovery-border) !important;
     border-radius: 14px;
-    background: #FFF;
+    background: var(--dm-surface, #FFF);
     box-shadow: 0 3px 12px #794A4308;
     transform: none;
     translate: none;
@@ -121,7 +121,7 @@
     height: 44px;
     border: 1px solid var(--discovery-border);
     border-radius: 50%;
-    background: #FFFFFFF2;
+    background: var(--dm-surface, #FFFFFFF2);
     color: var(--discovery-rose);
     box-shadow: 0 3px 12px #30293812;
     cursor: pointer;
@@ -153,15 +153,15 @@
 #daily-discover-section .discovery-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
 #daily-discover-section .discovery-price-now { color: var(--discovery-ink); font-size: 21px; font-weight: 700; letter-spacing: -.03em; line-height: 1.2; }
 #daily-discover-section .discovery-currency { margin-right: 1px; color: var(--discovery-rose); font-size: .68em; font-weight: 700; vertical-align: .18em; }
-#daily-discover-section .discovery-price-was { color: #9A90A3; font-size: 12px; }
+#daily-discover-section .discovery-price-was { color: var(--dm-muted, #9A90A3); font-size: 12px; }
 #daily-discover-section .discovery-rating { display: flex; align-items: center; gap: 8px; color: var(--discovery-muted); font-size: 12px; line-height: 1.4; }
 #daily-discover-section .discovery-score { display: inline-flex; align-items: center; gap: 3px; color: var(--brand-dark, #564B68); font-weight: 700; }
 #daily-discover-section .discovery-score > span { color: #D9A13B; font-size: 13px; }
 #daily-discover-section .discovery-dot { width: 3px; height: 3px; border-radius: 50%; background: #C9C1CF; }
-#daily-discover-section .discovery-stock { display: flex; align-items: center; gap: 6px; margin: 0; color: #3F7A55; font-size: 12px; font-weight: 700; line-height: 1.4; }
+#daily-discover-section .discovery-stock { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--dm-muted, #3F7A55); font-size: 12px; font-weight: 700; line-height: 1.4; }
 #daily-discover-section .discovery-stock-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 18%, transparent); }
-#daily-discover-section .discovery-stock.is-low { color: #B4651E; }
-#daily-discover-section .discovery-stock.is-out { color: #9A90A3; }
+#daily-discover-section .discovery-stock.is-low { color: var(--dm-gold-ink, #B4651E); }
+#daily-discover-section .discovery-stock.is-out { color: var(--dm-muted, #9A90A3); }
 #daily-discover-section .discovery-actions { margin-top: 6px; }
 #daily-discover-section .discovery-card button[onclick] {
     min-height: 44px;
@@ -264,7 +264,7 @@
     padding: 0 10px;
     border: 1px solid var(--discovery-border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     color: var(--brand-dark, #564B68);
     font: 700 13px 'Inter', sans-serif;
     cursor: pointer;

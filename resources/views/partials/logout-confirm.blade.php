@@ -9,17 +9,17 @@
     </div>
 </dialog>
 <style>
-    .logout-confirm { width: min(380px, calc(100vw - 32px)); margin: auto; padding: 28px 24px 22px; border: 0; border-radius: 18px; color: #282133; background: #fff; box-shadow: 0 24px 60px rgba(40, 33, 51, .28); text-align: center; font-family: inherit; }
+    .logout-confirm { width: min(380px, calc(100vw - 32px)); margin: auto; padding: 28px 24px 22px; border: 0; border-radius: 18px; color: var(--dm-ink, #282133); background: var(--dm-surface, #fff); box-shadow: 0 24px 60px rgba(40, 33, 51, .28); text-align: center; font-family: inherit; }
     .logout-confirm::backdrop { background: rgba(40, 33, 51, .45); backdrop-filter: blur(2px); }
     .logout-confirm[open] { animation: logout-confirm-in .16s ease-out; }
     @keyframes logout-confirm-in { from { opacity: 0; transform: translateY(8px) scale(.98); } }
     .logout-confirm h2 { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
-    .logout-confirm p { margin: 0 0 20px; color: #6b6178; font-size: 14px; line-height: 1.5; }
-    .logout-confirm p strong { color: #3e354c; }
+    .logout-confirm p { margin: 0 0 20px; color: var(--dm-muted, #6b6178); font-size: 14px; line-height: 1.5; }
+    .logout-confirm p strong { color: var(--dm-ink, #3e354c); }
     .logout-confirm-actions { display: flex; gap: 10px; }
     .logout-confirm-actions button { flex: 1; min-height: 44px; padding: 10px 14px; border-radius: 12px; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background-color .15s, border-color .15s; }
-    .logout-confirm-cancel { border: 1px solid #e1dde7; color: #3e354c; background: #fff; }
-    .logout-confirm-cancel:hover { background: #f6f2f8; }
+    .logout-confirm-cancel { border: 1px solid var(--dm-border, #e1dde7); color: var(--dm-ink, #3e354c); background: var(--dm-surface, #fff); }
+    .logout-confirm-cancel:hover { background: var(--dm-elevated, #f6f2f8); }
     .logout-confirm-submit { border: 1px solid #b42318; color: #fff; background: #b42318; }
     .logout-confirm-submit:hover { background: #912018; }
     .logout-confirm-submit:disabled { opacity: .7; cursor: wait; }

@@ -4,7 +4,7 @@
 .seller-chat-bubble { position: relative; pointer-events: auto; animation: seller-chat-in .18s ease-out; }
 .seller-chat-bubble[hidden] { display: none; }
 .seller-chat-bubble .chat-bubble:hover { color: white; }
-.seller-chat-badge { position: absolute; top: -4px; left: -4px; min-width: 20px; height: 20px; padding: 0 6px; border: 2px solid white; border-radius: 99px; background: #8C5A50; color: white; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
+.seller-chat-badge { position: absolute; top: -4px; left: -4px; min-width: 20px; height: 20px; padding: 0 6px; border: 2px solid var(--dm-border, white); border-radius: 99px; background: #8C5A50; color: white; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
 .seller-chat-badge[hidden] { display: none; }
 .seller-chat-popup { pointer-events: auto; }
 .seller-chat-popup .pd-chat-head strong, .seller-chat-popup .pd-chat-head small { color: inherit; }

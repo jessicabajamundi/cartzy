@@ -29,16 +29,16 @@
             --brand-deep: #6F6382;
             --brand-dark: #564B68;
             --brand-darkest: #282133;
-            --brand-soft: #FAF9FB;
-            --brand-light: #F1EFF5;
-            --brand-border: #E1DDE7;
+            --brand-soft: var(--dm-surface, #FAF9FB);
+            --brand-light: var(--dm-elevated, #F1EFF5);
+            --brand-border: var(--dm-border, #E1DDE7);
         }
         body {
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
-            background-color: #FAF9FB;
-            color: #191421;
+            background-color: var(--dm-surface, #FAF9FB);
+            color: var(--dm-ink, #191421);
         }
         h1, h2, h3, h4, .font-heading {
             font-family: 'Cormorant Garamond', Georgia, serif;
@@ -50,7 +50,7 @@
             height: 7px;
         }
         ::-webkit-scrollbar-track {
-            background: #F1EFF5;
+            background: var(--dm-elevated, #F1EFF5);
         }
         ::-webkit-scrollbar-thumb {
             background: #A8A0B2;

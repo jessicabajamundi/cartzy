@@ -35,7 +35,7 @@
             <span>Delivered &amp; completed</span>
             @include('seller.partials.icon', ['name' => 'check', 'size' => 18])
         </div>
-        <div class="metric-value" style="color: #15803d;">{{ number_format($summary['delivered_orders']) }}</div>
+        <div class="metric-value" style="color: var(--dm-green-ink, #15803d);">{{ number_format($summary['delivered_orders']) }}</div>
         <small>Successfully delivered parcels</small>
     </div>
     <div class="metric-card">
@@ -43,7 +43,7 @@
             <span>Cancelled orders</span>
             @include('seller.partials.icon', ['name' => 'cancel', 'size' => 18])
         </div>
-        <div class="metric-value" style="color: #b91c1c;">{{ number_format($summary['cancelled_orders']) }}</div>
+        <div class="metric-value" style="color: var(--dm-red-ink, #b91c1c);">{{ number_format($summary['cancelled_orders']) }}</div>
         <small>Customer / seller cancellations</small>
     </div>
     <div class="metric-card">

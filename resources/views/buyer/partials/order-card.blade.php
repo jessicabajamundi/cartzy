@@ -43,11 +43,11 @@
                 <a href="{{ route('orders.report', $o['seller_order_id']) }}" class="buyer-order-secondary buyer-order-report-link" title="Eligible for return/refund within 7 days of delivery">
                     Report / Refund
                     @if(isset($o['refund_days_left']) && $o['refund_days_left'] !== null)
-                        <span style="display:inline-block; margin-left:4px; padding:1px 6px; font-size:10px; font-weight:700; background:#e0f2fe; color:#0369a1; border-radius:10px;">{{ $o['refund_days_left'] }}d left</span>
+                        <span style="display:inline-block; margin-left:4px; padding:1px 6px; font-size:10px; font-weight:700; background:var(--dm-blue-surface, #e0f2fe); color:var(--dm-blue-ink, #0369a1); border-radius:10px;">{{ $o['refund_days_left'] }}d left</span>
                     @endif
                 </a>
             @elseif(!empty($o['refund_expired']))
-                <span class="buyer-order-secondary" style="opacity:0.6; cursor:not-allowed; background:#f3f4f6; color:#9ca3af;" title="Delivered over 7 days ago. The 7-day return/refund window has expired.">
+                <span class="buyer-order-secondary" style="opacity:0.6; cursor:not-allowed; background:var(--dm-elevated, #f3f4f6); color:var(--dm-muted, #9ca3af);" title="Delivered over 7 days ago. The 7-day return/refund window has expired.">
                     Refund closed (7d expired)
                 </span>
             @endif

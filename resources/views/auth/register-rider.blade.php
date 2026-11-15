@@ -59,7 +59,7 @@
 
             <!-- Section 1: Your personal details -->
             <div class="rider-form-section" data-rd-page="1">
-                <div class="field-block" style="border-top: 1px solid #E1DDE7; padding-top: 18px; margin-bottom: 20px;">
+                <div class="field-block" style="border-top: 1px solid var(--dm-border, #E1DDE7); padding-top: 18px; margin-bottom: 20px;">
                     <h3 class="field-heading">Your personal details</h3>
                     <p class="field-subheading">Enter your name and personal details</p>
                 </div>
@@ -148,7 +148,7 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
                         <p class="rider-field-hint" style="margin: 0;">Riders must be at least 18 years old.</p>
-                        <span id="rider_birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: #059669;"></span>
+                        <span id="rider_birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: var(--dm-green-ink, #059669);"></span>
                     </div>
                     <p class="rider-field-error" id="error_birthday"></p>
                 </div>
@@ -535,7 +535,7 @@
 
         <!-- STEP 2 CONTAINER: Sign-in -->
         <div id="riderStepSignIn" style="display: none;">
-            <div class="field-block" style="border-top: 1px solid #E1DDE7; padding-top: 18px; margin-bottom: 20px;">
+            <div class="field-block" style="border-top: 1px solid var(--dm-border, #E1DDE7); padding-top: 18px; margin-bottom: 20px;">
                 <h3 class="field-heading">Your sign-in details</h3>
                 <p class="field-subheading" style="margin-bottom: 0;">Set up your login credentials</p>
             </div>
@@ -662,7 +662,7 @@
             </div>
 
             <div class="security-section">
-                <div class="field-block" style="border-top: 1px solid #E1DDE7; padding-top: 18px; margin-bottom: 16px;">
+                <div class="field-block" style="border-top: 1px solid var(--dm-border, #E1DDE7); padding-top: 18px; margin-bottom: 16px;">
                     <h3 class="field-heading">Email verification code</h3>
                     <p class="field-subheading" id="verificationApplicant" style="margin-bottom: 8px;">Enter the 6-digit code sent to your email.</p>
                 </div>
@@ -678,12 +678,12 @@
                 <input type="hidden" name="email_verification_otp" id="email_verification_otp" value="{{ old('email_verification_otp') }}">
                 <p class="rider-field-hint" style="margin-top: 8px;">Your code expires after 10 minutes. You can paste all six digits here.</p>
 
-                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: var(--dm-blue-surface, #eff6ff); border: 1px solid var(--dm-border, #bfdbfe); border-radius: 8px; font-size: 13px; color: var(--dm-blue-ink, #1e40af);">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
                         <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
                         <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
                     </div>
-                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: #64748b;"></div>
+                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: var(--dm-muted, #64748b);"></div>
                 </div>
             </div>
 
@@ -694,12 +694,12 @@
             </button>
 
             <div class="otp-resend-row" style="margin-top: 18px; flex-direction: column; align-items: flex-start; gap: 8px;">
-                <span style="font-size: 0.8rem; color: #6b7280; line-height: 1.45;">Didn't receive a code? Check your spam folder or request another. Please wait one minute between requests.</span>
-                <button type="button" id="resendOtpBtn" class="resend-otp-btn" onclick="triggerResendOtp()" style="font-weight: 700; color: #6F6382; text-decoration: underline;">Resend code (<span id="otpTimerDisplay">00:60</span>)</button>
+                <span style="font-size: 0.8rem; color: var(--dm-muted, #6b7280); line-height: 1.45;">Didn't receive a code? Check your spam folder or request another. Please wait one minute between requests.</span>
+                <button type="button" id="resendOtpBtn" class="resend-otp-btn" onclick="triggerResendOtp()" style="font-weight: 700; color: var(--dm-muted, #6F6382); text-decoration: underline;">Resend code (<span id="otpTimerDisplay">00:60</span>)</button>
             </div>
 
             <div style="margin-top: 18px; text-align: center;">
-                <button type="button" onclick="goToRiderStep(2)" style="background: none; border: none; font-size: 0.82rem; font-weight: 600; color: #6F6382; cursor: pointer; text-decoration: underline;">← Change email or password</button>
+                <button type="button" onclick="goToRiderStep(2)" style="background: none; border: none; font-size: 0.82rem; font-weight: 600; color: var(--dm-muted, #6F6382); cursor: pointer; text-decoration: underline;">← Change email or password</button>
             </div>
         </div>
     </form>
@@ -719,12 +719,12 @@
     [data-rd-page="1"] > .field-block:first-child { display: none; }
     .rd-progress { margin: 4px 0 16px; }
     .rd-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
-    .rd-progress-count { color: #6b6478; font-size: .74rem; font-weight: 600; }
-    .rd-progress-count strong { color: #564b68; }
-    .rd-progress-title { color: #282133; font-size: .9rem; font-weight: 800; text-align: right; }
-    .rd-progress-bar { height: 6px; border-radius: 999px; background: #efe9f3; overflow: hidden; }
+    .rd-progress-count { color: var(--dm-muted, #6b6478); font-size: .74rem; font-weight: 600; }
+    .rd-progress-count strong { color: var(--dm-ink, #564b68); }
+    .rd-progress-title { color: var(--dm-ink, #282133); font-size: .9rem; font-weight: 800; text-align: right; }
+    .rd-progress-bar { height: 6px; border-radius: 999px; background: var(--dm-elevated, #efe9f3); overflow: hidden; }
     .rd-progress-bar span { display: block; height: 100%; width: 14.3%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
-    .rd-progress-hint { margin: 8px 0 0; color: #6b7280; font-size: .76rem; line-height: 1.45; }
+    .rd-progress-hint { margin: 8px 0 0; color: var(--dm-muted, #6b7280); font-size: .76rem; line-height: 1.45; }
     .rd-nav { margin-top: 18px; }
     .rd-nav .btn-action-continue { width: 100%; }
     @media (prefers-reduced-motion: reduce) { .rd-progress-bar span { transition: none; } }
@@ -736,7 +736,7 @@
         gap: 6px;
         margin-top: 12px;
         padding-top: 14px;
-        border-top: 1px dashed #e5e7eb;
+        border-top: 1px dashed var(--dm-border, #e5e7eb);
         font-size: clamp(0.58rem, 2.2vw, 0.82rem);
         white-space: nowrap;
     }
@@ -765,7 +765,7 @@
         font-weight: 800;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
         margin-bottom: 4px;
     }
 
@@ -774,7 +774,7 @@
         font-family: 'Cormorant Garamond', Georgia, serif;
         font-size: 2rem;
         font-weight: 700;
-        color: #111827;
+        color: var(--dm-ink, #111827);
         margin-bottom: 4px;
         line-height: 1.15;
     }
@@ -782,15 +782,15 @@
     .rider-auth-subtitle {
         text-align: center !important;
         font-size: 0.92rem;
-        color: #4b5563;
+        color: var(--dm-ink, #4b5563);
         margin-bottom: 14px;
         line-height: 1.4;
     }
 
     /* Notice Banner */
     .rider-notice-banner {
-        background-color: #FAF8F6;
-        border: 1.5px solid #EFEAE6;
+        background-color: var(--dm-elevated, #FAF8F6);
+        border: 1.5px solid var(--dm-border, #EFEAE6);
         border-left: 4px solid #C08B7F;
         border-radius: 8px;
         padding: 10px 14px;
@@ -812,7 +812,7 @@
         font-size: 0.8rem;
         font-weight: 500;
         line-height: 1.45;
-        color: #4B453D;
+        color: var(--dm-ink, #4B453D);
         margin: 0;
     }
 
@@ -843,9 +843,9 @@
         font-size: 0.8rem;
         font-weight: 700;
         margin-bottom: 4px;
-        background: #ffffff;
-        border: 1.5px solid #d1d5db;
-        color: #9ca3af;
+        background: var(--dm-surface, #ffffff);
+        border: 1.5px solid var(--dm-border, #d1d5db);
+        color: var(--dm-muted, #9ca3af);
         transition: all 0.2s ease;
     }
 
@@ -859,20 +859,20 @@
     .rider-step-title {
         font-size: 0.88rem;
         font-weight: 600;
-        color: #9ca3af;
+        color: var(--dm-muted, #9ca3af);
         margin-bottom: 6px;
         transition: color 0.2s ease;
     }
 
     .rider-step-tab.active .rider-step-title {
-        color: #111827;
+        color: var(--dm-ink, #111827);
         font-weight: 700;
     }
 
     .rider-step-bar {
         width: 100%;
         height: 2px;
-        background: #e5e7eb;
+        background: var(--dm-elevated, #e5e7eb);
         border-radius: 2px;
         transition: background 0.2s ease;
     }
@@ -889,7 +889,7 @@
 
     .rider-section-divider {
         height: 1px;
-        background: #f0edf4;
+        background: var(--dm-elevated, #f0edf4);
         margin: 12px 0 10px;
     }
 
@@ -897,7 +897,7 @@
         font-family: 'Inter', sans-serif;
         font-size: 1.02rem;
         font-weight: 700;
-        color: #111827;
+        color: var(--dm-ink, #111827);
         margin-bottom: 8px;
         letter-spacing: -0.2px;
     }
@@ -931,7 +931,7 @@
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #9ca3af;
+        color: var(--dm-muted, #9ca3af);
         display: flex;
         align-items: center;
         pointer-events: none;
@@ -958,7 +958,7 @@
     .rider-doc-lead-icon {
         display: flex;
         align-items: center;
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
         flex-shrink: 0;
         margin-right: 2px;
     }
@@ -977,7 +977,7 @@
         appearance: none;
         -webkit-appearance: none;
         cursor: pointer;
-        background-color: #ffffff !important;
+        background-color: var(--dm-surface, #ffffff) !important;
         padding-right: 36px !important;
     }
 
@@ -988,13 +988,13 @@
         transform: translateY(-50%);
         width: 16px;
         height: 16px;
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
         pointer-events: none;
     }
 
     .rider-field-hint {
         font-size: 0.76rem;
-        color: #6b7280;
+        color: var(--dm-muted, #6b7280);
         margin-top: 3px;
         line-height: 1.35;
     }
@@ -1025,8 +1025,8 @@
     .rider-optional-pill {
         font-size: 0.7rem;
         font-weight: 700;
-        color: #6F6382;
-        background: #F3F0F7;
+        color: var(--dm-muted, #6F6382);
+        background: var(--dm-elevated, #F3F0F7);
         padding: 1px 6px;
         border-radius: 9999px;
         margin-left: 6px;
@@ -1049,8 +1049,8 @@
         justify-content: space-between;
         gap: 10px;
         padding: 8px 12px;
-        background: #fcfbfd;
-        border: 1px dashed #d8d1e1;
+        background: var(--dm-surface, #fcfbfd);
+        border: 1px dashed var(--dm-border, #d8d1e1);
         border-radius: 8px;
         cursor: pointer;
         min-height: 52px;
@@ -1059,7 +1059,7 @@
 
     .rider-file-upload-box:hover {
         border-color: #A8A0B2;
-        background: #FAF8FC;
+        background: var(--dm-surface, #FAF8FC);
     }
 
     .rider-file-upload-box:focus-within {
@@ -1069,12 +1069,12 @@
 
     .rider-file-upload-box.has-file {
         border-color: #6F6382;
-        background: #FAF8FC;
+        background: var(--dm-surface, #FAF8FC);
     }
 
     .rider-file-upload-box.drag-over {
         border-color: #564B68;
-        background: #F3EEF8;
+        background: var(--dm-elevated, #F3EEF8);
         box-shadow: 0 0 0 3px rgba(86, 75, 104, 0.15);
     }
 
@@ -1091,9 +1091,9 @@
     }
 
     .rider-choose-file-btn {
-        background: #F5F0F9;
-        color: #564B68;
-        border: 1px solid #DDD3E6;
+        background: var(--dm-elevated, #F5F0F9);
+        color: var(--dm-ink, #564B68);
+        border: 1px solid var(--dm-border, #DDD3E6);
         border-radius: 6px;
         padding: 5px 12px;
         font-size: 0.8rem;
@@ -1109,7 +1109,7 @@
     .rider-file-status {
         min-width: 0;
         font-size: 0.9rem;
-        color: #6b7280;
+        color: var(--dm-muted, #6b7280);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1117,7 +1117,7 @@
     }
 
     .rider-file-upload-box.has-file .rider-file-status {
-        color: #111827;
+        color: var(--dm-ink, #111827);
         font-weight: 600;
     }
 
@@ -1132,7 +1132,7 @@
     .rider-file-pill-ready {
         font-size: 0.72rem;
         font-weight: 700;
-        color: #065f46;
+        color: var(--dm-green-ink, #065f46);
         background: #d1fae5;
         padding: 3px 8px;
         border-radius: 9999px;
@@ -1143,7 +1143,7 @@
     .rider-clear-file-btn {
         background: none;
         border: none;
-        color: #9ca3af;
+        color: var(--dm-muted, #9ca3af);
         cursor: pointer;
         padding: 4px;
         display: flex;
@@ -1155,7 +1155,7 @@
 
     .rider-clear-file-btn:hover {
         color: #ef4444;
-        background: #fee2e2;
+        background: var(--dm-red-surface, #fee2e2);
     }
 
     .rider-clear-file-btn svg {
@@ -1188,14 +1188,14 @@
     }
 
     .rider-modal-card {
-        background: #ffffff;
+        background: var(--dm-surface, #ffffff);
         border-radius: 16px;
         padding: 32px 28px;
         max-width: 440px;
         width: 100%;
         text-align: center;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
-        border: 1px solid #ECE7F2;
+        border: 1px solid var(--dm-border, #ECE7F2);
         animation: riderModalIn 0.25s ease-out;
     }
 
@@ -1208,8 +1208,8 @@
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        background: #F3EEF8;
-        color: #564B68;
+        background: var(--dm-elevated, #F3EEF8);
+        color: var(--dm-ink, #564B68);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1225,13 +1225,13 @@
         font-family: 'Cormorant Garamond', Georgia, serif;
         font-size: 1.6rem;
         font-weight: 700;
-        color: #111827;
+        color: var(--dm-ink, #111827);
         margin-bottom: 10px;
     }
 
     .rider-modal-body {
         font-size: 0.92rem;
-        color: #4b5563;
+        color: var(--dm-ink, #4b5563);
         line-height: 1.55;
         margin-bottom: 24px;
     }
@@ -1267,10 +1267,10 @@
         align-items: center;
         gap: 8px;
         padding: 10px 14px;
-        background-color: #FAF7F2;
-        border: 1px solid #EFE8DE;
+        background-color: var(--dm-elevated, #FAF7F2);
+        border: 1px solid var(--dm-border, #EFE8DE);
         border-radius: 8px;
-        color: #37332D;
+        color: var(--dm-ink, #37332D);
         font-size: 0.84rem;
         font-weight: 600;
         margin-bottom: 16px;
@@ -1278,7 +1278,7 @@
     .otp-sent-banner .banner-icon {
         font-weight: 800;
         font-size: 0.95rem;
-        color: #059669;
+        color: var(--dm-green-ink, #059669);
     }
 
     /* OTP Inputs */
@@ -1295,9 +1295,9 @@
         text-align: center;
         font-size: 1.25rem;
         font-weight: 700;
-        color: #111111;
-        background: #ffffff;
-        border: 1.5px solid #e5e7eb;
+        color: var(--dm-ink, #111111);
+        background: var(--dm-surface, #ffffff);
+        border: 1.5px solid var(--dm-border, #e5e7eb);
         border-radius: 8px;
         outline: none;
         transition: border-color 0.18s, box-shadow 0.18s;
@@ -1314,13 +1314,13 @@
     }
     .otp-input.filled {
         border-color: #6F6382;
-        background-color: #F8F6FA;
+        background-color: var(--dm-elevated, #F8F6FA);
     }
 
     /* Resend OTP Row */
     .otp-resend-row {
         font-size: 0.82rem;
-        color: #4b5563;
+        color: var(--dm-ink, #4b5563);
         font-weight: 500;
         margin-top: 14px;
         display: flex;
@@ -1330,7 +1330,7 @@
     .resend-otp-btn {
         background: none;
         border: none;
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
         font-weight: 700;
         font-size: 0.82rem;
         cursor: pointer;
@@ -1340,11 +1340,11 @@
         transition: opacity 0.15s, color 0.15s;
     }
     .resend-otp-btn:hover:not(:disabled) {
-        color: #564B68;
+        color: var(--dm-ink, #564B68);
         text-decoration: underline;
     }
     .resend-otp-btn:disabled {
-        color: #91879E;
+        color: var(--dm-muted, #91879E);
         cursor: default;
     }
 
@@ -1372,7 +1372,7 @@
         font-family: inherit;
     }
     .btn-action-back:hover {
-        background: linear-gradient(120deg, #EEEAF3, var(--rose-muted, #F5CFC7));
+        background: linear-gradient(120deg, var(--dm-elevated, #EEEAF3), var(--rose-muted, #F5CFC7));
         border-color: var(--rose-deep, #C08B7F);
         box-shadow: 0 4px 12px rgba(111, 99, 130, 0.12);
     }
@@ -1426,7 +1426,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: #6b7280;
+        color: var(--dm-muted, #6b7280);
         font-size: 0.82rem;
         font-weight: 600;
         cursor: pointer;
@@ -1434,7 +1434,7 @@
         transition: color 0.15s ease;
     }
     .eye-btn.password-toggle-btn:hover {
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
     }
 
     @media (max-width: 480px) {
@@ -2345,7 +2345,7 @@
         if (feedback) {
             feedback.style.display = 'block';
             if (latestMailSent) {
-                feedback.style.color = '#059669';
+                feedback.style.color = 'var(--dm-green-ink, #059669)';
                 feedback.innerText = 'A new verification code has been sent to your email!';
             } else {
                 feedback.style.color = '#d97706';
@@ -2380,10 +2380,10 @@
             if (devNotice) {
                 if (!latestMailSent) {
                     devNotice.innerText = '⚠️ Email server could not be reached via SMTP. Use this test verification code:';
-                    devNotice.style.color = '#b91c1c';
+                    devNotice.style.color = 'var(--dm-red-ink, #b91c1c)';
                 } else {
                     devNotice.innerText = '✓ Verification email sent. (Preview displayed for local testing)';
-                    devNotice.style.color = '#15803d';
+                    devNotice.style.color = 'var(--dm-green-ink, #15803d)';
                 }
             }
             if (devBanner) devBanner.style.display = 'block';
@@ -2395,9 +2395,9 @@
             }
 
             if (otpSentBanner && !latestMailSent) {
-                otpSentBanner.style.backgroundColor = '#fffbeb';
+                otpSentBanner.style.backgroundColor = 'var(--dm-elevated, #fffbeb)';
                 otpSentBanner.style.borderColor = '#fde68a';
-                otpSentBanner.style.color = '#92400e';
+                otpSentBanner.style.color = 'var(--dm-gold-ink, #92400e)';
                 const bannerText = otpSentBanner.querySelector('.banner-text');
                 if (bannerText) bannerText.innerText = 'Mail server unreachable. Use the test code below to continue.';
                 const bannerIcon = otpSentBanner.querySelector('.banner-icon');
@@ -2622,7 +2622,7 @@
             if (ageText) {
                 if (age >= 18) {
                     ageText.textContent = `Age: ${age} years old`;
-                    ageText.style.color = '#059669';
+                    ageText.style.color = 'var(--dm-green-ink, #059669)';
                     if (bdayErr) {
                         bdayErr.textContent = '';
                         bdayErr.classList.remove('visible');

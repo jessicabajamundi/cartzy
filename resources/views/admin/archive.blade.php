@@ -247,7 +247,7 @@
                         </td>
                         <td>
                             @if($user->status === 'removed')
-                                <span class="badge danger" style="background: #fce9e9; color: #b42332;">Removed</span>
+                                <span class="badge danger" style="background: var(--dm-red-surface, #fce9e9); color: var(--dm-red-ink, #b42332);">Removed</span>
                                 @if($user->removal_reason)
                                     <small style="display: block; color: var(--rose-ink); margin-top: 3px;" title="{{ $user->removal_reason }}">
                                         <strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($user->removal_reason, 40) }}
@@ -257,7 +257,7 @@
                                     <small class="muted" style="display: block; margin-top: 2px;">{{ $user->removed_at->format('M j, Y') }}</small>
                                 @endif
                             @elseif($user->status === 'archived')
-                                <span class="badge" style="background: #e2e8f0; color: #475569;">Archived</span>
+                                <span class="badge" style="background: var(--dm-elevated, #e2e8f0); color: var(--dm-ink, #475569);">Archived</span>
                                 @if($user->status_reason)
                                     <small class="muted" style="display: block; margin-top: 3px;" title="{{ $user->status_reason }}">
                                         <strong>Note:</strong> {{ \Illuminate\Support\Str::limit($user->status_reason, 40) }}
@@ -565,8 +565,8 @@
         height: 34px;
         border-radius: 50%;
         border: 1px solid rgba(0, 0, 0, 0.06);
-        background: #f8fafc;
-        color: #64748b;
+        background: var(--dm-surface, #f8fafc);
+        color: var(--dm-muted, #64748b);
         font-size: 20px;
         display: inline-flex;
         align-items: center;
@@ -576,8 +576,8 @@
         transition: all 0.15s ease;
     }
     .user-status-modal-close:hover {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: var(--dm-elevated, #f1f5f9);
+        color: var(--dm-ink, #0f172a);
         transform: scale(1.05);
     }
     .user-status-modal-badge {
@@ -589,24 +589,24 @@
         margin-bottom: 18px;
         border-radius: 14px;
         background: #fef3c7;
-        color: #b45309;
+        color: var(--dm-gold-ink, #b45309);
         flex-shrink: 0;
     }
     .user-status-modal-badge.danger {
-        background: #fef2f2 !important;
+        background: var(--dm-elevated, #fef2f2) !important;
         color: #dc2626 !important;
     }
     .user-status-modal-title {
         font-size: 20px;
         font-weight: 700;
-        color: #111827;
+        color: var(--dm-ink, #111827);
         margin: 0 0 8px;
         line-height: 1.3;
         letter-spacing: -0.01em;
     }
     .user-status-modal-desc {
         font-size: 13.5px;
-        color: #64748b;
+        color: var(--dm-muted, #64748b);
         margin: 0 0 22px;
         line-height: 1.55;
     }
@@ -616,13 +616,13 @@
         gap: 8px;
         font-size: 13px;
         font-weight: 600;
-        color: #334155;
+        color: var(--dm-ink, #334155);
         text-align: left;
         margin-bottom: 24px;
     }
     .user-status-modal-textarea {
         width: 100%;
-        border: 1.5px solid #e2e8f0;
+        border: 1.5px solid var(--dm-border, #e2e8f0);
         border-radius: 12px;
         padding: 12px 14px;
         font-size: 14px;
@@ -630,12 +630,12 @@
         resize: vertical;
         line-height: 1.5;
         box-sizing: border-box;
-        background: #f8fafc;
-        color: #1e293b;
+        background: var(--dm-surface, #f8fafc);
+        color: var(--dm-ink, #1e293b);
         transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
     }
     .user-status-modal-textarea:focus {
-        background: #fff;
+        background: var(--dm-surface, #fff);
         border-color: #dc2626;
         outline: none;
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
@@ -653,15 +653,15 @@
         border-radius: 10px;
         font-size: 13.5px;
         font-weight: 600;
-        background: #f1f5f9;
-        color: #475569;
-        border: 1px solid #e2e8f0;
+        background: var(--dm-elevated, #f1f5f9);
+        color: var(--dm-ink, #475569);
+        border: 1px solid var(--dm-border, #e2e8f0);
         cursor: pointer;
         transition: background 0.15s;
     }
     .user-status-modal-actions .btn-cancel:hover {
-        background: #e2e8f0;
-        color: #1e293b;
+        background: var(--dm-elevated, #e2e8f0);
+        color: var(--dm-ink, #1e293b);
     }
     .user-status-modal-actions .btn-confirm {
         min-height: 42px;

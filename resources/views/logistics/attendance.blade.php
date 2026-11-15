@@ -82,9 +82,9 @@
                                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                     <strong>{{ $shift->rider->user->name ?? 'Personnel' }}</strong>
                                     @if(($shift->rider->courier_type ?? '') === 'first_mile')
-                                        <span class="badge" style="background: #EEF2FF; color: #4338CA; font-size: 10px; font-weight: 700; padding: 2px 6px;">🚚 First Mile Courier</span>
+                                        <span class="badge" style="background: var(--dm-blue-surface, #EEF2FF); color: #4338CA; font-size: 10px; font-weight: 700; padding: 2px 6px;">🚚 First Mile Courier</span>
                                     @else
-                                        <span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 10px; font-weight: 700; padding: 2px 6px;">🏍️ Last Mile Rider</span>
+                                        <span class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #92400E); font-size: 10px; font-weight: 700; padding: 2px 6px;">🏍️ Last Mile Rider</span>
                                     @endif
                                 </div>
                                 <small>{{ $shift->rider->area ?: 'General area' }} · {{ $shift->rider->vehicle_type ? ucfirst($shift->rider->vehicle_type) : '' }} {{ $shift->rider->plate_no ? '('.$shift->rider->plate_no.')' : '' }}</small>
@@ -156,9 +156,9 @@
                             </td>
                             <td>
                                 @if(($shift->rider->courier_type ?? '') === 'first_mile')
-                                    <span class="badge" style="background: #EEF2FF; color: #4338CA; font-size: 11px; font-weight: 700;">🚚 First Mile</span>
+                                    <span class="badge" style="background: var(--dm-blue-surface, #EEF2FF); color: #4338CA; font-size: 11px; font-weight: 700;">🚚 First Mile</span>
                                 @else
-                                    <span class="badge" style="background: #FEF3C7; color: #92400E; font-size: 11px; font-weight: 700;">🏍️ Last Mile</span>
+                                    <span class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #92400E); font-size: 11px; font-weight: 700;">🏍️ Last Mile</span>
                                 @endif
                                 <small>{{ ucfirst($shift->rider->vehicle_type ?? '') }} {{ $shift->rider->plate_no ? '· '.$shift->rider->plate_no : '' }}</small>
                             </td>

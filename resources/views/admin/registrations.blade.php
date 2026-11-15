@@ -9,14 +9,14 @@
         @include('admin.partials.icon', ['name' => 'file'])
         <span>Store & Partner Registrations</span>
         @if(!empty($adminPendingRegistrationsCount))
-            <span class="badge" style="background: #fff; color: var(--accent-hover); font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">{{ $adminPendingRegistrationsCount }}</span>
+            <span class="badge" style="background: var(--dm-surface, #fff); color: var(--accent-hover); font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">{{ $adminPendingRegistrationsCount }}</span>
         @endif
     </a>
     <a href="{{ route('admin.id-checks') }}" class="button subtle" style="font-size: 12px; gap: 8px; border-radius: 20px; min-height: 38px; padding: 6px 16px;">
         @include('admin.partials.icon', ['name' => 'shield'])
         <span>Government ID Checks</span>
         @if(!empty($adminPendingIdChecksCount))
-            <span class="badge warning" style="background: #EFF6FF; color: #1E40AF; font-size: 10px; padding: 2px 7px; border-radius: 10px;">{{ $adminPendingIdChecksCount }}</span>
+            <span class="badge warning" style="background: var(--dm-blue-surface, #EFF6FF); color: var(--dm-blue-ink, #1E40AF); font-size: 10px; padding: 2px 7px; border-radius: 10px;">{{ $adminPendingIdChecksCount }}</span>
         @endif
     </a>
 </div>
@@ -33,9 +33,9 @@
         <small>Total merchant & hub accounts</small>
     </a>
 
-    <a class="stat-card" href="{{ route('admin.registrations', ['status' => 'pending']) }}" style="@if($statusCounts['pending'] > 0) border-top-color: #D97706; background: #FFFDF5; @endif">
+    <a class="stat-card" href="{{ route('admin.registrations', ['status' => 'pending']) }}" style="@if($statusCounts['pending'] > 0) border-top-color: #D97706; background: var(--dm-elevated, #FFFDF5); @endif">
         <div class="metric-heading">
-            <span class="metric-icon" style="@if($statusCounts['pending'] > 0) background: #FEF3C7; color: #B45309; @endif">@include('admin.partials.icon', ['name' => 'file'])</span>
+            <span class="metric-icon" style="@if($statusCounts['pending'] > 0) background: #FEF3C7; color: var(--dm-gold-ink, #B45309); @endif">@include('admin.partials.icon', ['name' => 'file'])</span>
             <span style="@if($statusCounts['pending'] > 0) color: #B45309; font-weight: 700; @endif">Needs Action</span>
         </div>
         <span>Pending Onboarding</span>
@@ -45,7 +45,7 @@
 
     <a class="stat-card" href="{{ route('admin.registrations', ['status' => 'active']) }}">
         <div class="metric-heading">
-            <span class="metric-icon" style="background: #E8F5E9; color: #2E7D32;">@include('admin.partials.icon', ['name' => 'box'])</span>
+            <span class="metric-icon" style="background: var(--dm-green-surface, #E8F5E9); color: var(--dm-green-ink, #2E7D32);">@include('admin.partials.icon', ['name' => 'box'])</span>
             <span>Active Partners</span>
         </div>
         <span>Approved Stores & Hubs</span>
@@ -199,7 +199,7 @@
                     <td>
                         <div style="display: flex; gap: 12px; align-items: flex-start;">
                             @if($avatarUrl)
-                                <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; background: #fff;">
+                                <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);">
                             @else
                                 <div class="avatar" style="width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; font-size: 16px;">
                                     {{ $initials }}
@@ -249,7 +249,7 @@
                                     </span>
                                 @endif
                                 @if($user->line_of_business)
-                                    <span class="badge" style="background: #FFFDF5; border: 1px solid #FDE68A; color: #92400E; font-size: 9px;">
+                                    <span class="badge" style="background: var(--dm-elevated, #FFFDF5); border: 1px solid #FDE68A; color: var(--dm-gold-ink, #92400E); font-size: 9px;">
                                         {{ $user->line_of_business }}
                                     </span>
                                 @endif
@@ -311,12 +311,12 @@
                     <!-- 4. Onboarding Status -->
                     <td>
                         @if($isPending)
-                            <span class="badge warning" style="background: #FEF3C7; color: #B45309; font-weight: 700; padding: 4px 10px;">
+                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; padding: 4px 10px;">
                                 ⏳ Pending Onboarding
                             </span>
                             <small class="muted" style="margin-top: 5px; display: block;">Awaiting approval to sell</small>
                         @elseif($isActive)
-                            <span class="badge good" style="background: #E8F5E9; color: #2E7D32; font-weight: 700; padding: 4px 10px;">
+                            <span class="badge good" style="background: var(--dm-green-surface, #E8F5E9); color: var(--dm-green-ink, #2E7D32); font-weight: 700; padding: 4px 10px;">
                                 ✓ Approved & Active
                             </span>
                             <small class="muted" style="margin-top: 5px; display: block;">Operating merchant account</small>
@@ -325,12 +325,12 @@
                                 ✕ Disapproved / Rejected
                             </span>
                             @if($regPayload['rejection_reason'])
-                                <div style="margin-top: 6px; padding: 6px 9px; background: #FFF5F3; border-left: 2px solid var(--rose-border); border-radius: 4px; font-size: 11px; color: var(--rose-ink); line-height: 1.35;">
+                                <div style="margin-top: 6px; padding: 6px 9px; background: var(--dm-elevated, #FFF5F3); border-left: 2px solid var(--rose-border); border-radius: 4px; font-size: 11px; color: var(--rose-ink); line-height: 1.35;">
                                     <strong>Reason:</strong> {{ $regPayload['rejection_reason'] }}
                                 </div>
                             @endif
                         @else
-                            <span class="badge" style="background: #F4F4F5; color: #71717A; font-weight: 600; padding: 4px 10px;">
+                            <span class="badge" style="background: var(--dm-elevated, #F4F4F5); color: var(--dm-muted, #71717A); font-weight: 600; padding: 4px 10px;">
                                 {{ ucfirst($user->status) }}
                             </span>
                         @endif
@@ -470,11 +470,11 @@
                         <ul id="reg-docs-list" style="margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.8;"></ul>
                     </div>
 
-                    <div class="modal-info-card" style="background: #F0FDF4; border-color: #BBF7D0;">
-                        <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #166534; margin-bottom: 8px;">
+                    <div class="modal-info-card" style="background: var(--dm-green-surface, #F0FDF4); border-color: var(--dm-border, #BBF7D0);">
+                        <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dm-green-ink, #166534); margin-bottom: 8px;">
                             🛡️ Identity Check Cross-Reference
                         </strong>
-                        <p style="font-size: 11px; color: #166534; margin: 0 0 10px; line-height: 1.4;">
+                        <p style="font-size: 11px; color: var(--dm-green-ink, #166534); margin: 0 0 10px; line-height: 1.4;">
                             The applicant's government ID can be inspected with full zoom and rotation in the ID Checks workspace.
                         </p>
                         <a id="reg-jump-id-checks" href="#" class="button subtle" style="font-size: 11px; padding: 6px 12px; gap: 6px;">
@@ -483,7 +483,7 @@
                         </a>
                     </div>
 
-                    <div id="reg-prev-reason-card" class="modal-info-card" style="display: none; background: #FFF5F3; border-color: var(--rose-border);">
+                    <div id="reg-prev-reason-card" class="modal-info-card" style="display: none; background: var(--dm-elevated, #FFF5F3); border-color: var(--rose-border);">
                         <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--rose-ink); margin-bottom: 4px;">
                             Previous Rejection Feedback
                         </strong>
@@ -521,7 +521,7 @@
 {{-- ======================================================== --}}
 <dialog id="registration-reject-modal" class="admin-modal" aria-labelledby="reg-reject-title">
     <div class="admin-modal-panel">
-        <header class="admin-modal-header" style="border-bottom-color: var(--rose-border); background: #FFFBFB;">
+        <header class="admin-modal-header" style="border-bottom-color: var(--rose-border); background: var(--dm-surface, #FFFBFB);">
             <div>
                 <p class="eyebrow" style="color: var(--rose-ink); margin-bottom: 3px;">DECISION · APPLICATION REJECTION</p>
                 <h2 id="reg-reject-title" style="font-size: 17px; margin: 0; line-height: 1.3;">Disapprove Merchant Application</h2>

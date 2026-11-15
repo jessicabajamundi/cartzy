@@ -7,10 +7,10 @@
 .lm-overlay {
     --lm-lavender: #6F6382;
     --lm-lavender-dark: #564B68;
-    --lm-ink: #282133;
-    --lm-muted: #6B6478;
-    --lm-line: #E7E2EC;
-    --lm-soft: #FAF8FC;
+    --lm-ink: var(--dm-ink, #282133);
+    --lm-muted: var(--dm-muted, #6B6478);
+    --lm-line: var(--dm-border, #E7E2EC);
+    --lm-soft: var(--dm-surface, #FAF8FC);
     --lm-rose: #C08B7F;
     --lm-rose-dark: #8C5A50;
 
@@ -46,7 +46,7 @@
     width: 100%;
     max-width: 540px;
     max-height: calc(100vh - 48px);
-    background: #fff;
+    background: var(--dm-surface, #fff);
     border-radius: 20px;
     box-shadow: 0 30px 80px -20px rgba(40, 33, 51, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6);
     overflow: hidden;
@@ -76,7 +76,7 @@
     background:
         radial-gradient(90% 45% at 0% 0%, rgba(111, 99, 130, .09), transparent 70%),
         radial-gradient(80% 40% at 100% 0%, rgba(192, 139, 127, .12), transparent 70%),
-        #fff;
+        var(--dm-surface, #fff);
 }
 
 .lm-overlay.is-open .lm-backdrop { opacity: 1; }
@@ -112,7 +112,7 @@
     cursor: pointer;
     transition: background .18s, color .18s, transform .18s;
 }
-.lm-close:hover { background: #EFEAF4; color: var(--lm-ink); transform: rotate(90deg); }
+.lm-close:hover { background: var(--dm-elevated, #EFEAF4); color: var(--lm-ink); transform: rotate(90deg); }
 .lm-close svg { width: 16px; height: 16px; }
 
 .lm-head { text-align: center; margin-bottom: 14px; }
@@ -139,9 +139,9 @@
 }
 .lm-alert p { margin: 0; }
 .lm-alert p + p { margin-top: 4px; }
-.lm-alert-success { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
+.lm-alert-success { background: var(--dm-green-surface, #F0FDF4); color: var(--dm-green-ink, #166534); border: 1px solid var(--dm-border, #BBF7D0); }
 .lm-alert-info    { background: var(--lm-soft); color: var(--lm-lavender-dark); border: 1px solid var(--lm-line); font-weight: 500; }
-.lm-alert-error   { background: #FFF1F2; color: #BE123C; border: 1px solid #FECDD3; }
+.lm-alert-error   { background: var(--dm-elevated, #FFF1F2); color: #BE123C; border: 1px solid var(--dm-border, #FECDD3); }
 .lm-hint { display: inline-block; margin-top: 6px; color: inherit; font-weight: 800; text-decoration: underline; }
 
 /* Fields */
@@ -166,7 +166,7 @@
     width: 16px;
     height: 16px;
     transform: translateY(-50%);
-    color: #A39CAE;
+    color: var(--dm-muted, #A39CAE);
     pointer-events: none;
     transition: color .18s;
 }
@@ -178,24 +178,24 @@
     padding: 0 42px 0 40px;
     border: 1.5px solid var(--lm-line);
     border-radius: 12px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     font: 500 .86rem 'Inter', system-ui, sans-serif;
     color: var(--lm-ink);
     outline: none;
     box-shadow: 0 1px 2px rgba(40, 33, 51, .04);
     transition: border-color .2s, background .2s, box-shadow .2s;
 }
-.lm-overlay .lm-input-wrap input::placeholder { color: #A39CAE; font-weight: 400; }
-.lm-overlay .lm-input-wrap input:hover { border-color: #D9CCD8; }
+.lm-overlay .lm-input-wrap input::placeholder { color: var(--dm-muted, #A39CAE); font-weight: 400; }
+.lm-overlay .lm-input-wrap input:hover { border-color: var(--dm-border, #D9CCD8); }
 .lm-overlay .lm-input-wrap input:focus {
     border-color: transparent;
     background:
-        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(var(--dm-surface, #fff), var(--dm-surface, #fff)) padding-box,
         linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
     box-shadow: 0 0 0 4px rgba(192, 139, 127, .14);
 }
 .lm-input-wrap:focus-within .lm-input-icon { color: var(--lm-rose-dark); }
-.lm-overlay .lm-input-wrap input.is-invalid { border-color: #F43F5E; background: #FFF7F8; }
+.lm-overlay .lm-input-wrap input.is-invalid { border-color: #F43F5E; background: var(--dm-elevated, #FFF7F8); }
 .lm-overlay input::-ms-reveal, .lm-overlay input::-ms-clear { display: none; }
 
 .lm-eye {
@@ -210,10 +210,10 @@
     border: 0;
     border-radius: 8px;
     background: transparent;
-    color: #A39CAE;
+    color: var(--dm-muted, #A39CAE);
     cursor: pointer;
 }
-.lm-eye:hover { color: var(--lm-ink); background: #F1EDF5; }
+.lm-eye:hover { color: var(--lm-ink); background: var(--dm-elevated, #F1EDF5); }
 .lm-eye svg { width: 16px; height: 16px; }
 
 .lm-link {
@@ -288,7 +288,7 @@
     width: 16px;
     height: 16px;
     border: 2px solid rgba(255, 255, 255, .35);
-    border-top-color: #fff;
+    border-top-color: var(--dm-border, #fff);
     border-radius: 50%;
     animation: lm-spin .7s linear infinite;
 }
@@ -311,7 +311,7 @@
     font-weight: 600;
     letter-spacing: .1em;
     text-transform: uppercase;
-    color: #A39CAE;
+    color: var(--dm-muted, #A39CAE);
 }
 .lm-divider::before, .lm-divider::after { content: ''; flex: 1; height: 1px; background: var(--lm-line); }
 
@@ -324,7 +324,7 @@
     height: 46px;
     border: 1.5px solid var(--lm-line);
     border-radius: 12px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     font-size: .85rem;
     font-weight: 600;
     color: var(--lm-ink);
@@ -334,7 +334,7 @@
 .lm-google:hover {
     border-color: transparent;
     background:
-        linear-gradient(135deg, #FBF9FC, #FDF6F4) padding-box,
+        linear-gradient(135deg, var(--dm-surface, #FBF9FC), var(--dm-elevated, #FDF6F4)) padding-box,
         linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
     box-shadow: 0 8px 18px -12px rgba(86, 75, 104, .5);
     transform: translateY(-1px);
@@ -377,7 +377,7 @@
     padding: 12px 10px 10px;
     border: 1.5px solid var(--lm-line);
     border-radius: 16px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     text-align: center;
     font-family: 'Inter', system-ui, sans-serif;
     color: var(--lm-ink);
@@ -390,7 +390,7 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: linear-gradient(135deg, #F1EDF6 0%, #F8ECE8 100%);
+    background: linear-gradient(135deg, var(--dm-elevated, #F1EDF6) 0%, var(--dm-elevated, #F8ECE8) 100%);
     color: var(--lm-lavender-dark);
     transition: background .18s, color .18s, box-shadow .18s;
 }
@@ -400,7 +400,7 @@
 .lm-role-name small {
     padding: 1px 7px;
     border-radius: 999px;
-    background: #FCEAE6;
+    background: var(--dm-elevated, #FCEAE6);
     color: var(--lm-rose-dark);
     font-size: .58rem;
     font-weight: 800;
@@ -412,7 +412,7 @@
 .lm-overlay .lm-role:focus-visible {
     border-color: transparent;
     background:
-        linear-gradient(135deg, #F5F1F9 0%, #FBF1EE 100%) padding-box,
+        linear-gradient(135deg, var(--dm-elevated, #F5F1F9) 0%, var(--dm-elevated, #FBF1EE) 100%) padding-box,
         linear-gradient(135deg, var(--lm-lavender) 0%, var(--lm-rose) 100%) border-box;
     box-shadow:
         0 0 0 4px rgba(192, 139, 127, 0.18),
@@ -441,7 +441,7 @@
     border: 1.5px solid transparent;
     border-radius: 999px;
     background:
-        linear-gradient(135deg, #F6F3F9, #FBF2EF) padding-box,
+        linear-gradient(135deg, var(--dm-elevated, #F6F3F9), var(--dm-elevated, #FBF2EF)) padding-box,
         linear-gradient(135deg, rgba(111, 99, 130, .45), rgba(192, 139, 127, .55)) border-box;
     color: var(--lm-lavender-dark);
     font: 800 .7rem 'Inter', system-ui, sans-serif;
@@ -468,7 +468,7 @@
     margin-left: 2px;
     padding: 3px 9px;
     border-radius: 999px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     color: var(--lm-rose-dark);
     font-size: .62rem;
     letter-spacing: .06em;
@@ -498,7 +498,7 @@
     height: 48px;
     margin-bottom: 10px;
     border-radius: 14px;
-    background: #FCEAE6;
+    background: var(--dm-elevated, #FCEAE6);
     color: var(--lm-rose-dark);
 }
 .lm-app-icon svg { width: 24px; height: 24px; }
@@ -520,7 +520,7 @@ html.lm-locked, html.lm-locked body { overflow: hidden !important; }
 body.lm-page {
     margin: 0;
     min-height: 100vh;
-    background: #F6E3DE;
+    background: var(--dm-red-surface, #F6E3DE);
 }
 .lm-page-bg {
     position: fixed;
@@ -636,13 +636,13 @@ body.lm-page {
    step 2 is the registration form, whose field styles come from auth-split.css and are tightened here. */
 body.auth-modal-page {
     display: block !important;
-    background: #F6E3DE !important;
+    background: var(--dm-red-surface, #F6E3DE) !important;
 }
 .lm-dialog-form .lm-panel {
     background:
         radial-gradient(90% 30% at 0% 0%, rgba(111, 99, 130, .08), transparent 70%),
         radial-gradient(80% 26% at 100% 0%, rgba(192, 139, 127, .1), transparent 70%),
-        #fff;
+        var(--dm-surface, #fff);
 }
 .lm-overlay a.lm-role { text-decoration: none; }
 .su-badge-row { text-align: center; }
@@ -805,7 +805,7 @@ body.auth-modal-page {
     gap: 6px;
     font-size: 0.8rem;
     font-weight: 500;
-    color: #374151;
+    color: var(--dm-ink, #374151);
     line-height: 1.5;
 }
 .logistics-terms-agreed-pill {
@@ -815,8 +815,8 @@ body.auth-modal-page {
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 700;
-    background: #ECFDF5;
-    color: #065F46;
+    background: var(--dm-green-surface, #ECFDF5);
+    color: var(--dm-green-ink, #065F46);
     border: 1px solid #A7F3D0;
     margin-left: 4px;
 }
@@ -838,7 +838,7 @@ body.auth-modal-page {
 }
 .logistics-terms-link:hover {
     color: var(--lm-rose-dark, #8C5A50);
-    background-color: #F8ECE8;
+    background-color: var(--dm-elevated, #F8ECE8);
 }
 
 /* Logistics Terms Modal Dialog */
@@ -846,7 +846,7 @@ dialog.logistics-terms-dialog {
     border: none;
     padding: 0;
     border-radius: 20px;
-    background: #ffffff;
+    background: var(--dm-surface, #ffffff);
     max-width: 620px;
     width: 92vw;
     box-shadow: 0 30px 80px -20px rgba(40, 33, 51, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.6);
@@ -866,7 +866,7 @@ dialog.logistics-terms-dialog::backdrop {
     flex-direction: column;
     max-height: 84vh;
     height: 100%;
-    background: #fff;
+    background: var(--dm-surface, #fff);
 }
 .logistics-terms-modal-header {
     display: flex;
@@ -874,8 +874,8 @@ dialog.logistics-terms-dialog::backdrop {
     justify-content: space-between;
     gap: 12px;
     padding: 14px 20px;
-    border-bottom: 1px solid #ECE7F2;
-    background: #FAF8FC;
+    border-bottom: 1px solid var(--dm-border, #ECE7F2);
+    background: var(--dm-surface, #FAF8FC);
     flex-shrink: 0;
 }
 .logistics-terms-modal-head-title {
@@ -902,13 +902,13 @@ dialog.logistics-terms-dialog::backdrop {
     height: 30px;
     border: none;
     background: transparent;
-    color: #6F6382;
+    color: var(--dm-muted, #6F6382);
     border-radius: 50%;
     cursor: pointer;
     transition: background 0.18s, color 0.18s, transform 0.18s;
 }
 .logistics-terms-close-btn:hover {
-    background: #EFEAF4;
+    background: var(--dm-elevated, #EFEAF4);
     color: var(--lm-ink, #282133);
     transform: rotate(90deg);
 }
@@ -917,9 +917,9 @@ dialog.logistics-terms-dialog::backdrop {
     padding: 20px 24px;
     overflow-y: auto;
     font-size: 0.82rem;
-    color: #4B5563;
+    color: var(--dm-ink, #4B5563);
     line-height: 1.6;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     flex: 1 1 auto;
 }
 .logistics-terms-modal-body::-webkit-scrollbar {
@@ -930,8 +930,8 @@ dialog.logistics-terms-dialog::backdrop {
     border-radius: 4px;
 }
 .terms-section-banner {
-    color: #6F6382;
-    border-bottom: 1.5px solid #ECE7F2;
+    color: var(--dm-muted, #6F6382);
+    border-bottom: 1.5px solid var(--dm-border, #ECE7F2);
     padding-bottom: 5px;
     margin: 14px 0 10px;
     font-size: 0.86rem;
@@ -941,7 +941,7 @@ dialog.logistics-terms-dialog::backdrop {
 .logistics-terms-modal-body h5 {
     font-size: 0.82rem;
     font-weight: 700;
-    color: #1F2937;
+    color: var(--dm-ink, #1F2937);
     margin: 12px 0 4px;
 }
 .logistics-terms-modal-body p {
@@ -959,7 +959,7 @@ dialog.logistics-terms-dialog::backdrop {
     margin-top: 24px;
     margin-bottom: 8px;
     padding: 16px 0 4px;
-    border-top: 1px solid #ECE7F2;
+    border-top: 1px solid var(--dm-border, #ECE7F2);
     background: transparent;
 }
 .logistics-terms-modal-actions {
@@ -1004,7 +1004,7 @@ dialog.logistics-terms-dialog::backdrop {
 .logistics-terms-checkbox-label span {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #1F2937;
+    color: var(--dm-ink, #1F2937);
     line-height: 1.45;
 }
 
@@ -1036,10 +1036,10 @@ dialog.account-removed-dialog {
     width: min(480px, calc(100vw - 32px));
     max-height: calc(100dvh - 32px);
     padding: 0;
-    border: 1px solid #fecaca;
+    border: 1px solid var(--dm-border, #fecaca);
     border-radius: 20px;
-    background: #ffffff;
-    color: #1f2937;
+    background: var(--dm-surface, #ffffff);
+    color: var(--dm-ink, #1f2937);
     box-shadow: 0 25px 50px -12px rgba(185, 28, 28, 0.25), 0 0 0 100vmax rgba(15, 10, 25, 0.65);
     overflow: hidden;
 }
@@ -1059,9 +1059,9 @@ dialog.account-removed-dialog::backdrop {
     width: 32px;
     height: 32px;
     border: none;
-    background: #f3f4f6;
+    background: var(--dm-elevated, #f3f4f6);
     border-radius: 50%;
-    color: #6b7280;
+    color: var(--dm-muted, #6b7280);
     font-size: 20px;
     line-height: 1;
     display: grid;
@@ -1070,8 +1070,8 @@ dialog.account-removed-dialog::backdrop {
     transition: all .15s;
 }
 .account-removed-close:hover {
-    background: #e5e7eb;
-    color: #111827;
+    background: var(--dm-elevated, #e5e7eb);
+    color: var(--dm-ink, #111827);
 }
 .account-removed-icon {
     display: inline-flex;
@@ -1080,7 +1080,7 @@ dialog.account-removed-dialog::backdrop {
     width: 54px;
     height: 54px;
     border-radius: 50%;
-    background: #fee2e2;
+    background: var(--dm-red-surface, #fee2e2);
     color: #dc2626;
     margin-bottom: 16px;
 }
@@ -1091,18 +1091,18 @@ dialog.account-removed-dialog::backdrop {
 #account-removed-title {
     font-size: 22px;
     font-weight: 700;
-    color: #991b1b;
+    color: var(--dm-red-ink, #991b1b);
     margin: 0 0 6px;
 }
 .account-removed-sub {
     font-size: 13.5px;
-    color: #4b5563;
+    color: var(--dm-ink, #4b5563);
     line-height: 1.5;
     margin: 0 0 18px;
 }
 .account-removed-reason-card {
-    background: #fff5f5;
-    border: 1px solid #fed7d7;
+    background: var(--dm-elevated, #fff5f5);
+    border: 1px solid var(--dm-border, #fed7d7);
     border-left: 4px solid #dc2626;
     border-radius: 10px;
     padding: 14px 16px;
@@ -1115,12 +1115,12 @@ dialog.account-removed-dialog::backdrop {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #991b1b;
+    color: var(--dm-red-ink, #991b1b);
     margin-bottom: 4px;
 }
 .account-removed-reason-text {
     font-size: 13px;
-    color: #1f2937;
+    color: var(--dm-ink, #1f2937);
     line-height: 1.55;
     margin: 0;
     overflow-wrap: break-word;
@@ -1128,7 +1128,7 @@ dialog.account-removed-dialog::backdrop {
 }
 .account-removed-help {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--dm-muted, #6b7280);
     line-height: 1.5;
     margin: 0 0 22px;
 }
@@ -1159,7 +1159,7 @@ dialog.account-removed-dialog::backdrop {
     background:
         radial-gradient(90% 45% at 0% 0%, rgba(111, 99, 130, .09), transparent 70%),
         radial-gradient(80% 40% at 100% 0%, rgba(192, 139, 127, .12), transparent 70%),
-        #fff;
+        var(--dm-surface, #fff);
 }
 
 .lm-icon-badge {
@@ -1169,15 +1169,15 @@ dialog.account-removed-dialog::backdrop {
     height: 46px;
     margin: 0 auto 10px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #F1EDF6 0%, #F8ECE8 100%);
+    background: linear-gradient(135deg, var(--dm-elevated, #F1EDF6) 0%, var(--dm-elevated, #F8ECE8) 100%);
     color: var(--lm-rose-dark);
     box-shadow: 0 4px 12px rgba(140, 90, 80, 0.12);
 }
 .lm-icon-badge svg { width: 22px; height: 22px; }
 
 .lm-icon-badge-success {
-    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
-    color: #059669;
+    background: linear-gradient(135deg, var(--dm-green-surface, #ECFDF5) 0%, #D1FAE5 100%);
+    color: var(--dm-green-ink, #059669);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18);
 }
 
@@ -1196,7 +1196,7 @@ dialog.account-removed-dialog::backdrop {
     font-family: 'Inter', system-ui, sans-serif;
     border: 1.5px solid var(--lm-line);
     border-radius: 12px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     color: var(--lm-ink);
     box-shadow: 0 1px 2px rgba(40, 33, 51, .04);
     transition: border-color .2s, box-shadow .2s, background .2s;
@@ -1205,7 +1205,7 @@ dialog.account-removed-dialog::backdrop {
 .lm-otp-digit:focus {
     border-color: transparent;
     background:
-        linear-gradient(#fff, #fff) padding-box,
+        linear-gradient(var(--dm-surface, #fff), var(--dm-surface, #fff)) padding-box,
         linear-gradient(135deg, var(--lm-lavender), var(--lm-rose)) border-box;
     box-shadow: 0 0 0 4px rgba(192, 139, 127, .18);
     outline: none;
@@ -1222,7 +1222,7 @@ dialog.account-removed-dialog::backdrop {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 8px;
-    background: #FAF8FC;
+    background: var(--dm-surface, #FAF8FC);
     border: 1px solid var(--lm-line);
     color: var(--lm-ink);
     font-weight: 700;

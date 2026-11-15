@@ -15,9 +15,9 @@
         <small>Total products across all verified sellers</small>
     </a>
 
-    <a class="stat-card" href="{{ route('admin.products', ['status' => 'pending']) }}" style="@if($statusCounts['pending'] > 0) border-top-color: #D97706; background: #FFFDF5; @endif">
+    <a class="stat-card" href="{{ route('admin.products', ['status' => 'pending']) }}" style="@if($statusCounts['pending'] > 0) border-top-color: #D97706; background: var(--dm-elevated, #FFFDF5); @endif">
         <div class="metric-heading">
-            <span class="metric-icon" style="@if($statusCounts['pending'] > 0) background: #FEF3C7; color: #B45309; @endif">@include('admin.partials.icon', ['name' => 'file'])</span>
+            <span class="metric-icon" style="@if($statusCounts['pending'] > 0) background: #FEF3C7; color: var(--dm-gold-ink, #B45309); @endif">@include('admin.partials.icon', ['name' => 'file'])</span>
             <span style="@if($statusCounts['pending'] > 0) color: #B45309; font-weight: 700; @endif">Needs Action</span>
         </div>
         <span>Pending Approval</span>
@@ -27,7 +27,7 @@
 
     <a class="stat-card" href="{{ route('admin.products', ['status' => 'approved']) }}">
         <div class="metric-heading">
-            <span class="metric-icon" style="background: #E8F5E9; color: #2E7D32;">@include('admin.partials.icon', ['name' => 'shield'])</span>
+            <span class="metric-icon" style="background: var(--dm-green-surface, #E8F5E9); color: var(--dm-green-ink, #2E7D32);">@include('admin.partials.icon', ['name' => 'shield'])</span>
             <span>Live on Storefront</span>
         </div>
         <span>Approved Products</span>
@@ -119,7 +119,7 @@
                     <!-- 1. Product & Category -->
                     <td>
                         <div style="display: flex; gap: 14px; align-items: flex-start;">
-                            <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;">
+                            <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 54px; height: 54px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);">
                             <div style="min-width: 0;">
                                 <strong style="font-size: 13px; line-height: 1.35; margin-bottom: 3px;">
                                     {{ $product->name }}
@@ -176,7 +176,7 @@
                         </small>
                         @if($product->discount_type)
                             <small>
-                                <span class="badge" style="background: #FEF3C7; color: #92400E; margin-top: 4px;">
+                                <span class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #92400E); margin-top: 4px;">
                                     Sale: {{ $product->discount_type === 'percentage' ? number_format($product->discount_value) . '% OFF' : '₱' . number_format($product->discount_value, 2) . ' OFF' }}
                                 </span>
                             </small>
@@ -186,12 +186,12 @@
                     <!-- 4. Approval Status -->
                     <td>
                         @if($product->isPending())
-                            <span class="badge warning" style="background: #FEF3C7; color: #B45309; font-weight: 700; padding: 4px 10px;">
+                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; padding: 4px 10px;">
                                 ⏳ Pending Review
                             </span>
                             <small class="muted" style="margin-top: 5px;">Awaiting admin decision</small>
                         @elseif($product->isApproved())
-                            <span class="badge good" style="background: #E8F5E9; color: #2E7D32; font-weight: 700; padding: 4px 10px;">
+                            <span class="badge good" style="background: var(--dm-green-surface, #E8F5E9); color: var(--dm-green-ink, #2E7D32); font-weight: 700; padding: 4px 10px;">
                                 ✓ Approved & Live
                             </span>
                             @if($product->reviewed_at)
@@ -205,7 +205,7 @@
                                 ✕ Disapproved / Rejected
                             </span>
                             @if($product->rejection_reason)
-                                <div style="margin-top: 6px; padding: 6px 9px; background: #FFF5F3; border-left: 2px solid var(--rose-border); border-radius: 4px; font-size: 11px; color: var(--rose-ink);">
+                                <div style="margin-top: 6px; padding: 6px 9px; background: var(--dm-elevated, #FFF5F3); border-left: 2px solid var(--rose-border); border-radius: 4px; font-size: 11px; color: var(--rose-ink);">
                                     <strong>Reason:</strong> {{ $product->rejection_reason }}
                                 </div>
                             @endif
@@ -400,7 +400,7 @@
                             </div>
                             <div id="details-discount-wrap" style="display: none;">
                                 <small class="muted" style="display: block;">Discount</small>
-                                <span id="details-discount-badge" class="badge" style="background: #FEF3C7; color: #92400E; font-weight: 600;"></span>
+                                <span id="details-discount-badge" class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #92400E); font-weight: 600;"></span>
                             </div>
                             <div>
                                 <small class="muted" style="display: block;">Category</small>
@@ -460,7 +460,7 @@
 {{-- ======================================================== --}}
 <dialog id="product-reject-modal" class="admin-modal" aria-labelledby="reject-modal-title">
     <div class="admin-modal-panel">
-        <header class="admin-modal-header" style="border-bottom-color: var(--rose-border); background: #FFFBFB;">
+        <header class="admin-modal-header" style="border-bottom-color: var(--rose-border); background: var(--dm-surface, #FFFBFB);">
             <div>
                 <p class="eyebrow" style="color: var(--rose-ink); margin-bottom: 3px;">REVIEW DECISION</p>
                 <h2 id="reject-modal-title" style="font-size: 17px; margin: 0; line-height: 1.3;">Reject Product Listing</h2>
@@ -473,7 +473,7 @@
             <div class="admin-modal-body">
                 <!-- Product Overview Card -->
                 <div style="display: flex; gap: 12px; align-items: center; padding: 12px 14px; background: var(--canvas); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 16px;">
-                    <img id="reject-preview-img" src="" alt="Product cover" style="width: 46px; height: 46px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #fff; flex-shrink: 0;">
+                    <img id="reject-preview-img" src="" alt="Product cover" style="width: 46px; height: 46px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: var(--dm-surface, #fff); flex-shrink: 0;">
                     <div style="min-width: 0;">
                         <strong id="reject-preview-name" style="font-size: 13px; line-height: 1.3; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></strong>
                         <small id="reject-preview-meta" class="muted" style="display: block; margin-top: 2px;"></small>
@@ -612,7 +612,7 @@
 .modal-featured-image-wrap {
     width: 100%;
     aspect-ratio: 1 / 1;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     border: 1px solid var(--line);
     border-radius: 12px;
     overflow: hidden;
@@ -642,7 +642,7 @@
     border: 2px solid transparent;
     object-fit: cover;
     cursor: pointer;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     flex-shrink: 0;
     transition: border-color 0.15s, transform 0.15s;
 }
@@ -681,13 +681,13 @@
 .modal-status-banner.pending {
     background: #FEF3C7;
     border: 1px solid #FCD34D;
-    color: #92400E;
+    color: var(--dm-gold-ink, #92400E);
 }
 
 .modal-status-banner.approved {
-    background: #E8F5E9;
+    background: var(--dm-green-surface, #E8F5E9);
     border: 1px solid #A5D6A7;
-    color: #1B5E20;
+    color: var(--dm-green-ink, #1B5E20);
 }
 
 .modal-status-banner.rejected {
@@ -774,7 +774,7 @@
                 statusBanner.innerHTML = '<strong>✓ Approved & Live on Storefront</strong><div style="margin-top:3px;font-size:11px;">Approved' + reviewedDate + reviewer + '. This product is actively published.</div>';
             } else if (data.status === 'rejected') {
                 const reviewedDate = data.reviewed_at ? ' on ' + data.reviewed_at : '';
-                const reasonText = data.rejection_reason ? '<div style="margin-top:4px;padding:6px 10px;background:#fff;border-radius:6px;border:1px solid var(--rose-border);"><strong>Reason:</strong> ' + escapeHtml(data.rejection_reason) + '</div>' : '';
+                const reasonText = data.rejection_reason ? '<div style="margin-top:4px;padding:6px 10px;background:var(--dm-surface, #fff);border-radius:6px;border:1px solid var(--rose-border);"><strong>Reason:</strong> ' + escapeHtml(data.rejection_reason) + '</div>' : '';
                 statusBanner.innerHTML = '<strong>✕ Disapproved / Rejected</strong><div style="margin-top:3px;font-size:11px;">Listing rejected' + reviewedDate + '.</div>' + reasonText;
             }
 

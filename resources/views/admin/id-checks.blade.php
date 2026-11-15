@@ -106,7 +106,7 @@
                     <td>
                         <div style="display: flex; gap: 12px; align-items: flex-start;">
                             @if($avatarUrl)
-                                <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; background: #fff;">
+                                <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" style="width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);">
                             @else
                                 <div class="avatar" style="width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; font-size: 15px;">
                                     {{ $initials }}
@@ -217,7 +217,7 @@
                                     ✕ Reject
                                 </button>
                             @elseif($tab === 'approved' || $isIdVerified)
-                                <span class="badge good" style="background: #E8F5E9; color: #2E7D32; font-weight: 700; padding: 4px 10px; width: fit-content;">
+                                <span class="badge good" style="background: var(--dm-green-surface, #E8F5E9); color: var(--dm-green-ink, #2E7D32); font-weight: 700; padding: 4px 10px; width: fit-content;">
                                     ✓ Approved
                                 </span>
                                 @if($user->id_verified_at)
@@ -240,7 +240,7 @@
                                 <form method="POST" action="{{ route('admin.id-checks.status', $user->id) }}" style="margin-top: 4px;">
                                     @csrf
                                     <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="button subtle" style="color: #2E7D32; font-size: 10px; min-height: 26px; padding: 2px 8px;">
+                                    <button type="submit" class="button subtle" style="color: var(--dm-green-ink, #2E7D32); font-size: 10px; min-height: 26px; padding: 2px 8px;">
                                         Re-approve
                                     </button>
                                 </form>
@@ -300,7 +300,7 @@
                 <p class="eyebrow" style="margin-bottom: 3px;">BUYER KYC COMPLIANCE · IDENTITY VERIFICATION</p>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <h2 id="inspection-modal-title" style="font-size: 18px; margin: 0; line-height: 1.3;">Buyer Verification</h2>
-                    <span class="badge" style="background: #F4F4F5; color: #3F3F46;">Buyer</span>
+                    <span class="badge" style="background: var(--dm-elevated, #F4F4F5); color: var(--dm-ink, #3F3F46);">Buyer</span>
                     <span id="modal-status-badge" class="badge"></span>
                 </div>
             </div>
@@ -388,11 +388,11 @@
                     </div>
 
                     <!-- Admin KYC Verification Checklist (Matching Guide Rules) -->
-                    <div class="modal-info-card" style="margin-top: 12px; background: #FFFDF9; border-color: #FDE68A;">
-                        <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #92400E; margin-bottom: 8px;">
+                    <div class="modal-info-card" style="margin-top: 12px; background: var(--dm-surface, #FFFDF9); border-color: #FDE68A;">
+                        <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dm-gold-ink, #92400E); margin-bottom: 8px;">
                             📋 Compliance Verification Checklist
                         </strong>
-                        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #78350F;">
+                        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: var(--dm-gold-ink, #78350F);">
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; flex-direction: row;">
                                 <input type="checkbox" id="chk-name-match" checked style="width: auto; min-height: auto;">
                                 <span>Name on document matches buyer's account</span>
@@ -461,7 +461,7 @@
 
 <dialog id="id-reject-modal" class="admin-modal" aria-labelledby="reject-modal-title">
     <div class="admin-modal-panel">
-        <header class="admin-modal-header" style="border-bottom-color: var(--rose-border); background: #FFFBFB;">
+        <header class="admin-modal-header" style="border-bottom-color: var(--rose-border); background: var(--dm-surface, #FFFBFB);">
             <div>
                 <p class="eyebrow" style="color: var(--rose-ink); margin-bottom: 3px;">DECISION · IDENTITY REJECTION</p>
                 <h2 id="reject-modal-title" style="font-size: 17px; margin: 0; line-height: 1.3;">Reject this ID?</h2>
@@ -525,7 +525,7 @@
 .id-status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
 .id-status-card { display: flex; flex-direction: column; align-items: flex-start; padding: 22px 24px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--ink); }
 .id-status-card:hover { border-color: var(--accent); box-shadow: 0 4px 14px #2821330a; }
-.id-status-card.is-active { border-color: var(--accent); background: linear-gradient(120deg, #f1ebf8, #fff9f6); box-shadow: inset 0 3px 0 var(--accent); }
+.id-status-card.is-active { border-color: var(--accent); background: linear-gradient(120deg, var(--dm-elevated, #f1ebf8), var(--dm-elevated, #fff9f6)); box-shadow: inset 0 3px 0 var(--accent); }
 .id-status-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; }
 .id-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #b67b22; }
 .id-status-dot--approved { background: #338359; }
@@ -543,9 +543,9 @@
 .id-queue-heading h2 { font-size: 20px; margin: 5px 0; }
 .id-queue-heading .muted { font-size: 12px; }
 .id-queue-total { flex-shrink: 0; color: var(--muted); background: var(--canvas); border: 1px solid var(--line); padding: 6px 10px; border-radius: 8px; font-size: 11px; }
-.id-review-panel thead th { background: #f8f7fb; padding-top: 14px; padding-bottom: 14px; }
+.id-review-panel thead th { background: var(--dm-elevated, #f8f7fb); padding-top: 14px; padding-bottom: 14px; }
 .id-review-panel tbody td { padding-top: 22px; padding-bottom: 22px; vertical-align: top; }
-.id-review-panel tbody tr:hover { background: #fcfbfe; }
+.id-review-panel tbody tr:hover { background: var(--dm-surface, #fcfbfe); }
 .id-review-workspace a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 @media (max-width: 640px) {
     .id-status-grid { gap: 8px; }
@@ -640,7 +640,7 @@
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 4px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     transition: border-color 0.15s, box-shadow 0.15s;
     max-width: 125px;
 }
@@ -656,7 +656,7 @@
     height: 70px;
     border-radius: 6px;
     overflow: hidden;
-    background: #F4F4F5;
+    background: var(--dm-elevated, #F4F4F5);
 }
 
 .id-thumb-img {
@@ -692,7 +692,7 @@
     width: 115px;
     height: 70px;
     border-radius: 6px;
-    background: #FEF2F2;
+    background: var(--dm-elevated, #FEF2F2);
     border: 1px dashed #FCA5A5;
     display: flex;
     flex-direction: column;
@@ -729,7 +729,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 14px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     border-bottom: 1px solid var(--line);
 }
 
@@ -783,7 +783,7 @@
     width: 100%;
     height: 100%;
     border: 0;
-    background: #fff;
+    background: var(--dm-surface, #fff);
 }
 
 .doc-empty-state {
@@ -791,12 +791,12 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #A8A0B2;
+    color: var(--dm-muted, #A8A0B2);
 }
 
 .doc-caption {
     padding: 8px 14px;
-    background: #fff;
+    background: var(--dm-surface, #fff);
     border-top: 1px solid var(--line);
 }
 
@@ -817,13 +817,13 @@
 .modal-status-banner.pending {
     background: #FEF3C7;
     border: 1px solid #FCD34D;
-    color: #92400E;
+    color: var(--dm-gold-ink, #92400E);
 }
 
 .modal-status-banner.verified {
-    background: #E8F5E9;
+    background: var(--dm-green-surface, #E8F5E9);
     border: 1px solid #A5D6A7;
-    color: #1B5E20;
+    color: var(--dm-green-ink, #1B5E20);
 }
 
 .modal-status-banner.rejected {
@@ -977,7 +977,7 @@
                 const verifiedDate = data.id_verified_at ? ' on ' + data.id_verified_at : '';
                 statusBanner.innerHTML = '<strong>✓ Buyer Identity Verified & Active</strong><div style="margin-top:3px;font-size:11px;">This buyer has been verified' + verifiedDate + '. Full checkout privileges are active.</div>';
             } else if (data.is_rejected) {
-                const reasonText = data.id_rejection_reason ? '<div style="margin-top:4px;padding:6px 10px;background:#fff;border-radius:6px;border:1px solid var(--rose-border);"><strong>Feedback given:</strong> ' + escapeHtml(data.id_rejection_reason) + '</div>' : '';
+                const reasonText = data.id_rejection_reason ? '<div style="margin-top:4px;padding:6px 10px;background:var(--dm-surface, #fff);border-radius:6px;border:1px solid var(--rose-border);"><strong>Feedback given:</strong> ' + escapeHtml(data.id_rejection_reason) + '</div>' : '';
                 statusBanner.innerHTML = '<strong>✕ Buyer Identity Document Disapproved</strong><div style="margin-top:3px;font-size:11px;">This identity submission was rejected.</div>' + reasonText;
             } else {
                 statusBanner.innerHTML = '<strong>⚠️ Unverified Buyer Profile</strong><div style="margin-top:3px;font-size:11px;">No verification has been processed yet.</div>';

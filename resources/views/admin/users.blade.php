@@ -41,7 +41,7 @@
                             </small>
                         @endif
                     @elseif($user->status === 'deactivated')
-                        <span class="badge" style="background: #e2e8f0; color: #475569;">Deactivated</span>
+                        <span class="badge" style="background: var(--dm-elevated, #e2e8f0); color: var(--dm-ink, #475569);">Deactivated</span>
                         @if($user->status_reason)
                             <small class="muted" title="{{ $user->status_reason }}" style="display: block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px;">
                                 <strong>Reason:</strong> {{ $user->status_reason }}
@@ -57,7 +57,7 @@
                     @elseif($user->status === 'active')
                         {{-- Active user: separate Suspend and Deactivate buttons --}}
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                            <button type="button" class="button subtle" style="min-height: 32px; padding: 5px 12px; font-size: 11px; color: #b45309; border-color: #fde68a;"
+                            <button type="button" class="button subtle" style="min-height: 32px; padding: 5px 12px; font-size: 11px; color: var(--dm-gold-ink, #b45309); border-color: #fde68a;"
                                 data-trigger-action="suspend"
                                 data-user-id="{{ $user->id }}"
                                 data-user-name="{{ $user->name }}"
@@ -65,7 +65,7 @@
                                 data-action-url="{{ route('admin.users.status', $user->id) }}">
                                 @include('admin.partials.icon', ['name' => 'shield']) Suspend
                             </button>
-                            <button type="button" class="button subtle" style="min-height: 32px; padding: 5px 12px; font-size: 11px; color: #475569; border-color: #cbd5e1;"
+                            <button type="button" class="button subtle" style="min-height: 32px; padding: 5px 12px; font-size: 11px; color: var(--dm-ink, #475569); border-color: var(--dm-border, #cbd5e1);"
                                 data-trigger-action="deactivate"
                                 data-user-id="{{ $user->id }}"
                                 data-user-name="{{ $user->name }}"
@@ -170,8 +170,8 @@
         height: 34px;
         border-radius: 50%;
         border: 1px solid rgba(0, 0, 0, 0.06);
-        background: #f8fafc;
-        color: #64748b;
+        background: var(--dm-surface, #f8fafc);
+        color: var(--dm-muted, #64748b);
         font-size: 20px;
         display: inline-flex;
         align-items: center;
@@ -181,8 +181,8 @@
         transition: all 0.15s ease;
     }
     .user-status-modal-close:hover {
-        background: #f1f5f9;
-        color: #0f172a;
+        background: var(--dm-elevated, #f1f5f9);
+        color: var(--dm-ink, #0f172a);
         transform: scale(1.05);
     }
     .user-status-modal-badge {
@@ -194,28 +194,28 @@
         margin-bottom: 18px;
         border-radius: 14px;
         background: #fef3c7;
-        color: #b45309;
+        color: var(--dm-gold-ink, #b45309);
         flex-shrink: 0;
     }
     .user-status-modal-badge.deactivate {
-        background: #f1f5f9;
-        color: #475569;
+        background: var(--dm-elevated, #f1f5f9);
+        color: var(--dm-ink, #475569);
     }
     .user-status-modal-badge.danger {
-        background: #fef2f2 !important;
+        background: var(--dm-elevated, #fef2f2) !important;
         color: #dc2626 !important;
     }
     .user-status-modal-title {
         font-size: 20px;
         font-weight: 700;
-        color: #111827;
+        color: var(--dm-ink, #111827);
         margin: 0 0 8px;
         line-height: 1.3;
         letter-spacing: -0.01em;
     }
     .user-status-modal-desc {
         font-size: 13.5px;
-        color: #64748b;
+        color: var(--dm-muted, #64748b);
         margin: 0 0 22px;
         line-height: 1.55;
     }
@@ -225,13 +225,13 @@
         gap: 8px;
         font-size: 13px;
         font-weight: 600;
-        color: #334155;
+        color: var(--dm-ink, #334155);
         text-align: left;
         margin-bottom: 24px;
     }
     .user-status-modal-textarea {
         width: 100%;
-        border: 1.5px solid #e2e8f0;
+        border: 1.5px solid var(--dm-border, #e2e8f0);
         border-radius: 12px;
         padding: 12px 14px;
         font-size: 14px;
@@ -239,12 +239,12 @@
         resize: vertical;
         line-height: 1.5;
         box-sizing: border-box;
-        background: #f8fafc;
-        color: #1e293b;
+        background: var(--dm-surface, #f8fafc);
+        color: var(--dm-ink, #1e293b);
         transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
     }
     .user-status-modal-textarea:focus {
-        background: #fff;
+        background: var(--dm-surface, #fff);
         border-color: #b45309;
         outline: none;
         box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.12);
@@ -262,15 +262,15 @@
         border-radius: 10px;
         font-size: 13.5px;
         font-weight: 600;
-        background: #f1f5f9;
-        color: #475569;
-        border: 1px solid #e2e8f0;
+        background: var(--dm-elevated, #f1f5f9);
+        color: var(--dm-ink, #475569);
+        border: 1px solid var(--dm-border, #e2e8f0);
         cursor: pointer;
         transition: background 0.15s;
     }
     .user-status-modal-actions .btn-cancel:hover {
-        background: #e2e8f0;
-        color: #1e293b;
+        background: var(--dm-elevated, #e2e8f0);
+        color: var(--dm-ink, #1e293b);
     }
     .user-status-modal-actions .btn-confirm {
         min-height: 42px;
@@ -318,7 +318,7 @@
                 if (action === 'suspend') {
                     titleEl.textContent = `Suspend Account — ${userName}`;
                     descEl.textContent = `Temporarily suspend ${userName}'s account access. A notification stating this reason will be recorded for the user.`;
-                    labelEl.innerHTML = `Reason for suspension <strong style="color: #b91c1c;">*</strong>`;
+                    labelEl.innerHTML = `Reason for suspension <strong style="color: var(--dm-red-ink, #b91c1c);">*</strong>`;
                     reasonInput.placeholder = `Describe why ${userName}'s account is being suspended...`;
                     submitBtn.textContent = 'Confirm Suspension';
                     submitBtn.style.background = '#b45309';
@@ -327,7 +327,7 @@
                 } else {
                     titleEl.textContent = `Deactivate Account — ${userName}`;
                     descEl.textContent = `Deactivate ${userName}'s account. A notification stating this reason will be recorded for the user.`;
-                    labelEl.innerHTML = `Reason for deactivation <strong style="color: #b91c1c;">*</strong>`;
+                    labelEl.innerHTML = `Reason for deactivation <strong style="color: var(--dm-red-ink, #b91c1c);">*</strong>`;
                     reasonInput.placeholder = `Describe why ${userName}'s account is being deactivated...`;
                     submitBtn.textContent = 'Confirm Deactivation';
                     submitBtn.style.background = '#475569';

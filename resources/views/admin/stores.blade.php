@@ -55,7 +55,7 @@
                             @include('admin.partials.icon', ['name' => 'external'])
                             <span>View shop</span>
                         </a>
-                        <button type="button" class="button subtle store-action store-action--remove" style="color: #dc2626; border-color: #fecaca;"
+                        <button type="button" class="button subtle store-action store-action--remove" style="color: #dc2626; border-color: var(--dm-border, #fecaca);"
                             data-trigger-remove-store
                             data-store-id="{{ $store->id }}"
                             data-store-name="{{ $store->name }}"
@@ -110,10 +110,10 @@
         padding: 5px 12px;
         white-space: nowrap;
     }
-    .store-actions .button.store-action--suspended { color: #b45309; border-color: #fde68a; }
-    .store-actions .button.store-action--deactivated { color: #475569; border-color: #cbd5e1; }
-    .store-actions .button.store-action--view { color: #1d4ed8; border-color: #bfdbfe; }
-    .store-actions .button.store-action--remove:hover { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
+    .store-actions .button.store-action--suspended { color: var(--dm-gold-ink, #b45309); border-color: #fde68a; }
+    .store-actions .button.store-action--deactivated { color: var(--dm-ink, #475569); border-color: var(--dm-border, #cbd5e1); }
+    .store-actions .button.store-action--view { color: #1d4ed8; border-color: var(--dm-border, #bfdbfe); }
+    .store-actions .button.store-action--remove:hover { background: var(--dm-elevated, #fef2f2); color: var(--dm-red-ink, #b91c1c); border-color: #fca5a5; }
 
     #remove-store-modal {
         width: min(500px, calc(100vw - 32px));

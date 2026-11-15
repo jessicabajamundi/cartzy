@@ -1,9 +1,9 @@
 .partner-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
 .partner-summary-card { display: flex; flex-direction: column; padding: 20px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; color: var(--ink); transition: border-color .15s, box-shadow .15s; }
 .partner-summary-card:hover { border-color: var(--accent); box-shadow: 0 5px 18px #2821330a; }
-.partner-summary-card.is-active { background: linear-gradient(120deg, #f1ebf8, #fff9f6); border-color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+.partner-summary-card.is-active { background: linear-gradient(120deg, var(--dm-elevated, #f1ebf8), var(--dm-elevated, #fff9f6)); border-color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
 .partner-summary-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 650; }
-.partner-summary-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: #ffffffb3; color: var(--accent); }
+.partner-summary-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: var(--dm-surface, #ffffffb3); color: var(--accent); }
 .partner-summary-card strong { margin: 12px 0 4px; font-size: 32px; line-height: 1.1; letter-spacing: -1px; }
 .partner-summary-card small { font-size: 12px; color: var(--muted); }
 .partner-directory { padding: 0; border-radius: 18px; overflow: hidden; }
@@ -18,18 +18,18 @@
 .partner-search input { width: 270px; min-height: 38px; font-size: 12px; border-radius: 9px; }
 .partner-search .button { min-height: 38px; font-size: 12px; }
 .partner-search-label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.partner-directory thead th { background: #faf9fc; padding-top: 14px; padding-bottom: 14px; }
+.partner-directory thead th { background: var(--dm-surface, #faf9fc); padding-top: 14px; padding-bottom: 14px; }
 .partner-directory tbody td { padding-top: 24px; padding-bottom: 24px; vertical-align: top; }
 .partner-directory tbody tr { background: var(--surface); }
-.partner-directory tbody tr:hover { background: #fcfbfe; }
+.partner-directory tbody tr:hover { background: var(--dm-surface, #fcfbfe); }
 .partner-company { position: relative; padding-left: 50px; min-height: 42px; }
 .partner-company-icon { position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line); background: var(--canvas); color: var(--accent); }
 .partner-contact-line { display: block; overflow-wrap: anywhere; }
 .partner-contact-line + .partner-contact-line { margin-top: 4px; }
 :is(#logistics-reject-modal, #logistics-suspend-modal) { width: min(480px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 28px 90px #28213340; }
 :is(#logistics-reject-modal, #logistics-suspend-modal)::backdrop { background: #28213380; backdrop-filter: blur(4px); }
-:is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-header { position: relative; display: block; padding: 26px 28px 18px; border: 0; background: linear-gradient(180deg, #fff6f5, #fff); }
-:is(#logistics-reject-modal, #logistics-suspend-modal) .partner-confirm-emblem { background: #fff0ef; border-color: #f0d2ce; color: #b42332; font-size: 28px; font-weight: 700; }
+:is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-header { position: relative; display: block; padding: 26px 28px 18px; border: 0; background: linear-gradient(180deg, var(--dm-elevated, #fff6f5), var(--dm-surface, #fff)); }
+:is(#logistics-reject-modal, #logistics-suspend-modal) .partner-confirm-emblem { background: var(--dm-elevated, #fff0ef); border-color: var(--dm-border, #f0d2ce); color: var(--dm-red-ink, #b42332); font-size: 28px; font-weight: 700; }
 :is(#logistics-reject-modal, #logistics-suspend-modal) .eyebrow { color: var(--rose-ink); }
 :is(#reject-modal-title, #suspend-modal-title) { margin: 7px 0 0; font: 700 32px/1.1 'Cormorant Garamond', Georgia, serif; letter-spacing: -.025em; }
 :is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-header .js-close-modal { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; min-height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 22px; }
@@ -41,7 +41,7 @@
 .partner-reject-label span { font-size: 10px; font-weight: 500; color: var(--rose-ink); }
 :is(#partner-reject-reason, #partner-suspend-reason) { display: block; width: 100%; min-height: 110px; padding: 12px 14px; border-radius: 10px; font-size: 12px; line-height: 1.6; resize: vertical; }
 :is(#partner-reject-hint, #partner-suspend-hint) { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
-:is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-footer { display: flex; justify-content: flex-end; flex-wrap: nowrap; gap: 10px; padding: 18px 28px 24px; background: #fff; border-top: 1px solid var(--line); }
+:is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-footer { display: flex; justify-content: flex-end; flex-wrap: nowrap; gap: 10px; padding: 18px 28px 24px; background: var(--dm-surface, #fff); border-top: 1px solid var(--line); }
 :is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-footer .button { justify-content: center; min-height: 44px; border-radius: 10px; font-size: 12px; white-space: normal; }
 :is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-footer .button.danger { background: #b42332; border-color: #b42332; color: #fff; }
 :is(#logistics-reject-modal, #logistics-suspend-modal) .admin-modal-footer .button.danger:hover { background: #941c29; }
@@ -53,11 +53,11 @@
     :is(#reject-modal-title, #suspend-modal-title) { font-size: 29px; }
 }
 #partner-action-modal { width: min(460px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 28px 90px #28213340; }
-#logistics-suspend-modal .admin-modal-header { padding: 18px 22px 12px; background: linear-gradient(180deg, #fff9ed, #fff); }
-#logistics-suspend-modal .partner-confirm-emblem { width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px; background: #fff4d9; border-color: #efdcb0; color: #9a6517; }
+#logistics-suspend-modal .admin-modal-header { padding: 18px 22px 12px; background: linear-gradient(180deg, var(--dm-elevated, #fff9ed), var(--dm-surface, #fff)); }
+#logistics-suspend-modal .partner-confirm-emblem { width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px; background: var(--dm-gold-surface, #fff4d9); border-color: var(--dm-border, #efdcb0); color: var(--dm-gold-ink, #9a6517); }
 #logistics-suspend-modal .partner-confirm-emblem .icon { width: 22px; height: 22px; }
 #logistics-suspend-modal #suspend-modal-title { font-size: 28px; margin-top: 5px; }
-#logistics-suspend-modal .eyebrow { color: #8a5c20; }
+#logistics-suspend-modal .eyebrow { color: var(--dm-gold-ink, #8a5c20); }
 #logistics-suspend-modal .admin-modal-panel { max-height: calc(90dvh - 2px); }
 #logistics-suspend-modal #suspend-form { flex: 1; min-height: 0; overflow: hidden; }
 #logistics-suspend-modal .admin-modal-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 22px 14px; }
@@ -70,24 +70,24 @@
     #logistics-suspend-modal .admin-modal-footer { padding: 12px 20px 16px; }
 }
 #logistics-suspend-modal #partner-suspend-description { margin-bottom: 8px; line-height: 1.5; }
-.partner-suspend-note { margin-bottom: 12px; padding: 8px 10px; border-left: 3px solid #dfbd77; border-radius: 0 8px 8px 0; background: #fffbf2; color: #795c32; font-size: 12px; line-height: 1.5; }
+.partner-suspend-note { margin-bottom: 12px; padding: 8px 10px; border-left: 3px solid #dfbd77; border-radius: 0 8px 8px 0; background: var(--dm-elevated, #fffbf2); color: var(--dm-gold-ink, #795c32); font-size: 12px; line-height: 1.5; }
 #partner-action-modal::backdrop { background: #28213380; backdrop-filter: blur(4px); }
-#partner-action-modal .admin-modal-header { position: relative; display: block; padding: 28px 28px 18px; border: 0; background: linear-gradient(180deg, #f7f4fb, #fff); }
+#partner-action-modal .admin-modal-header { position: relative; display: block; padding: 28px 28px 18px; border: 0; background: linear-gradient(180deg, var(--dm-elevated, #f7f4fb), var(--dm-surface, #fff)); }
 .partner-confirm-heading { text-align: center; }
-.partner-confirm-emblem { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 16px; border: 1px solid #d8e8dc; border-radius: 18px; background: #edf6ef; color: #2e7d32; box-shadow: 0 4px 12px #2e7d3208; }
+.partner-confirm-emblem { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 16px; border: 1px solid var(--dm-border, #d8e8dc); border-radius: 18px; background: var(--dm-green-surface, #edf6ef); color: var(--dm-green-ink, #2e7d32); box-shadow: 0 4px 12px #2e7d3208; }
 .partner-confirm-emblem .icon { width: 28px; height: 28px; }
-#partner-action-modal[data-kind="danger"] .partner-confirm-emblem { background: #fff0f1; border-color: #f0d2d6; color: #b42332; }
+#partner-action-modal[data-kind="danger"] .partner-confirm-emblem { background: var(--dm-elevated, #fff0f1); border-color: var(--dm-border, #f0d2d6); color: var(--dm-red-ink, #b42332); }
 #partner-action-title { margin: 7px 0 0; font: 700 32px/1.1 'Cormorant Garamond', Georgia, serif; letter-spacing: -.025em; }
 #partner-action-modal .admin-modal-header .js-close-modal { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; min-height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); font-size: 22px; }
 #partner-action-modal .admin-modal-header .js-close-modal:hover { background: var(--accent-light); }
 #partner-action-modal .admin-modal-body { padding: 6px 28px 24px; }
 #partner-action-form { gap: 0; }
-.partner-action-company { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: #faf9fc; overflow-wrap: anywhere; }
-.partner-confirm-company-icon { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 10px; color: var(--accent); }
+.partner-action-company { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--dm-surface, #faf9fc); overflow-wrap: anywhere; }
+.partner-confirm-company-icon { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; background: var(--dm-surface, #fff); border: 1px solid var(--line); border-radius: 10px; color: var(--accent); }
 .partner-action-company > div { min-width: 0; }
 .partner-action-company small { display: block; margin-bottom: 3px; font-size: 9px; font-weight: 600; letter-spacing: 1.2px; color: var(--muted); }
 .partner-action-company strong { display: block; font-size: 15px; color: var(--ink); }
-#partner-action-modal .admin-modal-footer { display: flex; justify-content: flex-end; flex-wrap: nowrap; gap: 10px; padding: 18px 28px 24px; background: #fff; border-top: 1px solid var(--line); }
+#partner-action-modal .admin-modal-footer { display: flex; justify-content: flex-end; flex-wrap: nowrap; gap: 10px; padding: 18px 28px 24px; background: var(--dm-surface, #fff); border-top: 1px solid var(--line); }
 #partner-action-modal .admin-modal-footer .button { justify-content: center; min-height: 44px; border-radius: 10px; font-size: 12px; white-space: normal; }
 #partner-action-modal .button:disabled { opacity: .65; cursor: wait; }
 @media (max-width: 480px) {

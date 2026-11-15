@@ -52,7 +52,7 @@
                 <tr>
                     <td>
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;" loading="lazy">
+                            <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);" loading="lazy">
                             <div style="min-width: 0;">
                                 <strong style="display: block; font-size: 13.5px; line-height: 1.35; margin-bottom: 2px;">{{ $product->name }}</strong>
                                 <small style="display: block; color: var(--muted);">Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</small>
@@ -86,7 +86,7 @@
                         <dialog class="review-modal" id="enforce-{{ $product->id }}" aria-labelledby="enforce-{{ $product->id }}-title">
                             <header class="review-modal-head">
                                 <div style="display: flex; gap: 14px; align-items: center;">
-                                    <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 58px; height: 58px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;">
+                                    <img src="{{ $coverUrl }}" alt="{{ $product->name }}" style="width: 58px; height: 58px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);">
                                     <div>
                                         <p class="review-modal-eyebrow">Product #{{ $product->id }} · {{ $product->category?->name ?? 'Uncategorized' }}</p>
                                         <h2 id="enforce-{{ $product->id }}-title" style="margin: 0 0 4px; font-size: 18px;">{{ $product->name }}</h2>

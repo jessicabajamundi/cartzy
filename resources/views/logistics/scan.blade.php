@@ -22,8 +22,8 @@
 
     /* Scanner Card */
     .scanner-card {
-        background: #ffffff;
-        border: 1px solid #e5dfeb;
+        background: var(--dm-surface, #ffffff);
+        border: 1px solid var(--dm-border, #e5dfeb);
         border-radius: 20px;
         padding: 24px;
         box-shadow: 0 4px 20px rgba(86, 75, 104, 0.05);
@@ -37,7 +37,7 @@
     .scanner-title {
         font-size: 15px;
         font-weight: 700;
-        color: #1e1b26;
+        color: var(--dm-ink, #1e1b26);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -50,14 +50,14 @@
         border-radius: 999px;
         font-size: 11px;
         font-weight: 700;
-        background: #f3f4f6;
-        color: #4b5563;
-        border: 1px solid #e5e7eb;
+        background: var(--dm-elevated, #f3f4f6);
+        color: var(--dm-ink, #4b5563);
+        border: 1px solid var(--dm-border, #e5e7eb);
         transition: all 0.2s ease;
     }
     .camera-status-pill.active {
-        background: #ecfdf5;
-        color: #065f46;
+        background: var(--dm-green-surface, #ecfdf5);
+        color: var(--dm-green-ink, #065f46);
         border-color: #a7f3d0;
     }
     .camera-status-dot {
@@ -191,25 +191,25 @@
         background: #463c55;
     }
     .scanner-btn.secondary {
-        background: #f8f6fa;
-        color: #564b68;
-        border-color: #e1dde7;
+        background: var(--dm-elevated, #f8f6fa);
+        color: var(--dm-ink, #564b68);
+        border-color: var(--dm-border, #e1dde7);
     }
     .scanner-btn.secondary:hover {
-        background: #eeeaf3;
+        background: var(--dm-elevated, #eeeaf3);
     }
 
     /* Manual Entry Form */
     .manual-entry-box {
         margin-top: 18px;
         padding-top: 18px;
-        border-top: 1px dashed #e8e3ed;
+        border-top: 1px dashed var(--dm-border, #e8e3ed);
     }
     .manual-entry-box label {
         display: block;
         font-size: 11.5px;
         font-weight: 700;
-        color: #554b62;
+        color: var(--dm-ink, #554b62);
         margin-bottom: 6px;
     }
     .manual-input-row {
@@ -222,7 +222,7 @@
         font-size: 12.5px;
         font-family: monospace;
         text-transform: uppercase;
-        border: 1px solid #dcd7e2;
+        border: 1px solid var(--dm-border, #dcd7e2);
         border-radius: 10px;
         outline: none;
         transition: border-color 0.2s;
@@ -238,7 +238,7 @@
     .recent-scans-label {
         font-size: 11px;
         font-weight: 700;
-        color: #8a7e96;
+        color: var(--dm-muted, #8a7e96);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-bottom: 8px;
@@ -251,26 +251,26 @@
     }
     .recent-chip {
         padding: 4px 10px;
-        background: #faf8fb;
-        border: 1px solid #ece7ef;
+        background: var(--dm-surface, #faf8fb);
+        border: 1px solid var(--dm-border, #ece7ef);
         border-radius: 8px;
         font-size: 11px;
         font-family: monospace;
         font-weight: 700;
-        color: #564b68;
+        color: var(--dm-ink, #564b68);
         cursor: pointer;
         text-decoration: none;
         transition: all 0.15s;
     }
     .recent-chip:hover {
-        background: #f1ecf5;
-        border-color: #d1cad7;
+        background: var(--dm-elevated, #f1ecf5);
+        border-color: var(--dm-border, #d1cad7);
     }
 
     /* Result Monitor Display */
     .monitor-card {
-        background: #ffffff;
-        border: 1px solid #e5dfeb;
+        background: var(--dm-surface, #ffffff);
+        border: 1px solid var(--dm-border, #e5dfeb);
         border-radius: 20px;
         padding: 24px;
         box-shadow: 0 4px 20px rgba(86, 75, 104, 0.05);
@@ -285,18 +285,18 @@
         min-height: 420px;
         text-align: center;
         padding: 32px 16px;
-        color: #8c7f99;
+        color: var(--dm-muted, #8c7f99);
     }
     .empty-state-icon {
         width: 72px;
         height: 72px;
         border-radius: 24px;
-        background: #f7f4f9;
+        background: var(--dm-elevated, #f7f4f9);
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 16px;
-        color: #6f6382;
+        color: var(--dm-muted, #6f6382);
     }
 
     /* Scanned Parcel Content */
@@ -307,18 +307,18 @@
         justify-content: space-between;
         gap: 12px;
         padding-bottom: 16px;
-        border-bottom: 1px solid #eeeaf3;
+        border-bottom: 1px solid var(--dm-border, #eeeaf3);
     }
     .tracking-badge {
         font-family: monospace;
         font-size: 16px;
         font-weight: 800;
-        color: #1e1b26;
+        color: var(--dm-ink, #1e1b26);
         letter-spacing: 0.5px;
     }
     .order-ref {
         font-size: 12px;
-        color: #7b7089;
+        color: var(--dm-muted, #7b7089);
         font-weight: 600;
     }
 
@@ -327,8 +327,8 @@
         margin: 16px 0;
         padding: 16px 18px;
         border-radius: 16px;
-        background: linear-gradient(135deg, #f8f6fc 0%, #fefcfd 100%);
-        border: 1px solid #e4dcee;
+        background: linear-gradient(135deg, var(--dm-elevated, #f8f6fc) 0%, var(--dm-surface, #fefcfd) 100%);
+        border: 1px solid var(--dm-border, #e4dcee);
         display: flex;
         align-items: flex-start;
         gap: 14px;
@@ -350,13 +350,13 @@
         font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: #6f6382;
+        color: var(--dm-muted, #6f6382);
         margin-bottom: 2px;
     }
     .whereabouts-text {
         font-size: 13.5px;
         font-weight: 700;
-        color: #1e1b26;
+        color: var(--dm-ink, #1e1b26);
         line-height: 1.45;
     }
 
@@ -382,9 +382,9 @@
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: #ffffff;
-        border: 2px solid #dcd7e2;
-        color: #8c7f99;
+        background: var(--dm-surface, #ffffff);
+        border: 2px solid var(--dm-border, #dcd7e2);
+        color: var(--dm-muted, #8c7f99);
         font-size: 12px;
         font-weight: 800;
         display: flex;
@@ -406,11 +406,11 @@
     .step-label {
         font-size: 10.5px;
         font-weight: 700;
-        color: #6d627b;
+        color: var(--dm-muted, #6d627b);
     }
     .step-sub {
         font-size: 9.5px;
-        color: #9c91a8;
+        color: var(--dm-muted, #9c91a8);
     }
     .route-stepper::before {
         content: '';
@@ -419,7 +419,7 @@
         left: 12%;
         right: 12%;
         height: 2px;
-        background: #e6e0ec;
+        background: var(--dm-elevated, #e6e0ec);
         z-index: 1;
     }
 
@@ -432,15 +432,15 @@
     }
     .detail-tile {
         padding: 14px;
-        background: #faf9fb;
-        border: 1px solid #eeeaf3;
+        background: var(--dm-surface, #faf9fb);
+        border: 1px solid var(--dm-border, #eeeaf3);
         border-radius: 14px;
     }
     .detail-tile-header {
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
-        color: #7b7089;
+        color: var(--dm-muted, #7b7089);
         margin-bottom: 6px;
         display: flex;
         align-items: center;
@@ -448,13 +448,13 @@
     }
     .detail-tile-body {
         font-size: 12.5px;
-        color: #272330;
+        color: var(--dm-ink, #272330);
     }
     .detail-tile-body strong {
         display: block;
         font-size: 13.5px;
         font-weight: 700;
-        color: #1e1b26;
+        color: var(--dm-ink, #1e1b26);
         margin-bottom: 2px;
     }
 
@@ -462,12 +462,12 @@
     .timeline-wrap {
         margin-top: 20px;
         padding-top: 18px;
-        border-top: 1px solid #eeeaf3;
+        border-top: 1px solid var(--dm-border, #eeeaf3);
     }
     .timeline-title {
         font-size: 13px;
         font-weight: 800;
-        color: #1e1b26;
+        color: var(--dm-ink, #1e1b26);
         margin-bottom: 12px;
         display: flex;
         align-items: center;
@@ -484,7 +484,7 @@
         bottom: 6px;
         left: 6px;
         width: 2px;
-        background: #e6e0ec;
+        background: var(--dm-elevated, #e6e0ec);
     }
     .timeline-item {
         position: relative;
@@ -498,16 +498,16 @@
         height: 10px;
         border-radius: 50%;
         background: #564b68;
-        border: 2px solid #ffffff;
+        border: 2px solid var(--dm-border, #ffffff);
         box-shadow: 0 0 0 2px #564b68;
     }
     .timeline-content {
         font-size: 12px;
-        color: #3b3544;
+        color: var(--dm-ink, #3b3544);
     }
     .timeline-meta {
         font-size: 10.5px;
-        color: #8c7f99;
+        color: var(--dm-muted, #8c7f99);
         margin-top: 2px;
     }
 
@@ -518,7 +518,7 @@
         gap: 10px;
         margin-top: 20px;
         padding-top: 16px;
-        border-top: 1px solid #eeeaf3;
+        border-top: 1px solid var(--dm-border, #eeeaf3);
     }
     .action-btn {
         display: inline-flex;
@@ -541,16 +541,16 @@
         background: #463c55;
     }
     .action-btn.secondary {
-        background: #f8f6fa;
-        color: #564b68;
-        border: 1px solid #dcd7e2;
+        background: var(--dm-elevated, #f8f6fa);
+        color: var(--dm-ink, #564b68);
+        border: 1px solid var(--dm-border, #dcd7e2);
     }
     .action-btn.secondary:hover {
-        background: #eeeaf3;
+        background: var(--dm-elevated, #eeeaf3);
     }
     .action-btn.success {
-        background: #ecfdf5;
-        color: #065f46;
+        background: var(--dm-green-surface, #ecfdf5);
+        color: var(--dm-green-ink, #065f46);
         border: 1px solid #a7f3d0;
     }
     .action-btn.success:hover {
@@ -570,29 +570,29 @@
         letter-spacing: 0.4px;
     }
     .status-pill.out_for_delivery, .status-pill.in_transit {
-        background: #eef2ff;
-        color: #3730a3;
-        border: 1px solid #c7d2fe;
+        background: var(--dm-blue-surface, #eef2ff);
+        color: var(--dm-blue-ink, #3730a3);
+        border: 1px solid var(--dm-border, #c7d2fe);
     }
     .status-pill.delivered {
-        background: #ecfdf5;
-        color: #065f46;
+        background: var(--dm-green-surface, #ecfdf5);
+        color: var(--dm-green-ink, #065f46);
         border: 1px solid #a7f3d0;
     }
     .status-pill.at_hub, .status-pill.received {
-        background: #f3eff7;
-        color: #564b68;
-        border: 1px solid #e5dcef;
+        background: var(--dm-elevated, #f3eff7);
+        color: var(--dm-ink, #564b68);
+        border: 1px solid var(--dm-border, #e5dcef);
     }
     .status-pill.failed {
-        background: #fffbeb;
-        color: #92400e;
+        background: var(--dm-elevated, #fffbeb);
+        color: var(--dm-gold-ink, #92400e);
         border: 1px solid #fde68a;
     }
     .status-pill.returned {
-        background: #fef2f2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
+        background: var(--dm-elevated, #fef2f2);
+        color: var(--dm-red-ink, #991b1b);
+        border: 1px solid var(--dm-border, #fecaca);
     }
 </style>
 @endpush
@@ -634,7 +634,7 @@
                 </div>
                 <div>
                     <h3 style="margin: 0 0 4px; font-size: 14px; font-weight: 700;">Camera Scanner Ready</h3>
-                    <p style="margin: 0; font-size: 12px; color: #a49baa; max-width: 260px;">Tap Start Camera below to activate your device's lens for real-time waybill scanning.</p>
+                    <p style="margin: 0; font-size: 12px; color: var(--dm-muted, #a49baa); max-width: 260px;">Tap Start Camera below to activate your device's lens for real-time waybill scanning.</p>
                 </div>
                 <button type="button" class="scanner-btn primary" id="btn-start-camera" style="margin-top: 4px;">
                     Start Camera Scanner
@@ -688,8 +688,8 @@
 
         <!-- Loading State -->
         <div id="lookup-loading" style="display: none; height: 100%; min-height: 420px; align-items: center; justify-content: center; flex-direction: column; gap: 14px; text-align: center;">
-            <div style="width: 40px; height: 40px; border: 3px solid #f3eff7; border-top-color: #564b68; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-            <p style="font-size: 13px; font-weight: 700; color: #564b68; margin: 0;">Scanning & locating parcel whereabouts...</p>
+            <div style="width: 40px; height: 40px; border: 3px solid var(--dm-border, #f3eff7); border-top-color: #564b68; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <p style="font-size: 13px; font-weight: 700; color: var(--dm-ink, #564b68); margin: 0;">Scanning & locating parcel whereabouts...</p>
         </div>
 
         <!-- Empty State -->
@@ -697,8 +697,8 @@
             <div class="empty-state-icon">
                 @include('admin.partials.icon', ['name' => 'scan'])
             </div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #1e1b26; margin: 0 0 6px;">No Parcel Scanned Yet</h3>
-            <p style="font-size: 13px; color: #7b7089; max-width: 320px; line-height: 1.5; margin: 0;">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--dm-ink, #1e1b26); margin: 0 0 6px;">No Parcel Scanned Yet</h3>
+            <p style="font-size: 13px; color: var(--dm-muted, #7b7089); max-width: 320px; line-height: 1.5; margin: 0;">
                 Point your camera at a waybill's barcode or QR code, upload a photo, or enter the tracking number on the left to inspect its live status and whereabouts.
             </p>
         </div>
@@ -887,12 +887,12 @@
 
     // Render Scanned Details HTML
     function renderParcelDetails(p) {
-        let riderHtml = '<p style="color:#8c7f99;font-size:12px;margin:0;">No rider assigned yet</p>';
+        let riderHtml = '<p style="color:var(--dm-muted, #8c7f99);font-size:12px;margin:0;">No rider assigned yet</p>';
         if (p.assigned_rider) {
             riderHtml = `
                 <strong>${p.assigned_rider.name} (★ ${p.assigned_rider.rating})</strong>
-                <span style="display:block;color:#6f6382;font-size:11.5px;">${p.assigned_rider.vehicle} · ${p.assigned_rider.plate_no}</span>
-                <span style="display:block;color:#8c7f99;font-size:11.5px;">📞 ${p.assigned_rider.phone}</span>
+                <span style="display:block;color:var(--dm-muted, #6f6382);font-size:11.5px;">${p.assigned_rider.vehicle} · ${p.assigned_rider.plate_no}</span>
+                <span style="display:block;color:var(--dm-muted, #8c7f99);font-size:11.5px;">📞 ${p.assigned_rider.phone}</span>
             `;
         }
 
@@ -922,7 +922,7 @@
             <div class="parcel-header">
                 <div>
                     <div class="tracking-badge">${p.tracking_code}</div>
-                    <div class="order-ref">Order Ref: <strong>${p.order_reference}</strong> · Area: <strong style="color:#564b68;">${p.delivery_area}</strong></div>
+                    <div class="order-ref">Order Ref: <strong>${p.order_reference}</strong> · Area: <strong style="color:var(--dm-ink, #564b68);">${p.delivery_area}</strong></div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span class="status-pill ${p.delivery_status}">${p.status_label}</span>
@@ -984,7 +984,7 @@
                     <div class="detail-tile-body">
                         <strong>${p.recipient_name}</strong>
                         <span>${p.recipient_address}</span>
-                        ${p.recipient_phone ? `<span style="display:block;margin-top:2px;"><a href="tel:${p.recipient_phone}" style="color:#564b68;font-weight:700;text-decoration:none;">📞 ${p.recipient_phone}</a></span>` : ''}
+                        ${p.recipient_phone ? `<span style="display:block;margin-top:2px;"><a href="tel:${p.recipient_phone}" style="color:var(--dm-ink, #564b68);font-weight:700;text-decoration:none;">📞 ${p.recipient_phone}</a></span>` : ''}
                     </div>
                 </div>
 
@@ -993,7 +993,7 @@
                     <div class="detail-tile-body">
                         <strong>${p.seller_name}</strong>
                         <span>${p.seller_address}</span>
-                        ${p.seller_phone ? `<span style="display:block;margin-top:2px;color:#8c7f99;">📞 ${p.seller_phone}</span>` : ''}
+                        ${p.seller_phone ? `<span style="display:block;margin-top:2px;color:var(--dm-muted, #8c7f99);">📞 ${p.seller_phone}</span>` : ''}
                     </div>
                 </div>
             </div>

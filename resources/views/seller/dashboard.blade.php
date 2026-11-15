@@ -227,7 +227,7 @@
                                             @php $sShip = $order->shipment; @endphp
                                             @if(($payment?->payment_method ?? 'cod') === 'cod')
                                                 @if($sShip?->isCodRemitted())
-                                                    <small style="display:block; color:#16a34a; font-weight:700;">✓ COD Remitted by Hub</small>
+                                                    <small style="display:block; color:var(--dm-green-ink, #16a34a); font-weight:700;">✓ COD Remitted by Hub</small>
                                                 @elseif($sShip?->isCodHolding())
                                                     <small style="display:block; color:#ea580c; font-weight:700;">⏳ Escrow ({{ $sShip->codHoldingDaysRemaining() }}d holding)</small>
                                                 @elseif($sShip?->isCodEligibleForRemittance())

@@ -123,19 +123,19 @@
                     <!-- 3. STATUS -->
                     <td>
                         @if($isApproved)
-                            <span class="badge good" style="background: #E8F5E9; color: #2E7D32; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
+                            <span class="badge good" style="background: var(--dm-green-surface, #E8F5E9); color: var(--dm-green-ink, #2E7D32); font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
                                 APPROVED
                             </span>
                         @elseif($isPending)
-                            <span class="badge warning" style="background: #FEF3C7; color: #B45309; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
+                            <span class="badge warning" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
                                 PENDING
                             </span>
                         @elseif($isSuspended)
-                            <span class="badge danger" style="background: #FFF1F2; color: #BE123C; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
+                            <span class="badge danger" style="background: var(--dm-elevated, #FFF1F2); color: #BE123C; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
                                 SUSPENDED
                             </span>
                         @else
-                            <span class="badge" style="background: #F4F4F5; color: #71717A; font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
+                            <span class="badge" style="background: var(--dm-elevated, #F4F4F5); color: var(--dm-muted, #71717A); font-weight: 700; text-transform: uppercase; font-size: 10px; padding: 3px 9px; border-radius: 6px;">
                                 {{ strtoupper($provider->status) }}
                             </span>
                         @endif
@@ -206,7 +206,7 @@
                                 <form method="POST" action="{{ route('admin.logistics.status', $provider->id) }}" data-partner-confirm>
                                     @csrf
                                     <input type="hidden" name="status" value="approved">
-                                    <button type="submit" class="button subtle" style="color: #2E7D32; font-size: 11px; padding: 5px 12px; min-height: 32px;">
+                                    <button type="submit" class="button subtle" style="color: var(--dm-green-ink, #2E7D32); font-size: 11px; padding: 5px 12px; min-height: 32px;">
                                         Re-approve
                                     </button>
                                 </form>
@@ -295,7 +295,7 @@
                 </div>
                 <div style="flex: 1; min-width: 130px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;">
                     <small class="muted" style="display: block; font-size: 11px;">Pending Rider Reviews</small>
-                    <strong id="modal-fleet-pending" style="font-size: 20px; color: #B45309;">0</strong>
+                    <strong id="modal-fleet-pending" style="font-size: 20px; color: var(--dm-gold-ink, #B45309);">0</strong>
                 </div>
             </div>
 

@@ -79,12 +79,12 @@
 #sellerFieldsWrapper .seller-detail-input { padding-left: 16px !important; width: 100%; }
 #sellerFieldsWrapper .field-block { margin-top: 26px; }
 #sellerFieldsWrapper .field-heading { font-size: 17px; }
-.seller-field-hint { font-size: 12px; line-height: 1.6; color: #82768d; margin: 7px 0 15px; }
+.seller-field-hint { font-size: 12px; line-height: 1.6; color: var(--dm-muted, #82768d); margin: 7px 0 15px; }
 .seller-field-error { color: #dc2626; font-size: 12px; margin-top: 6px; }
 .seller-field-error:empty { display: none; }
 .seller-required { color: #dc2626; }
 #sellerFieldsWrapper .seller-file-input { height: auto; padding: 12px !important; }
-.seller-file-input::file-selector-button { border: 1px solid #ddd3e6; background: #f5f0f9; color: #564b68; border-radius: 6px; padding: 8px 12px; margin-right: 12px; font: inherit; cursor: pointer; }
-#sellerFieldsWrapper select:disabled { background: #f5f2f7; color: #91879b; }
+.seller-file-input::file-selector-button { border: 1px solid var(--dm-border, #ddd3e6); background: var(--dm-elevated, #f5f0f9); color: var(--dm-ink, #564b68); border-radius: 6px; padding: 8px 12px; margin-right: 12px; font: inherit; cursor: pointer; }
+#sellerFieldsWrapper select:disabled { background: var(--dm-elevated, #f5f2f7); color: var(--dm-muted, #91879b); }
 </style>
 

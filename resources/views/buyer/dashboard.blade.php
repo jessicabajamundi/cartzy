@@ -352,18 +352,18 @@
 <style>
     .dash-panel { animation: dashFade .28s ease both; }
     @keyframes dashFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-    .order-filter { color: #6b7280; transition: all .15s; }
-    .order-filter:hover { background: #F6F4F8; }
+    .order-filter { color: var(--dm-muted, #6b7280); transition: all .15s; }
+    .order-filter:hover { background: var(--dm-elevated, #F6F4F8); }
     .order-filter.is-active { background: #564B68; color: #fff; }
-    .orders-pagination:not(.hidden) { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 18px 0; color: #81738e; font-size: 13px; }
+    .orders-pagination:not(.hidden) { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 18px 0; color: var(--dm-muted, #81738e); font-size: 13px; }
     .order-pagination-summary { flex: 1 1 0; min-width: 0; text-align: left; margin: 0; }
     .order-pagination-controls { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 12px; }
     .order-pagination-spacer { flex: 1 1 0; min-width: 0; }
-    .order-pagination-arrow { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid #e1dde7; border-radius: 10px; background: #fff; color: #564b68; font-weight: 700; cursor: pointer; transition: all .15s ease; }
-    .order-pagination-arrow:hover:not(:disabled) { background: #f1edf5; border-color: #9b899f; }
+    .order-pagination-arrow { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--dm-border, #e1dde7); border-radius: 10px; background: var(--dm-surface, #fff); color: var(--dm-ink, #564b68); font-weight: 700; cursor: pointer; transition: all .15s ease; }
+    .order-pagination-arrow:hover:not(:disabled) { background: var(--dm-elevated, #f1edf5); border-color: #9b899f; }
     .order-pagination-arrow:disabled { opacity: .35; cursor: not-allowed; }
     .order-pagination-arrow:focus-visible { outline: 2px solid #6f6382; outline-offset: 3px; }
-    .order-pagination-current-page { font-weight: 600; color: #564b68; white-space: nowrap; padding: 0 4px; }
+    .order-pagination-current-page { font-weight: 600; color: var(--dm-ink, #564b68); white-space: nowrap; padding: 0 4px; }
     @media (max-width: 600px) {
         .orders-pagination:not(.hidden) { flex-direction: column; align-items: center; gap: 10px; }
         .order-pagination-summary { text-align: center; }
@@ -662,7 +662,7 @@ window.markAllNotificationsAsRead = function () {
         }).addTo(map);
 
         const createMarkerIcon = (emoji, bg) => L.divIcon({
-            html: `<div style="background:${bg}; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; border:2.5px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25);">${emoji}</div>`,
+            html: `<div style="background:${bg}; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; border:2.5px solid var(--dm-border, #fff); box-shadow:0 3px 8px rgba(0,0,0,0.25);">${emoji}</div>`,
             className: 'osm-custom-icon',
             iconSize: [34, 34],
             iconAnchor: [17, 17],
@@ -672,7 +672,7 @@ window.markAllNotificationsAsRead = function () {
         const riderIcon = L.divIcon({
             html: '<div style="position:relative; width:40px; height:40px; display:flex; align-items:center; justify-content:center;">' +
                     '<span style="position:absolute; width:40px; height:40px; border-radius:50%; background:rgba(16,185,129,0.35); animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></span>' +
-                    '<div style="position:relative; background:#10B981; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2.5px solid #fff; box-shadow:0 4px 12px rgba(16,185,129,0.4);">🏍️</div>' +
+                    '<div style="position:relative; background:#10B981; color:#fff; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; border:2.5px solid var(--dm-border, #fff); box-shadow:0 4px 12px rgba(16,185,129,0.4);">🏍️</div>' +
                   '</div>',
             className: 'osm-rider-icon',
             iconSize: [40, 40],

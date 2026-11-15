@@ -8,17 +8,17 @@ body.auth-split-page {
     --brand-lavender: #6F6382;
     --brand-dark: #564B68;
     --brand-darkest: #282133;
-    --brand-soft: #FAF9FB;
-    --brand-border: #E1DDE7;
+    --brand-soft: var(--dm-surface, #FAF9FB);
+    --brand-border: var(--dm-border, #E1DDE7);
 
-    --rose-soft: #FFF5F3;
-    --rose-light: #FCEAE6;
+    --rose-soft: var(--dm-elevated, #FFF5F3);
+    --rose-light: var(--dm-elevated, #FCEAE6);
     --rose-muted: #F5CFC7;
     --rose-primary: #D4A69A;
     --rose-deep: #C08B7F;
     --rose-dark: #8C5A50;
 
-    background: #ffffff !important;
+    background: var(--dm-surface, #ffffff) !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100vw;
@@ -114,7 +114,7 @@ body.auth-split-page {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    color: #6F6382;
+    color: var(--dm-muted, #6F6382);
     font-size: 8.5px;
     font-weight: 700;
     letter-spacing: 0.2em;
@@ -137,7 +137,7 @@ body.auth-split-page {
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    background: #ffffff !important;
+    background: var(--dm-surface, #ffffff) !important;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -228,7 +228,7 @@ body.auth-split-page {
     text-align: center;
     font-size: 0.9rem !important;
     line-height: 1.45 !important;
-    color: #6b7280;
+    color: var(--dm-muted, #6b7280);
     margin-bottom: 20px !important;
 }
 
@@ -252,7 +252,7 @@ body.auth-split-page {
 }
 .auth-split-page .input-icon {
     left: 14px !important;
-    color: #A8A0B2 !important;
+    color: var(--dm-muted, #A8A0B2) !important;
     transition: color 0.18s ease;
 }
 .auth-split-page .input-group:focus-within .input-icon {
@@ -267,22 +267,22 @@ body.auth-split-page {
     font-size: 0.92rem !important;
     border-radius: 10px !important;
     border: 1.5px solid var(--brand-border) !important;
-    background: #ffffff !important;
+    background: var(--dm-surface, #ffffff) !important;
     color: var(--brand-darkest) !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
 }
 .auth-split-page .auth-input:hover {
-    border-color: #C9C3D3 !important;
+    border-color: var(--dm-border, #C9C3D3) !important;
 }
 .auth-split-page .auth-input:focus {
     border-color: var(--rose-deep) !important;
     box-shadow: 0 0 0 3.5px rgba(212, 166, 154, 0.25) !important;
-    background: #ffffff !important;
+    background: var(--dm-surface, #ffffff) !important;
 }
 .auth-split-page .eye-btn {
     right: 12px !important;
     padding: 4px !important;
-    color: #A8A0B2 !important;
+    color: var(--dm-muted, #A8A0B2) !important;
     transition: color 0.18s ease;
 }
 .auth-split-page .eye-btn:hover {
@@ -300,7 +300,7 @@ body.auth-split-page {
 }
 .auth-split-page .remember-label {
     font-size: 0.82rem !important;
-    color: #4b5563 !important;
+    color: var(--dm-ink, #4b5563) !important;
 }
 .auth-split-page .remember-label input[type="checkbox"] {
     width: 16px !important;
@@ -357,7 +357,7 @@ body.auth-split-page {
     margin: 16px 0 !important;
     font-size: 0.78rem !important;
     font-weight: 600;
-    color: #91879E;
+    color: var(--dm-muted, #91879E);
     letter-spacing: 0.04em;
 }
 .auth-split-page .divider::before,
@@ -378,7 +378,7 @@ body.auth-split-page {
     font-size: 0.9rem !important;
     font-weight: 700 !important;
     color: var(--brand-darkest) !important;
-    background: #ffffff !important;
+    background: var(--dm-surface, #ffffff) !important;
     border: 1.5px solid var(--brand-border) !important;
     border-radius: 10px !important;
     text-decoration: none !important;
@@ -397,7 +397,7 @@ body.auth-split-page {
 .auth-split-page .auth-foot {
     font-size: 0.86rem !important;
     margin-top: 16px !important;
-    color: #4b5563;
+    color: var(--dm-ink, #4b5563);
     text-align: center;
 }
 .auth-split-page .auth-foot a {
@@ -431,7 +431,7 @@ body.auth-split-page {
     transition: color 0.2s ease;
 }
 .auth-split-page .step-label.inactive {
-    color: #A8A0B2;
+    color: var(--dm-muted, #A8A0B2);
     font-weight: 600;
 }
 .auth-split-page .step-line {
@@ -460,7 +460,7 @@ body.auth-split-page {
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: #ffffff;
+    background: var(--dm-surface, #ffffff);
     border: 1.5px solid var(--brand-border);
     border-radius: 12px;
     cursor: pointer;
@@ -495,14 +495,14 @@ body.auth-split-page {
 }
 .auth-split-page .role-option-desc {
     font-size: 0.74rem;
-    color: #6b7280;
+    color: var(--dm-muted, #6b7280);
     line-height: 1.25;
 }
 .auth-split-page .role-option-badge {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    border: 1.5px solid #d1d5db;
+    border: 1.5px solid var(--dm-border, #d1d5db);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -514,7 +514,7 @@ body.auth-split-page {
 /* Selected Role Card: Rich Gradient + Rose Gold Border */
 .auth-split-page .role-option.selected {
     border: 2px solid var(--rose-deep);
-    background: linear-gradient(135deg, #FAF8FC 0%, var(--rose-soft) 100%);
+    background: linear-gradient(135deg, var(--dm-surface, #FAF8FC) 0%, var(--rose-soft) 100%);
     box-shadow: 0 0 0 3px rgba(212, 166, 154, 0.25), 0 6px 18px rgba(111, 99, 130, 0.1);
 }
 .auth-split-page .role-option.selected .role-option-icon {
@@ -548,7 +548,7 @@ body.auth-split-page {
 }
 .auth-split-page .field-subheading {
     font-size: 0.78rem !important;
-    color: #6b7280 !important;
+    color: var(--dm-muted, #6b7280) !important;
     margin-bottom: 0 !important;
 }
 
@@ -590,7 +590,7 @@ body.auth-split-page {
     text-align: center;
     font-size: 0.74rem !important;
     line-height: 1.5 !important;
-    color: #9ca3af;
+    color: var(--dm-muted, #9ca3af);
     flex-shrink: 0;
 }
 .auth-split-page .page-footer-links {
@@ -600,7 +600,7 @@ body.auth-split-page {
     margin-bottom: 4px;
 }
 .auth-split-page .page-footer-links a {
-    color: #9ca3af;
+    color: var(--dm-muted, #9ca3af);
     text-decoration: none;
     font-size: 0.74rem;
     transition: color 0.18s ease;

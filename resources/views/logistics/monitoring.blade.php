@@ -38,7 +38,7 @@
             @if(!empty($parcel['barangay']))<small style="color:#4338CA;font-weight:600;">📍 Brgy. {{ $parcel['barangay'] }}</small>@endif
             <small>{{ $parcel['assigned_rider_name'] ?: 'No rider assigned' }}</small>
             @if(!empty($parcel['is_rescheduled']))
-                <small style="color:#B45309;font-weight:700;">⏳ Rescheduled ({{ $parcel['rescheduled_days_left'] !== null ? $parcel['rescheduled_days_left'].'d left' : 'active' }})</small>
+                <small style="color:var(--dm-gold-ink, #B45309);font-weight:700;">⏳ Rescheduled ({{ $parcel['rescheduled_days_left'] !== null ? $parcel['rescheduled_days_left'].'d left' : 'active' }})</small>
             @endif
         </td>
         <td data-label="Payment">@if($parcel['payment_method'] === 'COD')<strong class="monitor-cod">₱{{ number_format($parcel['cod_amount'],2) }}</strong><small>Cash on delivery</small>@else<strong class="monitor-prepaid">Prepaid</strong><small>No cash to collect</small>@endif</td>
@@ -61,10 +61,10 @@
                     @endif
                     <details style="font-size:11px;margin-top:2px;">
                         <summary style="cursor:pointer;color:#7C3AED;font-weight:600;">Reschedule / Return</summary>
-                        <div style="background:#F8FAFC;border:1px solid #E2E8F0;padding:6px;border-radius:6px;margin-top:4px;display:flex;flex-direction:column;gap:4px;">
+                        <div style="background:var(--dm-surface, #F8FAFC);border:1px solid var(--dm-border, #E2E8F0);padding:6px;border-radius:6px;margin-top:4px;display:flex;flex-direction:column;gap:4px;">
                             <form method="POST" action="{{ route('logistics.parcels.reschedule', ['id' => $parcel['id']], false) }}" style="display:flex;gap:4px;align-items:center;">
                                 @csrf
-                                <select name="days" style="padding:2px 4px;font-size:10px;border:1px solid #CBD5E1;border-radius:4px;">
+                                <select name="days" style="padding:2px 4px;font-size:10px;border:1px solid var(--dm-border, #CBD5E1);border-radius:4px;">
                                     <option value="2">2 Days</option>
                                     <option value="3" selected>3 Days</option>
                                 </select>

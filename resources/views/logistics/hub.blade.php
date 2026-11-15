@@ -83,15 +83,15 @@
         @endif
 
         {{-- Fast Parcel QR / Barcode Scanner for Hub Arrival --}}
-        <div class="hub-scan-box" style="margin-bottom: 20px; padding: 16px 20px; background: #FAF9FC; border: 2px dashed #7C3AED; border-radius: 16px;">
+        <div class="hub-scan-box" style="margin-bottom: 20px; padding: 16px 20px; background: var(--dm-surface, #FAF9FC); border: 2px dashed #7C3AED; border-radius: 16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
                 <div style="display:flex; align-items:center; gap:12px;">
-                    <div style="width:42px; height:42px; border-radius:12px; background:#EDE9FE; display:flex; align-items:center; justify-content:center; color:#7C3AED; font-size:22px;">
+                    <div style="width:42px; height:42px; border-radius:12px; background:var(--dm-blue-surface, #EDE9FE); display:flex; align-items:center; justify-content:center; color:#7C3AED; font-size:22px;">
                         📷
                     </div>
                     <div>
-                        <strong style="display:block; font-size:15px; color:#1E1B4B;">Scan Parcel QR / Barcode</strong>
-                        <span style="font-size:12.5px; color:#6B7280;">Scan waybill QR code or tracking code (e.g. CTZ-...) to receive parcel at sorting hub</span>
+                        <strong style="display:block; font-size:15px; color:var(--dm-ink, #1E1B4B);">Scan Parcel QR / Barcode</strong>
+                        <span style="font-size:12.5px; color:var(--dm-muted, #6B7280);">Scan waybill QR code or tracking code (e.g. CTZ-...) to receive parcel at sorting hub</span>
                     </div>
                 </div>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
@@ -101,7 +101,7 @@
                     <form method="POST" action="{{ route('logistics.parcels.scan') }}" style="display:flex; gap:8px;" id="hub-quick-scan-form">
                         @csrf
                         <input type="text" name="code" id="hub-scan-input" placeholder="Scan or enter CTZ-... / ORD-..." required autofocus
-                            style="width:230px; padding:10px 14px; border:1.5px solid #C4B5FD; border-radius:10px; font-size:13.5px; font-weight:600; outline:none; background:#fff;">
+                            style="width:230px; padding:10px 14px; border:1.5px solid var(--dm-border, #C4B5FD); border-radius:10px; font-size:13.5px; font-weight:600; outline:none; background:var(--dm-surface, #fff);">
                         <button type="submit" class="button primary" style="background:#7C3AED; border-color:#7C3AED; border-radius:10px; font-weight:700; white-space:nowrap; padding:10px 16px;">
                             ⚡ Receive
                         </button>
@@ -112,7 +112,7 @@
 
         {{-- Camera QR Scanner Modal --}}
         <div id="camera-scanner-modal" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.75); backdrop-filter:blur(4px); z-index:99999; align-items:center; justify-content:center; padding:16px;">
-            <div style="background:#fff; border-radius:20px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.35);">
+            <div style="background:var(--dm-surface, #fff); border-radius:20px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0, 0, 0, 0.35);">
                 <div style="padding:16px 20px; background:#1E1B4B; color:#fff; display:flex; justify-content:space-between; align-items:center;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <span style="font-size:20px;">📷</span>
@@ -122,7 +122,7 @@
                 </div>
                 
                 <div style="padding:20px; text-align:center;">
-                    <p style="font-size:13px; color:#4B5563; margin-bottom:14px;">Point camera at the QR code on the parcel's waybill label.</p>
+                    <p style="font-size:13px; color:var(--dm-ink, #4B5563); margin-bottom:14px;">Point camera at the QR code on the parcel's waybill label.</p>
                     
                     <!-- Video Scanner Viewport -->
                     <div style="position:relative; width:100%; height:300px; background:#0F172A; border-radius:14px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
@@ -136,13 +136,13 @@
                         </div>
                     </div>
 
-                    <div id="camera-scan-status" style="margin-top:14px; min-height:24px; font-size:13.5px; font-weight:700; color:#4B5563;">
+                    <div id="camera-scan-status" style="margin-top:14px; min-height:24px; font-size:13.5px; font-weight:700; color:var(--dm-ink, #4B5563);">
                         Searching for parcel QR code...
                     </div>
                 </div>
 
-                <div style="padding:12px 20px 16px; background:#F8FAFC; border-top:1px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; color:#6B7280;">Auto-submits on scan</span>
+                <div style="padding:12px 20px 16px; background:var(--dm-surface, #F8FAFC); border-top:1px solid var(--dm-border, #E2E8F0); display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:var(--dm-muted, #6B7280);">Auto-submits on scan</span>
                     <button type="button" id="btn-stop-camera" class="button secondary" style="border-radius:10px;">Close Camera</button>
                 </div>
             </div>
@@ -164,9 +164,9 @@
                             <strong class="hub-code">{{ $parcel['tracking_code'] }}</strong>
                             @if($parcel['payment_method'] === 'COD')<span class="hub-tag cod">COD ₱{{ number_format($parcel['cod_amount'], 2) }}</span>@else<span class="hub-tag">Prepaid</span>@endif
                             @if($parcel['delivery_area'])<span class="hub-tag area">{{ $parcel['delivery_area'] }}</span>@endif
-                            @if(!empty($parcel['barangay']))<span class="hub-tag" style="background:#EEF2FF;color:#4338CA;font-weight:600;">📍 {{ $parcel['barangay'] }}</span>@endif
+                            @if(!empty($parcel['barangay']))<span class="hub-tag" style="background:var(--dm-blue-surface, #EEF2FF);color:#4338CA;font-weight:600;">📍 {{ $parcel['barangay'] }}</span>@endif
                             @if(!empty($parcel['is_rescheduled']))
-                                <span class="hub-tag" style="background:#FEF3C7;color:#92400E;font-weight:700;" title="{{ $parcel['reschedule_reason'] ?? '' }}">
+                                <span class="hub-tag" style="background:#FEF3C7;color:var(--dm-gold-ink, #92400E);font-weight:700;" title="{{ $parcel['reschedule_reason'] ?? '' }}">
                                     ⏳ Rescheduled ({{ $parcel['rescheduled_days_left'] !== null ? $parcel['rescheduled_days_left'].'d left' : 'active' }})
                                 </span>
                             @endif
@@ -211,11 +211,11 @@
                                 <summary style="font-size: 11px; color: #6D28D9; font-weight: 600; cursor: pointer; text-decoration: underline;">
                                     ⚠️ No rider in {{ $parcel['barangay'] ?? 'this area' }}? Reschedule / Cancel
                                 </summary>
-                                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="background: var(--dm-surface, #F8FAFC); border: 1px solid var(--dm-border, #E2E8F0); border-radius: 8px; padding: 10px; margin-top: 6px; display: flex; flex-direction: column; gap: 8px;">
                                     <form method="POST" action="{{ route('logistics.parcels.reschedule', ['id' => $parcel['id']], false) }}" class="hub-once" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                         @csrf
-                                        <label style="font-size: 11px; font-weight: 600; color: #374151;">Palugit:</label>
-                                        <select name="days" style="padding: 3px 8px; font-size: 11px; border: 1px solid #CBD5E1; border-radius: 6px; background: #fff;">
+                                        <label style="font-size: 11px; font-weight: 600; color: var(--dm-ink, #374151);">Palugit:</label>
+                                        <select name="days" style="padding: 3px 8px; font-size: 11px; border: 1px solid var(--dm-border, #CBD5E1); border-radius: 6px; background: var(--dm-surface, #fff);">
                                             <option value="2">2 Days Grace Period</option>
                                             <option value="3" selected>3 Days Grace Period</option>
                                         </select>
@@ -304,7 +304,7 @@ window.addEventListener('pageshow', () => document.querySelectorAll('.hub-desk f
         playBeep();
 
         if (statusText) {
-            statusText.innerHTML = '<span style="color:#059669;">✓ Scanned: ' + code + '! Receiving parcel...</span>';
+            statusText.innerHTML = '<span style="color:var(--dm-green-ink, #059669);">✓ Scanned: ' + code + '! Receiving parcel...</span>';
         }
         if (scanInput) {
             scanInput.value = code;
@@ -324,7 +324,7 @@ window.addEventListener('pageshow', () => document.querySelectorAll('.hub-desk f
         isProcessing = false;
         modal.style.display = 'flex';
         statusText.textContent = 'Starting camera... Point at parcel QR code';
-        statusText.style.color = '#4B5563';
+        statusText.style.color = 'var(--dm-ink, #4B5563)';
 
         // Method 1: Check if Html5Qrcode is available
         if (typeof Html5Qrcode !== 'undefined') {

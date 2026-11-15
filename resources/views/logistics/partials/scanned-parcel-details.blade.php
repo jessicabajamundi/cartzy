@@ -10,7 +10,7 @@
 <div class="parcel-header">
     <div>
         <div class="tracking-badge">{{ $p['tracking_code'] ?? '' }}</div>
-        <div class="order-ref">Order Ref: <strong>{{ $p['order_reference'] ?? 'N/A' }}</strong> · Area: <strong style="color:#564b68;">{{ $p['delivery_area'] ?? 'General Area' }}</strong></div>
+        <div class="order-ref">Order Ref: <strong>{{ $p['order_reference'] ?? 'N/A' }}</strong> · Area: <strong style="color:var(--dm-ink, #564b68);">{{ $p['delivery_area'] ?? 'General Area' }}</strong></div>
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
         <span class="status-pill {{ $p['delivery_status'] ?? 'pending' }}">{{ $p['status_label'] ?? 'Pending' }}</span>
@@ -65,10 +65,10 @@
         <div class="detail-tile-body">
             @if(!empty($p['assigned_rider']))
                 <strong>{{ $p['assigned_rider']['name'] }} (★ {{ $p['assigned_rider']['rating'] }})</strong>
-                <span style="display:block;color:#6f6382;font-size:11.5px;">{{ $p['assigned_rider']['vehicle'] }} · {{ $p['assigned_rider']['plate_no'] }}</span>
-                <span style="display:block;color:#8c7f99;font-size:11.5px;">📞 {{ $p['assigned_rider']['phone'] }}</span>
+                <span style="display:block;color:var(--dm-muted, #6f6382);font-size:11.5px;">{{ $p['assigned_rider']['vehicle'] }} · {{ $p['assigned_rider']['plate_no'] }}</span>
+                <span style="display:block;color:var(--dm-muted, #8c7f99);font-size:11.5px;">📞 {{ $p['assigned_rider']['phone'] }}</span>
             @else
-                <p style="color:#8c7f99;font-size:12px;margin:0;">No rider assigned yet</p>
+                <p style="color:var(--dm-muted, #8c7f99);font-size:12px;margin:0;">No rider assigned yet</p>
             @endif
         </div>
     </div>
@@ -80,7 +80,7 @@
             <span>{{ $p['recipient_address'] ?? 'Address' }}</span>
             @if(!empty($p['recipient_phone']) && $p['recipient_phone'] !== 'N/A')
                 <span style="display:block;margin-top:2px;">
-                    <a href="tel:{{ $p['recipient_phone'] }}" style="color:#564b68;font-weight:700;text-decoration:none;">📞 {{ $p['recipient_phone'] }}</a>
+                    <a href="tel:{{ $p['recipient_phone'] }}" style="color:var(--dm-ink, #564b68);font-weight:700;text-decoration:none;">📞 {{ $p['recipient_phone'] }}</a>
                 </span>
             @endif
         </div>
@@ -92,7 +92,7 @@
             <strong>{{ $p['seller_name'] ?? 'Store' }}</strong>
             <span>{{ $p['seller_address'] ?? 'Store Address' }}</span>
             @if(!empty($p['seller_phone']) && $p['seller_phone'] !== 'N/A')
-                <span style="display:block;margin-top:2px;color:#8c7f99;">📞 {{ $p['seller_phone'] }}</span>
+                <span style="display:block;margin-top:2px;color:var(--dm-muted, #8c7f99);">📞 {{ $p['seller_phone'] }}</span>
             @endif
         </div>
     </div>
@@ -115,7 +115,7 @@
                 </div>
             @endforeach
         @else
-            <p style="color:#8c7f99;font-size:12.5px;margin:4px 0 0;">No audit events recorded yet.</p>
+            <p style="color:var(--dm-muted, #8c7f99);font-size:12.5px;margin:4px 0 0;">No audit events recorded yet.</p>
         @endif
     </div>
 </div>

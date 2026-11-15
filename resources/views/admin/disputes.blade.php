@@ -77,7 +77,7 @@
                                             $itemImg = $itemImg ?: asset('images/logo-transparent.png');
                                         @endphp
                                         <div style="display: flex; align-items: center; gap: 10px;">
-                                            <img src="{{ $itemImg }}" alt="{{ $item['name'] ?? 'Product' }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;" loading="lazy">
+                                            <img src="{{ $itemImg }}" alt="{{ $item['name'] ?? 'Product' }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);" loading="lazy">
                                             <div>
                                                 <strong>{{ $item['name'] ?? 'Product' }}</strong>
                                                 <small class="muted" style="display: block; font-size: 11px;">

@@ -85,14 +85,14 @@
     </div>
 
     @if (request('from') === 'cart' || session('info'))
-        <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; background: #FAF5FF; border: 1.5px solid #C08B7F; color: #564B68; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+        <div class="alert alert-info" style="margin-bottom: 20px; padding: 12px 16px; background: var(--dm-elevated, #FAF5FF); border: 1.5px solid #C08B7F; color: var(--dm-ink, #564B68); border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px;">
             <svg style="width: 20px; height: 20px; flex-shrink: 0; color: #C08B7F;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             <span>{{ session('info') ?? 'Please sign up or create an account to add items to your cart!' }}</span>
         </div>
     @endif
 
     @if ($errors->any())
-        <div class="alert alert-error" style="margin-bottom: 20px; padding: 12px 16px; background: #FEF2F2; border: 1px solid #FCA5A5; color: #B91C1C; border-radius: 10px; font-size: 13px;">
+        <div class="alert alert-error" style="margin-bottom: 20px; padding: 12px 16px; background: var(--dm-elevated, #FEF2F2); border: 1px solid #FCA5A5; color: var(--dm-red-ink, #B91C1C); border-radius: 10px; font-size: 13px;">
             @foreach ($errors->all() as $error)
                 <p>• {{ $error }}</p>
             @endforeach
@@ -227,7 +227,7 @@
                         title="Enter 10 digits starting with 9 after +63."
                     >
                 </div>
-                <p id="phone_hint" style="font-size:12px; line-height:1.5; color:#4b5563; margin:6px 0 20px;">+63 Philippines · Enter 10 digits starting with 9.</p>
+                <p id="phone_hint" style="font-size:12px; line-height:1.5; color:var(--dm-ink, #4b5563); margin:6px 0 20px;">+63 Philippines · Enter 10 digits starting with 9.</p>
                 <p id="phone_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('phone')) hidden @endif>{{ $errors->first('phone') }}</p>
             </div>
 
@@ -260,8 +260,8 @@
                 </div>
                 <p id="birthday_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('birthday')) hidden @endif>{{ $errors->first('birthday') }}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                    <p style="font-size: 0.78rem; color: #6b7280; margin: 0;">You must be at least 18 years old to register.</p>
-                    <span id="birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: #059669;"></span>
+                    <p style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin: 0;">You must be at least 18 years old to register.</p>
+                    <span id="birthday_age_text" style="font-size: 0.8rem; font-weight: 600; color: var(--dm-green-ink, #059669);"></span>
                 </div>
             </div>
             </div>
@@ -345,7 +345,7 @@
                     </button>
                 </div>
                 <p id="register_password_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" @if (!$errors->has('password')) hidden @endif>{{ $errors->first('password') }}</p>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; margin-bottom: 14px;">Use at least 8 characters, one uppercase letter, one lowercase letter, one number, and one symbol.</p>
+                <p style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin-top: 6px; margin-bottom: 14px;">Use at least 8 characters, one uppercase letter, one lowercase letter, one number, and one symbol.</p>
             </div>
 
             <div class="mb-6">
@@ -380,7 +380,7 @@
                     </button>
                 </div>
                 <p id="password_confirmation_error" role="alert" style="color:#ef4444; font-size:13px; margin-top:6px;" hidden></p>
-                <p id="password-entry-note" style="font-size: 0.78rem; color: #6b7280; margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
+                <p id="password-entry-note" style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
             </div>
 
             {{-- Logistics partner Step 6: Terms & Conditions and Privacy Policy --}}
@@ -442,14 +442,14 @@
                     <input type="text" maxlength="1" class="otp-input" data-index="5" placeholder="0" inputmode="numeric">
                 </div>
                 <input type="hidden" name="email_verification_otp" id="email_verification_otp" value="">
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 8px;">Your code expires after 10 minutes. You can paste all six digits here.</p>
+                <p style="font-size: 0.78rem; color: var(--dm-muted, #6b7280); margin-top: 8px;">Your code expires after 10 minutes. You can paste all six digits here.</p>
 
-                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                <div id="devOtpBanner" style="display:none; margin-top: 14px; padding: 12px 14px; background: var(--dm-blue-surface, #eff6ff); border: 1px solid var(--dm-border, #bfdbfe); border-radius: 8px; font-size: 13px; color: var(--dm-blue-ink, #1e40af);">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
                         <span><strong>Verification code:</strong> <span id="devOtpCode" style="font-family: monospace; font-weight: 800; font-size: 16px; letter-spacing: 3px; color: #1d4ed8;"></span></span>
                         <button type="button" id="btnAutofillOtp" style="padding: 4px 10px; font-size: 12px; font-weight: 600; background: #2563eb; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Auto-fill code</button>
                     </div>
-                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: #64748b;"></div>
+                    <div id="devMailStatusNotice" style="font-size: 11px; margin-top: 4px; color: var(--dm-muted, #64748b);"></div>
                 </div>
             </div>
 
@@ -458,12 +458,12 @@
             <button type="submit" class="btn-primary btn-single" id="btnVerifyEmailSubmit" style="margin-top: 22px;">VERIFY EMAIL &amp; CONTINUE</button>
 
             <div class="otp-resend-row" style="margin-top: 18px; flex-direction: column; align-items: flex-start; gap: 8px;">
-                <span style="font-size: 0.8rem; color: #6b7280; line-height: 1.45;">Didn't receive a code? Check your spam folder or request another. Please wait one minute between requests.</span>
-                <button type="button" id="resendOtpBtn" class="resend-otp-btn" onclick="triggerResendOtp()" style="font-weight: 700; color: #6F6382; text-decoration: underline;">Resend code (<span id="otpTimerDisplay">00:60</span>)</button>
+                <span style="font-size: 0.8rem; color: var(--dm-muted, #6b7280); line-height: 1.45;">Didn't receive a code? Check your spam folder or request another. Please wait one minute between requests.</span>
+                <button type="button" id="resendOtpBtn" class="resend-otp-btn" onclick="triggerResendOtp()" style="font-weight: 700; color: var(--dm-muted, #6F6382); text-decoration: underline;">Resend code (<span id="otpTimerDisplay">00:60</span>)</button>
             </div>
 
             <div style="margin-top: 18px; text-align: center;">
-                <button type="button" onclick="prevStep(2)" style="background: none; border: none; font-size: 0.82rem; font-weight: 600; color: #6F6382; cursor: pointer; text-decoration: underline;">← Change email or password</button>
+                <button type="button" onclick="prevStep(2)" style="background: none; border: none; font-size: 0.82rem; font-weight: 600; color: var(--dm-muted, #6F6382); cursor: pointer; text-decoration: underline;">← Change email or password</button>
             </div>
         </div>
 
@@ -481,7 +481,7 @@
         <div class="logistics-terms-modal-card">
             <div class="logistics-terms-modal-header">
                 <div class="logistics-terms-modal-head-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: #6F6382;" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: var(--dm-muted, #6F6382);" aria-hidden="true">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -502,8 +502,8 @@
 
             <div id="logisticsTermsModalBody" class="logistics-terms-modal-body" tabindex="0" role="region" aria-label="Logistics Terms and Conditions and Privacy Policy document">
                 <div class="logistics-terms-content">
-                    <h4 style="text-align: center; text-transform: uppercase; color: #111827; margin-bottom: 2px; font-size: 1rem; font-weight: 800;">Cartzy</h4>
-                    <p style="text-align: center; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #6B7280; margin-bottom: 16px; letter-spacing: 0.05em;">Terms &amp; Conditions and Privacy Policy</p>
+                    <h4 style="text-align: center; text-transform: uppercase; color: var(--dm-ink, #111827); margin-bottom: 2px; font-size: 1rem; font-weight: 800;">Cartzy</h4>
+                    <p style="text-align: center; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--dm-muted, #6B7280); margin-bottom: 16px; letter-spacing: 0.05em;">Terms &amp; Conditions and Privacy Policy</p>
 
                     <h4 class="terms-section-banner">LOGISTICS TERMS &amp; CONDITIONS</h4>
 
@@ -730,9 +730,9 @@
         gap: 6px;
         margin-top: 10px;
         padding-top: 12px;
-        border-top: 1px dashed #e5e7eb;
+        border-top: 1px dashed var(--dm-border, #e5e7eb);
         font-size: clamp(0.6rem, 2.3vw, 0.82rem);
-        color: #4b5563;
+        color: var(--dm-ink, #4b5563);
         white-space: nowrap;
     }
     .registration-partner-row a {
@@ -748,7 +748,7 @@
         left: 48px;
         top: 50%;
         transform: translateY(-50%);
-        color: #374151;
+        color: var(--dm-ink, #374151);
         font-weight: 600;
         pointer-events: none;
     }
@@ -769,8 +769,8 @@
         align-items: center;
         gap: 12px;
         padding: 13px 15px;
-        background: #ffffff;
-        border: 1.5px solid #e5e7eb;
+        background: var(--dm-surface, #ffffff);
+        border: 1.5px solid var(--dm-border, #e5e7eb);
         border-radius: 12px;
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -779,21 +779,21 @@
     }
     .role-option:hover {
         border-color: #A8A0B2;
-        background: #FAF8FC;
+        background: var(--dm-surface, #FAF8FC);
         transform: translateY(-1px);
         box-shadow: 0 3px 10px rgba(111, 99, 130, 0.08);
     }
     .role-option.selected {
         border-color: #6F6382;
-        background: #F6F4F8;
+        background: var(--dm-elevated, #F6F4F8);
         box-shadow: 0 0 0 2px rgba(111, 99, 130, 0.2), 0 4px 12px rgba(111, 99, 130, 0.1);
     }
     .role-option-icon {
         width: 38px;
         height: 38px;
         border-radius: 10px;
-        background: #f3f4f6;
-        color: #6b7280;
+        background: var(--dm-elevated, #f3f4f6);
+        color: var(--dm-muted, #6b7280);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -815,23 +815,23 @@
     .role-option-title {
         font-size: 0.92rem;
         font-weight: 700;
-        color: #111827;
+        color: var(--dm-ink, #111827);
         margin-bottom: 2px;
         transition: color 0.18s;
     }
     .role-option.selected .role-option-title {
-        color: #564B68;
+        color: var(--dm-ink, #564B68);
     }
     .role-option-desc {
         font-size: 0.74rem;
-        color: #6b7280;
+        color: var(--dm-muted, #6b7280);
         line-height: 1.25;
     }
     .role-option-badge {
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        border: 1.5px solid #d1d5db;
+        border: 1.5px solid var(--dm-border, #d1d5db);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -857,13 +857,13 @@
         display: block;
         font-size: 1rem;
         font-weight: 700;
-        color: #111111;
+        color: var(--dm-ink, #111111);
         margin-bottom: 3px;
         letter-spacing: -0.2px;
     }
     .field-subheading {
         font-size: 0.82rem;
-        color: #6b7280;
+        color: var(--dm-muted, #6b7280);
         margin-bottom: 12px;
         font-weight: 400;
     }
@@ -880,10 +880,10 @@
         align-items: center;
         gap: 8px;
         padding: 10px 14px;
-        background-color: #FAF7F2;
-        border: 1px solid #EFE8DE;
+        background-color: var(--dm-elevated, #FAF7F2);
+        border: 1px solid var(--dm-border, #EFE8DE);
         border-radius: 8px;
-        color: #37332D;
+        color: var(--dm-ink, #37332D);
         font-size: 0.84rem;
         font-weight: 600;
         margin-bottom: 16px;
@@ -891,7 +891,7 @@
     .otp-sent-banner .banner-icon {
         font-weight: 800;
         font-size: 0.95rem;
-        color: #059669;
+        color: var(--dm-green-ink, #059669);
     }
 
     /* OTP Inputs */
@@ -908,9 +908,9 @@
         text-align: center;
         font-size: 1.25rem;
         font-weight: 700;
-        color: #111111;
-        background: #ffffff;
-        border: 1.5px solid #e5e7eb;
+        color: var(--dm-ink, #111111);
+        background: var(--dm-surface, #ffffff);
+        border: 1.5px solid var(--dm-border, #e5e7eb);
         border-radius: 8px;
         outline: none;
         transition: border-color 0.18s, box-shadow 0.18s;
@@ -927,13 +927,13 @@
     }
     .otp-input.filled {
         border-color: #6F6382;
-        background-color: #F8F6FA;
+        background-color: var(--dm-elevated, #F8F6FA);
     }
 
     /* Resend OTP Row */
     .otp-resend-row {
         font-size: 0.82rem;
-        color: #4b5563;
+        color: var(--dm-ink, #4b5563);
         font-weight: 500;
         margin-top: 14px;
         display: flex;
@@ -943,7 +943,7 @@
     .resend-otp-btn {
         background: none;
         border: none;
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
         font-weight: 700;
         font-size: 0.82rem;
         cursor: pointer;
@@ -953,11 +953,11 @@
         transition: opacity 0.15s, color 0.15s;
     }
     .resend-otp-btn:hover:not(:disabled) {
-        color: #564B68;
+        color: var(--dm-ink, #564B68);
         text-decoration: underline;
     }
     .resend-otp-btn:disabled {
-        color: #91879E;
+        color: var(--dm-muted, #91879E);
         cursor: default;
     }
 
@@ -977,20 +977,20 @@
     .su-steps[hidden] { display: none !important; }
     .su-seller-progress { margin: 4px 0 16px; }
     .su-seller-progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 7px; }
-    .su-seller-progress-count { color: #6b6478; font-size: .74rem; font-weight: 600; }
-    .su-seller-progress-count strong { color: #564b68; }
-    .su-seller-progress-title { color: #282133; font-size: .9rem; font-weight: 800; text-align: right; }
-    .su-seller-progress-bar { height: 6px; border-radius: 999px; background: #efe9f3; overflow: hidden; }
+    .su-seller-progress-count { color: var(--dm-muted, #6b6478); font-size: .74rem; font-weight: 600; }
+    .su-seller-progress-count strong { color: var(--dm-ink, #564b68); }
+    .su-seller-progress-title { color: var(--dm-ink, #282133); font-size: .9rem; font-weight: 800; text-align: right; }
+    .su-seller-progress-bar { height: 6px; border-radius: 999px; background: var(--dm-elevated, #efe9f3); overflow: hidden; }
     .su-seller-progress-bar span { display: block; height: 100%; width: 16.7%; border-radius: inherit; background: linear-gradient(90deg, #6f6382, #c08b7f); transition: width .3s ease; }
     @media (prefers-reduced-motion: reduce) { .su-seller-progress-bar span { transition: none; } }
     /* The progress title names the section, so its heading is not repeated */
     .is-signup-stepped [data-signup-page] > .field-block:first-child { display: none; }
     /* Logistics sign-up: "STEP 4 OF 7", the step title and one bar segment per step */
     .su-steps { margin: 2px 0 16px; }
-    .su-steps-count { margin: 0 0 2px; color: #6b6478; font-size: .66rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
-    .su-steps-title { margin: 0 0 10px; color: #282133; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
+    .su-steps-count { margin: 0 0 2px; color: var(--dm-muted, #6b6478); font-size: .66rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; }
+    .su-steps-title { margin: 0 0 10px; color: var(--dm-ink, #282133); font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
     .su-steps-bar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-    .su-steps-bar span { height: 4px; border-radius: 999px; background: #efe9f3; transition: background-color .25s ease; }
+    .su-steps-bar span { height: 4px; border-radius: 999px; background: var(--dm-elevated, #efe9f3); transition: background-color .25s ease; }
     .su-steps-bar span.is-done { background: #c08b7f; }
     .su-steps-bar span.is-current { background: linear-gradient(90deg, #564b68, #6f6382); }
     @media (prefers-reduced-motion: reduce) { .su-steps-bar span { transition: none; } }
@@ -1018,7 +1018,7 @@
         font-family: inherit;
     }
     .btn-action-back:hover {
-        background: linear-gradient(120deg, #EEEAF3, var(--rose-muted, #F5CFC7));
+        background: linear-gradient(120deg, var(--dm-elevated, #EEEAF3), var(--rose-muted, #F5CFC7));
         border-color: var(--rose-deep, #C08B7F);
         box-shadow: 0 4px 12px rgba(111, 99, 130, 0.12);
     }
@@ -1080,11 +1080,11 @@
     .logistics-notice-box {
         margin: 16px 0 20px 0;
         padding: 14px 18px;
-        background: #FAF8F6;
-        border: 1.5px solid #EFEAE6;
+        background: var(--dm-elevated, #FAF8F6);
+        border: 1.5px solid var(--dm-border, #EFEAE6);
         border-left: 4px solid #C08B7F;
         border-radius: 12px;
-        color: #4B453D;
+        color: var(--dm-ink, #4B453D);
         font-size: 0.82rem;
         line-height: 1.5;
         font-weight: 500;
@@ -1097,7 +1097,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        color: #6b7280;
+        color: var(--dm-muted, #6b7280);
         font-size: 0.82rem;
         font-weight: 600;
         cursor: pointer;
@@ -1105,7 +1105,7 @@
         transition: color 0.15s ease;
     }
     .eye-btn.password-toggle-btn:hover {
-        color: #6F6382;
+        color: var(--dm-muted, #6F6382);
     }
 
     @media (max-width: 480px) {

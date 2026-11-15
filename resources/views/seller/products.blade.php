@@ -121,7 +121,7 @@
                     <span class="badge">{{ $product->sale_status }}: {{ $product->discount_type === 'percentage' ? number_format($product->discount_value, 2).'%' : '₱'.number_format($product->discount_value, 2) }} off per item</span>
                 @endif
                 @if($product->isPending())
-                    <span class="badge" style="background: #FEF3C7; color: #B45309; border: 1px solid #FCD34D; font-weight: 700;">
+                    <span class="badge" style="background: #FEF3C7; color: var(--dm-gold-ink, #B45309); border: 1px solid #FCD34D; font-weight: 700;">
                         ⏳ Pending Approval
                     </span>
                 @elseif($product->isRejected())
@@ -140,18 +140,18 @@
         </div>
 
         @if($product->isRejected() && $product->rejection_reason)
-            <div style="margin: 8px 18px 0; padding: 10px 14px; background: #FFF5F5; border-left: 3px solid #E53E3E; border-radius: 8px; font-size: 12px; color: #9B2C2C;">
+            <div style="margin: 8px 18px 0; padding: 10px 14px; background: var(--dm-elevated, #FFF5F5); border-left: 3px solid #E53E3E; border-radius: 8px; font-size: 12px; color: var(--dm-red-ink, #9B2C2C);">
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
                     <strong>Admin Rejection Feedback:</strong>
                     @if($product->reviewed_at)<span style="font-size: 11px; opacity: 0.85;">{{ $product->reviewed_at->timezone('Asia/Manila')->format('M j, Y') }}</span>@endif
                 </div>
                 <p style="margin: 3px 0 5px; line-height: 1.45;">{{ $product->rejection_reason }}</p>
-                <div style="font-size: 11px; color: #742A2A;">
+                <div style="font-size: 11px; color: var(--dm-red-ink, #742A2A);">
                     💡 Click <strong>Edit product details</strong> below to revise this listing and resubmit for approval.
                 </div>
             </div>
         @elseif($product->isPending())
-            <div style="margin: 8px 18px 0; padding: 7px 12px; background: #FFFDF5; border-left: 3px solid #F59E0B; border-radius: 6px; font-size: 11px; color: #92400E;">
+            <div style="margin: 8px 18px 0; padding: 7px 12px; background: var(--dm-elevated, #FFFDF5); border-left: 3px solid #F59E0B; border-radius: 6px; font-size: 11px; color: var(--dm-gold-ink, #92400E);">
                 ⏳ This product is currently awaiting administrator review. It will become visible on the marketplace once approved.
             </div>
         @endif

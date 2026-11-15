@@ -185,7 +185,7 @@ function autoCalcAge(dateStr) {
     if (ageText) {
         if (age >= 18) {
             ageText.textContent = `Age: ${age} years old`;
-            ageText.style.color = '#059669';
+            ageText.style.color = 'var(--dm-green-ink, #059669)';
         } else if (age >= 0) {
             ageText.textContent = `Age: ${age} (Must be 18+)`;
             ageText.style.color = '#ef4444';
@@ -489,10 +489,10 @@ function updateOtpPreviewUI() {
         if (devNotice) {
             if (!latestMailSent) {
                 devNotice.innerText = '⚠️ Email server could not be reached via SMTP. Use this test verification code:';
-                devNotice.style.color = '#b91c1c';
+                devNotice.style.color = 'var(--dm-red-ink, #b91c1c)';
             } else {
                 devNotice.innerText = '✓ Verification email sent via Gmail. (Preview displayed for local testing)';
-                devNotice.style.color = '#15803d';
+                devNotice.style.color = 'var(--dm-green-ink, #15803d)';
             }
         }
         if (devBanner) devBanner.style.display = 'block';
@@ -504,9 +504,9 @@ function updateOtpPreviewUI() {
         }
 
         if (otpSentBanner && !latestMailSent) {
-            otpSentBanner.style.backgroundColor = '#fffbeb';
+            otpSentBanner.style.backgroundColor = 'var(--dm-elevated, #fffbeb)';
             otpSentBanner.style.borderColor = '#fde68a';
-            otpSentBanner.style.color = '#92400e';
+            otpSentBanner.style.color = 'var(--dm-gold-ink, #92400e)';
             const bannerText = otpSentBanner.querySelector('.banner-text');
             if (bannerText) bannerText.innerText = 'Mail server unreachable. Use the test code below to continue.';
             const bannerIcon = otpSentBanner.querySelector('.banner-icon');
@@ -621,7 +621,7 @@ async function triggerResendOtp() {
     if (feedback) {
         feedback.style.display = 'block';
         if (latestMailSent) {
-            feedback.style.color = '#059669';
+            feedback.style.color = 'var(--dm-green-ink, #059669)';
             feedback.innerText = 'A new verification code has been sent to your email!';
         } else {
             feedback.style.color = '#d97706';

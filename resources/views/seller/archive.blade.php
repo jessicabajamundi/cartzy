@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <div class="editor product-list-editor" style="padding: 14px 20px; background: #faf9fb; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div class="editor product-list-editor" style="padding: 14px 20px; background: var(--dm-surface, #faf9fb); border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <span class="muted" style="font-size: 12px;">Archived product · Restore to make it visible to buyers</span>
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 {{-- Both forms ask for confirmation in the modal below before submitting. --}}

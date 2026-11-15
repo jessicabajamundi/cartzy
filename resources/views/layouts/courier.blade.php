@@ -24,25 +24,25 @@
             /* Palette 1: Deep Plum & Lavender */
             --brand-dark: #564B68;
             --brand-lavender: #6F6382;
-            --brand-muted: #91879E;
-            --brand-soft: #F8F6FA;
+            --brand-muted: var(--dm-muted, #91879E);
+            --brand-soft: var(--dm-elevated, #F8F6FA);
 
             /* Palette 2: Warm Terracotta & Rose */
             --rose-dark: #8C5A50;
             --rose-primary: #C08B7F;
             --rose-muted: #D4A69A;
-            --rose-soft: #FAF8F6;
+            --rose-soft: var(--dm-elevated, #FAF8F6);
 
             /* Merged Gradients & Accents */
             --gradient-master: linear-gradient(135deg, #564B68 0%, #6F6382 48%, #8C5A50 100%);
             --gradient-rose: linear-gradient(135deg, #8C5A50 0%, #C08B7F 100%);
-            --gradient-soft: linear-gradient(120deg, #FAF8F6 0%, #F8F6FA 100%);
+            --gradient-soft: linear-gradient(120deg, var(--dm-elevated, #FAF8F6) 0%, var(--dm-elevated, #F8F6FA) 100%);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F8F7FA;
-            color: #1F2937;
+            background-color: var(--dm-elevated, #F8F7FA);
+            color: var(--dm-ink, #1F2937);
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -58,8 +58,8 @@
 
         /* Card & Button Elevations */
         .rider-card {
-            background: #FFFFFF;
-            border: 1px solid #ECE7EF;
+            background: var(--dm-surface, #FFFFFF);
+            border: 1px solid var(--dm-border, #ECE7EF);
             border-radius: 16px;
             box-shadow: 0 2px 10px rgba(86, 75, 104, 0.04), 0 1px 3px rgba(140, 90, 80, 0.03);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -86,14 +86,14 @@
         }
 
         .badge-online {
-            background-color: #ECFDF5;
-            color: #065F46;
+            background-color: var(--dm-green-surface, #ECFDF5);
+            color: var(--dm-green-ink, #065F46);
             border: 1px solid #A7F3D0;
         }
         .badge-offline {
-            background-color: #F3F4F6;
-            color: #4B5563;
-            border: 1px solid #E5E7EB;
+            background-color: var(--dm-elevated, #F3F4F6);
+            color: var(--dm-ink, #4B5563);
+            border: 1px solid var(--dm-border, #E5E7EB);
         }
 
         /* Mobile Bottom Nav Bar */
@@ -104,6 +104,8 @@
         }
     </style>
     @stack('styles')
+    @include('partials.dark-mode-head')
+    @include('partials.dark-mode-head')
 </head>
 <body class="h-screen flex flex-col overflow-hidden selection:bg-[#564B68] selection:text-white">
     @php

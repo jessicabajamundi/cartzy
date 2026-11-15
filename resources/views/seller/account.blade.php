@@ -197,7 +197,7 @@
             <label class="full">
                 E-mail address
                 <input type="email" value="{{ $user->email }}" readonly style="background:var(--brand-soft); cursor:not-allowed;">
-                <small style="color:#10b981; font-weight:600; display:inline-flex; align-items:center; gap:4px; margin-top:4px;">
+                <small style="color:var(--dm-green-ink, #10b981); font-weight:600; display:inline-flex; align-items:center; gap:4px; margin-top:4px;">
                     ✓ Verified email address
                 </small>
             </label>
@@ -219,13 +219,13 @@
         </div>
         <div>
             @if($user->id_status === 'verified')
-                <span class="badge" style="background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;">✓ Verified Seller</span>
+                <span class="badge" style="background:var(--dm-green-surface, #ecfdf5); color:var(--dm-green-ink, #065f46); border:1px solid #a7f3d0;">✓ Verified Seller</span>
             @elseif($user->id_status === 'pending')
-                <span class="badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;">⏳ Pending Admin Approval</span>
+                <span class="badge" style="background:var(--dm-elevated, #fffbeb); color:var(--dm-gold-ink, #92400e); border:1px solid #fde68a;">⏳ Pending Admin Approval</span>
             @elseif($user->id_status === 'rejected')
-                <span class="badge" style="background:#fef2f2; color:#991b1b; border:1px solid #fecaca;">✕ Rejected - Please Re-upload</span>
+                <span class="badge" style="background:var(--dm-elevated, #fef2f2); color:var(--dm-red-ink, #991b1b); border:1px solid var(--dm-border, #fecaca);">✕ Rejected - Please Re-upload</span>
             @else
-                <span class="badge" style="background:#f3f4f6; color:#4b5563; border:1px solid #e5e7eb;">Unverified</span>
+                <span class="badge" style="background:var(--dm-elevated, #f3f4f6); color:var(--dm-ink, #4b5563); border:1px solid var(--dm-border, #e5e7eb);">Unverified</span>
             @endif
         </div>
     </div>
@@ -235,14 +235,14 @@
         <input type="hidden" name="store_name" value="{{ $shop?->name ?? $user->business_name ?? 'My Store' }}">
 
         <!-- Information Callout -->
-        <div class="full" style="background: #FAF8FC; border: 1.5px solid #E8E2EE; border-left: 4px solid #6F6382; border-radius: 10px; padding: 14px 18px; margin-bottom: 8px;">
-            <p style="font-size: 0.86rem; color: #4B453D; line-height: 1.5; margin: 0; font-weight: 500;">
+        <div class="full" style="background: var(--dm-surface, #FAF8FC); border: 1.5px solid var(--dm-border, #E8E2EE); border-left: 4px solid #6F6382; border-radius: 10px; padding: 14px 18px; margin-bottom: 8px;">
+            <p style="font-size: 0.86rem; color: var(--dm-ink, #4B453D); line-height: 1.5; margin: 0; font-weight: 500;">
                 <strong>Administrator Review Notice:</strong> After submitting your registration and documents, please wait for the administrator's approval, which will be sent to your email.
             </p>
         </div>
 
         @if($user->id_rejection_reason)
-            <div class="full" style="background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; padding:12px 16px; border-radius:8px; font-size:0.85rem;">
+            <div class="full" style="background:var(--dm-elevated, #fef2f2); border:1px solid #fca5a5; color:var(--dm-red-ink, #991b1b); padding:12px 16px; border-radius:8px; font-size:0.85rem;">
                 <strong>Reason for rejection:</strong> {{ $user->id_rejection_reason }}
             </div>
         @endif
@@ -254,7 +254,7 @@
                 <h3 style="font-size:0.95rem; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
                     <span>Upload Government ID</span>
                     @if($user->id_photo)
-                        <span style="font-size:0.75rem; color:#059669; font-weight:600;">File uploaded ✓</span>
+                        <span style="font-size:0.75rem; color:var(--dm-green-ink, #059669); font-weight:600;">File uploaded ✓</span>
                     @endif
                 </h3>
 
@@ -280,7 +280,7 @@
 
                 @if($user->id_photo)
                     <div style="margin-top:10px; font-size:0.8rem;">
-                        <a href="{{ Storage::disk('public')->url($user->id_photo) }}" target="_blank" style="color:#6F6382; text-decoration:underline; font-weight:600;">
+                        <a href="{{ Storage::disk('public')->url($user->id_photo) }}" target="_blank" style="color:var(--dm-muted, #6F6382); text-decoration:underline; font-weight:600;">
                             View current ID file &nearr;
                         </a>
                     </div>
@@ -292,7 +292,7 @@
                 <h3 style="font-size:0.95rem; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between;">
                     <span>Upload Business Permit / DTI</span>
                     @if($user->dti_permit)
-                        <span style="font-size:0.75rem; color:#059669; font-weight:600;">File uploaded ✓</span>
+                        <span style="font-size:0.75rem; color:var(--dm-green-ink, #059669); font-weight:600;">File uploaded ✓</span>
                     @endif
                 </h3>
 
@@ -307,7 +307,7 @@
 
                 @if($user->dti_permit)
                     <div style="margin-top:16px; font-size:0.8rem;">
-                        <a href="{{ Storage::disk('public')->url($user->dti_permit) }}" target="_blank" style="color:#6F6382; text-decoration:underline; font-weight:600;">
+                        <a href="{{ Storage::disk('public')->url($user->dti_permit) }}" target="_blank" style="color:var(--dm-muted, #6F6382); text-decoration:underline; font-weight:600;">
                             View current permit file &nearr;
                         </a>
                     </div>
@@ -428,7 +428,7 @@
 
             <div class="full" style="display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; padding:16px; background:var(--surface-sunken, #f8fafc); border-radius:var(--radius-md, 12px); border:1px solid var(--line, #e2e8f0);">
                 <div style="text-align:center;">
-                    <div id="gcash-qr-preview-box" style="width:160px; height:160px; border:2px dashed var(--line, #cbd5e1); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:#fff; position:relative;">
+                    <div id="gcash-qr-preview-box" style="width:160px; height:160px; border:2px dashed var(--line, #cbd5e1); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:var(--dm-surface, #fff); position:relative;">
                         @if($gcashQrUrl)
                             <img id="gcash-qr-preview-img" src="{{ $gcashQrUrl }}" alt="GCash QR Code" style="width:100%; height:100%; object-fit:contain;">
                         @else

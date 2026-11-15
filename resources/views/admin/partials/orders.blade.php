@@ -11,7 +11,7 @@
                     $itemImg = $item->thumbnail_url ?: asset('images/logo-transparent.png');
                 @endphp
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="{{ $itemImg }}" alt="{{ $item->product_name }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: #fff;" loading="lazy">
+                    <img src="{{ $itemImg }}" alt="{{ $item->product_name }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); flex-shrink: 0; background: var(--dm-surface, #fff);" loading="lazy">
                     <div style="min-width: 0; max-width: 240px;">
                         <strong style="display: block; font-size: 13px; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $item->product_name }}">
                             {{ $item->product_name }}

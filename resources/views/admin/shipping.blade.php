@@ -15,7 +15,7 @@
                     <td><small>{{ $zone['description'] }}</small></td>
                     <td>
                         <input type="number" name="fees[{{ $key }}]" min="1" max="10000" step="0.01" required value="{{ old('fees.'.$key, number_format($zone['fee_minor'] / 100, 2, '.', '')) }}" aria-label="Fee for {{ $zone['label'] }}">
-                        @error('fees.'.$key)<small style="color:#b42318;font-weight:600">{{ $message }}</small>@enderror
+                        @error('fees.'.$key)<small style="color:var(--dm-red-ink, #b42318);font-weight:600">{{ $message }}</small>@enderror
                     </td>
                 </tr>
             @endforeach

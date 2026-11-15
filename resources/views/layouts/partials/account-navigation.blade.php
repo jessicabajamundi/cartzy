@@ -25,8 +25,8 @@
 @once
 <style>
 .account-shortcuts { display:flex; align-items:center; gap:4px; flex-shrink:0; }
-.account-shortcuts .account-shortcut { position:relative; display:flex; align-items:center; justify-content:center; width:40px; height:44px; flex-shrink:0; border-radius:12px; color:#6b7280; text-decoration:none; transition:color .15s,background .15s; }
-.account-shortcuts .account-shortcut:hover { background:#F3EFF7; color:#564B68; }
+.account-shortcuts .account-shortcut { position:relative; display:flex; align-items:center; justify-content:center; width:40px; height:44px; flex-shrink:0; border-radius:12px; color:var(--dm-muted, #6b7280); text-decoration:none; transition:color .15s,background .15s; }
+.account-shortcuts .account-shortcut:hover { background:var(--dm-elevated, #F3EFF7); color:var(--dm-ink, #564B68); }
 .account-shortcuts .account-shortcut:focus-visible { outline:2px solid #6F6382; outline-offset:2px; }
 .account-shortcuts svg { width:20px; height:20px; flex-shrink:0; }
 .account-shortcut-badge { position:absolute; top:0; right:0; min-width:16px; height:16px; padding:0 3px; border-radius:20px; background:#8C5A50; color:#fff; font-size:9px; line-height:16px; text-align:center; box-shadow:0 0 0 2px #fff; }

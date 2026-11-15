@@ -750,7 +750,7 @@
             const item = document.createElement('div');
             item.className = `photo-preview-item ${idx === 0 ? 'is-cover' : ''}`;
             item.innerHTML = `
-                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#f8fafc; font-size:11px; color:#94a3b8;">Loading...</div>
+                <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:var(--dm-surface, #f8fafc); font-size:11px; color:var(--dm-muted, #94a3b8);">Loading...</div>
                 ${idx === 0 ? `<span class="photo-badge-cover">${coverIcon}Cover</span>` : `<span class="photo-badge-num">#${idx + 1}</span>`}
                 <button type="button" class="photo-remove-btn" data-index="${idx}" title="Remove photo #${idx + 1}">
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>

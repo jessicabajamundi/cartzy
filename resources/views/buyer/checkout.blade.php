@@ -181,24 +181,24 @@
                         </label>
                         <label class="checkout-payment" id="payment-label-gcash">
                             <span class="checkout-payment-icon gcash" aria-hidden="true" style="background:#007DFE; color:#fff; font-weight:800;">G</span>
-                            <span class="checkout-payment-copy"><strong>GCash QR Code <span class="checkout-badge" style="background:#EBF5FF; color:#007DFE; font-weight:700;">Instant Payment</span></strong><small>Scan and pay with your GCash app for faster dispatch.</small></span>
+                            <span class="checkout-payment-copy"><strong>GCash QR Code <span class="checkout-badge" style="background:var(--dm-blue-surface, #EBF5FF); color:#007DFE; font-weight:700;">Instant Payment</span></strong><small>Scan and pay with your GCash app for faster dispatch.</small></span>
                             <input type="radio" name="payment_method" value="GCash" required>
                         </label>
                     </fieldset>
 
                     <!-- GCash QR Code Payment Container -->
-                    <div id="gcash-qr-panel" style="display:none; margin-top:16px; padding:20px; background:#F4F9FF; border:1.5px solid #007DFE; border-radius:16px;">
+                    <div id="gcash-qr-panel" style="display:none; margin-top:16px; padding:20px; background:var(--dm-elevated, #F4F9FF); border:1.5px solid #007DFE; border-radius:16px;">
                         <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
                             <span style="background:#007DFE; color:#fff; font-weight:900; font-size:12px; padding:4px 10px; border-radius:8px; letter-spacing:0.5px;">GCash QR</span>
-                            <h4 style="margin:0; font-size:15px; font-weight:800; color:#0b2545;">Scan to Pay with GCash</h4>
+                            <h4 style="margin:0; font-size:15px; font-weight:800; color:var(--dm-ink, #0b2545);">Scan to Pay with GCash</h4>
                         </div>
-                        <p style="margin:0 0 16px; font-size:13px; color:#4a5568; line-height:1.5;">
+                        <p style="margin:0 0 16px; font-size:13px; color:var(--dm-ink, #4a5568); line-height:1.5;">
                             Scan the seller's GCash QR code using your GCash app to pay the exact amount. Your order will be confirmed upon payment verification.
                         </p>
                         
-                        <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:center; background:#fff; padding:18px; border-radius:14px; border:1px solid #D0E4FF;">
+                        <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:center; background:var(--dm-surface, #fff); padding:18px; border-radius:14px; border:1px solid var(--dm-border, #D0E4FF);">
                             <div style="text-align:center;">
-                                <div style="display:inline-block; padding:10px; background:#fff; border:2px solid #007DFE; border-radius:12px; box-shadow:0 4px 12px rgba(0,125,254,0.12);">
+                                <div style="display:inline-block; padding:10px; background:var(--dm-surface, #fff); border:2px solid #007DFE; border-radius:12px; box-shadow:0 4px 12px rgba(0,125,254,0.12);">
                                     @if(!empty($primarySeller?->gcash_qr_url))
                                         <img id="gcash-qr-img" src="{{ $primarySeller->gcash_qr_url }}" alt="Seller GCash QR Code" style="width:180px; height:180px; object-fit:contain; display:block;">
                                     @else
@@ -209,20 +209,20 @@
                             </div>
                             <div style="flex:1; min-width:200px;">
                                 <div style="margin-bottom:10px;">
-                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Seller / Merchant</span>
-                                    <strong style="font-size:14px; color:#1a202c;">{{ $primarySeller?->gcash_name ?: ($primarySeller?->name ?: 'Cartzy Official Store') }}</strong>
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--dm-muted, #718096); display:block;">Seller / Merchant</span>
+                                    <strong style="font-size:14px; color:var(--dm-ink, #1a202c);">{{ $primarySeller?->gcash_name ?: ($primarySeller?->name ?: 'Cartzy Official Store') }}</strong>
                                 </div>
                                 <div style="margin-bottom:10px;">
-                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">GCash Account No.</span>
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--dm-muted, #718096); display:block;">GCash Account No.</span>
                                     <strong style="font-size:14px; font-family:monospace; color:#007DFE;">{{ $primarySeller?->gcash_number ?: '0917-555-2278' }}</strong>
                                 </div>
                                 <div style="margin-bottom:14px;">
-                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:#718096; display:block;">Total Amount to Pay</span>
+                                    <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--dm-muted, #718096); display:block;">Total Amount to Pay</span>
                                     <strong style="font-size:18px; font-weight:900; color:#007DFE;" data-total>&#8369;{{ number_format($total, 2) }}</strong>
                                 </div>
                                 <div>
-                                    <label for="gcash_reference" style="font-size:12px; font-weight:700; color:#4a5568; display:block; margin-bottom:4px;">GCash Reference No. (Optional)</label>
-                                    <input type="text" name="gcash_reference" id="gcash_reference" placeholder="e.g. 1002 9845 2819" maxlength="30" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid #CBD5E0; border-radius:8px; background:#fff;">
+                                    <label for="gcash_reference" style="font-size:12px; font-weight:700; color:var(--dm-ink, #4a5568); display:block; margin-bottom:4px;">GCash Reference No. (Optional)</label>
+                                    <input type="text" name="gcash_reference" id="gcash_reference" placeholder="e.g. 1002 9845 2819" maxlength="30" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid var(--dm-border, #CBD5E0); border-radius:8px; background:var(--dm-surface, #fff);">
                                 </div>
                             </div>
                         </div>

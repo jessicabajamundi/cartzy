@@ -11,7 +11,7 @@
     {{-- Flash messages --}}
     @if(session('success'))
         <div class="alert alert-success">
-            <svg style="width: 18px; height: 18px; flex-shrink: 0; color: #16A34A;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg style="width: 18px; height: 18px; flex-shrink: 0; color: var(--dm-green-ink, #16A34A);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
             </svg>
@@ -72,9 +72,9 @@
     {{-- ═══ STEP 2: Enter OTP ═══ --}}
     <div id="fp-step-2" style="display: none;">
 
-        <div style="text-align: center; margin-bottom: 18px; padding: 14px 18px; background: #FFF5F3; border: 1.5px solid #F5CFC7; border-radius: 12px;">
-            <div style="font-size: 0.78rem; color: #8C5A50; font-weight: 600; margin-bottom: 4px;">Verification code sent to</div>
-            <div style="font-size: 0.92rem; font-weight: 800; color: #282133;" id="fp-sent-email"></div>
+        <div style="text-align: center; margin-bottom: 18px; padding: 14px 18px; background: var(--dm-elevated, #FFF5F3); border: 1.5px solid var(--dm-border, #F5CFC7); border-radius: 12px;">
+            <div style="font-size: 0.78rem; color: var(--dm-muted, #8C5A50); font-weight: 600; margin-bottom: 4px;">Verification code sent to</div>
+            <div style="font-size: 0.92rem; font-weight: 800; color: var(--dm-ink, #282133);" id="fp-sent-email"></div>
         </div>
 
         <label class="field-label">Enter your 6-digit code</label>
@@ -96,10 +96,10 @@
             </svg>
         </button>
 
-        <div style="text-align: center; margin-top: 14px; font-size: 0.82rem; color: #6b7280;">
+        <div style="text-align: center; margin-top: 14px; font-size: 0.82rem; color: var(--dm-muted, #6b7280);">
             Didn't receive the code?
-            <a href="#" onclick="fpResendOtp(); return false;" style="font-weight: 700; color: #8C5A50;" id="fp-resend-link">Resend</a>
-            <span id="fp-resend-timer" style="display:none; font-weight: 600; color: #A8A0B2;"></span>
+            <a href="#" onclick="fpResendOtp(); return false;" style="font-weight: 700; color: var(--dm-muted, #8C5A50);" id="fp-resend-link">Resend</a>
+            <span id="fp-resend-timer" style="display:none; font-weight: 600; color: var(--dm-muted, #A8A0B2);"></span>
         </div>
     </div>
 

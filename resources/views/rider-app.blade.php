@@ -14,10 +14,10 @@
             --lavender-dark: #564B68;
             --rose: #B76E79;
             --rose-dark: #8C5A50;
-            --ink: #282133;
-            --muted: #6B6478;
-            --line: #E7E2EC;
-            --soft: #F6F2F7;
+            --ink: var(--dm-ink, #282133);
+            --muted: var(--dm-muted, #6B6478);
+            --line: var(--dm-border, #E7E2EC);
+            --soft: var(--dm-elevated, #F6F2F7);
         }
         *, *::before, *::after { box-sizing: border-box; }
         body {
@@ -30,13 +30,13 @@
             padding: 32px 16px;
             font-family: 'Inter', system-ui, sans-serif;
             color: var(--ink);
-            background: linear-gradient(160deg, #FAF8FC 0%, #F7EFF1 100%);
+            background: linear-gradient(160deg, var(--dm-surface, #FAF8FC) 0%, var(--dm-elevated, #F7EFF1) 100%);
             -webkit-font-smoothing: antialiased;
         }
         .ra-card {
             width: 100%;
             max-width: 470px;
-            background: #fff;
+            background: var(--dm-surface, #fff);
             border: 1px solid var(--line);
             border-radius: 24px;
             padding: 34px 26px 26px;
@@ -48,7 +48,7 @@
             height: 84px;
             margin: 0 auto 14px;
             border-radius: 22px;
-            background: #fff;
+            background: var(--dm-surface, #fff);
             border: 1px solid var(--line);
             box-shadow: 0 8px 22px rgba(86, 75, 104, 0.12);
             display: grid;
@@ -106,13 +106,13 @@
             text-align: left;
             font-size: 13.5px;
             line-height: 1.55;
-            color: #3C3447;
+            color: var(--dm-ink, #3C3447);
         }
         .ra-steps li + li { margin-top: 9px; }
         .ra-steps code {
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
             font-size: 12.5px;
-            background: #fff;
+            background: var(--dm-surface, #fff);
             border: 1px solid var(--line);
             border-radius: 5px;
             padding: 1px 5px;

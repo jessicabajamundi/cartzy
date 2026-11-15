@@ -1,5 +1,5 @@
 /* Cozy the teddy bear: floating shopping buddy. Sits bottom-right, above the seller chat bubble where a page has one. */
-.buddy { --buddy-ink: #3E354C; --buddy-deep: #6F6382; --buddy-lav: #A8A0B2; --buddy-line: #E1DDE7; --buddy-soft: #FAF9FB; --buddy-rose: #D4A69A; --buddy-rose-deep: #B76E79; --buddy-blush: #FFF5F3; font-family: 'Inter', sans-serif; }
+.buddy { --buddy-ink: var(--dm-ink, #3E354C); --buddy-deep: #6F6382; --buddy-lav: #A8A0B2; --buddy-line: var(--dm-border, #E1DDE7); --buddy-soft: var(--dm-surface, #FAF9FB); --buddy-rose: #D4A69A; --buddy-rose-deep: #B76E79; --buddy-blush: #FFF5F3; font-family: 'Inter', sans-serif; }
 .buddy *, .buddy *::before, .buddy *::after { box-sizing: border-box; }
 .buddy [hidden] { display: none !important; }
 
@@ -11,7 +11,7 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-launcher.is-discarding { transform: scale(0) !important; opacity: 0 !important; transition: transform .22s cubic-bezier(.4, 0, 1, 1), opacity .22s ease !important; }
 .buddy-launcher:focus-visible { outline: 3px solid var(--buddy-rose-deep); outline-offset: 2px; border-radius: 24px; }
 .buddy-launcher-bear { display: block; width: 100%; height: 100%; animation: buddy-pop-in .7s cubic-bezier(.34, 1.56, .64, 1) both; }
-.buddy-greeting { position: absolute; right: 88px; bottom: 54px; width: max-content; max-width: 210px; padding: 10px 14px; border: 1.500px solid var(--buddy-rose); border-radius: 16px 16px 4px 16px; background: white; color: var(--buddy-ink); font-size: 13.500px; font-weight: 700; line-height: 1.3; text-align: left; box-shadow: 0 8px 20px rgba(40, 33, 51, .14); animation: buddy-bubble-in .4s cubic-bezier(.34, 1.56, .64, 1) both; pointer-events: none; }
+.buddy-greeting { position: absolute; right: 88px; bottom: 54px; width: max-content; max-width: 210px; padding: 10px 14px; border: 1.500px solid var(--buddy-rose); border-radius: 16px 16px 4px 16px; background: var(--dm-surface, white); color: var(--buddy-ink); font-size: 13.500px; font-weight: 700; line-height: 1.3; text-align: left; box-shadow: 0 8px 20px rgba(40, 33, 51, .14); animation: buddy-bubble-in .4s cubic-bezier(.34, 1.56, .64, 1) both; pointer-events: none; }
 .buddy.is-open .buddy-launcher { visibility: hidden; }
 
 /* Discard target zone */
@@ -19,7 +19,7 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-discard-target.is-visible { transform: translateX(-50%) translateY(0); opacity: 1; }
 .buddy-discard-circle { display: inline-grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; background: rgba(42, 27, 40, .92); border: 1.5px solid rgba(255, 255, 255, .4); color: white; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); transition: transform .18s cubic-bezier(.34, 1.56, .64, 1), background .18s ease, border-color .18s ease, box-shadow .18s ease; }
 .buddy-discard-label { padding: 3px 10px; border-radius: 12px; background: rgba(26, 16, 24, .85); color: white; font-size: 11px; font-weight: 600; letter-spacing: .2px; white-space: nowrap; transition: background .18s ease; }
-.buddy-discard-target.is-active .buddy-discard-circle { transform: scale(1.22); background: #D32F2F; border-color: white; border-width: 2.5px; box-shadow: 0 0 28px rgba(211, 47, 47, .65), 0 8px 20px rgba(0, 0, 0, .4); }
+.buddy-discard-target.is-active .buddy-discard-circle { transform: scale(1.22); background: #D32F2F; border-color: var(--dm-border, white); border-width: 2.5px; box-shadow: 0 0 28px rgba(211, 47, 47, .65), 0 8px 20px rgba(0, 0, 0, .4); }
 .buddy-discard-target.is-active .buddy-discard-label { background: #D32F2F; }
 
 /* Bear art and moods */
@@ -57,14 +57,14 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-icon:hover { background: rgba(255, 255, 255, .2); }
 .buddy-icon:focus-visible { outline: 2px solid white; outline-offset: -2px; }
 
-.buddy-log { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px 14px; overflow-y: auto; overscroll-behavior: contain; background: radial-gradient(circle at 12% 8%, #F1EFF5 0, transparent 42%), radial-gradient(circle at 92% 86%, #FFF5F3 0, transparent 46%), var(--buddy-soft); }
+.buddy-log { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px 14px; overflow-y: auto; overscroll-behavior: contain; background: radial-gradient(circle at 12% 8%, var(--dm-elevated, #F1EFF5) 0, transparent 42%), radial-gradient(circle at 92% 86%, var(--dm-elevated, #FFF5F3) 0, transparent 46%), var(--buddy-soft); }
 .buddy-msg { max-width: 86%; animation: buddy-msg-in .28s ease-out both; }
 .buddy-msg p { margin: 0; padding: 10px 14px; font-size: 14.500px; line-height: 1.42; white-space: pre-wrap; overflow-wrap: anywhere; }
 .buddy-msg.is-bot { align-self: flex-start; }
-.buddy-msg.is-bot p { border: 1px solid var(--buddy-line); border-radius: 18px 18px 18px 5px; color: var(--buddy-ink); background: white; box-shadow: 0 1px 3px rgba(40, 33, 51, .05); }
+.buddy-msg.is-bot p { border: 1px solid var(--buddy-line); border-radius: 18px 18px 18px 5px; color: var(--buddy-ink); background: var(--dm-surface, white); box-shadow: 0 1px 3px rgba(40, 33, 51, .05); }
 .buddy-msg.is-me { align-self: flex-end; }
 .buddy-msg.is-me p { border-radius: 18px 18px 5px 18px; color: white; background: linear-gradient(135deg, #6F6382, #8C7892); }
-.buddy-typing { display: inline-flex; gap: 5px; padding: 13px 16px; border: 1px solid var(--buddy-line); border-radius: 18px 18px 18px 5px; background: white; }
+.buddy-typing { display: inline-flex; gap: 5px; padding: 13px 16px; border: 1px solid var(--buddy-line); border-radius: 18px 18px 18px 5px; background: var(--dm-surface, white); }
 .buddy-typing i { width: 8px; height: 8px; border-radius: 50%; background: var(--buddy-rose); animation: buddy-dot 1.100s infinite ease-in-out both; }
 .buddy-typing i:nth-child(2) { animation-delay: .15s; background: var(--buddy-lav); }
 .buddy-typing i:nth-child(3) { animation-delay: .3s; }
@@ -73,25 +73,25 @@ body:has(.chat-bubble-form) .buddy-launcher { bottom: 84px; }
 .buddy-cards { display: flex; gap: 9px; max-width: 100%; margin-top: 8px; padding: 2px 2px 6px; overflow-x: auto; scrollbar-width: none; }
 .buddy-cards::-webkit-scrollbar { display: none; }
 .buddy-msg.has-cards { max-width: 100%; width: 100%; }
-.buddy-card { flex: none; width: 138px; border: 1.500px solid #E5CFC7; border-radius: 16px; color: var(--buddy-ink); background: white; overflow: hidden; text-decoration: none; transition: transform .2s, border-color .2s; }
+.buddy-card { flex: none; width: 138px; border: 1.500px solid var(--dm-border, #E5CFC7); border-radius: 16px; color: var(--buddy-ink); background: var(--dm-surface, white); overflow: hidden; text-decoration: none; transition: transform .2s, border-color .2s; }
 .buddy-card:hover { transform: translateY(-3px); border-color: var(--buddy-rose-deep); }
 .buddy-card:focus-visible { outline: 2px solid var(--buddy-rose-deep); outline-offset: 2px; }
-.buddy-card img { display: block; width: 100%; height: 104px; object-fit: cover; background: #F1EFF5; }
+.buddy-card img { display: block; width: 100%; height: 104px; object-fit: cover; background: var(--dm-elevated, #F1EFF5); }
 .buddy-card-body { display: block; padding: 8px 10px 10px; }
 .buddy-card-name { display: -webkit-box; min-height: 2.5em; overflow: hidden; font-size: 12.500px; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.buddy-card-price { display: block; margin-top: 4px; color: #8C5A50; font-size: 14px; font-weight: 900; }
-.buddy-card-meta { display: block; margin-top: 2px; color: #75687D; font-size: 11px; }
+.buddy-card-price { display: block; margin-top: 4px; color: var(--dm-muted, #8C5A50); font-size: 14px; font-weight: 900; }
+.buddy-card-meta { display: block; margin-top: 2px; color: var(--dm-muted, #75687D); font-size: 11px; }
 
 /* Suggestions and compose */
 .buddy-chips { display: flex; gap: 7px; padding: 0 12px 10px; overflow-x: auto; scrollbar-width: none; background: var(--buddy-soft); }
 .buddy-chips:empty { display: none; }
 .buddy-chips::-webkit-scrollbar { display: none; }
-.buddy-chip { flex: none; min-height: 34px; padding: 6px 13px; border: 1.500px solid var(--buddy-rose); border-radius: 999px; color: #8C5A50; background: var(--buddy-blush); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .15s, background .15s; }
-.buddy-chip:hover { transform: translateY(-2px); background: #FCEAE6; }
+.buddy-chip { flex: none; min-height: 34px; padding: 6px 13px; border: 1.500px solid var(--buddy-rose); border-radius: 999px; color: var(--dm-muted, #8C5A50); background: var(--buddy-blush); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .15s, background .15s; }
+.buddy-chip:hover { transform: translateY(-2px); background: var(--dm-elevated, #FCEAE6); }
 .buddy-chip:focus-visible { outline: 2px solid var(--buddy-rose-deep); outline-offset: 1px; }
-.buddy-compose { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--buddy-line); background: white; }
+.buddy-compose { display: flex; align-items: flex-end; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--buddy-line); background: var(--dm-surface, white); }
 .buddy-compose textarea { flex: 1; min-width: 0; min-height: 42px; max-height: 110px; padding: 10px 14px; border: 1.500px solid var(--buddy-line); border-radius: 21px; color: var(--buddy-ink); background: var(--buddy-soft); font: inherit; font-size: 16px; line-height: 1.3; resize: none; }
-.buddy-compose textarea:focus { outline: none; border-color: var(--buddy-rose-deep); background: white; }
+.buddy-compose textarea:focus { outline: none; border-color: var(--buddy-rose-deep); background: var(--dm-surface, white); }
 .buddy-compose button { display: inline-grid; place-items: center; flex: none; width: 42px; height: 42px; border: 0; border-radius: 50%; color: white; background: linear-gradient(135deg, #8B3A3A, #8B2635); box-shadow: 0 4px 12px rgba(139, 58, 58, .35); cursor: pointer; transition: transform .15s, box-shadow .15s; }
 .buddy-compose button:hover:not(:disabled) { transform: scale(1.08) rotate(-6deg); }
 .buddy-compose button:focus-visible { outline: 2px solid var(--buddy-deep); outline-offset: 2px; }
