@@ -415,7 +415,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Icon(
                               Icons.warning_amber_rounded,
                               size: 18,
-                              color: _loginAttempts >= 4 ? CartzyColors.error : Colors.orange,
+                              color: _loginAttempts >= 4 ? CartzyColors.readableOf(context, light: CartzyColors.error, background: _loginAttempts >= 4 ? CartzyColors.error.withValues(alpha: 0.08) : Colors.orange.withValues(alpha: 0.08)) : Colors.orange,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -426,7 +426,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: _loginAttempts >= 4
-                                      ? CartzyColors.error
+                                      ? CartzyColors.readableOf(context, light: CartzyColors.error, background: _loginAttempts >= 4 ? CartzyColors.error.withValues(alpha: 0.08) : Colors.orange.withValues(alpha: 0.08))
                                       : Colors.orange.shade800,
                                 ),
                               ),
@@ -508,7 +508,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _emailError!,
-                  style: const TextStyle(fontSize: 14, color: Color(0xFFD32F2F)),
+                  style: TextStyle(fontSize: 14, color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F), background: CartzyColors.surfaceOf(context, light: Colors.white))),
                 ),
               ],
               const SizedBox(height: 14),
@@ -594,7 +594,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _passwordError!,
-                  style: const TextStyle(fontSize: 14, color: Color(0xFFD32F2F)),
+                  style: TextStyle(fontSize: 14, color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F), background: CartzyColors.surfaceOf(context, light: Colors.white))),
                 ),
               ],
               const SizedBox(height: 6),
@@ -720,7 +720,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
                         width: 18,
                         height: 18,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
+                        errorBuilder: (_, __, ___) => Icon(Icons.g_mobiledata, size: 24, color: CartzyColors.readableOf(context, light: Colors.red, background: CartzyColors.surfaceOf(context, light: Colors.white))),
                       ),
                       const SizedBox(width: 10),
                       Text(

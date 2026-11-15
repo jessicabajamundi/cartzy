@@ -586,7 +586,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
           style: GoogleFonts.dmSans(
             fontSize: 8,
             fontWeight: FontWeight.w700,
-            color: isCod ? const Color(0xFF21845A) : const Color(0xFF4269BD),
+            color: isCod ? CartzyColors.readableOf(context, light: const Color(0xFF21845A), background: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFEFFAF4)) : CartzyColors.elevatedOf(context, light: const Color(0xFFEFF4FF))) : CartzyColors.readableOf(context, light: const Color(0xFF4269BD), background: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFEFFAF4)) : CartzyColors.elevatedOf(context, light: const Color(0xFFEFF4FF))),
           ),
         ),
       );

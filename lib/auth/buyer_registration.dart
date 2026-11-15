@@ -916,9 +916,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         const SizedBox(height: 20),
 
         if (_provincesLoadError) ...[
-          const Text(
+          Text(
             "Couldn't load provinces. Check your connection.",
-            style: TextStyle(fontSize: 12, color: CartzyColors.error),
+            style: TextStyle(fontSize: 12, color: CartzyColors.readableOf(context, light: CartzyColors.error)),
           ),
           const SizedBox(height: 8),
         ],
@@ -943,9 +943,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         const SizedBox(height: 16),
 
         if (_municipalitiesLoadError) ...[
-          const Text(
+          Text(
             "Couldn't load municipalities. Check your connection.",
-            style: TextStyle(fontSize: 12, color: CartzyColors.error),
+            style: TextStyle(fontSize: 12, color: CartzyColors.readableOf(context, light: CartzyColors.error)),
           ),
           const SizedBox(height: 8),
         ],
@@ -969,9 +969,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         const SizedBox(height: 16),
 
         if (_barangaysLoadError) ...[
-          const Text(
+          Text(
             "Couldn't load barangays. Check your connection.",
-            style: TextStyle(fontSize: 12, color: CartzyColors.error),
+            style: TextStyle(fontSize: 12, color: CartzyColors.readableOf(context, light: CartzyColors.error)),
           ),
           const SizedBox(height: 8),
         ],
@@ -1172,7 +1172,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                           ),
                           recognizer: TapGestureRecognizer()..onTap = _showTermsDialog,
                         ),
-                        const TextSpan(text: ' *', style: TextStyle(color: Color(0xFFD32F2F))),
+                        TextSpan(text: ' *', style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)))),
                       ],
                     ),
                   ),
@@ -1183,11 +1183,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         ),
         if (_termsError) ...[
           const SizedBox(height: 4),
-          const Padding(
-            padding: EdgeInsets.only(left: 36),
+          Padding(
+            padding: const EdgeInsets.only(left: 36),
             child: Text(
               'You must accept the Terms of Service to continue.',
-              style: TextStyle(fontSize: 12, color: CartzyColors.error, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, color: CartzyColors.readableOf(context, light: CartzyColors.error), fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -1241,7 +1241,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                           ),
                           recognizer: TapGestureRecognizer()..onTap = _showPrivacyPolicyDialog,
                         ),
-                        const TextSpan(text: ' *', style: TextStyle(color: Color(0xFFD32F2F))),
+                        TextSpan(text: ' *', style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)))),
                       ],
                     ),
                   ),
@@ -1252,11 +1252,11 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         ),
         if (_privacyError) ...[
           const SizedBox(height: 4),
-          const Padding(
-            padding: EdgeInsets.only(left: 36),
+          Padding(
+            padding: const EdgeInsets.only(left: 36),
             child: Text(
               'You must accept the Privacy Policy to continue.',
-              style: TextStyle(fontSize: 12, color: CartzyColors.error, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, color: CartzyColors.readableOf(context, light: CartzyColors.error), fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -1382,7 +1382,7 @@ class RegistrationUploadField extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             errorMessage,
-            style: const TextStyle(fontSize: 12, color: Color(0xFFD32F2F)),
+            style: TextStyle(fontSize: 12, color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F))),
           ),
         ] else if (helperText != null) ...[
           const SizedBox(height: 5),
@@ -1436,10 +1436,10 @@ class RegistrationDateField extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
-            children: const [
+            children: [
               TextSpan(
                 text: ' *',
-                style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+                style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)), fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -1459,7 +1459,7 @@ class RegistrationDateField extends StatelessWidget {
                 suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91))),
                 errorText: isError ? errorMessage : null,
             errorMaxLines: 3,
-                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
+                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.readableOf(context, light: const Color(0xFFEF4444))),
                 filled: true,
                 fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -1809,9 +1809,9 @@ class RegistrationDropdown extends StatelessWidget {
             ),
             children: [
               if (isRequired)
-                const TextSpan(
+                TextSpan(
                   text: ' *',
-                  style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+                  style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)), fontWeight: FontWeight.bold),
                 ),
             ],
           ),
@@ -1844,18 +1844,18 @@ class RegistrationDropdown extends StatelessWidget {
                 hintStyle: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFFB5A8AA))),
                 prefixIcon: Icon(icon ?? Icons.list_alt_outlined, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)), size: 20),
                 suffixIcon: isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(14),
+                    ? Padding(
+                        padding: const EdgeInsets.all(14),
                         child: SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF865561)),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: CartzyColors.readableOf(context, light: const Color(0xFF865561))),
                         ),
                       )
                     : Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91))),
                 errorText: isError ? errorMessage : null,
             errorMaxLines: 3,
-                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
+                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.readableOf(context, light: const Color(0xFFEF4444))),
                 filled: true,
                 fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -2078,10 +2078,10 @@ class SexDropdown extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
-            children: const [
+            children: [
               TextSpan(
                 text: ' *',
-                style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+                style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)), fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -2184,7 +2184,7 @@ class SexDropdown extends StatelessWidget {
                 suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91))),
                 errorText: isError ? errorMessage : null,
             errorMaxLines: 3,
-                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
+                errorStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.readableOf(context, light: const Color(0xFFEF4444))),
                 filled: true,
                 fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -2400,19 +2400,19 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _isSigningIn
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Color(0xFF231F20),
+                          color: CartzyColors.readableOf(context, light: const Color(0xFF231F20), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                         ),
                       )
                     : Image.network(
                         'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
                         width: 18,
                         height: 18,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
+                        errorBuilder: (_, __, ___) => Icon(Icons.g_mobiledata, size: 24, color: CartzyColors.readableOf(context, light: Colors.red, background: CartzyColors.surfaceOf(context, light: Colors.white))),
                       ),
                 const SizedBox(width: 10),
                 Text(
@@ -2569,10 +2569,10 @@ class RoleSelectionSection extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
-            children: const [
+            children: [
               TextSpan(
                 text: ' *',
-                style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+                style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)), fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -2815,9 +2815,9 @@ class _RegistrationTextFieldState extends State<RegistrationTextField> {
             ),
             children: [
               if (isRequired)
-                const TextSpan(
+                TextSpan(
                   text: ' *',
-                  style: TextStyle(color: Color(0xFFD32F2F), fontWeight: FontWeight.bold),
+                  style: TextStyle(color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F)), fontWeight: FontWeight.bold),
                 ),
             ],
           ),
@@ -2868,7 +2868,7 @@ class _RegistrationTextFieldState extends State<RegistrationTextField> {
             suffixIcon: trailing,
             errorText: _warning ?? _validationError ?? (isError ? errorMessage : null),
             errorMaxLines: 3,
-            errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
+            errorStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.readableOf(context, light: const Color(0xFFEF4444))),
             filled: true,
             fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

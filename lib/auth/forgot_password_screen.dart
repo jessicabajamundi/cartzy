@@ -356,14 +356,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.timer_outlined, size: 13, color: expired ? _error : CartzyColors.mutedOf(context, light: _brand)),
+              Icon(Icons.timer_outlined, size: 13, color: expired ? CartzyColors.readableOf(context, light: _error, background: (expired ? _error : _brand).withValues(alpha: 0.1)) : CartzyColors.mutedOf(context, light: _brand)),
               const SizedBox(width: 4),
               Text(
                 expired ? 'Code expired' : 'Code expires in ${_formatTimer()}',
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: expired ? _error : CartzyColors.mutedOf(context, light: _brand),
+                  color: expired ? CartzyColors.readableOf(context, light: _error, background: (expired ? _error : _brand).withValues(alpha: 0.1)) : CartzyColors.mutedOf(context, light: _brand),
                 ),
               ),
             ],
@@ -521,7 +521,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         if (error != null) ...[
           const SizedBox(height: 4),
-          Text(error, style: const TextStyle(fontSize: 14, color: _error)),
+          Text(error, style: TextStyle(fontSize: 14, color: CartzyColors.readableOf(context, light: _error))),
         ],
       ],
     );

@@ -120,7 +120,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
             child: Text('Clear',
                 style: GoogleFonts.dmSans(
                     fontWeight: FontWeight.w700,
-                    color: _Palette.roseGoldDeep)),
+                    color: CartzyColors.readableOf(context, light: _Palette.roseGoldDeep))),
           ),
         ],
       ),
@@ -205,12 +205,12 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
               if (count > 0)
                 TextButton.icon(
                   onPressed: _confirmClear,
-                  icon: const Icon(Icons.delete_sweep_outlined,
-                      size: 18, color: _Palette.roseGoldDeep),
+                  icon: Icon(Icons.delete_sweep_outlined,
+                      size: 18, color: CartzyColors.readableOf(context, light: _Palette.roseGoldDeep)),
                   label: Text('Clear',
                       style: GoogleFonts.dmSans(
                           fontWeight: FontWeight.w700,
-                          color: _Palette.roseGoldDeep)),
+                          color: CartzyColors.readableOf(context, light: _Palette.roseGoldDeep))),
                 ),
             ],
           ),

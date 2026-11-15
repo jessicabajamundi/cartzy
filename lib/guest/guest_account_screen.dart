@@ -113,7 +113,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
         backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: CartzyColors.brandDark,
+        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
         surfaceTintColor: Colors.transparent,
         leading: const BackButton(color: CartzyColors.brandDark),
         title: Column(
@@ -214,8 +214,8 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                               const SizedBox(height: 12),
                               OutlinedButton(
                                 style: CartzyButtonStyles.outline.copyWith(
-                                  foregroundColor: const WidgetStatePropertyAll(
-                                      CartzyColors.rose700),
+                                  foregroundColor: WidgetStatePropertyAll(
+                                      CartzyColors.readableOf(context, light: CartzyColors.rose700, background: CartzyColors.rose50Warm)),
                                   backgroundColor: const WidgetStatePropertyAll(
                                       CartzyColors.rose50Warm),
                                   side: WidgetStatePropertyAll(
@@ -232,7 +232,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                               TextButton(
                                 onPressed: () => Navigator.of(context).pop(),
                                 style: TextButton.styleFrom(
-                                  foregroundColor: CartzyColors.brandDeep,
+                                  foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDeep),
                                   minimumSize: const Size(0, 48),
                                 ),
                                 child: const Text('Keep exploring'),
@@ -586,10 +586,10 @@ class _AccountIllustration extends StatelessWidget {
                   color: CartzyColors.rose500,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome_rounded,
                   size: 18,
-                  color: CartzyColors.rose50,
+                  color: CartzyColors.readableOf(context, light: CartzyColors.rose50, background: CartzyColors.rose500),
                 ),
               ),
             ),

@@ -715,9 +715,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
         // List View
         Expanded(
           child: _isLoadingConversations
-              ? const Center(
+              ? Center(
                   child: CircularProgressIndicator(
-                    color: CartzyColors.brandDark,
+                    color: CartzyColors.readableOf(context, light: CartzyColors.brandDark),
                   ),
                 )
               : _filteredConversations.isEmpty
@@ -984,9 +984,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
         // Messages list
         Expanded(
           child: _isLoadingMessages
-              ? const Center(
+              ? Center(
                   child: CircularProgressIndicator(
-                    color: CartzyColors.brandDark,
+                    color: CartzyColors.readableOf(context, light: CartzyColors.brandDark),
                   ),
                 )
               : _messages.isEmpty
@@ -1245,7 +1245,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         style: GoogleFonts.dmSans(
           fontSize: size * 0.38,
           fontWeight: FontWeight.bold,
-          color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
+          color: CartzyColors.readableOf(context, light: CartzyColors.textOf(context, light: CartzyColors.brandDark), background: CartzyColors.brand200),
         ),
       ),
     );

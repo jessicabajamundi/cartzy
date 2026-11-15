@@ -158,9 +158,9 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     ),
                   ),
                   if (_idTypeError)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 6),
-                      child: Text('Please select a valid ID type', style: TextStyle(fontSize: 11, color: CartzyColors.error)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text('Please select a valid ID type', style: TextStyle(fontSize: 11, color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.surfaceOf(context, light: CartzyColors.surface)))),
                     ),
                   const SizedBox(height: 18),
 
@@ -238,9 +238,9 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     ),
                   ),
                   if (_fileError)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 6),
-                      child: Text('Please upload a photo of your ID', style: TextStyle(fontSize: 11, color: CartzyColors.error)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text('Please upload a photo of your ID', style: TextStyle(fontSize: 11, color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.surfaceOf(context, light: CartzyColors.surface)))),
                     ),
                   const SizedBox(height: 18),
 

@@ -1347,10 +1347,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                     ),
                     child: Text(
                       '-$discount%',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFDC2626),
+                        color: CartzyColors.readableOf(context, light: const Color(0xFFDC2626), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFEE2E2))),
                       ),
                     ),
                   ),
@@ -1469,10 +1469,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                     _sellerFreeShippingMin != null && _sellerFreeShippingMin! > 0
                         ? '🚚 Free shipping on orders ₱${_sellerFreeShippingMin!.toStringAsFixed(0)}+'
                         : '🚚 Free shipping on orders ₱500+',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF15803D),
+                      color: CartzyColors.readableOf(context, light: const Color(0xFF15803D), background: CartzyColors.elevatedOf(context, light: const Color(0xFFDCFCE7))),
                     ),
                   ),
                 ),
@@ -1776,7 +1776,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: CartzyColors.navy),
-              foregroundColor: CartzyColors.navy,
+              foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.navy, background: CartzyColors.surfaceOf(context, light: Colors.white)),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),

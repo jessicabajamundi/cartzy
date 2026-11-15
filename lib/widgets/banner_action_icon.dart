@@ -12,7 +12,7 @@ class BannerActionIcon extends StatelessWidget {
     return Icon(
       icon,
       size: 25,
-      color: CartzyColors.burgundyDeep,
+      color: CartzyColors.readableOf(context, light: CartzyColors.burgundyDeep),
       shadows: const [
         Shadow(color: Color(0x50000000), blurRadius: 4, offset: Offset(0, 1)),
         Shadow(color: Colors.white, blurRadius: 1, offset: Offset(-1, -1)),

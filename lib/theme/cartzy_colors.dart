@@ -73,6 +73,8 @@ class CartzyColors {
   static const darkMuted = Color(0xFFA89CA9);
   static const darkAccent = Color(0xFF9E7789);
   static const darkAccentDeep = Color(0xFF6B4C5D);
+  static const darkAccentText = Color(0xFFDDB4C7);
+  static const darkError = Color(0xFFFFB4AB);
 
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
@@ -89,6 +91,35 @@ class CartzyColors {
       isDark(context) ? darkText : light;
   static Color mutedOf(BuildContext context, {Color light = grayMid}) =>
       isDark(context) ? darkMuted : light;
+
+  /// Retain the light palette and adjust dark-mode labels against their actual
+  /// surface, including bright status badges that still need dark lettering.
+  static Color readableOf(
+    BuildContext context, {
+    required Color light,
+    Color? background,
+  }) {
+    if (!isDark(context)) return light;
+    final surface =
+        Color.alphaBlend(background ?? darkSurfaceElevated, darkSurface);
+    double contrast(Color foreground) {
+      final a = Color.alphaBlend(foreground, surface).computeLuminance();
+      final b = surface.computeLuminance();
+      return a > b ? (a + 0.05) / (b + 0.05) : (b + 0.05) / (a + 0.05);
+    }
+
+    if (contrast(light) >= 4.5) return light;
+    final target = contrast(Colors.white) >= contrast(Colors.black)
+        ? Colors.white
+        : Colors.black;
+    // Blend the opaque visible color to retain its status/accent hue.
+    final visible = Color.alphaBlend(light, surface);
+    for (var step = 1; step <= 20; step++) {
+      final candidate = Color.lerp(visible, target, step / 20)!;
+      if (contrast(candidate) >= 4.5) return candidate;
+    }
+    return target;
+  }
 
   static LinearGradient softGradientOf(
     BuildContext context, {

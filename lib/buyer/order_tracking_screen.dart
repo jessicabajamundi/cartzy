@@ -158,7 +158,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 color: Color(0xFF10B981),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, color: Colors.white, size: 18),
+              child: Icon(Icons.check, color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF10B981)), size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -235,7 +235,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _brand, strokeWidth: 2.4))
+          ? Center(child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: _brand, background: CartzyColors.elevatedOf(context, light: CartzyColors.background)), strokeWidth: 2.4))
           : RefreshIndicator(
               color: _brand,
               onRefresh: _load,
@@ -343,7 +343,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 ),
                 child: Text('$attention',
                     style: GoogleFonts.dmSans(
-                        fontSize: 12.5, height: 1.4, color: const Color(0xFF92400E))),
+                        fontSize: 12.5, height: 1.4, color: CartzyColors.readableOf(context, light: const Color(0xFF92400E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB))))),
               ),
             const SizedBox(height: 10),
             Text(
@@ -513,7 +513,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ),
                           child: Text('Latest confirmed',
                               style: GoogleFonts.dmSans(
-                                  fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)))),
+                                  fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.readableOf(context, light: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)), background: _rose.withValues(alpha: 0.15)))),
                         ),
                     ],
                   ),

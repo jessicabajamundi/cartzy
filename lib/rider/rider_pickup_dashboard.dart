@@ -84,7 +84,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
             const SizedBox(height: 4),
             Text('Number: ${item.phone}', style: GoogleFonts.dmSans(color: CartzyColors.textOf(context, light: const Color(0xFF554B62)))),
             const SizedBox(height: 8),
-            Text('Pickup location: ${item.address}', style: GoogleFonts.dmSans(fontSize: 12, color: Colors.black54)),
+            Text('Pickup location: ${item.address}', style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.readableOf(context, light: Colors.black54))),
           ],
         ),
         actions: [
@@ -405,7 +405,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.4,
                     color: isConfirmed
-                        ? const Color(0xFF2E7D32)
+                        ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: isConfirmed ? CartzyColors.elevatedOf(context, light: const Color(0xFFEDF7EE)) : CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7E8)))
                         : const Color(0xFFD97706),
                   ),
                 ),
@@ -552,7 +552,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
               OutlinedButton.icon(
                 onPressed: () => _callMerchant(item),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF46333D),
+                  foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFF46333D), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                   side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD))),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -574,10 +574,10 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.check,
                       size: 16,
-                      color: Color(0xFF2E7D32),
+                      color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -585,7 +585,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF2E7D32),
+                        color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                       ),
                     ),
                   ],

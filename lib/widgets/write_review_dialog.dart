@@ -271,7 +271,7 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                             child: Icon(
                               isFilled ? Icons.star : Icons.star_border,
                               size: 40,
-                              color: isFilled ? CartzyColors.gold : CartzyColors.border,
+                              color: isFilled ? CartzyColors.readableOf(context, light: CartzyColors.gold, background: CartzyColors.surfaceOf(context, light: CartzyColors.surface)) : CartzyColors.border,
                             ),
                           ),
                         );

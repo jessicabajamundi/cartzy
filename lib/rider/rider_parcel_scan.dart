@@ -79,7 +79,7 @@ class RiderParcelScan {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
-            child: Text('Decline', style: GoogleFonts.dmSans(color: const Color(0xFFC0392B), fontWeight: FontWeight.w700)),
+            child: Text('Decline', style: GoogleFonts.dmSans(color: CartzyColors.readableOf(context, light: const Color(0xFFC0392B)), fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -90,7 +90,7 @@ class RiderParcelScan {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator(color: CartzyColors.burgundy)),
+      builder: (_) => Center(child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.burgundy))),
     );
     try {
       final response = await ApiService.post(
@@ -156,7 +156,7 @@ class _DecisionSheet extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
               side: const BorderSide(color: Color(0xFFE3B5B0)),
-              foregroundColor: const Color(0xFFC0392B),
+              foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFFC0392B)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: Text('Decline', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),

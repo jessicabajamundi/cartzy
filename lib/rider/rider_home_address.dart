@@ -276,7 +276,7 @@ class _HomeAddressSheetState extends State<_HomeAddressSheet> {
             HomeAddressFields(initial: widget.initial, showError: _showError, onChanged: (v) => _value = v),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!, style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFFB54747))),
+              Text(_error!, style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.readableOf(context, light: const Color(0xFFB54747)))),
             ],
             const SizedBox(height: 14),
             FilledButton(

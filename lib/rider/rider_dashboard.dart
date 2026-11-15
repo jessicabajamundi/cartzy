@@ -123,7 +123,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         alignment: Alignment.center,
                         child: Text(
                           unread > 99 ? '99+' : '$unread',
-                          style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white),
+                          style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w800, color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFD1495B))),
                         ),
                       ),
                     ),
@@ -335,7 +335,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: _isOnline
-                            ? const Color(0xFF2E7D32)
+                            ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: _isOnline ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)) : CartzyColors.elevatedOf(context, light: const Color(0xFFF3ECEE)))
                             : CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                       ),
                     ),
@@ -474,7 +474,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         style: GoogleFonts.dmSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF2E7D32),
+                          color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))),
                         ),
                       ),
                     ],
@@ -701,10 +701,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.check_circle_outline,
             size: 18,
-            color: Color(0xFF2E7D32),
+            color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -713,16 +713,16 @@ class _RiderDashboardState extends State<RiderDashboard> {
               style: GoogleFonts.dmSans(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF2E7D32),
+                color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))),
               ),
             ),
           ),
           InkWell(
             onTap: () => setState(() => _showWelcomeBanner = false),
-            child: const Icon(
+            child: Icon(
               Icons.close,
               size: 16,
-              color: Color(0xFF2E7D32),
+              color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))),
             ),
           ),
         ],
@@ -1278,10 +1278,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F3)),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.file_upload_outlined,
                     size: 18,
-                    color: Color(0xFFC07357),
+                    color: CartzyColors.readableOf(context, light: const Color(0xFFC07357), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F3))),
                   ),
                 ),
                 const SizedBox(width: 12),

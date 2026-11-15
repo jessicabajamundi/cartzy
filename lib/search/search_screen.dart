@@ -514,9 +514,9 @@ class _SearchScreenState extends State<SearchScreen> {
   // ─────────────────────────────────────────────────────────────────
   Widget _buildSearchBody() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          color: CartzyColors.brandDark,
+          color: CartzyColors.readableOf(context, light: CartzyColors.brandDark),
         ),
       );
     }

@@ -302,7 +302,7 @@ class _InboxScreenState extends State<InboxScreen>
           ],
         ),
         labelColor: Colors.white,
-        unselectedLabelColor: const Color(0xFF6B6063),
+        unselectedLabelColor: CartzyColors.readableOf(context, light: const Color(0xFF6B6063), background: CartzyColors.elevatedOf(context, light: const Color(0xFFECE4DE))),
         labelStyle: GoogleFonts.dmSans(
           fontSize: 13.5,
           fontWeight: FontWeight.w700,
@@ -491,8 +491,8 @@ class _InboxScreenState extends State<InboxScreen>
     }
 
     if (_isLoadingConversations) {
-      return const Center(
-        child: CircularProgressIndicator(color: CartzyColors.burgundy),
+      return Center(
+        child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.burgundy)),
       );
     }
 
@@ -833,7 +833,7 @@ class _InboxScreenState extends State<InboxScreen>
                     flex: 4,
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: CartzyColors.navy,
+                        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.navy, background: CartzyColors.surfaceOf(context, light: Colors.white)),
                         side: BorderSide(
                             color: CartzyColors.borderOf(context, light: const Color(0xFFDED4CE)), width: 1.2),
                         padding: const EdgeInsets.symmetric(vertical: 9),

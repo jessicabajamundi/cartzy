@@ -250,7 +250,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
               child: OutlinedButton(
                 onPressed: signingOut ? null : () => Navigator.pop(dialogContext, false),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF514B5D),
+                  foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFF514B5D)),
                   side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE7E2EB))),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                   padding: EdgeInsets.zero,
@@ -273,7 +273,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
                       },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFC35C56),
-                  foregroundColor: Colors.white,
+                  foregroundColor: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFC35C56)),
                   disabledBackgroundColor: const Color(0xFFC35C56),
                   disabledForegroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),

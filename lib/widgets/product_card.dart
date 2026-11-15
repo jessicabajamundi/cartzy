@@ -231,7 +231,7 @@ class _ProductCardState extends State<ProductCard> {
                                       : Icons.favorite_border_rounded,
                                   size: 16,
                                   color: isFav
-                                      ? const Color(0xFFD1495B)
+                                      ? CartzyColors.readableOf(context, light: const Color(0xFFD1495B), background: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.92))
                                       : CartzyColors.textOf(context, light: _ink),
                                 ),
                               ),
@@ -257,7 +257,7 @@ class _ProductCardState extends State<ProductCard> {
                             style: GoogleFonts.dmSans(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
-                              color: widget.inStock ? const Color(0xFFB4651E) : Colors.white,
+                              color: widget.inStock ? CartzyColors.readableOf(context, light: const Color(0xFFB4651E), background: widget.inStock ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF4E5)) : _ink) : Colors.white,
                             ),
                           ),
                         ),
@@ -292,7 +292,7 @@ class _ProductCardState extends State<ProductCard> {
                           Icon(
                             isOfficial ? Icons.verified_rounded : Icons.storefront_outlined,
                             size: 12,
-                            color: isOfficial ? const Color(0xFF3B82F6) : CartzyColors.mutedOf(context, light: _muted),
+                            color: isOfficial ? CartzyColors.readableOf(context, light: const Color(0xFF3B82F6), background: CartzyColors.surfaceOf(context)) : CartzyColors.mutedOf(context, light: _muted),
                           ),
                           const SizedBox(width: 3),
                           Expanded(
@@ -335,12 +335,12 @@ class _ProductCardState extends State<ProductCard> {
                             ),
                           ),
                           if (widget.hasFreeShipping)
-                            const Tooltip(
+                            Tooltip(
                               message: 'Free shipping',
                               child: Icon(
                                 Icons.local_shipping_outlined,
                                 size: 14,
-                                color: Color(0xFF2F8F6B),
+                                color: CartzyColors.readableOf(context, light: const Color(0xFF2F8F6B), background: CartzyColors.surfaceOf(context)),
                               ),
                             ),
                         ],
@@ -363,7 +363,7 @@ class _ProductCardState extends State<ProductCard> {
                             style: GoogleFonts.dmSans(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF15803D),
+                              color: CartzyColors.readableOf(context, light: const Color(0xFF15803D), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF0FDF4))),
                             ),
                           ),
                         ),

@@ -405,7 +405,7 @@ class TermsPoliciesScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 labelColor: Colors.white,
-                unselectedLabelColor: _Palette.lavender,
+                unselectedLabelColor: CartzyColors.readableOf(context, light: _Palette.lavender, background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
                 labelStyle: GoogleFonts.dmSans(
                     fontSize: 12.5, fontWeight: FontWeight.w700),
                 unselectedLabelStyle: GoogleFonts.dmSans(

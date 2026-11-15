@@ -74,7 +74,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                         color: Color(0xFFE07B39),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add, size: 14, color: Colors.white),
+                      child: Icon(Icons.add, size: 14, color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFE07B39))),
                     ),
                   ),
                 ],

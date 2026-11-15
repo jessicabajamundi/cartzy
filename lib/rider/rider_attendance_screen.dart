@@ -267,7 +267,7 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
             icon: const Icon(Icons.qr_code_scanner),
             label: Text(_resultIsError ? 'Try again' : 'Scan again', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
             style: OutlinedButton.styleFrom(
-              foregroundColor: CartzyColors.brandDark,
+              foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.surfaceOf(context, light: Colors.white)),
               side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200)),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),

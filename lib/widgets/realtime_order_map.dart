@@ -529,7 +529,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.8,
-                  color: const Color(0xFF047857),
+                  color: CartzyColors.readableOf(context, light: const Color(0xFF047857), background: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.94)),
                 ),
               ),
             ],
@@ -565,7 +565,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
           Icon(
             icon,
             size: 12,
-            color: highlight ? const Color(0xFFB05646) : CartzyColors.textOf(context, light: const Color(0xFF6A5C70)),
+            color: highlight ? CartzyColors.readableOf(context, light: const Color(0xFFB05646), background: highlight ? CartzyColors.elevatedOf(context, light: const Color(0xFFFDE8E4)) : CartzyColors.elevatedOf(context, light: const Color(0xFFF5F1F3))) : CartzyColors.textOf(context, light: const Color(0xFF6A5C70)),
           ),
           const SizedBox(width: 3),
           Text(
@@ -573,7 +573,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
             style: GoogleFonts.dmSans(
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
-              color: highlight ? const Color(0xFFB05646) : CartzyColors.textOf(context, light: const Color(0xFF33293D)),
+              color: highlight ? CartzyColors.readableOf(context, light: const Color(0xFFB05646), background: highlight ? CartzyColors.elevatedOf(context, light: const Color(0xFFFDE8E4)) : CartzyColors.elevatedOf(context, light: const Color(0xFFF5F1F3))) : CartzyColors.textOf(context, light: const Color(0xFF33293D)),
             ),
           ),
         ],
@@ -610,7 +610,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
             ),
             child: Icon(
               _hasAssignedRider ? Icons.two_wheeler : Icons.local_shipping_outlined,
-              color: _hasAssignedRider ? const Color(0xFF047857) : CartzyColors.textOf(context, light: const Color(0xFF564B68)),
+              color: _hasAssignedRider ? CartzyColors.readableOf(context, light: const Color(0xFF047857), background: _hasAssignedRider ? const Color(0xFF10B981).withValues(alpha: 0.12) : const Color(0xFF564B68).withValues(alpha: 0.10)) : CartzyColors.textOf(context, light: const Color(0xFF564B68)),
               size: 22,
             ),
           ),
@@ -738,9 +738,9 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
               ),
               child: Transform.rotate(
                 angle: (_bearing * math.pi / 180.0),
-                child: const Icon(
+                child: Icon(
                   Icons.navigation,
-                  color: Colors.white,
+                  color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF10B981)),
                   size: 18,
                 ),
               ),

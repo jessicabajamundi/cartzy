@@ -43,7 +43,7 @@ class WarehouseShippingNote extends StatelessWidget {
             Icon(
               Icons.warehouse_outlined,
               size: compact ? 15 : 18,
-              color: const Color(0xFF7A4E0E),
+              color: CartzyColors.readableOf(context, light: const Color(0xFF7A4E0E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFF8EB))),
             ),
             SizedBox(width: compact ? 6 : 8),
             Expanded(
@@ -53,7 +53,7 @@ class WarehouseShippingNote extends StatelessWidget {
                   fontSize: compact ? 11 : 12.5,
                   fontWeight: FontWeight.w600,
                   height: 1.4,
-                  color: const Color(0xFF7A4E0E),
+                  color: CartzyColors.readableOf(context, light: const Color(0xFF7A4E0E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFF8EB))),
                 ),
               ),
             ),

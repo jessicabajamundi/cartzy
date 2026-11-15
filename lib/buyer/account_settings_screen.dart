@@ -452,14 +452,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
+                  child: Icon(Icons.delete_outline_rounded, color: CartzyColors.readableOf(context, light: Colors.red, background: Colors.red.withValues(alpha: 0.1)), size: 22),
                 ),
                 title: Text(
                   'Remove photo',
                   style: GoogleFonts.dmSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                    color: CartzyColors.readableOf(context, light: Colors.red, background: CartzyColors.surfaceOf(context, light: Colors.white)),
                   ),
                 ),
                 subtitle: Text(
@@ -716,10 +716,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFA7F3D0)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.verified, color: Color(0xFF059669), size: 24),
-                  SizedBox(width: 12),
+                  Icon(Icons.verified, color: CartzyColors.readableOf(context, light: const Color(0xFF059669), background: CartzyColors.elevatedOf(context, light: const Color(0xFFECFDF5))), size: 24),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,13 +727,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         Text('Identity Verified',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF065F46),
+                                color: CartzyColors.readableOf(context, light: const Color(0xFF065F46), background: CartzyColors.elevatedOf(context, light: const Color(0xFFECFDF5))),
                                 fontSize: 13)),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                             'Your Government-issued ID has been verified for secure shopping & orders.',
                             style: TextStyle(
-                                color: Color(0xFF047857), fontSize: 11)),
+                                color: CartzyColors.readableOf(context, light: const Color(0xFF047857), background: CartzyColors.elevatedOf(context, light: const Color(0xFFECFDF5))), fontSize: 11)),
                       ],
                     ),
                   ),
@@ -1299,8 +1299,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                     unreadCount > 99
                                         ? '99+'
                                         : unreadCount.toString(),
-                                    style: const TextStyle(
-                                      color: CartzyColors.creamLight,
+                                    style: TextStyle(
+                                      color: CartzyColors.readableOf(context, light: CartzyColors.creamLight, background: const Color(0xFFEF4444)),
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -1639,7 +1639,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     label: const Text('Log out'),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
-                      foregroundColor: CartzyColors.rose700,
+                      foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.rose700, background: CartzyColors.elevatedOf(context, light: CartzyColors.cream)),
                       minimumSize: const Size(0, 52),
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                       side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
@@ -1856,7 +1856,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             onPressed: widget.onSignUp,
             style: OutlinedButton.styleFrom(
               backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
-              foregroundColor: CartzyColors.burgundy,
+              foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: CartzyColors.surfaceOf(context, light: Colors.white)),
               side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder)),
               minimumSize: const Size(104, 40),
               shape: const StadiumBorder(),

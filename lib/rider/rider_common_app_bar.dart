@@ -128,7 +128,7 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                       style: GoogleFonts.dmSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF2E7D32),
+                        color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: isDark ? const Color(0xFF1E3323) : CartzyColors.elevatedOf(context, light: const Color(0xFFEAF6ED))),
                       ),
                     ),
                   ],

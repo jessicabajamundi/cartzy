@@ -95,9 +95,9 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                 }
                 _loadAddresses();
               },
-              child: const Text(
+              child: Text(
                 'Delete',
-                style: TextStyle(color: CartzyColors.error),
+                style: TextStyle(color: CartzyColors.readableOf(context, light: CartzyColors.error)),
               ),
             ),
           ],
@@ -257,13 +257,13 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                   onPressed: () => _editAddress(address),
                   icon: const Icon(Icons.edit_outlined, size: 17),
                   label: const Text('Edit'),
-                  style: TextButton.styleFrom(foregroundColor: CartzyColors.navy),
+                  style: TextButton.styleFrom(foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.navy, background: CartzyColors.surfaceOf(context, light: Colors.white))),
                 ),
                 TextButton.icon(
                   onPressed: () => _deleteAddress(address),
                   icon: const Icon(Icons.delete_outline, size: 17),
                   label: const Text('Delete'),
-                  style: TextButton.styleFrom(foregroundColor: CartzyColors.error),
+                  style: TextButton.styleFrom(foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.surfaceOf(context, light: Colors.white))),
                 ),
                 const Spacer(),
                 if (!isDefault)
@@ -385,7 +385,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                             Text(
                               loadError!,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: CartzyColors.error),
+                              style: TextStyle(color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.elevatedOf(context, light: CartzyColors.background))),
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton(
@@ -415,7 +415,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                                     onPressed: widget.onAddAddress,
                                     icon: const Icon(Icons.add, size: 18),
                                     label: const Text('Add New'),
-                                    style: TextButton.styleFrom(foregroundColor: CartzyColors.navy),
+                                    style: TextButton.styleFrom(foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.navy, background: CartzyColors.elevatedOf(context, light: CartzyColors.background))),
                                   ),
                                 ],
                               ),

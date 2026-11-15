@@ -98,7 +98,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5,
-                      color: const Color(0xFFA6715E),
+                      color: CartzyColors.readableOf(context, light: const Color(0xFFA6715E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F5F8))),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -416,7 +416,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF2E7D63),
+                            color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D63), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                           ),
                         ),
                         Flexible(
@@ -425,7 +425,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                             style: GoogleFonts.dmSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF2E7D63),
+                              color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D63), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                             ),
                           ),
                         ),

@@ -486,7 +486,7 @@ class AccountMenuScreen extends StatelessWidget {
                     label: const Text('Log out'),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
-                      foregroundColor: CartzyColors.rose700,
+                      foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.rose700, background: CartzyColors.bgOf(context)),
                       minimumSize: const Size(0, 52),
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                       side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),

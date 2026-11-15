@@ -279,7 +279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         onPressed: _openWishlist,
                                         style: IconButton.styleFrom(
                                           backgroundColor: Colors.transparent,
-                                          foregroundColor: CartzyColors.burgundy,
+                                          foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: Colors.transparent),
                                           minimumSize: const Size(44, 44),
                                         ),
                                         icon: Stack(
@@ -309,8 +309,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   ),
                                                   child: Text(
                                                     wishCount > 99 ? '99+' : '$wishCount',
-                                                    style: const TextStyle(
-                                                      color: Colors.white,
+                                                    style: TextStyle(
+                                                      color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFD1495B)),
                                                       fontSize: 7.5,
                                                       fontWeight: FontWeight.w800,
                                                       height: 1,
@@ -342,7 +342,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         },
                                         style: IconButton.styleFrom(
                                           backgroundColor: Colors.transparent,
-                                          foregroundColor: CartzyColors.burgundy,
+                                          foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: Colors.transparent),
                                           minimumSize: const Size(44, 44),
                                         ),
                                         icon: Stack(

@@ -23,7 +23,7 @@ class GuestWishlistScreen extends StatelessWidget {
         backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: CartzyColors.brandDark,
+        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
         surfaceTintColor: Colors.transparent,
         title: Column(
           children: [

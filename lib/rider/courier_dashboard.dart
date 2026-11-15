@@ -176,7 +176,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: CartzyColors.burgundy));
+      return Center(child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.burgundy)));
     }
     final data = _data;
     if (data == null) {
@@ -261,7 +261,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: (d.onShift ? _green : _muted).withValues(alpha: 0.12),
-                    child: Icon(d.onShift ? Icons.timer_outlined : Icons.timer_off_outlined, color: d.onShift ? _green : CartzyColors.mutedOf(context, light: _muted)),
+                    child: Icon(d.onShift ? Icons.timer_outlined : Icons.timer_off_outlined, color: d.onShift ? CartzyColors.readableOf(context, light: _green, background: (d.onShift ? _green : _muted).withValues(alpha: 0.12)) : CartzyColors.mutedOf(context, light: _muted)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -430,7 +430,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
         icon: const Icon(Icons.logout_rounded, size: 18),
         label: Text('Log out', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
         style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFDC2626),
+          foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFFDC2626)),
           side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFFECACA))),
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -960,7 +960,7 @@ class _ErrorBanner extends StatelessWidget {
       decoration: BoxDecoration(color: CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEC)), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
-          Expanded(child: Text("Couldn't refresh: $message", style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFFB3261E)))),
+          Expanded(child: Text("Couldn't refresh: $message", style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.readableOf(context, light: const Color(0xFFB3261E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEC)))))),
           TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),

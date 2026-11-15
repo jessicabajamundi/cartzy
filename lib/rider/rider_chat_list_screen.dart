@@ -411,7 +411,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                           child: Text(
                             thread['initials']!,
                             style: GoogleFonts.dmSans(
-                              color: Colors.white,
+                              color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFB88378)),
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                             ),
@@ -543,7 +543,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                     ),
                     icon: const Icon(Icons.call_outlined, size: 13),
                     label: Text('Call', style: GoogleFonts.dmSans(fontSize: 10)),
-                    style: TextButton.styleFrom(foregroundColor: const Color(0xFF9B635A)),
+                    style: TextButton.styleFrom(foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFF9B635A), background: CartzyColors.surfaceOf(context, light: Colors.white))),
                   ),
               ],
             ),

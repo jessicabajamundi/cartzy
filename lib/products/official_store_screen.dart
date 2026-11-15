@@ -679,13 +679,13 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                                   style: GoogleFonts.dmSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFFC2410C),
+                                    color: CartzyColors.readableOf(context, light: const Color(0xFFC2410C), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7ED))),
                                   ),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   terms,
-                                  style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF7C2D12)),
+                                  style: GoogleFonts.dmSans(fontSize: 10, color: CartzyColors.readableOf(context, light: const Color(0xFF7C2D12), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7ED)))),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -736,8 +736,8 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                 controller: _tabController,
                 indicatorColor: CartzyColors.burgundy,
                 indicatorWeight: 3,
-                labelColor: CartzyColors.burgundy,
-                unselectedLabelColor: CartzyColors.gray,
+                labelColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy),
+                unselectedLabelColor: CartzyColors.readableOf(context, light: CartzyColors.gray),
                 labelStyle: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.bold),
                 unselectedLabelStyle: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.normal),
                 tabs: [
@@ -1319,12 +1319,12 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                 children: [
                   Text(
                     'Seller Reply:',
-                    style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF92400E)),
+                    style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.bold, color: CartzyColors.readableOf(context, light: const Color(0xFF92400E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB)))),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     reply,
-                    style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF78350F)),
+                    style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.readableOf(context, light: const Color(0xFF78350F), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB)))),
                   ),
                 ],
               ),

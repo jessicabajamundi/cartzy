@@ -138,7 +138,7 @@ class WishlistEmptyState extends StatelessWidget {
                     OutlinedButton(
                       style: CartzyButtonStyles.outline.copyWith(
                         foregroundColor:
-                            const WidgetStatePropertyAll(CartzyColors.rose700),
+                            WidgetStatePropertyAll(CartzyColors.readableOf(context, light: CartzyColors.rose700, background: CartzyColors.rose50Warm)),
                         backgroundColor: const WidgetStatePropertyAll(
                             CartzyColors.rose50Warm),
                         side: WidgetStatePropertyAll(

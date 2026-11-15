@@ -330,10 +330,10 @@ class _PayNowDialogState extends State<PayNowDialog>
                                 color: const Color(0xFF007DFE),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'GCASH QR',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF007DFE)),
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
@@ -357,12 +357,12 @@ class _PayNowDialogState extends State<PayNowDialog>
                             color: CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF)),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Active 10:00',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF007DFE),
+                              color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF))),
                             ),
                           ),
                         ),
@@ -400,7 +400,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                       style: GoogleFonts.dmSans(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF007DFE),
+                        color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE)),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -423,9 +423,9 @@ class _PayNowDialogState extends State<PayNowDialog>
                         labelText: 'GCash Ref No. (Optional)',
                         hintText: 'e.g. 1002 9845 2819',
                         isDense: true,
-                        prefixIcon: const Icon(
+                        prefixIcon: Icon(
                           Icons.receipt_long,
-                          color: Color(0xFF007DFE),
+                          color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE)),
                           size: 20,
                         ),
                         filled: true,
@@ -533,10 +533,10 @@ class _PayNowDialogState extends State<PayNowDialog>
                       ),
                       Text(
                         _calculateTotal(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFD32F2F),
+                          color: CartzyColors.readableOf(context, light: const Color(0xFFD32F2F), background: CartzyColors.elevatedOf(context, light: CartzyColors.background)),
                         ),
                       ),
                     ],
@@ -621,7 +621,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                         : Icons.local_atm,
                     size: 40,
                     color: _selectedMethod == 'GCash'
-                        ? const Color(0xFF007DFE)
+                        ? CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: _selectedMethod == 'GCash' ? const Color(0xFF007DFE).withValues(alpha: 0.1) : const Color(0xFF2AA89C).withValues(alpha: 0.1))
                         : const Color(0xFF2AA89C),
                   ),
                 ),
@@ -711,10 +711,10 @@ class _PayNowDialogState extends State<PayNowDialog>
                     color: const Color(0xFF4CAF50).withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check_circle,
                     size: 56,
-                    color: Color(0xFF4CAF50),
+                    color: CartzyColors.readableOf(context, light: const Color(0xFF4CAF50), background: const Color(0xFF4CAF50).withValues(alpha: 0.12)),
                   ),
                 ),
               );

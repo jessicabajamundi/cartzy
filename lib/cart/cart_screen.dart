@@ -297,9 +297,9 @@ class _CartScreenState extends State<CartScreen>
                   shape: BoxShape.circle,
                   gradient: CartzyColors.softGradientOf(context, light: _CartPalette.softBlend),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.remove_shopping_cart_outlined,
-                  color: _CartPalette.roseGold,
+                  color: CartzyColors.readableOf(context, light: _CartPalette.roseGold),
                   size: 28,
                 ),
               ),
@@ -738,7 +738,7 @@ class _CartScreenState extends State<CartScreen>
                               style: GoogleFonts.dmSans(
                                 fontSize: 15.5,
                                 fontWeight: FontWeight.w800,
-                                color: _CartPalette.roseGoldDeep,
+                                color: CartzyColors.readableOf(context, light: _CartPalette.roseGoldDeep),
                               ),
                             ),
                           ),
@@ -803,9 +803,9 @@ class _CartScreenState extends State<CartScreen>
 
   Widget _buildProductThumbnail(CartItem item) {
     final imgUrl = item.safeImage;
-    const fallback = Icon(
+    final fallback = Icon(
       Icons.shopping_bag_outlined,
-      color: _CartPalette.roseGold,
+      color: CartzyColors.readableOf(context, light: _CartPalette.roseGold),
       size: 28,
     );
     return Container(
@@ -1349,7 +1349,7 @@ class _SwipeToRemoveState extends State<_SwipeToRemove>
                               size: 21,
                               color: _armed
                                   ? Colors.white
-                                  : _CartPalette.roseGold,
+                                  : CartzyColors.readableOf(context, light: _CartPalette.roseGold),
                             ),
                           ),
                         ),
@@ -1362,7 +1362,7 @@ class _SwipeToRemoveState extends State<_SwipeToRemove>
                             letterSpacing: 0.3,
                             color: _armed
                                 ? Colors.white
-                                : _CartPalette.roseGoldDeep,
+                                : CartzyColors.readableOf(context, light: _CartPalette.roseGoldDeep),
                           ),
                         ),
                       ],
@@ -1500,7 +1500,7 @@ class _StockChip extends StatelessWidget {
         style: GoogleFonts.dmSans(
           fontSize: 10.5,
           fontWeight: FontWeight.w700,
-          color: strong ? Colors.white : _CartPalette.roseGoldDeep,
+          color: strong ? Colors.white : CartzyColors.readableOf(context, light: _CartPalette.roseGoldDeep, background: strong ? _CartPalette.roseGoldDeep : CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)),
         ),
       ),
     );
@@ -1691,15 +1691,15 @@ class _ClearAllChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.delete_sweep_outlined,
-                  size: 16, color: _CartPalette.roseGoldDeep),
+              Icon(Icons.delete_sweep_outlined,
+                  size: 16, color: CartzyColors.readableOf(context, light: _CartPalette.roseGoldDeep, background: CartzyColors.surfaceOf(context, light: Colors.white))),
               const SizedBox(width: 6),
               Text(
                 'Clear all',
                 style: GoogleFonts.dmSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w700,
-                  color: _CartPalette.roseGoldDeep,
+                  color: CartzyColors.readableOf(context, light: _CartPalette.roseGoldDeep, background: CartzyColors.surfaceOf(context, light: Colors.white)),
                 ),
               ),
             ],

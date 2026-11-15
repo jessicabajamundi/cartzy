@@ -124,7 +124,7 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
       backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.brand50),
       appBar: AppBar(
         backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
-        foregroundColor: CartzyColors.brandDark,
+        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.surfaceOf(context, light: Colors.white)),
         elevation: 0,
         title: Text(
           'Account activity',
@@ -185,7 +185,7 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
         children: [
           const SizedBox(height: 80),
           if (_loading)
-            const Center(child: CircularProgressIndicator(color: CartzyColors.rose700))
+            Center(child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.rose700)))
           else
             _buildMessage(
               icon: _error != null ? Icons.wifi_off_rounded : Icons.history_rounded,
@@ -218,12 +218,12 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
         padding: const EdgeInsets.all(20),
         child: Center(
           child: _loading
-              ? const CircularProgressIndicator(color: CartzyColors.rose700)
+              ? CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.rose700))
               : OutlinedButton(
                   key: const ValueKey('activity-load-more'),
                   onPressed: _load,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: CartzyColors.brandDark,
+                    foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark),
                     side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200), width: 1.5),
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),

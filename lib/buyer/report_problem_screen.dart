@@ -261,7 +261,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                 border: Border.all(color: CartzyColors.error.withValues(alpha: 0.3)),
               ),
               child: Text(_error!,
-                  style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.error)),
+                  style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.error.withValues(alpha: 0.08)))),
             ),
           ],
           const SizedBox(height: 20),

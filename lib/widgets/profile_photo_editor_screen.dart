@@ -172,13 +172,13 @@ class _ProfilePhotoEditorScreenState extends State<ProfilePhotoEditorScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 14),
             child: _isSaving
-                ? const Center(
+                ? Center(
                     child: SizedBox(
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.2,
-                        color: CartzyColors.burgundy,
+                        color: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: const Color(0xFF141215)),
                       ),
                     ),
                   )

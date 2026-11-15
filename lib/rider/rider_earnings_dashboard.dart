@@ -192,7 +192,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFFB45309),
+                      color: CartzyColors.readableOf(context, light: const Color(0xFFB45309), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5))),
                     ),
                   ),
                 ],
@@ -967,7 +967,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           Expanded(flex: 3, child: Text(_formatCompletedDate(order), style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.textOf(context, light: const Color(0xFF554B62))))),
           Expanded(
             flex: 2,
-            child: Text('+${_formatPeso(order.riderPayout)}', textAlign: TextAlign.right, style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF168456))),
+            child: Text('+${_formatPeso(order.riderPayout)}', textAlign: TextAlign.right, style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.readableOf(context, light: const Color(0xFF168456)))),
           ),
         ],
       ),
@@ -997,7 +997,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(_formatCompletedDate(order), style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.textOf(context, light: const Color(0xFF554B62)))),
-              Text('+${_formatPeso(order.riderPayout)}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF168456))),
+              Text('+${_formatPeso(order.riderPayout)}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.readableOf(context, light: const Color(0xFF168456)))),
             ],
           ),
         ],
@@ -1015,7 +1015,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           ),
           child: Text(
             isCod ? 'COD Collected' : 'Prepaid',
-            style: GoogleFonts.dmSans(fontSize: 8, fontWeight: FontWeight.w700, color: isCod ? const Color(0xFF9A5A00) : const Color(0xFF168456)),
+            style: GoogleFonts.dmSans(fontSize: 8, fontWeight: FontWeight.w700, color: isCod ? CartzyColors.readableOf(context, light: const Color(0xFF9A5A00), background: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF5E5)) : CartzyColors.elevatedOf(context, light: const Color(0xFFE8F8F0))) : CartzyColors.readableOf(context, light: const Color(0xFF168456), background: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF5E5)) : CartzyColors.elevatedOf(context, light: const Color(0xFFE8F8F0)))),
           ),
         ),
       );

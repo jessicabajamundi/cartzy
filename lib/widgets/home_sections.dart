@@ -1046,7 +1046,7 @@ class _CategoryCardItem extends StatelessWidget {
                       size: 11,
                       color: card.isHighlighted
                           ? Colors.white
-                          : const Color(0xFF9E4B5E),
+                          : CartzyColors.readableOf(context, light: const Color(0xFF9E4B5E), background: card.isHighlighted ? const Color(0xFFB76E79) : CartzyColors.elevatedOf(context, light: const Color(0xFFF9F6FB))),
                     ),
                   ),
                 ],
@@ -1382,9 +1382,9 @@ class FlashDealsSectionState extends State<FlashDealsSection> {
         SizedBox(
           height: 190,
           child: _loading
-              ? const Center(
+              ? Center(
                   child:
-                      CircularProgressIndicator(color: CartzyColors.burgundy))
+                      CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.burgundy)))
               : _deals.isEmpty
                   ? Center(
                       child: Text(
@@ -1698,9 +1698,9 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
         SizedBox(
           height: 312,
           child: _loading
-              ? const Center(
+              ? Center(
                   child:
-                      CircularProgressIndicator(color: CartzyColors.burgundy))
+                      CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.burgundy)))
               : (_errorMessage != null && _products.isEmpty)
                   ? Center(
                       child: Column(
@@ -1732,7 +1732,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                             icon: const Icon(Icons.refresh, size: 16),
                             label: const Text('Retry'),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: CartzyColors.burgundy,
+                              foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy),
                               side: const BorderSide(
                                   color: CartzyColors.burgundy),
                               padding: const EdgeInsets.symmetric(

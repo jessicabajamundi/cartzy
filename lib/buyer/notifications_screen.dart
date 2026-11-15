@@ -438,7 +438,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       icon: const Icon(Icons.close_rounded, size: 16),
                       label: const Text('Clear search'),
                       style: TextButton.styleFrom(
-                        foregroundColor: CartzyColors.brandDark,
+                        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark),
                       ),
                     ),
                   ],
@@ -511,7 +511,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             color: Color(0xFFE07B39),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.check, size: 14, color: Colors.white),
+                          child: Icon(Icons.check, size: 14, color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFE07B39))),
                         ),
                       ),
                     ],
@@ -551,7 +551,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
-                      foregroundColor: CartzyColors.brandDark,
+                      foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.surfaceOf(context, light: Colors.white)),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
                       shape: const StadiumBorder(),
@@ -590,7 +590,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFEBEE)),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.cloud_off_rounded, size: 30, color: Color(0xFFC62828)),
+              child: Icon(Icons.cloud_off_rounded, size: 30, color: CartzyColors.readableOf(context, light: const Color(0xFFC62828), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFEBEE)))),
             ),
             const SizedBox(height: 16),
             Text(
@@ -862,9 +862,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             // ── Main Content Area ──────────────────────────────
             Expanded(
               child: _isLoading
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        color: CartzyColors.brandDark,
+                        color: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.elevatedOf(context, light: CartzyColors.background)),
                         strokeWidth: 2.5,
                       ),
                     )

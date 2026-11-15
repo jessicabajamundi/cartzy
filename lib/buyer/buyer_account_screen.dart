@@ -2055,11 +2055,11 @@ class _BuyerAccountScreenState
       ),
 
       body:
-          const Center(
+          Center(
         child:
             CircularProgressIndicator(
           color:
-              CartzyColors.coral,
+              CartzyColors.readableOf(context, light: CartzyColors.coral, background: CartzyColors.elevatedOf(context, light: CartzyColors.background)),
         ),
       ),
     );

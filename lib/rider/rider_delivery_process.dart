@@ -190,7 +190,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                                   _verificationMessage!,
                                   style: GoogleFonts.dmSans(
                                     fontSize: 10,
-                                    color: _isVerified ? const Color(0xFF168456) : const Color(0xFFB54747),
+                                    color: _isVerified ? CartzyColors.readableOf(context, light: const Color(0xFF168456), background: CartzyColors.surfaceOf(context, light: Colors.white)) : CartzyColors.readableOf(context, light: const Color(0xFFB54747), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                                   ),
                                 ),
                               ],
@@ -229,14 +229,14 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                               ),
                               if (_error != null) ...[
                                 const SizedBox(height: 8),
-                                Text(_error!, style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFFB54747))),
+                                Text(_error!, style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.readableOf(context, light: const Color(0xFFB54747), background: CartzyColors.surfaceOf(context, light: Colors.white)))),
                               ],
                               const SizedBox(height: 4),
                               Center(
                                 child: TextButton(
                                   onPressed: _isCompleting ? null : _markNotDelivered,
                                   child: Text("Couldn't deliver it",
-                                      style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFFB54747))),
+                                      style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.readableOf(context, light: const Color(0xFFB54747)))),
                                 ),
                               ),
                             ],
@@ -442,7 +442,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
           style: GoogleFonts.dmSans(
             fontSize: 7,
             fontWeight: FontWeight.w700,
-            color: positive ? const Color(0xFF13784F) : CartzyColors.textOf(context, light: const Color(0xFF5A4A69)),
+            color: positive ? CartzyColors.readableOf(context, light: const Color(0xFF13784F), background: positive ? CartzyColors.elevatedOf(context, light: const Color(0xFFE1F8EF)) : CartzyColors.elevatedOf(context, light: const Color(0xFFF1ECF3))) : CartzyColors.textOf(context, light: const Color(0xFF5A4A69)),
           ),
         ),
       );

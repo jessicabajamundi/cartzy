@@ -577,7 +577,7 @@ class PatchNotesDialog extends StatelessWidget {
                             child: OutlinedButton(
                               onPressed: onDismiss,
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: lavenderMedium,
+                                foregroundColor: CartzyColors.readableOf(context, light: lavenderMedium),
                                 side: BorderSide(color: CartzyColors.borderOf(context, light: lavenderBorder), width: 1.2),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),

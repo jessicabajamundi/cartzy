@@ -330,14 +330,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 22),
+                  child: Icon(Icons.delete_outline_rounded, color: CartzyColors.readableOf(context, light: Colors.red, background: Colors.red.withValues(alpha: 0.1)), size: 22),
                 ),
                 title: Text(
                   'Remove photo',
                   style: GoogleFonts.dmSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                    color: CartzyColors.readableOf(context, light: Colors.red, background: CartzyColors.surfaceOf(context, light: Colors.white)),
                   ),
                 ),
                 subtitle: Text(

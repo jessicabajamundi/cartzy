@@ -114,7 +114,7 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
         backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: CartzyColors.brandDark,
+        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
         surfaceTintColor: Colors.transparent,
         title: Column(
           children: [
@@ -204,8 +204,8 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                               const SizedBox(height: 12),
                               OutlinedButton(
                                 style: CartzyButtonStyles.outline.copyWith(
-                                  foregroundColor: const WidgetStatePropertyAll(
-                                      CartzyColors.rose700),
+                                  foregroundColor: WidgetStatePropertyAll(
+                                      CartzyColors.readableOf(context, light: CartzyColors.rose700, background: CartzyColors.rose50Warm)),
                                   backgroundColor: const WidgetStatePropertyAll(
                                       CartzyColors.rose50Warm),
                                   side: WidgetStatePropertyAll(
@@ -222,7 +222,7 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                               TextButton(
                                 onPressed: widget.onHome,
                                 style: TextButton.styleFrom(
-                                  foregroundColor: CartzyColors.brandDeep,
+                                  foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDeep),
                                   minimumSize: const Size(0, 48),
                                 ),
                                 child: const Text('Keep exploring'),
@@ -418,8 +418,8 @@ class _CartIllustration extends StatelessWidget {
                   color: CartzyColors.rose500,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.favorite_rounded,
-                    size: 18, color: CartzyColors.rose50),
+                child: Icon(Icons.favorite_rounded,
+                    size: 18, color: CartzyColors.readableOf(context, light: CartzyColors.rose50, background: CartzyColors.rose500)),
               ),
             ),
           ],

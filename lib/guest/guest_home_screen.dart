@@ -302,7 +302,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                     onPressed: _openWishlist,
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
-                                      foregroundColor: CartzyColors.burgundy,
+                                      foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: Colors.transparent),
                                       minimumSize: const Size(44, 44),
                                     ),
                                     icon: const BannerActionIcon(
@@ -315,7 +315,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                     onPressed: _showLoginRequiredDialog,
                                     style: IconButton.styleFrom(
                                       backgroundColor: Colors.transparent,
-                                      foregroundColor: CartzyColors.burgundy,
+                                      foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: Colors.transparent),
                                       minimumSize: const Size(44, 44),
                                     ),
                                     icon: const BannerActionIcon(

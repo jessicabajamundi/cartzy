@@ -380,7 +380,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           title: Row(
             children: [
-              const Icon(Icons.check_circle, color: Color(0xFF2E7D63), size: 28),
+              Icon(Icons.check_circle, color: CartzyColors.readableOf(context, light: const Color(0xFF2E7D63)), size: 28),
               const SizedBox(width: 10),
               Text(
                 'Order Placed!',
@@ -502,7 +502,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.5,
-                      color: _CheckoutPalette.roseGoldDeep,
+                      color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGoldDeep, background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -611,7 +611,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 'Add a delivery address before placing your order.',
                 style: GoogleFonts.dmSans(
                   fontSize: 12.5,
-                  color: const Color(0xFF865242),
+                  color: CartzyColors.readableOf(context, light: const Color(0xFF865242), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFDF6F2))),
                 ),
               ),
             )
@@ -625,7 +625,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, color: _CheckoutPalette.roseGold, size: 20),
+                  Icon(Icons.location_on_outlined, color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGold, background: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF8F9))), size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -710,15 +710,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? Image.network(
                             image,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
+                            errorBuilder: (_, __, ___) => Icon(
                               Icons.headset,
-                              color: _CheckoutPalette.roseGold,
+                              color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGold, background: CartzyColors.elevatedOf(context, light: const Color(0xFFF6F0F2))),
                               size: 26,
                             ),
                           )
-                        : const Icon(
+                        : Icon(
                             Icons.headset,
-                            color: _CheckoutPalette.roseGold,
+                            color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGold, background: CartzyColors.elevatedOf(context, light: const Color(0xFFF6F0F2))),
                             size: 26,
                           ),
                   ),
@@ -1026,7 +1026,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: canUseShippingSaver
-                                ? const Color(0xFF2E7D63)
+                                ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D63), background: CartzyColors.surfaceOf(context, light: Colors.white))
                                 : CartzyColors.mutedOf(context, light: const Color(0xFFA89CA0)),
                           ),
                         ),
@@ -1280,7 +1280,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF007DFE)),
                         ),
                       ),
                     ),
@@ -1314,7 +1314,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 style: GoogleFonts.dmSans(
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF007DFE),
+                                  color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF))),
                                 ),
                               ),
                             ),
@@ -1335,7 +1335,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? Icons.radio_button_checked
                         : Icons.radio_button_off,
                     color: _selectedPaymentMethod == 'GCash'
-                        ? const Color(0xFF007DFE)
+                        ? CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: Colors.white))
                         : const Color(0xFFD0C4C8),
                     size: 20,
                   ),
@@ -1384,7 +1384,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.2,
-              color: _CheckoutPalette.roseGoldDeep,
+              color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGoldDeep, background: CartzyColors.surfaceOf(context, light: Colors.white)),
             ),
           ),
           const SizedBox(height: 4),
@@ -1543,7 +1543,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFFC44D4D),
+                color: CartzyColors.readableOf(context, light: const Color(0xFFC44D4D), background: CartzyColors.surfaceOf(context, light: Colors.white)),
               ),
             ),
             const SizedBox(height: 8),
@@ -1594,7 +1594,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           style: GoogleFonts.dmSans(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isAccentGreen ? const Color(0xFF2E7D63) : CartzyColors.textOf(context, light: _CheckoutPalette.ink),
+            color: isAccentGreen ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D63)) : CartzyColors.textOf(context, light: _CheckoutPalette.ink),
           ),
         ),
       ],
@@ -1679,7 +1679,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
-                            color: _CheckoutPalette.roseGoldDeep,
+                            color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGoldDeep, background: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)),
                           ),
                         ),
                       ),
@@ -1803,7 +1803,7 @@ class _ActionPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 14, color: _CheckoutPalette.roseGoldDeep),
+            Icon(icon, size: 14, color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGoldDeep)),
             const SizedBox(width: 4),
           ],
           Text(
@@ -1811,7 +1811,7 @@ class _ActionPill extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: _CheckoutPalette.roseGoldDeep,
+              color: CartzyColors.readableOf(context, light: _CheckoutPalette.roseGoldDeep),
             ),
           ),
         ],

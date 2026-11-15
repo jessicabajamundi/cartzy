@@ -175,7 +175,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)),
-                  child: const Icon(Icons.photo_library_outlined, color: Color(0xFF007DFE)),
+                  child: Icon(Icons.photo_library_outlined, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)))),
                 ),
                 title: Text('Choose from Gallery', style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
                 subtitle: Text('Select saved GCash receipt screenshot', style: GoogleFonts.dmSans(fontSize: 12)),
@@ -187,7 +187,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
               ListTile(
                 leading: CircleAvatar(
                   backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)),
-                  child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF007DFE)),
+                  child: Icon(Icons.camera_alt_outlined, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)))),
                 ),
                 title: Text('Take a Photo', style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
                 subtitle: Text('Capture receipt using device camera', style: GoogleFonts.dmSans(fontSize: 12)),
@@ -384,7 +384,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                       style: GoogleFonts.dmSans(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                        color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF007DFE)),
                       ),
                     ),
                   ),
@@ -423,10 +423,10 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
             // Content
             Flexible(
               child: _loading
-                  ? const Padding(
-                      padding: EdgeInsets.all(40),
+                  ? Padding(
+                      padding: const EdgeInsets.all(40),
                       child: Center(
-                        child: CircularProgressIndicator(color: Color(0xFF007DFE)),
+                        child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: Colors.white))),
                       ),
                     )
                   : SingleChildScrollView(
@@ -445,14 +445,14 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.storefront_outlined, size: 16, color: Color(0xFF007DFE)),
+                                Icon(Icons.storefront_outlined, size: 16, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF4F9FF)))),
                                 const SizedBox(width: 6),
                                 Text(
                                   _storeName,
                                   style: GoogleFonts.dmSans(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF007DFE),
+                                    color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF4F9FF))),
                                   ),
                                 ),
                               ],
@@ -517,7 +517,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                         fontSize: 11,
                                         fontWeight: FontWeight.w800,
                                         letterSpacing: 0.6,
-                                        color: _hasCustomQr ? const Color(0xFF2E7D32) : const Color(0xFF007DFE),
+                                        color: _hasCustomQr ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: _hasCustomQr ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)) : CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF))) : CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: _hasCustomQr ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)) : CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF))),
                                       ),
                                     ),
                                   ),
@@ -542,20 +542,20 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   if (_savingQr)
-                                    const SizedBox(
+                                    SizedBox(
                                       width: 14,
                                       height: 14,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF007DFE)),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF0F7FF)))),
                                     )
                                   else
-                                    const Icon(Icons.download_rounded, size: 18, color: Color(0xFF007DFE)),
+                                    Icon(Icons.download_rounded, size: 18, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF0F7FF)))),
                                   const SizedBox(width: 8),
                                   Text(
                                     _savingQr ? 'Saving QR…' : 'Download QR Code',
                                     style: GoogleFonts.dmSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF007DFE),
+                                      color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFF0F7FF))),
                                     ),
                                   ),
                                 ],
@@ -622,7 +622,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                         ),
                                       ),
                                       const SizedBox(width: 4),
-                                      const Text('*', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                      Text('*', style: TextStyle(color: CartzyColors.readableOf(context, light: Colors.red, background: CartzyColors.surfaceOf(context, light: Colors.white)), fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                   InkWell(
@@ -633,14 +633,14 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.paste, size: 14, color: Color(0xFF007DFE)),
+                                          Icon(Icons.paste, size: 14, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: Colors.white))),
                                           const SizedBox(width: 4),
                                           Text(
                                             'Paste',
                                             style: GoogleFonts.dmSans(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF007DFE),
+                                              color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                                             ),
                                           ),
                                         ],
@@ -672,9 +672,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                   ),
                                   filled: true,
                                   fillColor: CartzyColors.surfaceOf(context, light: const Color(0xFFF9FBFF)),
-                                  prefixIcon: const Icon(
+                                  prefixIcon: Icon(
                                     Icons.receipt_long_outlined,
-                                    color: Color(0xFF007DFE),
+                                    color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                                     size: 20,
                                   ),
                                   border: OutlineInputBorder(
@@ -713,7 +713,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Text('*', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                  Text('*', style: TextStyle(color: CartzyColors.readableOf(context, light: Colors.red, background: CartzyColors.surfaceOf(context, light: Colors.white)), fontWeight: FontWeight.bold)),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -743,9 +743,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                             color: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
-                                          child: const Icon(
+                                          child: Icon(
                                             Icons.cloud_upload_outlined,
-                                            color: Color(0xFF007DFE),
+                                            color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF))),
                                             size: 26,
                                           ),
                                         ),
@@ -755,7 +755,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                           style: GoogleFonts.dmSans(
                                             fontSize: 13.5,
                                             fontWeight: FontWeight.w700,
-                                            color: const Color(0xFF007DFE),
+                                            color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFF))),
                                           ),
                                         ),
                                         const SizedBox(height: 4),
@@ -822,7 +822,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 20),
+                                        icon: Icon(Icons.delete_outline, color: CartzyColors.readableOf(context, light: const Color(0xFFDC2626)), size: 20),
                                         onPressed: () => setState(() => _receiptFile = null),
                                       ),
                                     ],
@@ -843,7 +843,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.error_outline, size: 16, color: Color(0xFFDC2626)),
+                                  Icon(Icons.error_outline, size: 16, color: CartzyColors.readableOf(context, light: const Color(0xFFDC2626), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFEF2F2)))),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
@@ -851,7 +851,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                       style: GoogleFonts.dmSans(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: const Color(0xFFDC2626),
+                                        color: CartzyColors.readableOf(context, light: const Color(0xFFDC2626), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFEF2F2))),
                                       ),
                                     ),
                                   ),
@@ -881,7 +881,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                       style: GoogleFonts.dmSans(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w600,
-                                        color: const Color(0xFFB45309),
+                                        color: CartzyColors.readableOf(context, light: const Color(0xFFB45309), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB))),
                                       ),
                                     ),
                                   ),
@@ -928,7 +928,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                 backgroundColor: const Color(0xFF007DFE),
                                 disabledBackgroundColor: const Color(0xFFE2E8F0),
                                 disabledForegroundColor: const Color(0xFF94A3B8),
-                                foregroundColor: Colors.white,
+                                foregroundColor: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF007DFE)),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
@@ -936,7 +936,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                 padding: const EdgeInsets.symmetric(horizontal: 20),
                               ),
                               child: _submitting
-                                  ? const Row(
+                                  ? Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         SizedBox(
@@ -944,11 +944,11 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                           height: 18,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            color: Colors.white,
+                                            color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF007DFE)),
                                           ),
                                         ),
-                                        SizedBox(width: 12),
-                                        Text('Submitting order for verification…'),
+                                        const SizedBox(width: 12),
+                                        const Text('Submitting order for verification…'),
                                       ],
                                     )
                                   : Row(
@@ -1008,12 +1008,12 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                     ? GoogleFonts.dmMono(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isHighlighted ? const Color(0xFF007DFE) : CartzyColors.textOf(context, light: const Color(0xFF282133)),
+                        color: isHighlighted ? CartzyColors.readableOf(context, light: const Color(0xFF007DFE)) : CartzyColors.textOf(context, light: const Color(0xFF282133)),
                       )
                     : GoogleFonts.dmSans(
                         fontSize: isHighlighted ? 17 : 14,
                         fontWeight: isHighlighted ? FontWeight.w800 : FontWeight.w700,
-                        color: isHighlighted ? const Color(0xFF007DFE) : CartzyColors.textOf(context, light: const Color(0xFF282133)),
+                        color: isHighlighted ? CartzyColors.readableOf(context, light: const Color(0xFF007DFE)) : CartzyColors.textOf(context, light: const Color(0xFF282133)),
                       ),
               ),
             ],
@@ -1031,14 +1031,14 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.copy, size: 14, color: Color(0xFF007DFE)),
+                Icon(Icons.copy, size: 14, color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF4FF)))),
                 const SizedBox(width: 4),
                 Text(
                   'Copy',
                   style: GoogleFonts.dmSans(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF007DFE),
+                    color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF4FF))),
                   ),
                 ),
               ],

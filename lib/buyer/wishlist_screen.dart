@@ -204,7 +204,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
-        foregroundColor: CartzyColors.brandDark,
+        foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.brandDark, background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
         surfaceTintColor: Colors.transparent,
         title: Column(
           children: [
@@ -260,8 +260,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           child: Center(
                             child: Text(
                               '$count',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFEF4444)),
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 height: 1,
@@ -287,9 +287,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          color: CartzyColors.burgundy,
+          color: CartzyColors.readableOf(context, light: CartzyColors.burgundy),
         ),
       );
     }
@@ -373,10 +373,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.favorite_rounded,
                           size: 13,
-                          color: Color(0xFFD1495B),
+                          color: CartzyColors.readableOf(context, light: const Color(0xFFD1495B), background: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender)),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -479,7 +479,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                             fontSize: 9.5,
                             fontWeight: FontWeight.w700,
                             color: item.inStock
-                                ? const Color(0xFF2E7D32)
+                                ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: item.inStock ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)) : const Color(0xFF282133))
                                 : Colors.white,
                           ),
                         ),
@@ -510,20 +510,20 @@ class _WishlistScreenState extends State<WishlistScreen> {
                               ],
                             ),
                             child: isRemoving
-                                ? const Center(
+                                ? Center(
                                     child: SizedBox(
                                       width: 14,
                                       height: 14,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: CartzyColors.burgundy,
+                                        color: CartzyColors.readableOf(context, light: CartzyColors.burgundy, background: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.94)),
                                       ),
                                     ),
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.favorite_rounded,
                                     size: 16,
-                                    color: Color(0xFFD1495B),
+                                    color: CartzyColors.readableOf(context, light: const Color(0xFFD1495B), background: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.94)),
                                   ),
                           ),
                         ),

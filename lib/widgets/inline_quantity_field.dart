@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 
 /// The number between the − and + buttons, typed into directly.
 ///
@@ -86,11 +87,23 @@ class _InlineQuantityFieldState extends State<InlineQuantityField> {
   @override
   Widget build(BuildContext context) {
     final focused = _focus.hasFocus;
-    final digits = _controller.text.length.clamp(1, 5);
+    final fieldSurface = CartzyColors.elevatedOf(context, light: Colors.white);
     final base = widget.decoration ?? const BoxDecoration();
+    final style = CartzyColors.isDark(context)
+        ? widget.style.copyWith(
+            color: CartzyColors.readableOf(
+              context,
+              light: widget.style.color ?? CartzyColors.text,
+              background: focused ? fieldSurface : base.color,
+            ),
+          )
+        : widget.style;
+    final digits = _controller.text.length.clamp(1, 5);
     final effectiveMinWidth = widget.minWidth;
     final calculatedWidth = (widget.style.fontSize ?? 14) * 0.75 * digits + 14;
-    final width = calculatedWidth > effectiveMinWidth ? calculatedWidth : effectiveMinWidth;
+    final width = calculatedWidth > effectiveMinWidth
+        ? calculatedWidth
+        : effectiveMinWidth;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -109,10 +122,10 @@ class _InlineQuantityFieldState extends State<InlineQuantityField> {
         padding: widget.padding,
         decoration: focused
             ? base.copyWith(
-                color: Colors.white,
+                color: fieldSurface,
                 borderRadius: base.borderRadius ?? BorderRadius.circular(6),
                 border: Border.all(
-                  color: widget.style.color ?? Colors.black,
+                  color: style.color ?? Colors.black,
                   width: 1.5,
                 ),
               )
@@ -126,8 +139,8 @@ class _InlineQuantityFieldState extends State<InlineQuantityField> {
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.done,
             textAlign: TextAlign.center,
-            style: widget.style,
-            cursorColor: widget.style.color,
+            style: style,
+            cursorColor: style.color,
             inputFormatters: [
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(5),

@@ -186,7 +186,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                   child: Icon(
                     Icons.mark_email_read_outlined,
-                    color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
+                    color: CartzyColors.readableOf(context, light: CartzyColors.textOf(context, light: CartzyColors.brandDark), background: CartzyColors.brandPrimary.withValues(alpha: 0.2)),
                     size: 42,
                   ),
                 ),
@@ -237,7 +237,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       Icon(
                         Icons.timer_outlined,
                         size: 13,
-                        color: _secondsRemaining > 0 ? CartzyColors.textOf(context, light: CartzyColors.brandDark) : CartzyColors.error,
+                        color: _secondsRemaining > 0 ? CartzyColors.textOf(context, light: CartzyColors.brandDark) : CartzyColors.readableOf(context, light: CartzyColors.error, background: _secondsRemaining > 0 ? CartzyColors.brandDark.withValues(alpha: 0.1) : CartzyColors.error.withValues(alpha: 0.15)),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -245,7 +245,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: _secondsRemaining > 0 ? CartzyColors.textOf(context, light: CartzyColors.brandDark) : CartzyColors.error,
+                          color: _secondsRemaining > 0 ? CartzyColors.textOf(context, light: CartzyColors.brandDark) : CartzyColors.readableOf(context, light: CartzyColors.error, background: _secondsRemaining > 0 ? CartzyColors.brandDark.withValues(alpha: 0.1) : CartzyColors.error.withValues(alpha: 0.15)),
                         ),
                       ),
                     ],
@@ -316,13 +316,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: CartzyColors.error, size: 18),
+                      Icon(Icons.error_outline, color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.error.withValues(alpha: 0.08)), size: 18),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(
-                            color: CartzyColors.error,
+                          style: TextStyle(
+                            color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.error.withValues(alpha: 0.08)),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),

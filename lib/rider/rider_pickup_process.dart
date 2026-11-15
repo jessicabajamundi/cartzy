@@ -100,7 +100,7 @@ class _RiderPickupProcessState extends State<RiderPickupProcess> {
               ),
               const Spacer(),
               if (_error != null) ...[
-                Text(_error!, style: const TextStyle(color: CartzyColors.error, fontSize: 13)),
+                Text(_error!, style: TextStyle(color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.elevatedOf(context, light: CartzyColors.background)), fontSize: 13)),
                 const SizedBox(height: 10),
               ],
               SizedBox(

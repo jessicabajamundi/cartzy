@@ -122,11 +122,11 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
               width: 24,
               height: 24,
               decoration: const BoxDecoration(color: Color(0xFFD1F5E6), shape: BoxShape.circle),
-              child: const Icon(Icons.check, size: 15, color: Color(0xFF13845B)),
+              child: Icon(Icons.check, size: 15, color: CartzyColors.readableOf(context, light: const Color(0xFF13845B), background: const Color(0xFFD1F5E6))),
             ),
             content: Text(
               'Parcel delivered and saved. The buyer, seller and hub were notified.',
-              style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF176B4E)),
+              style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w600, color: CartzyColors.readableOf(context, light: const Color(0xFF176B4E))),
             ),
             backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF0FFF8)),
             elevation: 0,
@@ -135,7 +135,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
               IconButton(
                 tooltip: 'Dismiss',
                 onPressed: messenger.hideCurrentMaterialBanner,
-                icon: const Icon(Icons.close, size: 17, color: Color(0xFF13845B)),
+                icon: Icon(Icons.close, size: 17, color: CartzyColors.readableOf(context, light: const Color(0xFF13845B))),
               ),
             ],
           ),
@@ -240,7 +240,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFFB45309),
+                  color: CartzyColors.readableOf(context, light: const Color(0xFFB45309), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFFF9EE))),
                 ),
               ),
             ),
@@ -389,9 +389,9 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
     final orders = _filteredOrders;
 
     if (_loading && _orders.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 60),
-        child: Center(child: CircularProgressIndicator(color: Color(0xFF554B62))),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: const Color(0xFF554B62)))),
       );
     }
 
@@ -498,7 +498,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
         style: GoogleFonts.dmSans(
           fontSize: 9,
           fontWeight: FontWeight.w700,
-          color: isCod ? const Color(0xFF9A5A00) : const Color(0xFF188257),
+          color: isCod ? CartzyColors.readableOf(context, light: const Color(0xFF9A5A00), background: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF6E5)) : CartzyColors.elevatedOf(context, light: const Color(0xFFEAF9F2))) : CartzyColors.readableOf(context, light: const Color(0xFF188257), background: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF6E5)) : CartzyColors.elevatedOf(context, light: const Color(0xFFEAF9F2))),
         ),
       ),
     );
@@ -553,7 +553,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
                   ),
           icon: const Icon(Icons.call_outlined, size: 17),
           style: IconButton.styleFrom(
-            foregroundColor: const Color(0xFF554B62),
+            foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFF554B62), background: CartzyColors.surfaceOf(context, light: const Color(0xFFFAF8FA))),
             backgroundColor: CartzyColors.surfaceOf(context, light: const Color(0xFFFAF8FA)),
             side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE7E2E8))),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

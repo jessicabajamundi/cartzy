@@ -568,10 +568,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                             color: Color(0xFFC07357),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.add,
                             size: 12,
-                            color: Colors.white,
+                            color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFFC07357)),
                           ),
                         ),
                       ),
@@ -588,7 +588,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.4,
-                    color: const Color(0xFFA66B56),
+                    color: CartzyColors.readableOf(context, light: const Color(0xFFA66B56), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                   ),
                 ),
 
@@ -728,8 +728,8 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: _brand, strokeWidth: 2.4),
+      return Center(
+        child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: _brand), strokeWidth: 2.4),
       );
     }
 
@@ -1410,12 +1410,12 @@ class _RateItemsSheetState extends State<_RateItemsSheet> {
         Align(
           alignment: Alignment.centerRight,
           child: _saving
-              ? const Padding(
-                  padding: EdgeInsets.all(8),
+              ? Padding(
+                  padding: const EdgeInsets.all(8),
                   child: SizedBox(
                     width: 22,
                     height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: _brand),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: CartzyColors.readableOf(context, light: _brand)),
                   ),
                 )
               : _OrderButton(label: 'Submit review', primary: true, onTap: _save),

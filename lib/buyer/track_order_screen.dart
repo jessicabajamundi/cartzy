@@ -569,10 +569,10 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                   color: Color(0xFF9E6B74),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add,
                   size: 10,
-                  color: Colors.white,
+                  color: CartzyColors.readableOf(context, light: Colors.white, background: const Color(0xFF9E6B74)),
                 ),
               ),
             ),
@@ -683,7 +683,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: isInTransit
-                                  ? const Color(0xFF2E7D32)
+                                  ? CartzyColors.readableOf(context, light: const Color(0xFF2E7D32), background: isInTransit ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)) : CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7E6)))
                                   : const Color(0xFFD97706),
                               ),
                             ),
@@ -911,7 +911,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                           ? FontWeight.w700
                           : FontWeight.w500,
                       color: isCurrent
-                          ? const Color(0xFF8B3A3A)
+                          ? CartzyColors.readableOf(context, light: const Color(0xFF8B3A3A))
                           : CartzyColors.textOf(context, light: const Color(0xFF282133)),
                     ),
                   ),

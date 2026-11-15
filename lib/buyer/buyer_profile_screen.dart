@@ -184,8 +184,8 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
-              labelColor: CartzyColors.coral,
-              unselectedLabelColor: CartzyColors.gray,
+              labelColor: CartzyColors.readableOf(context, light: CartzyColors.coral, background: CartzyColors.surfaceOf(context, light: CartzyColors.surface)),
+              unselectedLabelColor: CartzyColors.readableOf(context, light: CartzyColors.gray, background: CartzyColors.surfaceOf(context, light: CartzyColors.surface)),
               indicatorColor: CartzyColors.coral,
               indicatorWeight: 3,
               tabs: _tabs.map((tab) {
@@ -369,11 +369,11 @@ class _OrderCard extends StatelessWidget {
                     context: context,
                     builder: (rateCtx) => AlertDialog(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: const Row(
+                      title: Row(
                         children: [
-                          Icon(Icons.star, color: CartzyColors.gold),
-                          SizedBox(width: 8),
-                          Text('Rate Product'),
+                          Icon(Icons.star, color: CartzyColors.readableOf(context, light: CartzyColors.gold)),
+                          const SizedBox(width: 8),
+                          const Text('Rate Product'),
                         ],
                       ),
                       content: const Text(
@@ -590,7 +590,7 @@ class _OrderCard extends StatelessWidget {
                                 ? Icons.star
                                 : Icons.star_border,
                             size: 14,
-                            color: CartzyColors.gold,
+                            color: CartzyColors.readableOf(context, light: CartzyColors.gold, background: CartzyColors.elevatedOf(context, light: CartzyColors.background)),
                           );
                         }),
                       ),
@@ -679,7 +679,7 @@ class _OrderCard extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () => _handleAction(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: CartzyColors.coral,
+                    foregroundColor: CartzyColors.readableOf(context, light: CartzyColors.coral),
                     side: const BorderSide(
                       color: CartzyColors.coral,
                     ),

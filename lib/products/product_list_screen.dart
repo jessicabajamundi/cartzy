@@ -466,8 +466,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
           // Product grid
           Expanded(
             child: _loading
-                ? const Center(
-                    child: CircularProgressIndicator(color: CartzyColors.coral))
+                ? Center(
+                    child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: CartzyColors.coral, background: CartzyColors.bgOf(context))))
                 : _loadError != null
                     ? Center(
                         child: Padding(

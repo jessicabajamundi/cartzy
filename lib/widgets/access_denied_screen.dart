@@ -52,10 +52,10 @@ class AccessDeniedScreen extends StatelessWidget {
                   color: CartzyColors.error.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.lock_person_outlined,
                   size: 52,
-                  color: CartzyColors.error,
+                  color: CartzyColors.readableOf(context, light: CartzyColors.error, background: CartzyColors.error.withValues(alpha: 0.1)),
                 ),
               ),
               const SizedBox(height: 20),

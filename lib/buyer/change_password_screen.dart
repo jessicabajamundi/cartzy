@@ -216,7 +216,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline_rounded, color: Color(0xFFE02424), size: 20),
+                      Icon(Icons.error_outline_rounded, color: CartzyColors.readableOf(context, light: const Color(0xFFE02424), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFDE8E8))), size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -224,7 +224,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF9B1C1C),
+                            color: CartzyColors.readableOf(context, light: const Color(0xFF9B1C1C), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFDE8E8))),
                           ),
                         ),
                       ),
@@ -320,8 +320,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                                 : Icons.cancel_rounded,
                             size: 16,
                             color: _newPasswordController.text == _confirmPasswordController.text
-                                ? const Color(0xFF0E9F6E)
-                                : const Color(0xFFE02424),
+                                ? CartzyColors.readableOf(context, light: const Color(0xFF0E9F6E), background: CartzyColors.surfaceOf(context, light: Colors.white))
+                                : CartzyColors.readableOf(context, light: const Color(0xFFE02424), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -332,8 +332,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: _newPasswordController.text == _confirmPasswordController.text
-                                  ? const Color(0xFF0E9F6E)
-                                  : const Color(0xFFE02424),
+                                  ? CartzyColors.readableOf(context, light: const Color(0xFF0E9F6E), background: CartzyColors.surfaceOf(context, light: Colors.white))
+                                  : CartzyColors.readableOf(context, light: const Color(0xFFE02424), background: CartzyColors.surfaceOf(context, light: Colors.white)),
                             ),
                           ),
                         ],
@@ -469,7 +469,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           Icon(
             passed ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
             size: 14,
-            color: passed ? const Color(0xFF0E9F6E) : CartzyColors.mutedOf(context, light: const Color(0xFFA0989B)),
+            color: passed ? CartzyColors.readableOf(context, light: const Color(0xFF0E9F6E)) : CartzyColors.mutedOf(context, light: const Color(0xFFA0989B)),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -478,7 +478,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 11,
                 fontWeight: passed ? FontWeight.w600 : FontWeight.w400,
-                color: passed ? const Color(0xFF0E9F6E) : CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
+                color: passed ? CartzyColors.readableOf(context, light: const Color(0xFF0E9F6E)) : CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
               ),
             ),
           ),

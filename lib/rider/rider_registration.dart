@@ -992,11 +992,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(
+                      SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Color(0xFF865561)),
+                            strokeWidth: 2, color: CartzyColors.readableOf(context, light: const Color(0xFF865561), background: CartzyColors.surfaceOf(context, light: const Color(0xFFFFF9F9)))),
                       ),
                       const SizedBox(width: 10),
                       Flexible(
@@ -1037,7 +1037,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                         TextButton.icon(
                           onPressed: _uploadGovernmentId,
                           style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF865561),
+                            foregroundColor: CartzyColors.readableOf(context, light: const Color(0xFF865561), background: CartzyColors.surfaceOf(context, light: const Color(0xFFFFF9F9))),
                             minimumSize: const Size(0, 48),
                           ),
                           icon: const Icon(Icons.upload_outlined, size: 18),
@@ -1056,7 +1056,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           style: GoogleFonts.dmSans(
             fontSize: _govIdImageError ? 13 : 11.5,
             color: _govIdImageError
-                ? const Color(0xFFEF4444)
+                ? CartzyColors.readableOf(context, light: const Color(0xFFEF4444))
                 : CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),

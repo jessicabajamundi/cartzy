@@ -18,6 +18,19 @@ import 'cartzy_button_styles.dart';
 // ============================================================
 
 class CartzyTheme {
+  static const darkColorScheme = ColorScheme.dark(
+    primary: CartzyColors.darkAccentText,
+    onPrimary: CartzyColors.darkBackground,
+    secondary: CartzyColors.rose400,
+    onSecondary: CartzyColors.darkBackground,
+    surface: CartzyColors.darkSurface,
+    onSurface: CartzyColors.darkText,
+    surfaceContainerHighest: CartzyColors.darkSurfaceElevated,
+    outline: CartzyColors.darkBorder,
+    error: CartzyColors.darkError,
+    onError: CartzyColors.darkBackground,
+  );
+
   static ThemeData get lightTheme {
     final baseFont = GoogleFonts.dmSans();
 
@@ -60,11 +73,13 @@ class CartzyTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: CartzyColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         enabledBorder: CartzyInputStyles.defaultBorder,
         focusedBorder: CartzyInputStyles.focusedBorder,
         errorBorder: CartzyInputStyles.errorBorder,
-        hintStyle: CartzyTypography.bodySmall.copyWith(color: CartzyColors.gray),
+        hintStyle:
+            CartzyTypography.bodySmall.copyWith(color: CartzyColors.gray),
         labelStyle: CartzyTypography.subtitle,
       ),
     );
@@ -86,25 +101,15 @@ class CartzyTheme {
       fontFamily: baseFont.fontFamily,
       textTheme: baseDarkText,
       dividerColor: CartzyColors.darkBorder,
-      colorScheme: const ColorScheme.dark(
-        primary: CartzyColors.darkAccent,
-        onPrimary: Colors.white,
-        secondary: CartzyColors.rose400,
-        onSecondary: Color(0xFF171419),
-        surface: CartzyColors.darkSurface,
-        onSurface: CartzyColors.darkText,
-        surfaceContainerHighest: CartzyColors.darkSurfaceElevated,
-        outline: CartzyColors.darkBorder,
-        error: CartzyColors.error,
-        onError: Colors.white,
-      ),
+      colorScheme: darkColorScheme,
       appBarTheme: AppBarTheme(
         backgroundColor: CartzyColors.darkSurface,
         foregroundColor: CartzyColors.darkText,
         elevation: 0,
         centerTitle: false,
         iconTheme: const IconThemeData(color: CartzyColors.darkText),
-        titleTextStyle: CartzyTypography.h3.copyWith(color: CartzyColors.darkText),
+        titleTextStyle:
+            CartzyTypography.h3.copyWith(color: CartzyColors.darkText),
       ),
       cardTheme: CardThemeData(
         color: CartzyColors.darkSurface,
@@ -128,7 +133,7 @@ class CartzyTheme {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: CartzyColors.darkSurface,
-        selectedItemColor: CartzyColors.darkAccent,
+        selectedItemColor: CartzyColors.darkAccentText,
         unselectedItemColor: CartzyColors.darkMuted,
       ),
       dividerTheme: const DividerThemeData(
@@ -153,24 +158,34 @@ class CartzyTheme {
           ),
         ),
       ),
+      textButtonTheme: TextButtonThemeData(
+        style:
+            TextButton.styleFrom(foregroundColor: CartzyColors.darkAccentText),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: CartzyColors.darkSurfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: CartzyColors.darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: CartzyColors.darkAccent, width: 1.5),
+          borderSide:
+              const BorderSide(color: CartzyColors.darkAccent, width: 1.5),
         ),
-        errorBorder: CartzyInputStyles.errorBorder,
-        hintStyle: CartzyTypography.bodySmall.copyWith(color: CartzyColors.darkMuted),
-        labelStyle: CartzyTypography.subtitle.copyWith(color: CartzyColors.darkText),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: CartzyColors.darkError),
+        ),
+        errorStyle: const TextStyle(color: CartzyColors.darkError),
+        hintStyle:
+            CartzyTypography.bodySmall.copyWith(color: CartzyColors.darkMuted),
+        labelStyle:
+            CartzyTypography.subtitle.copyWith(color: CartzyColors.darkText),
       ),
     );
   }
 }
-
-
