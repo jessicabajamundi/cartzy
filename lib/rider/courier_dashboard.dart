@@ -542,10 +542,10 @@ class _CourierDashboardState extends State<CourierDashboard> {
             // Nav bar background pill (thickened to 68px, matching buyer's nav)
             Container(
               height: 68,
-              decoration: const ShapeDecoration(
-                color: CartzyColors.surface,
-                shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
-                shadows: [
+              decoration: ShapeDecoration(
+                color: CartzyColors.surfaceOf(context),
+                shape: StadiumBorder(side: BorderSide(color: CartzyColors.borderOf(context))),
+                shadows: const [
                   BoxShadow(color: Color(0x148B3A3A), blurRadius: 16, offset: Offset(0, 4)),
                 ],
               ),
@@ -641,8 +641,8 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: _line)),
+      color: CartzyColors.surfaceOf(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: CartzyColors.borderOf(context))),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
@@ -686,14 +686,18 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: _line)),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: CartzyColors.borderOf(context)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, maxLines: 2, style: GoogleFonts.dmSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: _muted)),
+          Text(label, maxLines: 2, style: GoogleFonts.dmSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: CartzyColors.mutedOf(context))),
           const SizedBox(height: 6),
-          Text('$value', style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: _ink)),
-          Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 11, color: _muted)),
+          Text('$value', style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context))),
+          Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.mutedOf(context))),
         ],
       ),
     );
@@ -713,7 +717,7 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Expanded(child: Text(text, style: GoogleFonts.playfairDisplay(fontSize: 19, fontWeight: FontWeight.w700, color: _ink))),
+          Expanded(child: Text(text, style: GoogleFonts.playfairDisplay(fontSize: 19, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context)))),
           if (actionLabel != null) TextButton(onPressed: onAction, child: Text(actionLabel!, style: _link)),
         ],
       ),
@@ -734,9 +738,9 @@ class _PageTitle extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: _ink)),
+          Text(title, style: GoogleFonts.playfairDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context))),
           const SizedBox(height: 2),
-          Text(subtitle, style: _sub),
+          Text(subtitle, style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context))),
         ],
       ),
     );
@@ -804,11 +808,11 @@ class _IconLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = GoogleFonts.dmSans(fontSize: 13, height: 1.35, color: const Color(0xFF4F4552));
+    final style = GoogleFonts.dmSans(fontSize: 13, height: 1.35, color: CartzyColors.textOf(context));
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: _muted),
+        Icon(icon, size: 16, color: CartzyColors.mutedOf(context)),
         const SizedBox(width: 8),
         Expanded(child: selectable ? SelectableText(text, style: style) : Text(text, style: style)),
       ],

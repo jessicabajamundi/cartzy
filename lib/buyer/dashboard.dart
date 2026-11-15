@@ -558,12 +558,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   duration: const Duration(milliseconds: 200),
                   child: Container(
                     margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                decoration: const ShapeDecoration(
-                  color: CartzyColors.surface,
+                decoration: ShapeDecoration(
+                  color: CartzyColors.surfaceOf(context),
                   shape: StadiumBorder(
-                    side: BorderSide(color: CartzyColors.border),
+                    side: BorderSide(color: CartzyColors.borderOf(context)),
                   ),
-                  shadows: [
+                  shadows: const [
                     BoxShadow(
                       color: Color(0x148B3A3A),
                       blurRadius: 16,

@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,11 +23,18 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
+    final isDark = CartzyColors.isDark(context);
+    final surface = CartzyColors.surfaceOf(context);
+    final border = CartzyColors.borderOf(context);
+    final elevated = CartzyColors.elevatedOf(context);
+    final text = CartzyColors.textOf(context);
+    final muted = CartzyColors.mutedOf(context);
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: surface,
         border: Border(
-          bottom: BorderSide(color: Color(0xFFEFE8EA), width: 1.1),
+          bottom: BorderSide(color: border, width: 1.1),
         ),
       ),
       child: SafeArea(
@@ -44,14 +52,14 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFBF8F9),
+                  color: elevated,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFEFE8EA)),
+                  border: Border.all(color: border),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.arrow_back_rounded,
                   size: 18,
-                  color: Color(0xFF261E30),
+                  color: text,
                 ),
               ),
             ),
@@ -68,7 +76,7 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                       style: GoogleFonts.cormorantGaramond(
                         fontSize: isMobile ? 18 : 22,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF261E30),
+                        color: text,
                         letterSpacing: -0.3,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -82,7 +90,7 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                         style: GoogleFonts.dmSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF8A7780),
+                          color: muted,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -98,9 +106,9 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFEAF6ED),
+                color: isDark ? const Color(0xFF1E3323) : const Color(0xFFEAF6ED),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFC7E7CE)),
+                border: Border.all(color: isDark ? const Color(0xFF2D5135) : const Color(0xFFC7E7CE)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -131,10 +139,10 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             if (onLogout != null) ...[
               const SizedBox(width: 10),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.logout_rounded,
                   size: 18,
-                  color: Color(0xFF8A7780),
+                  color: muted,
                 ),
                 tooltip: 'Exit / Logout',
                 onPressed: onLogout,

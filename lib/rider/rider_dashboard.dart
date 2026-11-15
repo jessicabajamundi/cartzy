@@ -1546,7 +1546,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
         // zero width. The tab screens' back arrows return to Home.
         return Scaffold(
           key: _scaffoldKey,
-          backgroundColor: CartzyColors.background,
+          backgroundColor: CartzyColors.bgOf(context),
           drawer: isMobile ? Drawer(child: _buildSidebar()) : null,
           bottomNavigationBar: _buildBottomNav(),
           body: [
@@ -1633,10 +1633,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
             // Nav bar background pill (thickened to 68px, matching buyer's nav)
             Container(
               height: 68,
-              decoration: const ShapeDecoration(
-                color: CartzyColors.surface,
-                shape: StadiumBorder(side: BorderSide(color: CartzyColors.border)),
-                shadows: [
+              decoration: ShapeDecoration(
+                color: CartzyColors.surfaceOf(context),
+                shape: StadiumBorder(side: BorderSide(color: CartzyColors.borderOf(context))),
+                shadows: const [
                   BoxShadow(
                     color: Color(0x148B3A3A),
                     blurRadius: 16,
