@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/theme/theme_controller.dart';
 import 'change_password_screen.dart';
 import 'buyer_account_screen.dart';
 import 'reviews_screen.dart';
@@ -55,28 +56,28 @@ class AccountMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.bgOf(context),
 
       // ========================================================
       // APP BAR
       // ========================================================
 
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context),
         elevation: 0,
 
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context),
           ),
           onPressed: onBack,
         ),
 
-        title: const Text(
+        title: Text(
           'My Account',
           style: TextStyle(
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -431,6 +432,41 @@ class AccountMenuScreen extends StatelessWidget {
 
               onTap: () =>
                   _comingSoon(context),
+            ),
+
+            const SizedBox(
+              height: 12,
+            ),
+
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: ThemeController.mode,
+              builder: (context, _, __) {
+                final isDark = ThemeController.isDark(context);
+                return Container(
+                  decoration: BoxDecoration(
+                    color: CartzyColors.surfaceOf(context),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: CartzyColors.borderOf(context)),
+                  ),
+                  child: SwitchListTile(
+                    value: isDark,
+                    onChanged: (v) => ThemeController.setDark(v),
+                    secondary: Icon(
+                      isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                      color: isDark ? CartzyColors.darkAccent : CartzyColors.navy,
+                    ),
+                    title: Text(
+                      'Dark Mode',
+                      style: GoogleFonts.dmSans(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: CartzyColors.textOf(context),
+                      ),
+                    ),
+                    activeThumbColor: CartzyColors.darkAccent,
+                  ),
+                );
+              },
             ),
 
             const SizedBox(

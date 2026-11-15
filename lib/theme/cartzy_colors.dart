@@ -63,4 +63,29 @@ class CartzyColors {
   static const surfaceLight = brand100;
   static const border = brand200;
   static const text = brand900;
+
+  // Dark mode palette (plum-charcoal & dusty mauve).
+  static const darkBackground = Color(0xFF171419);
+  static const darkSurface = Color(0xFF211C23);
+  static const darkSurfaceElevated = Color(0xFF2A242D);
+  static const darkBorder = Color(0xFF3A313E);
+  static const darkText = Color(0xFFF4EEF5);
+  static const darkMuted = Color(0xFFA89CA9);
+  static const darkAccent = Color(0xFF9E7789);
+  static const darkAccentDeep = Color(0xFF6B4C5D);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+  static Color bgOf(BuildContext context) =>
+      isDark(context) ? darkBackground : background;
+  static Color surfaceOf(BuildContext context) =>
+      isDark(context) ? darkSurface : Colors.white;
+  static Color elevatedOf(BuildContext context) =>
+      isDark(context) ? darkSurfaceElevated : brand50;
+  static Color borderOf(BuildContext context) =>
+      isDark(context) ? darkBorder : border;
+  static Color textOf(BuildContext context) =>
+      isDark(context) ? darkText : text;
+  static Color mutedOf(BuildContext context) =>
+      isDark(context) ? darkMuted : grayMid;
 }

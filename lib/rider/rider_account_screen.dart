@@ -1,6 +1,8 @@
 import 'package:cartzy/rider/rider_home_address.dart';
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/app_update_service.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/theme/theme_controller.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -203,6 +205,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   _buildHomeAddressCard(),
                   const SizedBox(height: 14),
                   _buildPatchNotesCard(),
+                  const SizedBox(height: 14),
+                  _buildDarkModeCard(),
                   const SizedBox(height: 14),
                   _buildSignOutCard(),
                 ],
@@ -1067,6 +1071,42 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDarkModeCard() {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.mode,
+      builder: (context, _, __) {
+        final isDark = ThemeController.isDark(context);
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          decoration: BoxDecoration(
+            color: CartzyColors.surfaceOf(context),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: CartzyColors.borderOf(context)),
+          ),
+          child: SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: isDark,
+            onChanged: (v) => ThemeController.setDark(v),
+            secondary: Icon(
+              isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+              color: isDark ? CartzyColors.darkAccent : const Color(0xFF4C3E56),
+            ),
+            title: Text(
+              'Dark Mode',
+              style: GoogleFonts.dmSans(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: CartzyColors.textOf(context),
+              ),
+            ),
+            activeThumbColor: CartzyColors.darkAccent,
+          ),
+        );
+      },
     );
   }
 

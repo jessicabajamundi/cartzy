@@ -33,6 +33,7 @@ import 'package:cartzy/services/local_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ThemeController.init();
   await AppUpdateService.init();
   await LocalNotificationService.init();
   runApp(const CartzyApp());
@@ -43,17 +44,22 @@ class CartzyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: LocalNotificationService.navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'Cartzy',
-      theme: CartzyTheme.lightTheme,
-      home: const CartzyHome(),
-      routes: {
-        '/guest': (_) => const CartzyHome(initialRoute: 'guest'),
-        '/login': (_) => const CartzyHome(initialRoute: 'login'),
-        '/signup': (_) => const CartzyHome(initialRoute: 'buyerRegistration'),
-      },
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: ThemeController.mode,
+      builder: (context, mode, _) => MaterialApp(
+        navigatorKey: LocalNotificationService.navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Cartzy',
+        theme: CartzyTheme.lightTheme,
+        darkTheme: CartzyTheme.darkTheme,
+        themeMode: mode,
+        home: const CartzyHome(),
+        routes: {
+          '/guest': (_) => const CartzyHome(initialRoute: 'guest'),
+          '/login': (_) => const CartzyHome(initialRoute: 'login'),
+          '/signup': (_) => const CartzyHome(initialRoute: 'buyerRegistration'),
+        },
+      ),
     );
   }
 }

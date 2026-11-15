@@ -11,6 +11,7 @@ import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/services/courier_service.dart';
 import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
+import 'package:cartzy/theme/theme_controller.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
 
 const _ink = Color(0xFF261E30);
@@ -116,7 +117,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
       value: usesHero ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.bgOf(context),
         drawer: _buildMenu(),
         bottomNavigationBar: _buildBottomNav(),
         body: usesHero
@@ -395,6 +396,33 @@ class _CourierDashboardState extends State<CourierDashboard> {
             ),
           ],
         ),
+      ),
+      const SizedBox(height: 10),
+      ValueListenableBuilder<ThemeMode>(
+        valueListenable: ThemeController.mode,
+        builder: (context, _, __) {
+          final isDark = ThemeController.isDark(context);
+          return _Card(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: isDark,
+              onChanged: (v) => ThemeController.setDark(v),
+              secondary: Icon(
+                isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                color: isDark ? CartzyColors.darkAccent : _ink,
+              ),
+              title: Text(
+                'Dark Mode',
+                style: GoogleFonts.dmSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: CartzyColors.textOf(context),
+                ),
+              ),
+              activeThumbColor: CartzyColors.darkAccent,
+            ),
+          );
+        },
       ),
       const SizedBox(height: 14),
       OutlinedButton.icon(

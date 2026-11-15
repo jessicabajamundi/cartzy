@@ -173,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.bgOf(context),
       body: SafeArea(
         child: Stack(
           children: [
