@@ -911,11 +911,16 @@ class AuthController extends Controller
 
             // If registering as Courier / Rider, create corresponding Rider record
             if ($user->isCourier()) {
-                if (!empty($validated['logistics_provider_id'])) {
+                $providerId = !empty($validated['logistics_provider_id'])
+                    ? (int) $validated['logistics_provider_id']
+                    : (\App\Models\LogisticsProvider::where('status', 'approved')->value('id')
+                        ?? \App\Models\LogisticsProvider::value('id'));
+
+                if ($providerId) {
                     \App\Models\Rider::firstOrCreate(
                         ['user_id' => $user->id],
                         [
-                            'logistics_provider_id' => $validated['logistics_provider_id'],
+                            'logistics_provider_id' => $providerId,
                             'courier_type'          => $validated['courier_type'] ?? \App\Models\Rider::LAST_MILE,
                             'vehicle_type'          => $validated['vehicle_type'] ?? null,
                             'plate_no'              => !empty($validated['plate_no']) ? strtoupper(trim($validated['plate_no'])) : null,
@@ -923,6 +928,21 @@ class AuthController extends Controller
                             'is_active'             => false,
                         ]
                     );
+
+                    $providerUserId = \App\Models\LogisticsProvider::where('id', $providerId)->value('user_id');
+                    if ($providerUserId) {
+                        try {
+                            \App\Services\NotificationService::notify(
+                                (int) $providerUserId,
+                                'rider_registration',
+                                'New Rider / Courier Registration',
+                                "{$user->name} submitted a rider/courier application for your review.",
+                                route('logistics.riders', ['filter' => 'pending'])
+                            );
+                        } catch (\Throwable $e) {
+                            \Illuminate\Support\Facades\Log::info('Logistics rider registration notification skipped: ' . $e->getMessage());
+                        }
+                    }
                 }
 
                 $roleModel = \App\Models\Role::firstOrCreate(['name' => 'courier']);

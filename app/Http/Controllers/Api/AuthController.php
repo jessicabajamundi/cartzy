@@ -437,6 +437,21 @@ class AuthController extends Controller
                     'status' => 'pending',
                     'is_active' => false,
                 ]);
+
+                $providerUserId = \App\Models\LogisticsProvider::where('id', $providerId)->value('user_id');
+                if ($providerUserId) {
+                    try {
+                        \App\Services\NotificationService::notify(
+                            (int) $providerUserId,
+                            'rider_registration',
+                            'New Rider / Courier Registration',
+                            "{$user->name} submitted a rider/courier application for your review.",
+                            route('logistics.riders', ['filter' => 'pending'])
+                        );
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::info('Logistics rider registration notification skipped: ' . $e->getMessage());
+                    }
+                }
             }
 
             $user->roles()->syncWithoutDetaching([\App\Models\Role::firstOrCreate(['name' => 'courier'])->id]);
