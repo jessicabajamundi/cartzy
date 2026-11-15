@@ -53,15 +53,15 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: () => Navigator.of(context).pop(false),
         ),
-        title: const Text('ID Verification', style: TextStyle(color: CartzyColors.navy, fontWeight: FontWeight.bold)),
+        title: Text('ID Verification', style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy), fontWeight: FontWeight.bold)),
       ),
       body: SafeArea(
         child: ListView(
@@ -70,7 +70,7 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: CartzyColors.surface,
+                color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 3))],
               ),
@@ -79,32 +79,32 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.badge_outlined, color: CartzyColors.coral),
+                      Icon(Icons.badge_outlined, color: CartzyColors.mutedOf(context, light: CartzyColors.coral)),
                       const SizedBox(width: 8),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Submit ID for Verification',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: CartzyColors.background,
+                          color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Encrypted & Protected',
-                          style: TextStyle(fontSize: 9, color: CartzyColors.gray, fontWeight: FontWeight.w600),
+                          style: TextStyle(fontSize: 9, color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  const Text('Valid ID Type *',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.navy)),
+                  Text('Valid ID Type *',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () async {
@@ -134,10 +134,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       decoration: BoxDecoration(
-                        color: CartzyColors.background,
+                        color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _idTypeError ? CartzyColors.error : CartzyColors.border,
+                          color: _idTypeError ? CartzyColors.error : CartzyColors.borderOf(context, light: CartzyColors.border),
                           width: 1.2,
                         ),
                       ),
@@ -148,11 +148,11 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                               _selectedIdType.isEmpty ? '-- Select Valid ID Type --' : _selectedIdType,
                               style: TextStyle(
                                 fontSize: 14,
-                                color: _selectedIdType.isEmpty ? CartzyColors.gray : CartzyColors.text,
+                                color: _selectedIdType.isEmpty ? CartzyColors.mutedOf(context, light: CartzyColors.gray) : CartzyColors.textOf(context, light: CartzyColors.text),
                               ),
                             ),
                           ),
-                          const Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.gray),
+                          Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                         ],
                       ),
                     ),
@@ -164,25 +164,25 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                     ),
                   const SizedBox(height: 18),
 
-                  const Text('ID Number (Optional)',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.navy)),
+                  Text('ID Number (Optional)',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _idNumberController,
-                    style: const TextStyle(fontSize: 14, color: CartzyColors.text),
+                    style: TextStyle(fontSize: 14, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                     decoration: InputDecoration(
                       hintText: 'e.g. 1234-5678-9012',
-                      hintStyle: const TextStyle(fontSize: 13, color: CartzyColors.gray),
+                      hintStyle: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                       filled: true,
-                      fillColor: CartzyColors.background,
+                      fillColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+                        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border), width: 1.2),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+                        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border), width: 1.2),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -192,8 +192,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  const Text('Front Photo or Scan of Valid ID *',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.navy)),
+                  Text('Front Photo or Scan of Valid ID *',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: _pickFile,
@@ -201,10 +201,10 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 30),
                       decoration: BoxDecoration(
-                        color: CartzyColors.background,
+                        color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: _fileError ? CartzyColors.error : CartzyColors.border,
+                          color: _fileError ? CartzyColors.error : CartzyColors.borderOf(context, light: CartzyColors.border),
                           width: 1.4,
                           style: BorderStyle.solid,
                         ),
@@ -214,8 +214,8 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                           Container(
                             width: 48,
                             height: 48,
-                            decoration: const BoxDecoration(color: CartzyColors.surface, shape: BoxShape.circle),
-                            child: const Icon(Icons.camera_alt_outlined, color: CartzyColors.coral),
+                            decoration: BoxDecoration(color: CartzyColors.surfaceOf(context, light: CartzyColors.surface), shape: BoxShape.circle),
+                            child: Icon(Icons.camera_alt_outlined, color: CartzyColors.mutedOf(context, light: CartzyColors.coral)),
                           ),
                           const SizedBox(height: 14),
                           Text(
@@ -224,14 +224,14 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: _fileName != null ? FontWeight.w600 : FontWeight.normal,
-                              color: _fileName != null ? CartzyColors.coral : CartzyColors.navy,
+                              color: _fileName != null ? CartzyColors.mutedOf(context, light: CartzyColors.coral) : CartzyColors.textOf(context, light: CartzyColors.navy),
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
+                          Text(
                             'Supports PNG, JPG, JPEG, PDF up to 5MB. Ensure full name and birthdate are legible.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 11, color: CartzyColors.gray),
+                            style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                           ),
                         ],
                       ),
@@ -247,17 +247,17 @@ class _IdVerificationScreenState extends State<IdVerificationScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: CartzyColors.background,
+                      color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.lock_outline, size: 16, color: CartzyColors.gray),
-                        SizedBox(width: 8),
+                        Icon(Icons.lock_outline, size: 16, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Your data is securely stored and verified solely for platform purchasing compliance.',
-                            style: TextStyle(fontSize: 11, color: CartzyColors.gray, height: 1.4),
+                            style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray), height: 1.4),
                           ),
                         ),
                       ],

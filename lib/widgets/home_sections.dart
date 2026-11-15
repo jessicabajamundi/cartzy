@@ -154,7 +154,7 @@ class HeroBannerState extends State<HeroBanner> {
 
     return Container(
       width: double.infinity,
-      color: const Color(0xFFFDFBF7),
+      color: CartzyColors.elevatedOf(context, light: const Color(0xFFFDFBF7)),
       child: AspectRatio(
         aspectRatio: screenWidth /
             // A shorter mobile frame also reduces the cover image's zoom.
@@ -187,11 +187,11 @@ class HeroBannerState extends State<HeroBanner> {
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            Colors.white
+                            CartzyColors.surfaceOf(context, light: Colors.white)
                                 .withValues(alpha: isMobile ? 0.96 : 0.55),
-                            Colors.white
+                            CartzyColors.surfaceOf(context, light: Colors.white)
                                 .withValues(alpha: isMobile ? 0.78 : 0.20),
-                            Colors.white.withValues(alpha: 0.0),
+                            CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.0),
                           ],
                           stops: isMobile
                               ? const [0.0, 0.38, 0.54]
@@ -245,7 +245,7 @@ class HeroBannerState extends State<HeroBanner> {
                             Text(
                               ' | CARTZY',
                               style: GoogleFonts.poppins(
-                                color: CartzyColors.gray,
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                                 fontSize: isMobile
                                     ? 8.0
                                     : (w * 0.011).clamp(11.0, 14.0),
@@ -263,7 +263,7 @@ class HeroBannerState extends State<HeroBanner> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.playfairDisplay(
-                            color: CartzyColors.navy,
+                            color: CartzyColors.textOf(context, light: CartzyColors.navy),
                             fontSize: isMobile
                                 ? (w * 0.042).clamp(14.0, 17.5)
                                 : (w * 0.034).clamp(20.0, 42.0),
@@ -294,7 +294,7 @@ class HeroBannerState extends State<HeroBanner> {
                           maxLines: isMobile ? 2 : 3,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
-                            color: CartzyColors.gray,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                             fontSize: isMobile
                                 ? (w * 0.027).clamp(9.5, 11.0)
                                 : (w * 0.013).clamp(11.5, 16.0),
@@ -360,7 +360,7 @@ class HeroBannerState extends State<HeroBanner> {
                                       ? 15
                                       : (w * 0.022).clamp(18.0, 26.0),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.20),
+                                    color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.20),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -413,7 +413,7 @@ class HeroBannerState extends State<HeroBanner> {
                                 ? slide.accentColor
                                 : Colors.black.withValues(alpha: 0.22),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.9)),
                               width: 1.0,
                             ),
                             boxShadow: [
@@ -474,7 +474,7 @@ class PromoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(16),
-        border: dark ? null : Border.all(color: CartzyColors.border),
+        border: dark ? null : Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
         boxShadow: dark
             ? null
             : [
@@ -514,7 +514,7 @@ class PromoCard extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: dark ? Colors.white : CartzyColors.burgundy,
+              color: dark ? Colors.white : CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
             ),
           ),
         ],
@@ -599,17 +599,17 @@ class CategoryIconRow extends StatelessWidget {
                     height: 52,
                     decoration: BoxDecoration(
                       color:
-                          selected ? CartzyColors.navy : CartzyColors.surface,
+                          selected ? CartzyColors.navy : CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color:
-                            selected ? CartzyColors.navy : CartzyColors.border,
+                            selected ? CartzyColors.navy : CartzyColors.borderOf(context, light: CartzyColors.border),
                         width: 1.5,
                       ),
                     ),
                     child: Icon(
                       item.icon,
-                      color: selected ? Colors.white : CartzyColors.burgundy,
+                      color: selected ? Colors.white : CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                       size: 22,
                     ),
                   ),
@@ -621,7 +621,7 @@ class CategoryIconRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.dmSans(
                       fontSize: 10,
-                      color: selected ? CartzyColors.navy : CartzyColors.gray,
+                      color: selected ? CartzyColors.textOf(context, light: CartzyColors.navy) : CartzyColors.mutedOf(context, light: CartzyColors.gray),
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       height: 1.2,
                     ),
@@ -743,10 +743,10 @@ class CategoryCardGrid extends StatelessWidget {
                     // Eyebrow
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           '• ',
                           style: TextStyle(
-                            color: Color(0xFF9E7766),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766)),
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
@@ -758,7 +758,7 @@ class CategoryCardGrid extends StatelessWidget {
                               fontSize: 10.5,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1.4,
-                              color: const Color(0xFF9E7766),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766)),
                             ),
                           ),
                         ),
@@ -775,7 +775,7 @@ class CategoryCardGrid extends StatelessWidget {
                             style: GoogleFonts.playfairDisplay(
                               fontSize: 27,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF261E30),
+                              color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -785,7 +785,7 @@ class CategoryCardGrid extends StatelessWidget {
                               fontSize: 27,
                               fontWeight: FontWeight.w600,
                               fontStyle: FontStyle.italic,
-                              color: const Color(0xFF8A7684),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7684)),
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -799,7 +799,7 @@ class CategoryCardGrid extends StatelessWidget {
                       'Explore everyday essentials, style, and more.',
                       style: GoogleFonts.dmSans(
                         fontSize: 12.5,
-                        color: const Color(0xFF756A7C),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                       ),
                     ),
                   ],
@@ -819,10 +819,10 @@ class CategoryCardGrid extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: CartzyColors.surfaceOf(context, light: Colors.white),
                     borderRadius: BorderRadius.circular(22),
                     border: Border.all(
-                      color: const Color(0xFFE6D8D5),
+                      color: CartzyColors.borderOf(context, light: const Color(0xFFE6D8D5)),
                       width: 1.1,
                     ),
                     boxShadow: [
@@ -841,14 +841,14 @@ class CategoryCardGrid extends StatelessWidget {
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: const Color(0xFF6E5E65),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF6E5E65)),
                         ),
                       ),
                       const SizedBox(width: 5),
-                      const Icon(
+                      Icon(
                         Icons.north_east,
                         size: 11,
-                        color: Color(0xFF6E5E65),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF6E5E65)),
                       ),
                     ],
                   ),
@@ -913,7 +913,7 @@ class _CategoryCardItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: const Color(0xFFB76E79),
@@ -948,7 +948,7 @@ class _CategoryCardItem extends StatelessWidget {
                         card.assetFallback,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                          color: const Color(0xFFF2ECE9),
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFF2ECE9)),
                           child: const Icon(
                             Icons.image_outlined,
                             size: 40,
@@ -968,7 +968,7 @@ class _CategoryCardItem extends StatelessWidget {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.94),
+                          color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.94),
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
@@ -983,7 +983,7 @@ class _CategoryCardItem extends StatelessWidget {
                           style: GoogleFonts.dmSans(
                             fontSize: 10.5,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF2C2436),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF2C2436)),
                           ),
                         ),
                       ),
@@ -1009,7 +1009,7 @@ class _CategoryCardItem extends StatelessWidget {
                           style: GoogleFonts.dmSans(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF261E30),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -1019,7 +1019,7 @@ class _CategoryCardItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.dmSans(
                             fontSize: 11,
-                            color: const Color(0xFF756A7C),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                           ),
                         ),
                       ],
@@ -1035,7 +1035,7 @@ class _CategoryCardItem extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: card.isHighlighted
                           ? const Color(0xFFB76E79)
-                          : const Color(0xFFF9F6FB),
+                          : CartzyColors.elevatedOf(context, light: const Color(0xFFF9F6FB)),
                       border: Border.all(
                         color: const Color(0xFFB76E79),
                         width: 1.1,
@@ -1336,21 +1336,21 @@ class FlashDealsSectionState extends State<FlashDealsSection> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: CartzyColors.roseSoft,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.roseSoft),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.bolt,
-                        color: CartzyColors.burgundy, size: 14),
+                    Icon(Icons.bolt,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 14),
                     const SizedBox(width: 4),
                     Text(
                       'FLASH DEALS',
                       style: GoogleFonts.dmSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: CartzyColors.burgundy,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -1371,7 +1371,7 @@ class FlashDealsSectionState extends State<FlashDealsSection> {
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: CartzyColors.burgundy,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                   ),
                 ),
               ),
@@ -1390,7 +1390,7 @@ class FlashDealsSectionState extends State<FlashDealsSection> {
                       child: Text(
                         'No flash deals at the moment',
                         style: GoogleFonts.dmSans(
-                            color: CartzyColors.gray, fontSize: 12),
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontSize: 12),
                       ),
                     )
                   : ListView.separated(
@@ -1426,13 +1426,13 @@ class FlashDealsSectionState extends State<FlashDealsSection> {
     );
   }
 
-  Widget _colon() => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 2),
+  Widget _colon() => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Text(':',
             style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy)),
+                color: CartzyColors.textOf(context, light: CartzyColors.navy))),
       );
 }
 
@@ -1450,9 +1450,9 @@ class _FlashDealCard extends StatelessWidget {
         width: 130,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: CartzyColors.surface,
+          color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: CartzyColors.border),
+          border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -1506,7 +1506,7 @@ class _FlashDealCard extends StatelessWidget {
               style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: CartzyColors.navy),
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy)),
             ),
             const SizedBox(height: 2),
             Text(
@@ -1514,7 +1514,7 @@ class _FlashDealCard extends StatelessWidget {
               style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: CartzyColors.burgundy),
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
             ),
           ],
         ),
@@ -1606,17 +1606,17 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 9, vertical: 3.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFBF4F1),
+                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFFBF4F1)),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                                color: const Color(0xFFECDED9), width: 1),
+                                color: CartzyColors.borderOf(context, light: const Color(0xFFECDED9)), width: 1),
                           ),
                           child: Text(
                             'Picked for you',
                             style: GoogleFonts.dmSans(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFFA66E65),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFFA66E65)),
                             ),
                           ),
                         ),
@@ -1627,7 +1627,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: isNarrow ? 22 : 26,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF231F20),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                             letterSpacing: -0.3,
                           ),
                         ),
@@ -1638,7 +1638,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                           style: GoogleFonts.dmSans(
                             fontSize: isNarrow ? 12 : 13,
                             fontWeight: FontWeight.w400,
-                            color: const Color(0xFF7A6E72),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                           ),
                         ),
                       ],
@@ -1655,10 +1655,10 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                         vertical: isNarrow ? 6 : 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: CartzyColors.surfaceOf(context, light: Colors.white),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                            color: const Color(0xFFECDED9), width: 1.2),
+                            color: CartzyColors.borderOf(context, light: const Color(0xFFECDED9)), width: 1.2),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1668,12 +1668,12 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                             style: GoogleFonts.dmSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF5A4449),
+                              color: CartzyColors.textOf(context, light: const Color(0xFF5A4449)),
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.arrow_forward,
-                              size: 12, color: Color(0xFF5A4449)),
+                          Icon(Icons.arrow_forward,
+                              size: 12, color: CartzyColors.textOf(context, light: const Color(0xFF5A4449))),
                         ],
                       ),
                     ),
@@ -1708,12 +1708,12 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                         children: [
                           Icon(Icons.wifi_off_rounded,
                               size: 36,
-                              color: CartzyColors.gray.withValues(alpha: 0.6)),
+                              color: CartzyColors.mutedOf(context, light: CartzyColors.gray.withValues(alpha: 0.6))),
                           const SizedBox(height: 8),
                           Text(
                             'Unable to connect to server',
                             style: GoogleFonts.dmSans(
-                              color: CartzyColors.navy,
+                              color: CartzyColors.textOf(context, light: CartzyColors.navy),
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
@@ -1722,7 +1722,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                           Text(
                             'Check connection or tap to retry',
                             style: GoogleFonts.dmSans(
-                              color: CartzyColors.gray,
+                              color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                               fontSize: 12,
                             ),
                           ),
@@ -1747,7 +1747,7 @@ class DailyDiscoverSectionState extends State<DailyDiscoverSection> {
                   : Center(
                       child: Text(
                         'No products found in the catalog.',
-                        style: GoogleFonts.dmSans(color: CartzyColors.gray),
+                        style: GoogleFonts.dmSans(color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                       ),
                     ),
         ),
@@ -1833,7 +1833,7 @@ class SectionTitle extends StatelessWidget {
             style: GoogleFonts.playfairDisplay(
               fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           const Spacer(),
@@ -1845,7 +1845,7 @@ class SectionTitle extends StatelessWidget {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: CartzyColors.burgundy,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                 ),
               ),
             ),

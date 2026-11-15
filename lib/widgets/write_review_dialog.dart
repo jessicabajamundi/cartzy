@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/review_service.dart';
 
@@ -134,9 +134,9 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
-      decoration: const BoxDecoration(
-        color: CartzyColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -147,7 +147,7 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: CartzyColors.border,
+              color: CartzyColors.elevatedOf(context, light: CartzyColors.border),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -158,16 +158,16 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Rate & Review Product',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: CartzyColors.gray),
+                  icon: Icon(Icons.close, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -187,9 +187,9 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: CartzyColors.background,
+                      color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: CartzyColors.border),
+                      border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                     ),
                     child: Row(
                       children: [
@@ -197,12 +197,12 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: CartzyColors.surface,
+                            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.shopping_bag_outlined,
-                            color: CartzyColors.coral,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                             size: 26,
                           ),
                         ),
@@ -215,10 +215,10 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                                 widget.productName,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: CartzyColors.navy,
+                                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -240,13 +240,13 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                   const SizedBox(height: 20),
 
                   // Rating Header
-                  const Center(
+                  Center(
                     child: Text(
                       'How was the product?',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                   ),
@@ -285,10 +285,10 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                   Center(
                     child: Text(
                       _ratingLabel,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.coral,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                       ),
                     ),
                   ),
@@ -296,12 +296,12 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                   const SizedBox(height: 22),
 
                   // Quick Tags
-                  const Text(
+                  Text(
                     'What did you like most?',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
 
@@ -328,14 +328,14 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                         checkmarkColor: CartzyColors.coral,
                         labelStyle: TextStyle(
                           fontSize: 12,
-                          color: selected ? CartzyColors.coral : CartzyColors.navy,
+                          color: selected ? CartzyColors.mutedOf(context, light: CartzyColors.coral) : CartzyColors.textOf(context, light: CartzyColors.navy),
                           fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                         ),
-                        backgroundColor: CartzyColors.surface,
+                        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                           side: BorderSide(
-                            color: selected ? CartzyColors.coral : CartzyColors.border,
+                            color: selected ? CartzyColors.coral : CartzyColors.borderOf(context, light: CartzyColors.border),
                           ),
                         ),
                       );
@@ -345,12 +345,12 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                   const SizedBox(height: 20),
 
                   // Comment Input
-                  const Text(
+                  Text(
                     'Write your detailed review',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
 
@@ -361,16 +361,16 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                     maxLines: 4,
                     decoration: InputDecoration(
                       hintText: 'Describe your experience with this product, its quality, packaging, and usability...',
-                      hintStyle: const TextStyle(fontSize: 13, color: CartzyColors.gray),
+                      hintStyle: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                       filled: true,
-                      fillColor: CartzyColors.background,
+                      fillColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: CartzyColors.border),
+                        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: CartzyColors.border),
+                        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -385,15 +385,15 @@ class _WriteReviewDialogState extends State<WriteReviewDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.visibility_off_outlined, size: 20, color: CartzyColors.gray),
-                          SizedBox(width: 8),
+                          Icon(Icons.visibility_off_outlined, size: 20, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
+                          const SizedBox(width: 8),
                           Text(
                             'Review Anonymously',
                             style: TextStyle(
                               fontSize: 13,
-                              color: CartzyColors.navy,
+                              color: CartzyColors.textOf(context, light: CartzyColors.navy),
                               fontWeight: FontWeight.w500,
                             ),
                           ),

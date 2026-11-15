@@ -96,24 +96,24 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         surfaceTintColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Text(
           'Clear history?',
           style: GoogleFonts.playfairDisplay(
-              fontWeight: FontWeight.w700, color: _Palette.ink),
+              fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _Palette.ink)),
         ),
         content: Text(
           'Your recently viewed products will be removed from this device.',
-          style: GoogleFonts.dmSans(fontSize: 13.5, color: _Palette.muted),
+          style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: _Palette.muted)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: Text('Cancel',
                 style: GoogleFonts.dmSans(
-                    fontWeight: FontWeight.w600, color: _Palette.muted)),
+                    fontWeight: FontWeight.w600, color: CartzyColors.mutedOf(context, light: _Palette.muted))),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -155,7 +155,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.brand50Lavender,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
       body: SafeArea(
         child: ValueListenableBuilder<List<RecentlyViewedProduct>>(
           valueListenable: RecentlyViewedService.items,
@@ -187,17 +187,17 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
           Row(
             children: [
               Material(
-                color: Colors.white,
-                shape: const CircleBorder(
-                    side: BorderSide(color: _Palette.line)),
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
+                shape: CircleBorder(
+                    side: BorderSide(color: CartzyColors.borderOf(context, light: _Palette.line))),
                 child: InkWell(
                   customBorder: const CircleBorder(),
                   onTap: widget.onBack,
-                  child: const SizedBox(
+                  child: SizedBox(
                     width: 42,
                     height: 42,
                     child: Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 16, color: _Palette.ink),
+                        size: 16, color: CartzyColors.textOf(context, light: _Palette.ink)),
                   ),
                 ),
               ),
@@ -220,7 +220,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
             style: GoogleFonts.playfairDisplay(
               fontSize: 28,
               fontWeight: FontWeight.w700,
-              color: _Palette.ink,
+              color: CartzyColors.textOf(context, light: _Palette.ink),
             ),
           ),
           const SizedBox(height: 2),
@@ -228,7 +228,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
             count == 0
                 ? 'Products you open will show up here.'
                 : '$count product${count == 1 ? '' : 's'} · long-press to remove',
-            style: GoogleFonts.dmSans(fontSize: 13, color: _Palette.muted),
+            style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: _Palette.muted)),
           ),
         ],
       ),
@@ -304,7 +304,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 21,
                 fontWeight: FontWeight.w700,
-                color: _Palette.ink,
+                color: CartzyColors.textOf(context, light: _Palette.ink),
               ),
             ),
             const SizedBox(height: 6),
@@ -312,7 +312,7 @@ class _RecentlyViewedScreenState extends State<RecentlyViewedScreen> {
               'Browse around — products you open will appear here so you can find them again.',
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(
-                  fontSize: 13.5, height: 1.4, color: _Palette.muted),
+                  fontSize: 13.5, height: 1.4, color: CartzyColors.mutedOf(context, light: _Palette.muted)),
             ),
             const SizedBox(height: 22),
             DecoratedBox(

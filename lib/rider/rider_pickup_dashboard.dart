@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'rider_common_app_bar.dart';
@@ -67,7 +68,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.phone_outlined, color: Color(0xFF46333D)),
+            Icon(Icons.phone_outlined, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))),
             const SizedBox(width: 8),
             Text(
               'Call Merchant',
@@ -81,7 +82,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
           children: [
             Text(item.storeName, style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 4),
-            Text('Number: ${item.phone}', style: GoogleFonts.dmSans(color: const Color(0xFF554B62))),
+            Text('Number: ${item.phone}', style: GoogleFonts.dmSans(color: CartzyColors.textOf(context, light: const Color(0xFF554B62)))),
             const SizedBox(height: 8),
             Text('Pickup location: ${item.address}', style: GoogleFonts.dmSans(fontSize: 12, color: Colors.black54)),
           ],
@@ -129,7 +130,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F5),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
       body: Column(
         children: [
           RiderCommonAppBar(
@@ -168,7 +169,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF261E30),
+                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                 letterSpacing: -0.4,
               ),
             ),
@@ -177,7 +178,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
               'Collect parcels from seller stores and warehouse locations',
               style: GoogleFonts.dmSans(
                 fontSize: 13,
-                color: const Color(0xFF8A7780),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
               ),
             ),
           ],
@@ -230,10 +231,10 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF46333D) : Colors.white,
+          color: isSelected ? const Color(0xFF46333D) : CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF46333D) : const Color(0xFFE5DCDD),
+            color: isSelected ? const Color(0xFF46333D) : CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD)),
           ),
           boxShadow: isSelected
               ? [
@@ -250,7 +251,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
           style: GoogleFonts.dmSans(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF554B62),
+            color: isSelected ? Colors.white : CartzyColors.textOf(context, light: const Color(0xFF554B62)),
           ),
         ),
       ),
@@ -265,9 +266,9 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
         width: double.infinity,
         padding: const EdgeInsets.all(40),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEFE8EA)),
+          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
         ),
         child: Center(
           child: Column(
@@ -280,13 +281,13 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                 style: GoogleFonts.cormorantGaramond(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF261E30),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                 ),
               ),
               const SizedBox(height: 6),
               Text(
                 'There are no requests matching the selected filter.',
-                style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF8A7780)),
+                style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
               ),
             ],
           ),
@@ -322,9 +323,9 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -368,7 +369,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       style: GoogleFonts.dmSans(
                         fontSize: 14.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF261E30),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -377,7 +378,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       item.phone,
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
-                        color: const Color(0xFF8A7780),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                       ),
                     ),
                   ],
@@ -388,13 +389,13 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                 decoration: BoxDecoration(
                   color: isConfirmed
-                      ? const Color(0xFFEDF7EE)
-                      : const Color(0xFFFFF7E8),
+                      ? CartzyColors.elevatedOf(context, light: const Color(0xFFEDF7EE))
+                      : CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7E8)),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: isConfirmed
-                        ? const Color(0xFFD1EAD4)
-                        : const Color(0xFFFDE6C5),
+                        ? CartzyColors.borderOf(context, light: const Color(0xFFD1EAD4))
+                        : CartzyColors.borderOf(context, light: const Color(0xFFFDE6C5)),
                   ),
                 ),
                 child: Text(
@@ -418,10 +419,10 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(
+              Icon(
                 Icons.location_on_outlined,
                 size: 15,
-                color: Color(0xFF8A7780),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -429,7 +430,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                   item.address,
                   style: GoogleFonts.dmSans(
                     fontSize: 12.5,
-                    color: const Color(0xFF554B62),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
                     height: 1.3,
                   ),
                 ),
@@ -449,7 +450,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       text: 'Package Count: ',
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
-                        color: const Color(0xFF8A7780),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                       ),
                     ),
                     TextSpan(
@@ -457,7 +458,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       style: GoogleFonts.dmSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF261E30),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                       ),
                     ),
                   ],
@@ -471,7 +472,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       text: 'Weight: ',
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
-                        color: const Color(0xFF8A7780),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                       ),
                     ),
                     TextSpan(
@@ -479,7 +480,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                       style: GoogleFonts.dmSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF261E30),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                       ),
                     ),
                   ],
@@ -498,7 +499,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                 'Scheduled Window:',
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
-                  color: const Color(0xFF8A7780),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                 ),
               ),
               const SizedBox(width: 8),
@@ -508,7 +509,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                   style: GoogleFonts.dmSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF261E30),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                   ),
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
@@ -524,15 +525,15 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFFBF7F4),
+              color: CartzyColors.elevatedOf(context, light: const Color(0xFFFBF7F4)),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFF3ECE7)),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFF3ECE7))),
             ),
             child: Text(
               'Merchant Note: ${item.merchantNote}',
               style: GoogleFonts.dmSans(
                 fontSize: 12,
-                color: const Color(0xFF5A454B),
+                color: CartzyColors.textOf(context, light: const Color(0xFF5A454B)),
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -552,7 +553,7 @@ class _RiderPickupDashboardState extends State<RiderPickupDashboard> {
                 onPressed: () => _callMerchant(item),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF46333D),
-                  side: const BorderSide(color: Color(0xFFE5DCDD)),
+                  side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD))),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),

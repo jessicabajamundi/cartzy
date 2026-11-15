@@ -21,18 +21,18 @@ class AccessDeniedScreen extends StatelessWidget {
         '${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}:${ts.second.toString().padLeft(2, '0')}';
 
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: onReturn,
         ),
-        title: const Text(
+        title: Text(
           'Access Denied (403)',
           style: TextStyle(
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -79,12 +79,12 @@ class AccessDeniedScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              const Text(
+              Text(
                 '403 Forbidden',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.brandDarkest,
+                  color: CartzyColors.textOf(context, light: CartzyColors.brandDarkest),
                 ),
               ),
               const SizedBox(height: 10),
@@ -93,9 +93,9 @@ class AccessDeniedScreen extends StatelessWidget {
                 'You do not have permission to access the $attemptedPage.\n'
                 'Your account role ($userRole) is not authorized for this resource.',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                   height: 1.5,
                 ),
               ),
@@ -106,23 +106,23 @@ class AccessDeniedScreen extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: CartzyColors.surface,
+                  color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: CartzyColors.border),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.security_outlined, size: 16, color: CartzyColors.brandDark),
-                        SizedBox(width: 8),
+                        Icon(Icons.security_outlined, size: 16, color: CartzyColors.textOf(context, light: CartzyColors.brandDark)),
+                        const SizedBox(width: 8),
                         Text(
                           'Security Incident Details',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: CartzyColors.brandDark,
+                            color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                           ),
                         ),
                       ],
@@ -143,23 +143,23 @@ class AccessDeniedScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: CartzyColors.brandLight,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.brandLight),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: CartzyColors.brandBorder),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.brandBorder)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline, size: 16, color: CartzyColors.brandDark),
+                    Icon(Icons.info_outline, size: 16, color: CartzyColors.textOf(context, light: CartzyColors.brandDark)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'TC-BUY-030 — Expected Result: A Buyer attempting to access the '
                         '$attemptedPage should see a 403 Forbidden screen. '
                         '✓ This screen confirms the behavior is implemented correctly.',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: CartzyColors.brandDark,
+                          color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                           height: 1.4,
                         ),
                       ),
@@ -222,9 +222,9 @@ class _DetailRow extends StatelessWidget {
             width: 150,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: CartzyColors.gray,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -232,9 +232,9 @@ class _DetailRow extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: CartzyColors.brandDarkest,
+                color: CartzyColors.textOf(context, light: CartzyColors.brandDarkest),
                 fontWeight: FontWeight.w600,
               ),
             ),

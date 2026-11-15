@@ -11,7 +11,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -31,20 +31,20 @@ class WelcomeScreen extends StatelessWidget {
               // ==================================
               RichText(
                 textAlign: TextAlign.center,
-                text: const TextSpan(
-                  style: TextStyle(fontSize: 25),
+                text: TextSpan(
+                  style: const TextStyle(fontSize: 25),
                   children: [
                     TextSpan(
                       text: 'Find Everything You ',
                       style: TextStyle(
-                        color: CartzyColors.brandDarkest,
+                        color: CartzyColors.textOf(context, light: CartzyColors.brandDarkest),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
                       text: 'Love',
                       style: TextStyle(
-                        color: CartzyColors.brandDeep,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -53,16 +53,16 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              const Text(
+              Text(
                 'Top quality products at best prices.',
-                style: TextStyle(fontSize: 14, color: CartzyColors.brandDarkest),
+                style: TextStyle(fontSize: 14, color: CartzyColors.textOf(context, light: CartzyColors.brandDarkest)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
 
-              const Text(
+              Text(
                 'Shop easy, live better',
-                style: TextStyle(fontSize: 14, color: CartzyColors.brandDeep),
+                style: TextStyle(fontSize: 14, color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep)),
                 textAlign: TextAlign.center,
               ),
 
@@ -91,9 +91,9 @@ class WelcomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              const Text(
+              Text(
                 'Your shopping journey starts here',
-                style: TextStyle(fontSize: 12, color: CartzyColors.brandDeep),
+                style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),

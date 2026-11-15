@@ -213,7 +213,7 @@ class _ProfilePhotoEditorScreenState extends State<ProfilePhotoEditorScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -299,7 +299,7 @@ class _ProfilePhotoEditorScreenState extends State<ProfilePhotoEditorScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(clipRadius),
               border: Border.all(
-                color: CartzyColors.cream.withValues(alpha: 0.8),
+                color: CartzyColors.borderOf(context, light: CartzyColors.cream.withValues(alpha: 0.8)),
                 width: 2.0,
               ),
               boxShadow: [
@@ -331,7 +331,7 @@ class _ProfilePhotoEditorScreenState extends State<ProfilePhotoEditorScreen> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         border: Border(
           top: BorderSide(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.08)),
             width: 1,
           ),
         ),
@@ -465,12 +465,12 @@ class _ProfilePhotoEditorScreenState extends State<ProfilePhotoEditorScreen> {
             decoration: BoxDecoration(
               color: isActive
                   ? CartzyColors.burgundy.withValues(alpha: 0.35)
-                  : Colors.white.withValues(alpha: 0.06),
+                  : CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.06),
               shape: BoxShape.circle,
               border: Border.all(
                 color: isActive
                     ? CartzyColors.burgundy
-                    : Colors.white.withValues(alpha: 0.12),
+                    : CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.12)),
                 width: 1.2,
               ),
             ),

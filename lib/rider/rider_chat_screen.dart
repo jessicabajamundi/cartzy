@@ -142,13 +142,13 @@ class _RiderChatScreenState extends State<RiderChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         elevation: 0,
         title: Text(
           widget.otherUserName,
-          style: const TextStyle(color: CartzyColors.navy, fontWeight: FontWeight.bold),
+          style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy), fontWeight: FontWeight.bold),
         ),
       ),
       body: SafeArea(
@@ -158,8 +158,8 @@ class _RiderChatScreenState extends State<RiderChatScreen> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _messages.isEmpty
-                      ? const Center(
-                          child: Text('Say hello 👋', style: TextStyle(color: CartzyColors.gray)),
+                      ? Center(
+                          child: Text('Say hello 👋', style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
                         )
                       : ListView.builder(
                           controller: _scrollController,
@@ -175,13 +175,13 @@ class _RiderChatScreenState extends State<RiderChatScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                 constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
                                 decoration: BoxDecoration(
-                                  color: isMine ? CartzyColors.navy : CartzyColors.surface,
+                                  color: isMine ? CartzyColors.navy : CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                                   borderRadius: BorderRadius.circular(14),
-                                  border: isMine ? null : Border.all(color: CartzyColors.border),
+                                  border: isMine ? null : Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                                 ),
                                 child: Text(
                                   message.body,
-                                  style: TextStyle(color: isMine ? Colors.white : CartzyColors.navy),
+                                  style: TextStyle(color: isMine ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy)),
                                 ),
                               ),
                             );
@@ -200,22 +200,22 @@ class _RiderChatScreenState extends State<RiderChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         filled: true,
-                        fillColor: CartzyColors.surface,
+                        fillColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: CartzyColors.border),
+                          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: CartzyColors.border),
+                          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 10),
                   IconButton(
-                    icon: const Icon(Icons.send, color: CartzyColors.coral),
+                    icon: Icon(Icons.send, color: CartzyColors.mutedOf(context, light: CartzyColors.coral)),
                     onPressed: _isSending ? null : _send,
                   ),
                 ],

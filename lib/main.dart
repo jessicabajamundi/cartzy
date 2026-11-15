@@ -223,7 +223,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Colors.white,
+          backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
           surfaceTintColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           title: const Text(
@@ -233,7 +233,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
           ),
           content: Text.rich(
             TextSpan(
-              style: const TextStyle(fontSize: 12, color: Color(0xFF777083), height: 1.45),
+              style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF777083)), height: 1.45),
               children: [
                 const TextSpan(text: "You're signed in as "),
                 TextSpan(text: displayName, style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -251,7 +251,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
                 onPressed: signingOut ? null : () => Navigator.pop(dialogContext, false),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFF514B5D),
-                  side: const BorderSide(color: Color(0xFFE7E2EB)),
+                  side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE7E2EB))),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
                   padding: EdgeInsets.zero,
                   textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),

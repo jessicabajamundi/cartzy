@@ -332,9 +332,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
         child: Column(
@@ -349,11 +349,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.burgundy,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 22, color: Colors.grey),
+                  icon: Icon(Icons.close_rounded, size: 22, color: CartzyColors.mutedOf(context, light: Colors.grey)),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],
@@ -364,22 +364,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: CartzyColors.cream,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.camera_alt_rounded, color: CartzyColors.burgundy, size: 22),
+                child: Icon(Icons.camera_alt_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
               ),
               title: Text(
                 'Take a photo',
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                 ),
               ),
               subtitle: Text(
                 'Use camera to capture a new picture',
-                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -392,22 +392,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: CartzyColors.cream,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.photo_library_rounded, color: CartzyColors.burgundy, size: 22),
+                child: Icon(Icons.photo_library_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
               ),
               title: Text(
                 'Choose from gallery',
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                 ),
               ),
               subtitle: Text(
                 'Select an image from device gallery',
-                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -421,22 +421,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: CartzyColors.cream,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.crop_rotate_rounded, color: CartzyColors.burgundy, size: 22),
+                  child: Icon(Icons.crop_rotate_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
                 ),
                 title: Text(
                   'Crop & adjust current photo',
                   style: GoogleFonts.dmSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF231F20),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                   ),
                 ),
                 subtitle: Text(
                   'Reposition, rotate, or zoom existing photo',
-                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -464,7 +464,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
                 subtitle: Text(
                   'Revert to initials avatar',
-                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -503,9 +503,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: CartzyColors.cream,
+              color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
+              border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.12),
@@ -532,7 +532,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: CartzyColors.cream,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                 shape: BoxShape.circle,
                 border: Border.all(color: CartzyColors.burgundy, width: 1.5),
                 boxShadow: [
@@ -542,10 +542,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.camera_alt_rounded,
                 size: 13,
-                color: CartzyColors.burgundy,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
               ),
             ),
           ),
@@ -559,7 +559,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       child: Text(
         initials,
         style: GoogleFonts.dmSans(
-          color: CartzyColors.burgundy,
+          color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
           fontSize: size * 0.36,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.5,
@@ -683,9 +683,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -700,10 +700,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   style: GoogleFonts.dmSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF231F20)),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                  icon: Icon(Icons.close, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],
@@ -712,7 +712,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFECFDF5),
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFECFDF5)),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFA7F3D0)),
               ),
@@ -744,21 +744,21 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading:
-                  const Icon(Icons.badge_outlined, color: CartzyColors.navy),
+                  Icon(Icons.badge_outlined, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
               title: Text('ID Type',
                   style: GoogleFonts.dmSans(
                       fontSize: 14, fontWeight: FontWeight.bold)),
               subtitle: Text(_selectedIdType,
                   style:
-                      const TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
+                      TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
               trailing: TextButton(
                 onPressed: () async {
                   Navigator.pop(ctx);
                   await _pickIdDocument();
                 },
-                child: const Text('Update ID',
+                child: Text('Update ID',
                     style: TextStyle(
-                        color: CartzyColors.coral,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                         fontWeight: FontWeight.bold)),
               ),
             ),
@@ -785,9 +785,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -802,10 +802,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   style: GoogleFonts.dmSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF231F20)),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                  icon: Icon(Icons.close, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],
@@ -816,8 +816,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               leading: Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF3ECEE),
+                decoration: BoxDecoration(
+                  color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3ECEE)),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
@@ -826,10 +826,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               ),
               title: const Text('Chat with Cozy (AI Buddy)',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              subtitle: const Text('Instant answers about orders, items & tips',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded,
-                  size: 14, color: Color(0xFF7A6E72)),
+              subtitle: Text('Instant answers about orders, items & tips',
+                  style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
+              trailing: Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
               onTap: () {
                 Navigator.pop(ctx);
                 BuddyChatScreen.showPopup(context);
@@ -838,25 +838,25 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             const Divider(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFF3ECEE),
-                  child: Icon(Icons.email_outlined, color: CartzyColors.navy)),
+              leading: CircleAvatar(
+                  backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF3ECEE)),
+                  child: Icon(Icons.email_outlined, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
               title: const Text('Email Support',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              subtitle: const Text('support@cartzy.shop',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
+              subtitle: Text('support@cartzy.shop',
+                  style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
               onTap: () => showCartzyFlash(
                   context, 'Support email copied: support@cartzy.shop'),
             ),
-            const ListTile(
+            ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
-                  backgroundColor: Color(0xFFF3ECEE),
-                  child: Icon(Icons.phone_outlined, color: CartzyColors.navy)),
-              title: Text('Customer Hotline',
+                  backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF3ECEE)),
+                  child: Icon(Icons.phone_outlined, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
+              title: const Text('Customer Hotline',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               subtitle: Text('+63 (02) 8888-2278 (Mon-Sat, 8am-8pm)',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF7A6E72))),
+                  style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
             ),
           ],
         ),
@@ -874,9 +874,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
           left: 20,
@@ -897,10 +897,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     style: GoogleFonts.dmSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF231F20)),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                    icon: Icon(Icons.close, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                     onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
@@ -909,7 +909,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               Text(
                 'Please describe the issue with your order, rider, or seller in detail:',
                 style: GoogleFonts.dmSans(
-                    fontSize: 12, color: const Color(0xFF7A6E72)),
+                    fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -918,13 +918,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 decoration: InputDecoration(
                   hintText: 'Enter your complaint or inquiry here...',
                   filled: true,
-                  fillColor: const Color(0xFFF9F7F8),
+                  fillColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF9F7F8)),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                      borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE4E7)))),
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFEDE4E7))),
+                      borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE4E7)))),
                 ),
               ),
               const SizedBox(height: 18),
@@ -963,15 +963,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         title: Text(
           'Sign Out',
           style: GoogleFonts.dmSans(
-              fontWeight: FontWeight.bold, color: const Color(0xFF231F20)),
+              fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
         ),
         content: const Text(
             'Are you sure you want to sign out from your Cartzy account?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel',
-                style: TextStyle(color: Color(0xFF7A6E72))),
+            child: Text('Cancel',
+                style: TextStyle(color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1002,7 +1002,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         (widget.onHomeClick ?? widget.onBack).call();
       },
       child: Scaffold(
-        backgroundColor: CartzyColors.cream,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -1010,8 +1010,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
         toolbarHeight: 76,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              size: 20, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back_ios_new,
+              size: 20, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: widget.onHomeClick ?? widget.onBack,
         ),
         title: Column(
@@ -1023,7 +1023,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 fontSize: 11.5,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.5,
-                color: CartzyColors.burgundy,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
               ),
             ),
             const SizedBox(height: 2),
@@ -1032,7 +1032,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 letterSpacing: -0.5,
               ),
             ),
@@ -1064,16 +1064,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
                 // Same soft cream-to-blush look as the Cozy card.
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     colors: [
-                      Color(0xFFFFF7F2),
-                      Color(0xFFFDECEE),
+                      CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7F2)),
+                      CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEE)),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: CartzyColors.rose200, width: 1.2),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 1.2),
                   boxShadow: [
                     BoxShadow(
                       color: CartzyColors.burgundy.withValues(alpha: 0.05),
@@ -1100,7 +1100,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   style: GoogleFonts.playfairDisplay(
                                     fontSize: 23,
                                     fontWeight: FontWeight.w800,
-                                    color: CartzyColors.brand900,
+                                    color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                                   ),
                                 ),
                                 const SizedBox(height: 3),
@@ -1109,7 +1109,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   style: GoogleFonts.dmSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
-                                    color: CartzyColors.brandDark,
+                                    color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -1136,7 +1136,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.1,
-                      color: CartzyColors.gray,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                     ),
                   ),
                   GestureDetector(
@@ -1148,12 +1148,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: CartzyColors.navy,
+                            color: CartzyColors.textOf(context, light: CartzyColors.navy),
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(Icons.arrow_forward_rounded,
-                            size: 14, color: CartzyColors.navy),
+                        Icon(Icons.arrow_forward_rounded,
+                            size: 14, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                       ],
                     ),
                   ),
@@ -1163,10 +1163,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               Container(
                 decoration: BoxDecoration(
-                  color: CartzyColors.creamLight,
+                  color: CartzyColors.surfaceOf(context, light: CartzyColors.creamLight),
                   borderRadius: BorderRadius.circular(22),
                   border:
-                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                      Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder), width: 1.1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -1215,17 +1215,17 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 ),
               ),
               const SizedBox(height: 10),
 
               Container(
                 decoration: BoxDecoration(
-                  color: CartzyColors.creamLight,
+                  color: CartzyColors.surfaceOf(context, light: CartzyColors.creamLight),
                   borderRadius: BorderRadius.circular(22),
                   border:
-                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                      Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder), width: 1.1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -1414,7 +1414,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 ),
               ),
               const SizedBox(height: 10),
@@ -1428,16 +1428,16 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [
-                        Color(0xFFFFF7F2),
-                        Color(0xFFFDECEE),
+                        CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7F2)),
+                        CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEE)),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: CartzyColors.rose200, width: 1.2),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 1.2),
                     boxShadow: [
                       BoxShadow(
                         color: CartzyColors.burgundy.withValues(alpha: 0.05),
@@ -1453,9 +1453,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         width: 54,
                         height: 54,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: CartzyColors.surfaceOf(context, light: Colors.white),
                           shape: BoxShape.circle,
-                          border: Border.all(color: CartzyColors.pinkBorder, width: 1.5),
+                          border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder), width: 1.5),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.04),
@@ -1488,22 +1488,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                                   style: GoogleFonts.playfairDisplay(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w700,
-                                    color: CartzyColors.navy,
+                                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: CartzyColors.rose50Warm,
+                                    color: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                                     borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: CartzyColors.rose200, width: 0.8),
+                                    border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 0.8),
                                   ),
                                   child: Text(
                                     'AI Buddy',
                                     style: GoogleFonts.dmSans(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
-                                      color: CartzyColors.burgundy,
+                                      color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                                     ),
                                   ),
                                 ),
@@ -1514,7 +1514,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                               'Need shopping advice, order tracking, or recommendations?',
                               style: GoogleFonts.dmSans(
                                 fontSize: 11.5,
-                                color: CartzyColors.brandDeep,
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                                 height: 1.3,
                               ),
                             ),
@@ -1560,10 +1560,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
 
               Container(
                 decoration: BoxDecoration(
-                  color: CartzyColors.creamLight,
+                  color: CartzyColors.surfaceOf(context, light: CartzyColors.creamLight),
                   borderRadius: BorderRadius.circular(22),
                   border:
-                      Border.all(color: CartzyColors.pinkBorder, width: 1.1),
+                      Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder), width: 1.1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.02),
@@ -1602,15 +1602,15 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
-                          color: CartzyColors.rose50Warm,
+                          color: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                              color: CartzyColors.rose200, width: 0.8),
+                              color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 0.8),
                         ),
                         child: Text(
                           'v${AppUpdateService.currentAppVersion}',
                           style: GoogleFonts.dmSans(
-                            color: CartzyColors.burgundy,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                           ),
@@ -1638,11 +1638,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     icon: const Icon(Icons.logout_rounded, size: 19),
                     label: const Text('Log out'),
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: CartzyColors.rose50Warm,
+                      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                       foregroundColor: CartzyColors.rose700,
                       minimumSize: const Size(0, 52),
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      side: const BorderSide(color: CartzyColors.rose200),
+                      side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
                       shape: const StadiumBorder(),
                       textStyle: GoogleFonts.dmSans(
                         fontSize: 14,
@@ -1661,7 +1661,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: CartzyColors.brandDark,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1670,7 +1670,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
-                      color: CartzyColors.brandDeep,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                     ),
                   ),
                 ],
@@ -1700,12 +1700,12 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
             duration: const Duration(milliseconds: 200),
             child: Container(
               margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          decoration: const ShapeDecoration(
-            color: CartzyColors.surface,
+          decoration: ShapeDecoration(
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
             shape: StadiumBorder(
-              side: BorderSide(color: CartzyColors.border),
+              side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
             ),
-            shadows: [
+            shadows: const [
               BoxShadow(
                 color: Color(0x148B3A3A),
                 blurRadius: 16,
@@ -1827,11 +1827,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 22,
-            backgroundColor: Colors.white,
+            backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
             child: Icon(Icons.person_outline_rounded,
-                color: CartzyColors.burgundy, size: 24),
+                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1839,7 +1839,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy))),
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy)))),
         ]),
         const SizedBox(height: 12),
         Wrap(spacing: 12, runSpacing: 8, children: [
@@ -1855,9 +1855,9 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
           OutlinedButton(
             onPressed: widget.onSignUp,
             style: OutlinedButton.styleFrom(
-              backgroundColor: Colors.white,
+              backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
               foregroundColor: CartzyColors.burgundy,
-              side: const BorderSide(color: CartzyColors.pinkBorder),
+              side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder)),
               minimumSize: const Size(104, 40),
               shape: const StadiumBorder(),
             ),
@@ -1886,10 +1886,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: CartzyColors.roseSoft,
+                      color: CartzyColors.elevatedOf(context, light: CartzyColors.roseSoft),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Icon(icon, size: 24, color: CartzyColors.burgundy),
+                    child: Icon(icon, size: 24, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -1898,7 +1898,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                 ],
@@ -1928,10 +1928,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: CartzyColors.creamSection,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.creamSection),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 20, color: CartzyColors.burgundy),
+              child: Icon(icon, size: 20, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1940,7 +1940,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
             ),
@@ -1949,8 +1949,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               const SizedBox(width: 8),
             ],
             if (showChevron)
-              const Icon(Icons.chevron_right,
-                  size: 18, color: Color(0xFF8E8286)),
+              Icon(Icons.chevron_right,
+                  size: 18, color: CartzyColors.mutedOf(context, light: const Color(0xFF8E8286))),
           ],
         ),
       ),

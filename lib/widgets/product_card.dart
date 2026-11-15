@@ -109,7 +109,7 @@ class _ProductCardState extends State<ProductCard> {
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(
-                      color: const Color(0xFFF6F3F5),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF6F3F5)),
                       child: CartzyProductImage(
                         imageUrl: (widget.imageUrl?.isNotEmpty ?? false)
                             ? widget.imageUrl
@@ -120,7 +120,7 @@ class _ProductCardState extends State<ProductCard> {
 
                     // Sold out: soften the photo.
                     if (!widget.inStock)
-                      ColoredBox(color: Colors.white.withValues(alpha: 0.45)),
+                      ColoredBox(color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.45)),
 
                     // Discount tag tucked into the top-left corner.
                     if (hasDiscount)
@@ -214,7 +214,7 @@ class _ProductCardState extends State<ProductCard> {
                                 width: 30,
                                 height: 30,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.92),
+                                  color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.92),
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
@@ -232,7 +232,7 @@ class _ProductCardState extends State<ProductCard> {
                                   size: 16,
                                   color: isFav
                                       ? const Color(0xFFD1495B)
-                                      : _ink,
+                                      : CartzyColors.textOf(context, light: _ink),
                                 ),
                               ),
                             ),
@@ -249,7 +249,7 @@ class _ProductCardState extends State<ProductCard> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
-                            color: widget.inStock ? const Color(0xFFFFF4E5) : _ink,
+                            color: widget.inStock ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF4E5)) : _ink,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -292,7 +292,7 @@ class _ProductCardState extends State<ProductCard> {
                           Icon(
                             isOfficial ? Icons.verified_rounded : Icons.storefront_outlined,
                             size: 12,
-                            color: isOfficial ? const Color(0xFF3B82F6) : _muted,
+                            color: isOfficial ? const Color(0xFF3B82F6) : CartzyColors.mutedOf(context, light: _muted),
                           ),
                           const SizedBox(width: 3),
                           Expanded(
@@ -300,7 +300,7 @@ class _ProductCardState extends State<ProductCard> {
                               seller,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.dmSans(fontSize: 10.5, color: _muted),
+                              style: GoogleFonts.dmSans(fontSize: 10.5, color: CartzyColors.mutedOf(context, light: _muted)),
                             ),
                           ),
                         ],
@@ -322,7 +322,7 @@ class _ProductCardState extends State<ProductCard> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
-                                color: _ink,
+                                color: CartzyColors.textOf(context, light: _ink),
                               ),
                             ),
                           // "No ratings" sits in here so it can shorten on narrow cards.
@@ -331,7 +331,7 @@ class _ProductCardState extends State<ProductCard> {
                               '${hasRating ? '  ·  ' : 'No ratings  ·  '}${widget.soldCount ?? '0 sold'}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.dmSans(fontSize: 10.5, color: _muted),
+                              style: GoogleFonts.dmSans(fontSize: 10.5, color: CartzyColors.mutedOf(context, light: _muted)),
                             ),
                           ),
                           if (widget.hasFreeShipping)
@@ -352,9 +352,9 @@ class _ProductCardState extends State<ProductCard> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF0FDF4),
+                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFF0FDF4)),
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: const Color(0xFFBBF7D0)),
+                            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFBBF7D0))),
                           ),
                           child: Text(
                             widget.estimatedDelivery!.trim(),
@@ -385,7 +385,7 @@ class _ProductCardState extends State<ProductCard> {
                                     maxLines: 1,
                                     style: GoogleFonts.dmSans(
                                       fontSize: 10,
-                                      color: const Color(0xFFA59BAD),
+                                      color: CartzyColors.mutedOf(context, light: const Color(0xFFA59BAD)),
                                       decoration: TextDecoration.lineThrough,
                                     ),
                                   ),
@@ -406,7 +406,7 @@ class _ProductCardState extends State<ProductCard> {
                                     style: GoogleFonts.dmSans(
                                       fontSize: 16.5,
                                       fontWeight: FontWeight.w800,
-                                      color: hasDiscount ? _rose : _ink,
+                                      color: hasDiscount ? CartzyColors.mutedOf(context, light: _rose) : CartzyColors.textOf(context, light: _ink),
                                       letterSpacing: -0.3,
                                     ),
                                   ),
@@ -452,7 +452,7 @@ class _AddButton extends StatelessWidget {
           height: 32,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: enabled ? null : const Color(0xFFEDEAF0),
+            color: enabled ? null : CartzyColors.elevatedOf(context, light: const Color(0xFFEDEAF0)),
             gradient: enabled
                 ? const LinearGradient(
                     colors: [Color(0xFF564B68), Color(0xFF8C5A50)],
@@ -473,7 +473,7 @@ class _AddButton extends StatelessWidget {
           child: Icon(
             enabled ? Icons.add_rounded : Icons.remove_shopping_cart_outlined,
             size: enabled ? 20 : 15,
-            color: enabled ? Colors.white : const Color(0xFFA59BAD),
+            color: enabled ? Colors.white : CartzyColors.mutedOf(context, light: const Color(0xFFA59BAD)),
           ),
         ),
       ),

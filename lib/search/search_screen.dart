@@ -358,7 +358,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Column(
           children: [
@@ -382,9 +382,9 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 12, 10),
       decoration: BoxDecoration(
-        color: CartzyColors.surface,
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         border: Border(
-          bottom: BorderSide(color: CartzyColors.border.withValues(alpha: 0.7)),
+          bottom: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border.withValues(alpha: 0.7))),
         ),
         boxShadow: const [
           BoxShadow(
@@ -397,10 +397,10 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios_new_rounded,
               size: 20,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
             onPressed: () => Navigator.of(context).maybePop(),
             splashRadius: 22,
@@ -409,21 +409,21 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Container(
               height: 42,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F1F4),
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3F1F4)),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: _focusNode.hasFocus
                       ? CartzyColors.brandDark
-                      : const Color(0xFFE5E0E8),
+                      : CartzyColors.borderOf(context, light: const Color(0xFFE5E0E8)),
                   width: 1.2,
                 ),
               ),
               child: Row(
                 children: [
                   const SizedBox(width: 12),
-                  const Icon(
+                  Icon(
                     Icons.search_rounded,
-                    color: CartzyColors.brandDeep,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                     size: 20,
                   ),
                   const SizedBox(width: 8),
@@ -438,7 +438,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w500,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                       decoration: InputDecoration(
                         isDense: true,
@@ -448,7 +448,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         hintText: 'Search dresses, bags, electronics...',
                         hintStyle: GoogleFonts.dmSans(
                           fontSize: 13,
-                          color: CartzyColors.grayMid,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                         ),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
@@ -460,9 +460,9 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   if (_searchController.text.isNotEmpty)
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.close_rounded,
-                        color: CartzyColors.grayMid,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                         size: 18,
                       ),
                       onPressed: _clearSearch,
@@ -552,24 +552,24 @@ class _SearchScreenState extends State<SearchScreen> {
         return ListTile(
           dense: true,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          leading: const Icon(
+          leading: Icon(
             Icons.search_rounded,
             size: 19,
-            color: CartzyColors.brandMuted,
+            color: CartzyColors.mutedOf(context, light: CartzyColors.brandMuted),
           ),
           title: Text(
             suggestion,
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w500,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           trailing: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.north_west_rounded,
               size: 16,
-              color: CartzyColors.grayMid,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
             ),
             onPressed: () {
               _searchController.text = suggestion;
@@ -602,10 +602,10 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.history_rounded,
                       size: 19,
-                      color: CartzyColors.brandDark,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -613,7 +613,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                   ],
@@ -622,17 +622,17 @@ class _SearchScreenState extends State<SearchScreen> {
                   onTap: _clearAllRecentSearches,
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.delete_outline_rounded,
                         size: 16,
-                        color: CartzyColors.grayMid,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                       ),
                       const SizedBox(width: 3),
                       Text(
                         'Clear',
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
-                          color: CartzyColors.grayMid,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -648,10 +648,10 @@ class _SearchScreenState extends State<SearchScreen> {
               children: _recentSearches.map((term) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF6F4F7),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF6F4F7)),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: CartzyColors.border.withValues(alpha: 0.8),
+                      color: CartzyColors.borderOf(context, light: CartzyColors.border.withValues(alpha: 0.8)),
                     ),
                   ),
                   child: InkWell(
@@ -666,19 +666,19 @@ class _SearchScreenState extends State<SearchScreen> {
                             term,
                             style: GoogleFonts.dmSans(
                               fontSize: 12.5,
-                              color: CartzyColors.navy,
+                              color: CartzyColors.textOf(context, light: CartzyColors.navy),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(width: 4),
                           GestureDetector(
                             onTap: () => _removeRecentSearch(term),
-                            child: const Padding(
-                              padding: EdgeInsets.all(2.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(2.0),
                               child: Icon(
                                 Icons.close_rounded,
                                 size: 14,
-                                color: CartzyColors.grayMid,
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                               ),
                             ),
                           ),
@@ -695,10 +695,10 @@ class _SearchScreenState extends State<SearchScreen> {
           // ── TRENDING SEARCHES ──
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_fire_department_rounded,
                 size: 20,
-                color: CartzyColors.rose700,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
               ),
               const SizedBox(width: 6),
               Text(
@@ -706,7 +706,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
             ],
@@ -726,13 +726,13 @@ class _SearchScreenState extends State<SearchScreen> {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6.5),
                   decoration: BoxDecoration(
                     color: isTopThree
-                        ? const Color(0xFFFDF6F5)
-                        : CartzyColors.surface,
+                        ? CartzyColors.elevatedOf(context, light: const Color(0xFFFDF6F5))
+                        : CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isTopThree
-                          ? CartzyColors.rose200
-                          : CartzyColors.border,
+                          ? CartzyColors.borderOf(context, light: CartzyColors.rose200)
+                          : CartzyColors.borderOf(context, light: CartzyColors.border),
                       width: 1,
                     ),
                   ),
@@ -750,7 +750,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                   : index == 1
                                       ? CartzyColors.rose500
                                       : CartzyColors.brandDeep)
-                              : const Color(0xFFDFDBE5),
+                              : CartzyColors.elevatedOf(context, light: const Color(0xFFDFDBE5)),
                         ),
                         alignment: Alignment.center,
                         child: Text(
@@ -758,7 +758,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: isTopThree ? Colors.white : CartzyColors.navy,
+                            color: isTopThree ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
                           ),
                         ),
                       ),
@@ -770,8 +770,8 @@ class _SearchScreenState extends State<SearchScreen> {
                           fontWeight:
                               isTopThree ? FontWeight.w600 : FontWeight.w500,
                           color: isTopThree
-                              ? CartzyColors.rose900
-                              : CartzyColors.navy,
+                              ? CartzyColors.textOf(context, light: CartzyColors.rose900)
+                              : CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
                     ],
@@ -785,10 +785,10 @@ class _SearchScreenState extends State<SearchScreen> {
           // ── EXPLORE CATEGORIES ──
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.category_outlined,
                 size: 19,
-                color: CartzyColors.brandDark,
+                color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
               ),
               const SizedBox(width: 6),
               Text(
@@ -796,7 +796,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
             ],
@@ -824,16 +824,16 @@ class _SearchScreenState extends State<SearchScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [
-                            CartzyColors.brand50Lavender,
-                            CartzyColors.rose50Warm
+                            CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
+                            CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         shape: BoxShape.circle,
-                        border: Border.all(color: CartzyColors.border),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x0C564B68),
@@ -844,7 +844,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       child: Icon(
                         cat['icon'] as IconData,
-                        color: CartzyColors.brandDark,
+                        color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                         size: 22,
                       ),
                     ),
@@ -857,7 +857,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                   ],
@@ -882,7 +882,7 @@ class _SearchScreenState extends State<SearchScreen> {
         // ── RESULTS COUNT / SUMMARY ──
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: CartzyColors.background,
+          color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
           child: Row(
             children: [
               Text(
@@ -890,7 +890,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
               const SizedBox(width: 6),
@@ -898,7 +898,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                 decoration: BoxDecoration(
-                  color: CartzyColors.brand100,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -906,7 +906,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.brandDark,
+                    color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                   ),
                 ),
               ),
@@ -917,7 +917,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   'Clear filter',
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
-                    color: CartzyColors.rose700,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -985,10 +985,10 @@ class _SearchScreenState extends State<SearchScreen> {
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: CartzyColors.surface,
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         border: Border(
           bottom: BorderSide(
-            color: CartzyColors.border.withValues(alpha: 0.6),
+            color: CartzyColors.borderOf(context, light: CartzyColors.border.withValues(alpha: 0.6)),
           ),
         ),
       ),
@@ -1038,7 +1038,7 @@ class _SearchScreenState extends State<SearchScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? CartzyColors.rose700 : CartzyColors.navy,
+              color: isSelected ? CartzyColors.mutedOf(context, light: CartzyColors.rose700) : CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
         ),
@@ -1078,7 +1078,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   fontSize: 12.5,
                   fontWeight:
                       isPriceActive ? FontWeight.w700 : FontWeight.w500,
-                  color: isPriceActive ? CartzyColors.rose700 : CartzyColors.navy,
+                  color: isPriceActive ? CartzyColors.mutedOf(context, light: CartzyColors.rose700) : CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
               const SizedBox(width: 2),
@@ -1089,14 +1089,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     Icons.arrow_drop_up_rounded,
                     size: 14,
                     color: _currentSort == SearchSortOption.priceLowHigh
-                        ? CartzyColors.rose700
+                        ? CartzyColors.mutedOf(context, light: CartzyColors.rose700)
                         : CartzyColors.grayLight,
                   ),
                   Icon(
                     Icons.arrow_drop_down_rounded,
                     size: 14,
                     color: _currentSort == SearchSortOption.priceHighLow
-                        ? CartzyColors.rose700
+                        ? CartzyColors.mutedOf(context, light: CartzyColors.rose700)
                         : CartzyColors.grayLight,
                   ),
                 ],
@@ -1121,14 +1121,14 @@ class _SearchScreenState extends State<SearchScreen> {
             Container(
               width: 80,
               height: 80,
-              decoration: const BoxDecoration(
-                color: CartzyColors.brand100,
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.search_off_rounded,
                 size: 40,
-                color: CartzyColors.brandDeep,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
               ),
             ),
             const SizedBox(height: 18),
@@ -1137,7 +1137,7 @@ class _SearchScreenState extends State<SearchScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
             const SizedBox(height: 8),
@@ -1146,7 +1146,7 @@ class _SearchScreenState extends State<SearchScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(
                 fontSize: 13,
-                color: CartzyColors.grayMid,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                 height: 1.4,
               ),
             ),

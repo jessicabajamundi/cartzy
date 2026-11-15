@@ -211,13 +211,13 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
@@ -228,9 +228,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.4,
-                    color: const Color(0xFF9E7766))),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766)))),
             Text('Tracking ${widget.reference}',
-                style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w800, color: _ink)),
+                style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
           ],
         ),
       ),
@@ -254,11 +254,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       decoration: _cardDecoration(),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_outlined, size: 34, color: Color(0xFF9E7766)),
+          Icon(Icons.cloud_off_outlined, size: 34, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766))),
           const SizedBox(height: 10),
           Text(_error ?? 'Tracking is not available yet.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(fontSize: 13.5, color: _muted, height: 1.4)),
+              style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: _muted), height: 1.4)),
           const SizedBox(height: 14),
           TextButton(onPressed: _load, child: const Text('Try again')),
         ],
@@ -267,9 +267,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   BoxDecoration _cardDecoration() => BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFECE3E5), width: 1.1),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE3E5)), width: 1.1),
       );
 
   List<Widget> _content() {
@@ -320,9 +320,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 const TextSpan(text: 'Courier: '),
                 TextSpan(
                     text: _text('courier'),
-                    style: const TextStyle(fontWeight: FontWeight.w700, color: _ink)),
+                    style: TextStyle(fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
               ]),
-              style: GoogleFonts.dmSans(fontSize: 13, color: _muted),
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: _muted)),
             ),
             const SizedBox(height: 14),
             _detail('Latest confirmed stage', _text('current_status')),
@@ -337,7 +337,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 margin: const EdgeInsets.only(top: 6),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFFBEB),
+                  color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB)),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFFDE68A)),
                 ),
@@ -348,7 +348,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             const SizedBox(height: 10),
             Text(
               'Realtime OpenStreetMap GPS tracking active. Courier location updates continuously along the delivery route.',
-              style: GoogleFonts.dmSans(fontSize: 11.5, height: 1.45, color: const Color(0xFF9E929E)),
+              style: GoogleFonts.dmSans(fontSize: 11.5, height: 1.45, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E))),
             ),
           ],
         ),
@@ -363,7 +363,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Delivery timeline',
-                style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w800, color: _ink)),
+                style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
             const SizedBox(height: 16),
             for (var i = 0; i < steps.length; i++)
               _timelineStep(steps[i], isLast: i == steps.length - 1),
@@ -382,16 +382,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             title: Text('Detailed activity · ${history.length} recorded updates',
-                style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+                style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
             children: [
               Text(
                 'Newest first. Repeated scans and delivery attempts are shown separately. All times are Philippine time.',
-                style: GoogleFonts.dmSans(fontSize: 11.5, height: 1.4, color: const Color(0xFF9E929E)),
+                style: GoogleFonts.dmSans(fontSize: 11.5, height: 1.4, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E))),
               ),
               const SizedBox(height: 10),
               if (history.isEmpty)
                 Text('No courier scans recorded yet.',
-                    style: GoogleFonts.dmSans(fontSize: 12.5, color: _muted))
+                    style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: _muted)))
               else
                 for (final event in history)
                   Padding(
@@ -401,18 +401,18 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       children: [
                         Text('${event['label']}',
                             style: GoogleFonts.dmSans(
-                                fontSize: 13, fontWeight: FontWeight.w700, color: _ink)),
+                                fontSize: 13, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
                         Text(
                           [
                             '${event['time']}',
                             if (event['attempt'] is num && (event['attempt'] as num) > 1)
                               'Attempt ${event['attempt']}',
                           ].join(' · '),
-                          style: GoogleFonts.dmSans(fontSize: 12, color: _muted),
+                          style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: _muted)),
                         ),
                         if (event['note'] != null && '${event['note']}'.isNotEmpty)
                           Text('${event['note']}',
-                              style: GoogleFonts.dmSans(fontSize: 12, color: _muted)),
+                              style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: _muted))),
                       ],
                     ),
                   ),
@@ -447,8 +447,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFF9E929E))),
-          Text(value, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+          Text(label, style: GoogleFonts.dmSans(fontSize: 11.5, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E)))),
+          Text(value, style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
         ],
       ),
     );
@@ -476,13 +476,13 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         : null,
                   ),
                   child: Icon(done ? Icons.check : Icons.circle,
-                      size: done ? 15 : 6, color: done ? Colors.white : const Color(0xFF9CA3AF)),
+                      size: done ? 15 : 6, color: done ? Colors.white : CartzyColors.mutedOf(context, light: const Color(0xFF9CA3AF))),
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: done && !current ? _rose : const Color(0xFFE5E7EB),
+                      color: done && !current ? _rose : CartzyColors.elevatedOf(context, light: const Color(0xFFE5E7EB)),
                     ),
                   ),
               ],
@@ -503,7 +503,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           style: GoogleFonts.dmSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: done ? _ink : const Color(0xFF6B7280))),
+                              color: done ? CartzyColors.textOf(context, light: _ink) : CartzyColors.mutedOf(context, light: const Color(0xFF6B7280)))),
                       if (current)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
@@ -513,15 +513,15 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           ),
                           child: Text('Latest confirmed',
                               style: GoogleFonts.dmSans(
-                                  fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF8C5A50))),
+                                  fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)))),
                         ),
                     ],
                   ),
                   if (step['detail'] != null)
-                    Text('${step['detail']}', style: GoogleFonts.dmSans(fontSize: 12, color: _muted)),
+                    Text('${step['detail']}', style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: _muted))),
                   Text('${step['time']}',
                       style: GoogleFonts.dmSans(
-                          fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF8C5A50))),
+                          fontSize: 11, fontWeight: FontWeight.w600, color: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)))),
                 ],
               ),
             ),

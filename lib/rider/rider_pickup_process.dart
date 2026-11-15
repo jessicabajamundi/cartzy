@@ -59,13 +59,13 @@ class _RiderPickupProcessState extends State<RiderPickupProcess> {
     final order = widget.order;
 
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Pickup Order',
-          style: TextStyle(color: CartzyColors.navy, fontWeight: FontWeight.bold),
+          style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy), fontWeight: FontWeight.bold),
         ),
       ),
       body: SafeArea(
@@ -78,16 +78,16 @@ class _RiderPickupProcessState extends State<RiderPickupProcess> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: CartzyColors.surface,
+                  color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: CartzyColors.border),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       order.itemsSummary,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                     ),
                     const SizedBox(height: 10),
                     _detailRow('Order #', '${order.id}'),
@@ -134,9 +134,9 @@ class _RiderPickupProcessState extends State<RiderPickupProcess> {
       padding: const EdgeInsets.only(top: 8),
       child: RichText(
         text: TextSpan(
-          style: const TextStyle(fontSize: 13, color: CartzyColors.navy),
+          style: TextStyle(fontSize: 13, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           children: [
-            TextSpan(text: '$label  ', style: const TextStyle(color: CartzyColors.gray, fontWeight: FontWeight.w600)),
+            TextSpan(text: '$label  ', style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontWeight: FontWeight.w600)),
             TextSpan(text: value),
           ],
         ),

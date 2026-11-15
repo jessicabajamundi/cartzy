@@ -287,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -307,10 +307,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.arrow_back_rounded,
                               size: 18,
-                              color: Color(0xFF865561),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                             ),
                             const SizedBox(width: 5),
                             Text(
@@ -318,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF865561),
+                                color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                               ),
                             ),
                           ],
@@ -373,7 +373,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF231F20),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                         letterSpacing: -0.3,
                       ),
                     ),
@@ -389,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
-                        color: const Color(0xFF7A6E72),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                       ),
                     ),
                   ),
@@ -442,7 +442,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                 ),
               ),
               const SizedBox(height: 5),
@@ -452,14 +452,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: CartzyColors.surfaceOf(context, light: Colors.white),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: _emailError != null
                           ? const Color(0xFFD32F2F)
                           : _emailHasFocus == true
                               ? const Color(0xFFC66B5E)
-                              : const Color(0xFFE5D7D7),
+                              : CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)),
                       width: _emailHasFocus == true ? 1.4 : 1.0,
                     ),
                     boxShadow: _emailHasFocus == true
@@ -479,18 +479,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (_) {
                       if (_emailError != null) setState(() => _emailError = null);
                     },
-                    style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
+                    style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: 'Enter your email address',
                       hintStyle: GoogleFonts.dmSans(
                         fontSize: 14,
-                        color: const Color(0xFFAAA0A2),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2)),
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.mail_outline,
                         size: 21,
-                        color: Color(0xFF865561),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                       ),
                       prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 52),
                       border: InputBorder.none,
@@ -519,7 +519,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                 ),
               ),
               const SizedBox(height: 5),
@@ -529,14 +529,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: CartzyColors.surfaceOf(context, light: Colors.white),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: _passwordError != null
                           ? const Color(0xFFD32F2F)
                           : _passwordHasFocus == true
                               ? const Color(0xFFC66B5E)
-                              : const Color(0xFFE5D7D7),
+                              : CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)),
                       width: _passwordHasFocus == true ? 1.4 : 1.0,
                     ),
                     boxShadow: _passwordHasFocus == true
@@ -556,24 +556,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     onChanged: (_) {
                       if (_passwordError != null) setState(() => _passwordError = null);
                     },
-                    style: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFF231F20)),
+                    style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: 'Enter your password',
                       hintStyle: GoogleFonts.dmSans(
                         fontSize: 14,
-                        color: const Color(0xFFAAA0A2),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2)),
                       ),
-                      prefixIcon: const Icon(
+                      prefixIcon: Icon(
                         Icons.lock_outline,
                         size: 21,
-                        color: Color(0xFF865561),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                           size: 21,
-                          color: const Color(0xFF7A6E72),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                         ),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
@@ -612,7 +612,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Checkbox(
                           value: _rememberMe,
                           activeColor: const Color(0xFF865561),
-                          side: const BorderSide(color: Color(0xFFD0C3C5), width: 1.2),
+                          side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFD0C3C5)), width: 1.2),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                           onChanged: (v) => setState(() => _rememberMe = v ?? false),
                         ),
@@ -621,7 +621,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Flexible(
                         child: Text(
                           'Remember me',
-                          style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF4A3E4D)),
+                          style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF4A3E4D))),
                         ),
                       ),
                     ],
@@ -635,7 +635,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF865561),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                       ),
                     ),
                   ),
@@ -694,7 +694,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       'or continue with',
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
-                        color: const Color(0xFF9E8F93),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F93)),
                       ),
                     ),
                   ),
@@ -709,9 +709,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   constraints: const BoxConstraints(minHeight: 50),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: CartzyColors.surfaceOf(context, light: Colors.white),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE5D7D7), width: 1.2),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -728,7 +728,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF231F20),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                         ),
                       ),
                     ],
@@ -744,7 +744,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       "Don't have an account? ",
-                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+                      style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                     ),
                     GestureDetector(
                       onTap: () => widget.onSignUp(_accountType),
@@ -753,7 +753,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF865561),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                         ),
                       ),
                     ),
@@ -766,7 +766,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Center(
                 child: Text(
                   'Not shopping? Log in to your workspace',
-                  style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+                  style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                 ),
               ),
               const SizedBox(height: 5),
@@ -775,14 +775,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _workspaceLink('Buyer', AccountType.buyer),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 9),
-                      child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 13)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 9),
+                      child: Text('|', style: TextStyle(color: CartzyColors.mutedOf(context, light: const Color(0xFFB7AAAE)), fontSize: 13)),
                     ),
                     _workspaceLink('Rider', AccountType.rider),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 9),
-                      child: Text('|', style: TextStyle(color: Color(0xFFB7AAAE), fontSize: 13)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 9),
+                      child: Text('|', style: TextStyle(color: CartzyColors.mutedOf(context, light: const Color(0xFFB7AAAE)), fontSize: 13)),
                     ),
                     _workspaceLink('Courier', AccountType.courier),
                   ],
@@ -807,7 +807,7 @@ class _LoginScreenState extends State<LoginScreen> {
         style: GoogleFonts.dmSans(
           fontSize: 13,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected ? const Color(0xFF865561) : const Color(0xFF7A6E72),
+          color: isSelected ? CartzyColors.mutedOf(context, light: const Color(0xFF865561)) : CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           decoration: isSelected ? TextDecoration.underline : TextDecoration.none,
         ),
       ),

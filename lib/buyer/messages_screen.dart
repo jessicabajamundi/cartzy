@@ -414,7 +414,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
         body: SafeArea(
           child: Column(
             children: [
@@ -446,7 +446,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       decoration: BoxDecoration(
         gradient: _softBlend,
         border: Border(
-          bottom: BorderSide(color: CartzyColors.border.withValues(alpha: 0.8)),
+          bottom: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border.withValues(alpha: 0.8))),
         ),
         boxShadow: const [
           BoxShadow(
@@ -470,14 +470,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 16,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
           ),
@@ -498,7 +498,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 14.5,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                   Text(
@@ -510,7 +510,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.dmSans(
                       fontSize: 11.5,
-                      color: CartzyColors.grayMid,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                     ),
                   ),
                 ],
@@ -527,7 +527,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       fontSize: 10.5,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
-                      color: CartzyColors.rose700,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                     ),
                   ),
                   Text(
@@ -535,7 +535,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 23,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                 ],
@@ -586,23 +586,23 @@ class _MessagesScreenState extends State<MessagesScreen> {
         // Search & Filter Bar
         Container(
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
-          color: CartzyColors.background,
+          color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
           child: Column(
             children: [
               Container(
                 constraints: const BoxConstraints(minHeight: 48),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: CartzyColors.surfaceOf(context, light: Colors.white),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: CartzyColors.border),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
                 child: Row(
                   children: [
                     const SizedBox(width: 12),
-                    const Icon(
+                    Icon(
                       Icons.search_rounded,
                       size: 18,
-                      color: CartzyColors.brandMuted,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.brandMuted),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -611,13 +611,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         onChanged: (v) => setState(() => _searchQuery = v),
                         style: GoogleFonts.dmSans(
                           fontSize: 13,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                         decoration: InputDecoration(
                           hintText: 'Search store, order, or item...',
                           hintStyle: GoogleFonts.dmSans(
                             fontSize: 12.5,
-                            color: CartzyColors.grayMid,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                           ),
                           filled: false,
                           border: InputBorder.none,
@@ -631,10 +631,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     ),
                     if (_searchQuery.isNotEmpty)
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close_rounded,
                           size: 16,
-                          color: CartzyColors.grayMid,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                         ),
                         onPressed: () {
                           _searchController.clear();
@@ -658,7 +658,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
-                      color: CartzyColors.grayMid,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                     ),
                   ),
                   InkWell(
@@ -673,8 +673,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: _filterUnreadOnly
-                              ? CartzyColors.rose200
-                              : CartzyColors.border,
+                              ? CartzyColors.borderOf(context, light: CartzyColors.rose200)
+                              : CartzyColors.borderOf(context, light: CartzyColors.border),
                         ),
                       ),
                       child: Row(
@@ -687,7 +687,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             size: 13,
                             color: _filterUnreadOnly
                                 ? Colors.white
-                                : CartzyColors.brandDeep,
+                                : CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -699,7 +699,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   : FontWeight.w500,
                               color: _filterUnreadOnly
                                   ? Colors.white
-                                  : CartzyColors.brandDeep,
+                                  : CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                             ),
                           ),
                         ],
@@ -743,10 +743,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                               decoration: BoxDecoration(
                                 gradient: isSelected || thread.unreadCount > 0
                                     ? _softBlend
-                                    : const LinearGradient(
+                                    : LinearGradient(
                                         colors: [
-                                          Colors.white,
-                                          CartzyColors.rose50Warm
+                                          CartzyColors.surfaceOf(context, light: Colors.white),
+                                          CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)
                                         ],
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
@@ -757,7 +757,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       ? CartzyColors.brand500
                                       : thread.unreadCount > 0
                                           ? CartzyColors.rose400
-                                          : CartzyColors.brand200,
+                                          : CartzyColors.borderOf(context, light: CartzyColors.brand200),
                                 ),
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -790,7 +790,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                       thread.unreadCount > 0
                                                           ? FontWeight.bold
                                                           : FontWeight.w600,
-                                                  color: CartzyColors.navy,
+                                                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                                 ),
                                               ),
                                             ),
@@ -800,8 +800,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                               style: GoogleFonts.dmSans(
                                                 fontSize: 11,
                                                 color: thread.unreadCount > 0
-                                                    ? CartzyColors.rose700
-                                                    : CartzyColors.grayMid,
+                                                    ? CartzyColors.mutedOf(context, light: CartzyColors.rose700)
+                                                    : CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                                                 fontWeight:
                                                     thread.unreadCount > 0
                                                         ? FontWeight.bold
@@ -820,7 +820,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                   ? Icons.receipt_long_rounded
                                                   : Icons.inventory_2_outlined,
                                               size: 13,
-                                              color: CartzyColors.rose700,
+                                              color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                                             ),
                                             const SizedBox(width: 4),
                                             Expanded(
@@ -835,7 +835,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                 style: GoogleFonts.dmSans(
                                                   fontSize: 11.5,
                                                   fontWeight: FontWeight.w500,
-                                                  color: CartzyColors.brandDeep,
+                                                  color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                                                 ),
                                               ),
                                             ),
@@ -858,8 +858,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                                           ? FontWeight.w600
                                                           : FontWeight.normal,
                                                   color: thread.unreadCount > 0
-                                                      ? CartzyColors.navy
-                                                      : CartzyColors.brandDeep,
+                                                      ? CartzyColors.textOf(context, light: CartzyColors.navy)
+                                                      : CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                                                 ),
                                               ),
                                             ),
@@ -913,10 +913,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF7F5F8),
+              color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F5F8)),
               border: Border(
                 bottom: BorderSide(
-                    color: CartzyColors.border.withValues(alpha: 0.6)),
+                    color: CartzyColors.borderOf(context, light: CartzyColors.border.withValues(alpha: 0.6))),
               ),
             ),
             child: Row(
@@ -929,10 +929,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       width: 32,
                       height: 32,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, __, ___) => Icon(
                         Icons.image_not_supported_rounded,
                         size: 20,
-                        color: CartzyColors.grayMid,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                       ),
                     ),
                   )
@@ -941,13 +941,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: CartzyColors.brand100,
+                      color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.inventory_2_outlined,
                       size: 16,
-                      color: CartzyColors.brandDark,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                     ),
                   ),
                 const SizedBox(width: 10),
@@ -960,7 +960,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.bold,
-                          color: CartzyColors.rose700,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                         ),
                       ),
                       Text(
@@ -970,7 +970,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
                     ],
@@ -1011,7 +1011,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEFECEF),
+                                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFEFECEF)),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
@@ -1019,7 +1019,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                     style: GoogleFonts.dmSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
-                                      color: CartzyColors.grayMid,
+                                      color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                                     ),
                                   ),
                                 ),
@@ -1077,7 +1077,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   msg.body,
                   style: GoogleFonts.dmSans(
                     fontSize: 13.5,
-                    color: isMe ? Colors.white : CartzyColors.navy,
+                    color: isMe ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
                     height: 1.35,
                   ),
                 ),
@@ -1091,7 +1091,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         fontSize: 10,
                         color: isMe
                             ? Colors.white.withValues(alpha: 0.7)
-                            : CartzyColors.grayMid,
+                            : CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                       ),
                     ),
                     if (isMe) ...[
@@ -1125,9 +1125,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
       decoration: BoxDecoration(
-        color: CartzyColors.surface,
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         border: Border(
-          top: BorderSide(color: CartzyColors.border.withValues(alpha: 0.8)),
+          top: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border.withValues(alpha: 0.8))),
         ),
       ),
       child: Row(
@@ -1137,9 +1137,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFFF4F2F5),
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFF4F2F5)),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               ),
               child: TextField(
                 controller: _replyController,
@@ -1148,14 +1148,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 textCapitalization: TextCapitalization.sentences,
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
                 decoration: InputDecoration(
                   hintText:
                       'Type a message to ${_selectedThread?.store ?? 'store'}...',
                   hintStyle: GoogleFonts.dmSans(
                     fontSize: 13,
-                    color: CartzyColors.grayMid,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                   ),
                   filled: false,
                   border: InputBorder.none,
@@ -1245,7 +1245,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         style: GoogleFonts.dmSans(
           fontSize: size * 0.38,
           fontWeight: FontWeight.bold,
-          color: CartzyColors.brandDark,
+          color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
         ),
       ),
     );
@@ -1261,14 +1261,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
             Container(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1EFF4),
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1EFF4)),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.chat_bubble_outline_rounded,
                 size: 30,
-                color: CartzyColors.brandDeep,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
               ),
             ),
             const SizedBox(height: 14),
@@ -1277,7 +1277,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
             const SizedBox(height: 6),
@@ -1286,7 +1286,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(
                 fontSize: 12.5,
-                color: CartzyColors.grayMid,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                 height: 1.4,
               ),
             ),
@@ -1306,14 +1306,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
             Container(
               width: 52,
               height: 52,
-              decoration: const BoxDecoration(
-                color: Color(0xFFF1EFF4),
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1EFF4)),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.waving_hand_rounded,
                 size: 26,
-                color: CartzyColors.rose700,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
               ),
             ),
             const SizedBox(height: 12),
@@ -1322,7 +1322,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
             const SizedBox(height: 4),
@@ -1331,7 +1331,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(
                 fontSize: 12.5,
-                color: CartzyColors.grayMid,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
               ),
             ),
           ],
@@ -1345,10 +1345,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.forum_outlined,
             size: 48,
-            color: CartzyColors.brandMuted,
+            color: CartzyColors.mutedOf(context, light: CartzyColors.brandMuted),
           ),
           const SizedBox(height: 12),
           Text(
@@ -1356,7 +1356,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             style: GoogleFonts.playfairDisplay(
               fontSize: 17,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           const SizedBox(height: 4),
@@ -1364,7 +1364,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             'Choose an inquiry or order on the left to start chatting.',
             style: GoogleFonts.dmSans(
               fontSize: 13,
-              color: CartzyColors.grayMid,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
             ),
           ),
         ],

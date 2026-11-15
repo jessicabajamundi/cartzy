@@ -193,7 +193,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
         leading: BackButton(
           onPressed: widget.onBack,
@@ -201,7 +201,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         ),
         centerTitle: true,
         toolbarHeight: 76,
-        backgroundColor: CartzyColors.brand50Lavender,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
         foregroundColor: CartzyColors.brandDark,
@@ -214,7 +214,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 fontSize: 10,
                 letterSpacing: 1.6,
                 fontWeight: FontWeight.w700,
-                color: CartzyColors.rose700,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
               ),
             ),
             const SizedBox(height: 4),
@@ -223,7 +223,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: CartzyColors.brand900,
+                color: CartzyColors.textOf(context, light: CartzyColors.brand900),
               ),
             ),
           ],
@@ -238,9 +238,9 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.shopping_bag_outlined,
-                      color: CartzyColors.brandDark,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                       size: 24,
                     ),
                     if (count > 0)
@@ -312,7 +312,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.dmSans(
                   fontSize: 14,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 ),
               ),
               const SizedBox(height: 16),
@@ -358,7 +358,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: CartzyColors.brandMuted,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.brandMuted),
                     ),
                   ),
                   Container(
@@ -367,7 +367,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: CartzyColors.brand50Lavender,
+                      color: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -384,7 +384,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: CartzyColors.burgundy,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                           ),
                         ),
                       ],
@@ -425,7 +425,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         : CartzyProductImages.getImage(item.name);
 
     return Material(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -433,7 +433,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEDE6EA)),
+            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE6EA))),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -445,7 +445,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(
-                      color: const Color(0xFFF6F3F5),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF6F3F5)),
                       child: CartzyProductImage(
                         imageUrl: effectiveImage,
                         fit: BoxFit.contain,
@@ -455,7 +455,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     // Sold out overlay if not in stock
                     if (!item.inStock)
                       ColoredBox(
-                        color: Colors.white.withValues(alpha: 0.45),
+                        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.45),
                       ),
 
                     // Stock status pill (bottom-left)
@@ -469,7 +469,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: item.inStock
-                              ? const Color(0xFFE8F5E9)
+                              ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))
                               : const Color(0xFF282133),
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -499,7 +499,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                             width: 30,
                             height: 30,
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.94),
+                              color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.94),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -549,7 +549,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           fontWeight: FontWeight.w600,
                           fontSize: 12.5,
                           height: 1.25,
-                          color: const Color(0xFF282133),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                         ),
                       ),
 
@@ -564,7 +564,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                             vertical: 1.5,
                           ),
                           decoration: BoxDecoration(
-                            color: CartzyColors.brand50Lavender,
+                            color: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -574,7 +574,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                             style: GoogleFonts.dmSans(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w600,
-                              color: CartzyColors.burgundy,
+                              color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                             ),
                           ),
                         )
@@ -585,7 +585,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.dmSans(
                             fontSize: 10.5,
-                            color: const Color(0xFF7D7388),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF7D7388)),
                           ),
                         ),
 
@@ -603,7 +603,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                               style: GoogleFonts.dmSans(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 13.5,
-                                color: CartzyColors.burgundy,
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                               ),
                             ),
                           ),

@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
 
@@ -27,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       body: Center(
         child: LayoutBuilder(
           builder: (context, constraints) {

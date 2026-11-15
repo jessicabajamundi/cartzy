@@ -129,7 +129,7 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF9F8),
+      backgroundColor: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF9F8)),
       appBar: AppBar(
         backgroundColor: CartzyColors.brandDark,
         foregroundColor: Colors.white,
@@ -249,7 +249,7 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
   Widget _buildResult() {
     final color = _resultIsError ? const Color(0xFFB4233F) : const Color(0xFF2F6B49);
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -268,7 +268,7 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
             label: Text(_resultIsError ? 'Try again' : 'Scan again', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
             style: OutlinedButton.styleFrom(
               foregroundColor: CartzyColors.brandDark,
-              side: const BorderSide(color: CartzyColors.brand200),
+              side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200)),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             ),
           ),
@@ -281,10 +281,10 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Recent shifts', style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w800, color: CartzyColors.brand900)),
+        Text('Recent shifts', style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: CartzyColors.brand900))),
         const SizedBox(height: 8),
         if (_recent.isEmpty)
-          Text('No shifts yet.', style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF8A7F91)))
+          Text('No shifts yet.', style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7F91))))
         else
           ..._recent.map((shift) {
             final timeIn = DateTime.tryParse('${shift['time_in_at']}')?.toLocal();
@@ -294,8 +294,8 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFEDE5E0)),
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
+                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE5E0))),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -303,12 +303,12 @@ class _RiderAttendanceScreenState extends State<RiderAttendanceScreen> {
                   Expanded(
                     child: Text(
                       '${timeIn == null ? '' : _date(timeIn)} · ${_time(timeIn)} – ${timeOut != null ? _time(timeOut) : (isCurrent ? 'on shift' : 'no time out')}',
-                      style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF352B3D)),
+                      style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: const Color(0xFF352B3D))),
                     ),
                   ),
                   Text(
                     _duration((shift['worked_minutes'] as num?)?.toInt() ?? 0),
-                    style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w800, color: CartzyColors.brandDark),
+                    style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: CartzyColors.brandDark)),
                   ),
                 ],
               ),

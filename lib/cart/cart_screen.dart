@@ -293,9 +293,9 @@ class _CartScreenState extends State<CartScreen>
               Container(
                 width: 60,
                 height: 60,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: _CartPalette.softBlend,
+                  gradient: CartzyColors.softGradientOf(context, light: _CartPalette.softBlend),
                 ),
                 child: const Icon(
                   Icons.remove_shopping_cart_outlined,
@@ -309,7 +309,7 @@ class _CartScreenState extends State<CartScreen>
                 style: GoogleFonts.playfairDisplay(
                   fontWeight: FontWeight.w700,
                   fontSize: 21,
-                  color: _CartPalette.ink,
+                  color: CartzyColors.textOf(context, light: _CartPalette.ink),
                 ),
               ),
               const SizedBox(height: 8),
@@ -319,7 +319,7 @@ class _CartScreenState extends State<CartScreen>
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   height: 1.4,
-                  color: _CartPalette.muted,
+                  color: CartzyColors.mutedOf(context, light: _CartPalette.muted),
                 ),
               ),
               const SizedBox(height: 22),
@@ -381,11 +381,11 @@ class _CartScreenState extends State<CartScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: CartzyColors.brand50Lavender,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [CartzyColors.brand50Lavender, CartzyColors.rose50Warm],
+            colors: [CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender), CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -516,7 +516,7 @@ class _CartScreenState extends State<CartScreen>
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 32,
                   fontWeight: FontWeight.w700,
-                  color: _CartPalette.ink,
+                  color: CartzyColors.textOf(context, light: _CartPalette.ink),
                   letterSpacing: -0.3,
                 ),
               ),
@@ -549,7 +549,7 @@ class _CartScreenState extends State<CartScreen>
         const SizedBox(height: 4),
         Text(
           'Review your picks and make them yours.',
-          style: GoogleFonts.dmSans(fontSize: 13, color: _CartPalette.muted),
+          style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: _CartPalette.muted)),
         ),
       ],
     );
@@ -591,9 +591,9 @@ class _CartScreenState extends State<CartScreen>
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 6, 14, 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
+        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _CartPalette.line),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _CartPalette.line)),
       ),
       child: Row(
         children: [
@@ -604,12 +604,12 @@ class _CartScreenState extends State<CartScreen>
             style: GoogleFonts.dmSans(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: _CartPalette.ink,
+              color: CartzyColors.textOf(context, light: _CartPalette.ink),
             ),
           ),
           const Spacer(),
-          const Icon(Icons.swipe_left_rounded,
-              size: 15, color: _CartPalette.muted),
+          Icon(Icons.swipe_left_rounded,
+              size: 15, color: CartzyColors.mutedOf(context, light: _CartPalette.muted)),
           const SizedBox(width: 5),
           Flexible(
             child: Text(
@@ -618,7 +618,7 @@ class _CartScreenState extends State<CartScreen>
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.dmSans(
                 fontSize: 11.5,
-                color: _CartPalette.muted,
+                color: CartzyColors.mutedOf(context, light: _CartPalette.muted),
               ),
             ),
           ),
@@ -635,12 +635,12 @@ class _CartScreenState extends State<CartScreen>
       duration: const Duration(milliseconds: 220),
       padding: const EdgeInsets.fromLTRB(6, 12, 12, 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: item.selected
-              ? CartzyColors.rose200
-              : _CartPalette.line,
+              ? CartzyColors.borderOf(context, light: CartzyColors.rose200)
+              : CartzyColors.borderOf(context, light: _CartPalette.line),
           width: item.selected ? 1.3 : 1,
         ),
         boxShadow: [
@@ -690,7 +690,7 @@ class _CartScreenState extends State<CartScreen>
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
-                          color: _CartPalette.ink,
+                          color: CartzyColors.textOf(context, light: _CartPalette.ink),
                         ),
                       ),
                     ),
@@ -707,7 +707,7 @@ class _CartScreenState extends State<CartScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    gradient: _CartPalette.softBlend,
+                    gradient: CartzyColors.softGradientOf(context, light: _CartPalette.softBlend),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -717,7 +717,7 @@ class _CartScreenState extends State<CartScreen>
                     style: GoogleFonts.dmSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: _CartPalette.lavender,
+                      color: CartzyColors.mutedOf(context, light: _CartPalette.lavender),
                     ),
                   ),
                 ),
@@ -750,7 +750,7 @@ class _CartScreenState extends State<CartScreen>
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.dmSans(
                               fontSize: 11,
-                              color: _CartPalette.muted,
+                              color: CartzyColors.mutedOf(context, light: _CartPalette.muted),
                             ),
                           ),
                           if (!item.isOutOfStock &&
@@ -812,7 +812,7 @@ class _CartScreenState extends State<CartScreen>
       width: 82,
       height: 82,
       decoration: BoxDecoration(
-        gradient: _CartPalette.softBlend,
+        gradient: CartzyColors.softGradientOf(context, light: _CartPalette.softBlend),
         borderRadius: BorderRadius.circular(16),
       ),
       clipBehavior: Clip.antiAlias,
@@ -838,9 +838,9 @@ class _CartScreenState extends State<CartScreen>
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _CartPalette.line),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _CartPalette.line)),
         boxShadow: [
           BoxShadow(
             color: _CartPalette.lavender.withValues(alpha: 0.08),
@@ -874,7 +874,7 @@ class _CartScreenState extends State<CartScreen>
                       style: GoogleFonts.dmSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color: _CartPalette.muted,
+                        color: CartzyColors.mutedOf(context, light: _CartPalette.muted),
                       ),
                     ),
                     FittedBox(
@@ -920,14 +920,14 @@ class _CartScreenState extends State<CartScreen>
       children: [
         Text(
           title,
-          style: GoogleFonts.dmSans(fontSize: 12.5, color: _CartPalette.muted),
+          style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: _CartPalette.muted)),
         ),
         _AnimatedAmount(
           value: amount,
           style: GoogleFonts.dmSans(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: _CartPalette.ink,
+            color: CartzyColors.textOf(context, light: _CartPalette.ink),
           ),
         ),
       ],
@@ -944,18 +944,18 @@ class _CartScreenState extends State<CartScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _CartPalette.line),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _CartPalette.line)),
       ),
       child: Column(
         children: [
           Container(
             width: 104,
             height: 104,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: _CartPalette.softBlend,
+              gradient: CartzyColors.softGradientOf(context, light: _CartPalette.softBlend),
             ),
             child: Center(
               child: ShaderMask(
@@ -974,7 +974,7 @@ class _CartScreenState extends State<CartScreen>
             style: GoogleFonts.playfairDisplay(
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: _CartPalette.ink,
+              color: CartzyColors.textOf(context, light: _CartPalette.ink),
             ),
           ),
           const SizedBox(height: 6),
@@ -984,7 +984,7 @@ class _CartScreenState extends State<CartScreen>
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               height: 1.4,
-              color: _CartPalette.muted,
+              color: CartzyColors.mutedOf(context, light: _CartPalette.muted),
             ),
           ),
           const SizedBox(height: 24),
@@ -1018,12 +1018,12 @@ class _CartScreenState extends State<CartScreen>
           child: Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             // Same bar style as the Home / Sale / Profile screens.
-            decoration: const ShapeDecoration(
-              color: CartzyColors.surface,
+            decoration: ShapeDecoration(
+              color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
               shape: StadiumBorder(
-                side: BorderSide(color: CartzyColors.border),
+                side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               ),
-              shadows: [
+              shadows: const [
                 BoxShadow(
                   color: Color(0x148B3A3A),
                   blurRadius: 16,
@@ -1339,8 +1339,8 @@ class _SwipeToRemoveState extends State<_SwipeToRemove>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: _armed
-                                  ? Colors.white.withValues(alpha: 0.22)
-                                  : Colors.white,
+                                  ? CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.22)
+                                  : CartzyColors.surfaceOf(context, light: Colors.white),
                             ),
                             child: Icon(
                               _armed
@@ -1445,7 +1445,7 @@ class _BlendCheckbox extends StatelessWidget {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: on ? null : Colors.white,
+              color: on ? null : CartzyColors.surfaceOf(context, light: Colors.white),
               gradient: on ? _CartPalette.blend : null,
               border: Border.all(
                 color: on ? Colors.transparent : CartzyColors.brand400,
@@ -1489,9 +1489,9 @@ class _StockChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: strong ? _CartPalette.roseGoldDeep : CartzyColors.rose50Warm,
+        color: strong ? _CartPalette.roseGoldDeep : CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
         borderRadius: BorderRadius.circular(8),
-        border: strong ? null : Border.all(color: CartzyColors.rose200),
+        border: strong ? null : Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
       ),
       child: Text(
         label,
@@ -1530,7 +1530,7 @@ class _QuantityStepper extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: CartzyColors.brand100,
+        color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -1550,7 +1550,7 @@ class _QuantityStepper extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 13,
               fontWeight: FontWeight.w800,
-              color: _CartPalette.ink,
+              color: CartzyColors.textOf(context, light: _CartPalette.ink),
             ),
           ),
           _StepperButton(
@@ -1601,12 +1601,12 @@ class _StepperButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: filled ? _CartPalette.blend : null,
-            color: filled ? null : Colors.white,
+            color: filled ? null : CartzyColors.surfaceOf(context, light: Colors.white),
           ),
           child: Icon(
             icon,
             size: 15,
-            color: filled ? Colors.white : _CartPalette.lavender,
+            color: filled ? Colors.white : CartzyColors.mutedOf(context, light: _CartPalette.lavender),
           ),
         ),
       ),
@@ -1657,15 +1657,15 @@ class _CircleIconButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: Material(
-        color: Colors.white,
-        shape: const CircleBorder(side: BorderSide(color: _CartPalette.line)),
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        shape: CircleBorder(side: BorderSide(color: CartzyColors.borderOf(context, light: _CartPalette.line))),
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onTap,
           child: SizedBox(
             width: 42,
             height: 42,
-            child: Icon(icon, size: 16, color: _CartPalette.ink),
+            child: Icon(icon, size: 16, color: CartzyColors.textOf(context, light: _CartPalette.ink)),
           ),
         ),
       ),
@@ -1681,8 +1681,8 @@ class _ClearAllChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
-      shape: const StadiumBorder(side: BorderSide(color: CartzyColors.rose200)),
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
+      shape: StadiumBorder(side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200))),
       child: InkWell(
         customBorder: const StadiumBorder(),
         onTap: onTap,
@@ -1764,7 +1764,7 @@ class _BlendButton extends StatelessWidget {
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
-                    color: enabled ? Colors.white : _CartPalette.muted,
+                    color: enabled ? Colors.white : CartzyColors.mutedOf(context, light: _CartPalette.muted),
                   ),
                 ),
               ),
@@ -1772,7 +1772,7 @@ class _BlendButton extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(icon,
                     size: 17,
-                    color: enabled ? Colors.white : _CartPalette.muted),
+                    color: enabled ? Colors.white : CartzyColors.mutedOf(context, light: _CartPalette.muted)),
               ],
             ],
           ),
@@ -1791,7 +1791,7 @@ class _OutlineBlendButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: CartzyColors.brand100,
+      color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -1804,7 +1804,7 @@ class _OutlineBlendButton extends StatelessWidget {
               style: GoogleFonts.dmSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: _CartPalette.lavenderDark,
+                color: CartzyColors.textOf(context, light: _CartPalette.lavenderDark),
               ),
             ),
           ),

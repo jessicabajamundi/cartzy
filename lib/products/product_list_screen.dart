@@ -398,7 +398,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               children: [
           // Search bar
           Container(
-            color: CartzyColors.surface,
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: TextField(
               controller: _searchController,
@@ -406,11 +406,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               decoration: InputDecoration(
                 hintText: 'Search products...',
                 hintStyle:
-                    const TextStyle(color: CartzyColors.gray, fontSize: 14),
-                prefixIcon: const Icon(Icons.search,
-                    color: CartzyColors.gray, size: 20),
+                    TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontSize: 14),
+                prefixIcon: Icon(Icons.search,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.gray), size: 20),
                 filled: true,
-                fillColor: CartzyColors.background,
+                fillColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 border: OutlineInputBorder(
@@ -438,19 +438,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isSelected ? Colors.white : CartzyColors.navy,
+                        color: isSelected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                     selected: isSelected,
                     selectedColor: CartzyColors.coral,
-                    backgroundColor: CartzyColors.surface,
+                    backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                     showCheckmark: false,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
                           color: isSelected
                               ? CartzyColors.coral
-                              : CartzyColors.border),
+                              : CartzyColors.borderOf(context, light: CartzyColors.border)),
                     ),
                     onSelected: (val) {
                       if (!val || cat == _selectedCategory) return;
@@ -475,19 +475,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.cloud_off,
-                                  size: 48, color: CartzyColors.gray),
+                              Icon(Icons.cloud_off,
+                                  size: 48, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                               const SizedBox(height: 12),
-                              const Text("Couldn't load products",
+                              Text("Couldn't load products",
                                   style: TextStyle(
-                                      color: CartzyColors.navy,
+                                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600)),
                               const SizedBox(height: 6),
                               Text(_loadError!,
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      color: CartzyColors.gray, fontSize: 13)),
+                                  style: TextStyle(
+                                      color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontSize: 13)),
                               const SizedBox(height: 14),
                               OutlinedButton(
                                   onPressed: _loadProducts,
@@ -497,16 +497,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         ),
                       )
                     : filtered.isEmpty
-                        ? const Center(
+                        ? Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.search_off,
-                                    size: 48, color: CartzyColors.gray),
-                                SizedBox(height: 12),
+                                    size: 48, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
+                                const SizedBox(height: 12),
                                 Text('No products found',
                                     style: TextStyle(
-                                        color: CartzyColors.gray,
+                                        color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                                         fontSize: 15)),
                               ],
                             ),
@@ -602,12 +602,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
             duration: const Duration(milliseconds: 200),
             child: Container(
               margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              decoration: const ShapeDecoration(
-                color: CartzyColors.surface,
+              decoration: ShapeDecoration(
+                color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                 shape: StadiumBorder(
-                  side: BorderSide(color: CartzyColors.border),
+                  side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
-                shadows: [
+                shadows: const [
                   BoxShadow(
                     color: Color(0x148B3A3A),
                     blurRadius: 16,

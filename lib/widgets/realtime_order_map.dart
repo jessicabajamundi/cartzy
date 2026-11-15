@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -350,9 +351,9 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
     return Container(
       height: widget.height,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE8DEE3), width: 1.2),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE8DEE3)), width: 1.2),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -483,9 +484,9 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.94),
+        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.94),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE8DEE3)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE8DEE3))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -554,8 +555,8 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
         color: highlight
-            ? const Color(0xFFFDE8E4)
-            : const Color(0xFFF5F1F3),
+            ? CartzyColors.elevatedOf(context, light: const Color(0xFFFDE8E4))
+            : CartzyColors.elevatedOf(context, light: const Color(0xFFF5F1F3)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -564,7 +565,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
           Icon(
             icon,
             size: 12,
-            color: highlight ? const Color(0xFFB05646) : const Color(0xFF6A5C70),
+            color: highlight ? const Color(0xFFB05646) : CartzyColors.textOf(context, light: const Color(0xFF6A5C70)),
           ),
           const SizedBox(width: 3),
           Text(
@@ -572,7 +573,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
             style: GoogleFonts.dmSans(
               fontSize: 10.5,
               fontWeight: FontWeight.w700,
-              color: highlight ? const Color(0xFFB05646) : const Color(0xFF33293D),
+              color: highlight ? const Color(0xFFB05646) : CartzyColors.textOf(context, light: const Color(0xFF33293D)),
             ),
           ),
         ],
@@ -584,9 +585,9 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
+        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE8DEE3)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE8DEE3))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -609,7 +610,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
             ),
             child: Icon(
               _hasAssignedRider ? Icons.two_wheeler : Icons.local_shipping_outlined,
-              color: _hasAssignedRider ? const Color(0xFF047857) : const Color(0xFF564B68),
+              color: _hasAssignedRider ? const Color(0xFF047857) : CartzyColors.textOf(context, light: const Color(0xFF564B68)),
               size: 22,
             ),
           ),
@@ -626,7 +627,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF282133),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -637,7 +638,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
                       : 'Awaiting rider assignment · Route active',
                   style: GoogleFonts.dmSans(
                     fontSize: 11,
-                    color: const Color(0xFF7A6F7B),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6F7B)),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -649,10 +650,10 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
           // Recenter Button
           IconButton(
             onPressed: _recenterOnRider,
-            icon: const Icon(Icons.my_location, size: 20, color: Color(0xFF564B68)),
+            icon: Icon(Icons.my_location, size: 20, color: CartzyColors.textOf(context, light: const Color(0xFF564B68))),
             tooltip: 'Recenter on Rider',
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF1EFF5),
+              backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1EFF5)),
               padding: const EdgeInsets.all(8),
             ),
           ),
@@ -661,10 +662,10 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
           // Zoom Route Button
           IconButton(
             onPressed: _fitAllMarkers,
-            icon: const Icon(Icons.zoom_out_map, size: 20, color: Color(0xFF564B68)),
+            icon: Icon(Icons.zoom_out_map, size: 20, color: CartzyColors.textOf(context, light: const Color(0xFF564B68))),
             tooltip: 'View Full Route',
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF1EFF5),
+              backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1EFF5)),
               padding: const EdgeInsets.all(8),
             ),
           ),
@@ -685,7 +686,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2.5),
+          border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 2.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.25),
@@ -726,7 +727,7 @@ class _RealtimeOrderMapState extends State<RealtimeOrderMap>
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5),
+                border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 2.5),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF10B981).withValues(alpha: 0.4),

@@ -418,9 +418,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         maxChildSize: 0.9,
         minChildSize: 0.5,
         builder: (_, controller) => Container(
-          decoration: const BoxDecoration(
-            color: CartzyColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
           child: ListView(
@@ -429,19 +429,19 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Cartzy Terms of Service', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.navy)),
+                  Text('Cartzy Terms of Service', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
                   IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
                 ],
               ),
               const Divider(color: CartzyColors.border),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 '1. Acceptance of Terms\nBy creating a buyer account on Cartzy, you agree to comply with and be bound by these Terms of Service.\n\n'
                 '2. Eligibility\nYou must be at least 18 years of age to register an account and place orders.\n\n'
                 '3. Account Responsibility\nYou are responsible for maintaining the confidentiality of your credentials and OTP verification codes.\n\n'
                 '4. Orders and Payments\nAll orders placed through Cartzy are subject to product availability and payment verification.\n\n'
                 '5. Delivery and Returns\nDeliveries are handled by registered Cartzy riders. Returns and refunds follow standard Cartzy policies.',
-                style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.text),
+                style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.textOf(context, light: CartzyColors.text)),
               ),
             ],
           ),
@@ -460,9 +460,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
         maxChildSize: 0.9,
         minChildSize: 0.5,
         builder: (_, controller) => Container(
-          decoration: const BoxDecoration(
-            color: CartzyColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.all(24),
           child: ListView(
@@ -471,17 +471,17 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Cartzy Privacy Policy', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.navy)),
+                  Text('Cartzy Privacy Policy', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy))),
                   IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
                 ],
               ),
               const Divider(color: CartzyColors.border),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 '1. Information We Collect\nWe collect personal details such as your full name, email address, contact number, delivery address, and government-issued ID for identity verification.\n\n'
                 '2. Use of Information\nYour information is used solely to process your orders, facilitate deliveries, prevent fraudulent activity, and comply with Philippine Republic Act No. 10173 (Data Privacy Act of 2012).\n\n'
                 '3. Data Protection\nCartzy implements industry-standard encryption and security protocols to safeguard your credentials and personal records.',
-                style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.text),
+                style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.textOf(context, light: CartzyColors.text)),
               ),
             ],
           ),
@@ -534,14 +534,14 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             Icon(
               satisfied ? Icons.check_circle : Icons.radio_button_unchecked,
               size: 14,
-              color: satisfied ? Colors.green : CartzyColors.gray,
+              color: satisfied ? Colors.green : CartzyColors.mutedOf(context, light: CartzyColors.gray),
             ),
             const SizedBox(width: 8),
             Text(
               text,
               style: TextStyle(
                 fontSize: 11,
-                color: satisfied ? CartzyColors.brandDarkest : CartzyColors.gray,
+                color: satisfied ? CartzyColors.textOf(context, light: CartzyColors.brandDarkest) : CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 fontWeight: satisfied ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -554,9 +554,9 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
       margin: const EdgeInsets.only(top: 8, bottom: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: CartzyColors.brandLight,
+        color: CartzyColors.elevatedOf(context, light: CartzyColors.brandLight),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: CartzyColors.brandBorder),
+        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.brandBorder)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,7 +564,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Password Strength:', style: TextStyle(fontSize: 11, color: CartzyColors.gray)),
+              Text('Password Strength:', style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
               Text(strengthText, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: strengthColor)),
             ],
           ),
@@ -573,7 +573,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: strengthPercent,
-              backgroundColor: CartzyColors.brandBorder,
+              backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brandBorder),
               valueColor: AlwaysStoppedAnimation<Color>(strengthColor),
               minHeight: 4,
             ),
@@ -705,7 +705,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -760,7 +760,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           style: GoogleFonts.dmSans(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
+            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
           ),
         ),
         const SizedBox(height: 4),
@@ -768,7 +768,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           'Enter your name and personal details',
           style: GoogleFonts.dmSans(
             fontSize: 12.5,
-            color: const Color(0xFF7A6E72),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),
         const SizedBox(height: 18),
@@ -902,7 +902,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           style: GoogleFonts.dmSans(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
+            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
           ),
         ),
         const SizedBox(height: 4),
@@ -910,7 +910,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           'Where should we deliver your orders?',
           style: GoogleFonts.dmSans(
             fontSize: 12.5,
-            color: const Color(0xFF7A6E72),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),
         const SizedBox(height: 20),
@@ -1059,7 +1059,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           style: GoogleFonts.dmSans(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
+            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
           ),
         ),
         const SizedBox(height: 4),
@@ -1067,7 +1067,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           'Create your Cartzy login details and upload ID',
           style: GoogleFonts.dmSans(
             fontSize: 12.5,
-            color: const Color(0xFF7A6E72),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),
         const SizedBox(height: 20),
@@ -1084,7 +1084,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           trailing: IconButton(
             icon: Icon(
               _passwordVisible ? Icons.visibility_off : Icons.visibility,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
             onPressed: () => setState(() => _passwordVisible = !_passwordVisible),
           ),
@@ -1112,7 +1112,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
           trailing: IconButton(
             icon: Icon(
               _confirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
             onPressed: () => setState(() => _confirmPasswordVisible = !_confirmPasswordVisible),
           ),
@@ -1145,7 +1145,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                     value: _agreeToTerms,
                     activeColor: const Color(0xFF865561),
                     side: BorderSide(
-                      color: _termsError ? CartzyColors.error : const Color(0xFFD0C3C5),
+                      color: _termsError ? CartzyColors.error : CartzyColors.borderOf(context, light: const Color(0xFFD0C3C5)),
                       width: 1.5,
                     ),
                     onChanged: (val) {
@@ -1160,13 +1160,13 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20), height: 1.4),
+                      style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF231F20)), height: 1.4),
                       children: [
                         const TextSpan(text: 'I have read and agree to the '),
                         TextSpan(
                           text: 'Terms of Service',
-                          style: const TextStyle(
-                            color: Color(0xFF865561),
+                          style: TextStyle(
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
                           ),
@@ -1214,7 +1214,7 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                     value: _agreeToPrivacy,
                     activeColor: const Color(0xFF865561),
                     side: BorderSide(
-                      color: _privacyError ? CartzyColors.error : const Color(0xFFD0C3C5),
+                      color: _privacyError ? CartzyColors.error : CartzyColors.borderOf(context, light: const Color(0xFFD0C3C5)),
                       width: 1.5,
                     ),
                     onChanged: (val) {
@@ -1229,13 +1229,13 @@ class _BuyerRegistrationState extends State<BuyerRegistration> {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF231F20), height: 1.4),
+                      style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF231F20)), height: 1.4),
                       children: [
                         const TextSpan(text: 'I have read and agree to the '),
                         TextSpan(
                           text: 'Privacy Policy',
-                          style: const TextStyle(
-                            color: Color(0xFF865561),
+                          style: TextStyle(
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                             fontWeight: FontWeight.bold,
                             decoration: TextDecoration.underline,
                           ),
@@ -1321,7 +1321,7 @@ class RegistrationUploadField extends StatelessWidget {
           style: GoogleFonts.dmSans(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF231F20),
+            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
           ),
         ),
         const SizedBox(height: 6),
@@ -1331,18 +1331,18 @@ class RegistrationUploadField extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isError ? const Color(0xFFD32F2F) : const Color(0xFFE5D7D7),
+                color: isError ? const Color(0xFFD32F2F) : CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)),
                 width: 1.0,
               ),
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.file_upload_outlined,
-                  color: Color(0xFF865561),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                   size: 22,
                 ),
                 const SizedBox(width: 12),
@@ -1351,7 +1351,7 @@ class RegistrationUploadField extends StatelessWidget {
                     fileName ?? 'Tap to choose file',
                     style: GoogleFonts.dmSans(
                       fontSize: 14,
-                      color: fileName != null ? const Color(0xFF231F20) : const Color(0xFFAAA0A2),
+                      color: fileName != null ? CartzyColors.textOf(context, light: const Color(0xFF231F20)) : CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2)),
                       fontWeight: fileName != null ? FontWeight.w600 : FontWeight.normal,
                     ),
                     maxLines: 1,
@@ -1361,16 +1361,16 @@ class RegistrationUploadField extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF7F2F3),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F3)),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: const Color(0xFFE5D7D7)),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7))),
                   ),
                   child: Text(
                     'Browse',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF4A3E4D),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF4A3E4D)),
                     ),
                   ),
                 ),
@@ -1390,7 +1390,7 @@ class RegistrationUploadField extends StatelessWidget {
             helperText!,
             style: GoogleFonts.dmSans(
               fontSize: 11.5,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
           ),
         ],
@@ -1434,7 +1434,7 @@ class RegistrationDateField extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF231F20),
+              color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
             children: const [
               TextSpan(
@@ -1451,25 +1451,25 @@ class RegistrationDateField extends StatelessWidget {
             child: TextField(
               controller: TextEditingController(text: birthday),
               readOnly: true,
-              style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
+              style: GoogleFonts.dmSans(fontSize: 14.5, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
-                prefixIcon: const Icon(Icons.calendar_today_outlined, color: Color(0xFF9E8F91), size: 20),
-                suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
+                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFFB5A8AA))),
+                prefixIcon: Icon(Icons.calendar_today_outlined, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)), size: 20),
+                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91))),
                 errorText: isError ? errorMessage : null,
             errorMaxLines: 3,
                 errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+                  borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+                  borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -1488,7 +1488,7 @@ class RegistrationDateField extends StatelessWidget {
           helperText,
           style: GoogleFonts.dmSans(
             fontSize: 11.5,
-            color: const Color(0xFF7A6E72),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),
       ],
@@ -1582,9 +1582,9 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        color: CartzyColors.surface,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(28),
           topRight: Radius.circular(28),
         ),
@@ -1600,20 +1600,20 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: CartzyColors.border,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.border),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
 
-          const Text(
+          Text(
             'Select Birthday',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Scroll to choose your date of birth',
-            style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+            style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
           ),
           const SizedBox(height: 20),
 
@@ -1702,9 +1702,9 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
-                child: const Text(
+                child: Text(
                   'CANCEL',
-                  style: TextStyle(color: CartzyColors.gray, fontWeight: FontWeight.w600, fontSize: 13),
+                  style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontWeight: FontWeight.w600, fontSize: 13),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1752,7 +1752,7 @@ class _BirthdayWheelPickerState extends State<BirthdayWheelPicker> {
               style: TextStyle(
                 fontSize: isSelected ? 19 : 15,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? widget.accent : CartzyColors.gray.withValues(alpha: 0.6),
+                color: isSelected ? widget.accent : CartzyColors.mutedOf(context, light: CartzyColors.gray.withValues(alpha: 0.6)),
               ),
             ),
           );
@@ -1805,7 +1805,7 @@ class RegistrationDropdown extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF231F20),
+              color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
             children: [
               if (isRequired)
@@ -1838,11 +1838,11 @@ class RegistrationDropdown extends StatelessWidget {
             child: TextField(
               controller: TextEditingController(text: selectedValue),
               readOnly: true,
-              style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
+              style: GoogleFonts.dmSans(fontSize: 14.5, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
               decoration: InputDecoration(
                 hintText: isLoading ? 'Loading...' : 'Select ${displayLabel.toLowerCase()}',
-                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
-                prefixIcon: Icon(icon ?? Icons.list_alt_outlined, color: const Color(0xFF9E8F91), size: 20),
+                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFFB5A8AA))),
+                prefixIcon: Icon(icon ?? Icons.list_alt_outlined, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)), size: 20),
                 suffixIcon: isLoading
                     ? const Padding(
                         padding: EdgeInsets.all(14),
@@ -1852,20 +1852,20 @@ class RegistrationDropdown extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF865561)),
                         ),
                       )
-                    : const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
+                    : Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91))),
                 errorText: isError ? errorMessage : null,
             errorMaxLines: 3,
                 errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+                  borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+                  borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -1938,9 +1938,9 @@ class _DropdownSheetState extends State<_DropdownSheet> {
       expand: false,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: CartzyColors.surface,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
@@ -1952,7 +1952,7 @@ class _DropdownSheetState extends State<_DropdownSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: CartzyColors.border,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.border),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -1960,17 +1960,17 @@ class _DropdownSheetState extends State<_DropdownSheet> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Row(
                   children: [
-                    Icon(widget.icon ?? Icons.list_alt_outlined, color: CartzyColors.coral, size: 22),
+                    Icon(widget.icon ?? Icons.list_alt_outlined, color: CartzyColors.mutedOf(context, light: CartzyColors.coral), size: 22),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         widget.label.replaceAll('*', '').trim(),
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                       ),
                     ),
                     Text(
                       '${widget.options.length} options',
-                      style: const TextStyle(fontSize: 12, color: CartzyColors.gray),
+                      style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                     ),
                   ],
                 ),
@@ -1981,13 +1981,13 @@ class _DropdownSheetState extends State<_DropdownSheet> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: _filter,
-                    style: const TextStyle(fontSize: 14, color: CartzyColors.text),
+                    style: TextStyle(fontSize: 14, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                     decoration: InputDecoration(
                       hintText: 'Search...',
-                      hintStyle: const TextStyle(fontSize: 14, color: CartzyColors.gray),
-                      prefixIcon: const Icon(Icons.search, color: CartzyColors.gray, size: 20),
+                      hintStyle: TextStyle(fontSize: 14, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
+                      prefixIcon: Icon(Icons.search, color: CartzyColors.mutedOf(context, light: CartzyColors.gray), size: 20),
                       filled: true,
-                      fillColor: CartzyColors.background,
+                      fillColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -2001,10 +2001,10 @@ class _DropdownSheetState extends State<_DropdownSheet> {
               const Divider(height: 1, color: CartzyColors.border),
               Expanded(
                 child: _filteredOptions.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'No matches found',
-                          style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+                          style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                         ),
                       )
                     : ListView.separated(
@@ -2017,7 +2017,7 @@ class _DropdownSheetState extends State<_DropdownSheet> {
                             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                             title: Text(
                               _filteredOptions[index],
-                              style: const TextStyle(fontSize: 15, color: CartzyColors.text),
+                              style: TextStyle(fontSize: 15, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                             ),
                             trailing: const Icon(Icons.chevron_right, color: CartzyColors.border, size: 18),
                             onTap: () => Navigator.of(context).pop(_filteredOptions[index]),
@@ -2076,7 +2076,7 @@ class SexDropdown extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF231F20),
+              color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
             children: const [
               TextSpan(
@@ -2094,9 +2094,9 @@ class SexDropdown extends StatelessWidget {
               backgroundColor: Colors.transparent,
               builder: (context) {
                 return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: CartzyColors.surfaceOf(context, light: Colors.white),
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
                     ),
@@ -2110,7 +2110,7 @@ class SexDropdown extends StatelessWidget {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE5D7D7),
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFE5D7D7)),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -2118,7 +2118,7 @@ class SexDropdown extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           'Select Sex',
-                          style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700, color: const Color(0xFF231F20)),
+                          style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -2132,10 +2132,10 @@ class SexDropdown extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFFFFF9F9) : Colors.white,
+                                color: isSelected ? CartzyColors.surfaceOf(context, light: const Color(0xFFFFF9F9)) : CartzyColors.surfaceOf(context, light: Colors.white),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: isSelected ? const Color(0xFFD3A8A8) : const Color(0xFFE5D7D7),
+                                  color: isSelected ? const Color(0xFFD3A8A8) : CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)),
                                   width: isSelected ? 1.5 : 1,
                                 ),
                               ),
@@ -2143,7 +2143,7 @@ class SexDropdown extends StatelessWidget {
                                 children: [
                                   Icon(
                                     option['icon'] as IconData,
-                                    color: isSelected ? const Color(0xFF865561) : const Color(0xFF7A6E72),
+                                    color: isSelected ? CartzyColors.mutedOf(context, light: const Color(0xFF865561)) : CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                                     size: 22,
                                   ),
                                   const SizedBox(width: 14),
@@ -2153,12 +2153,12 @@ class SexDropdown extends StatelessWidget {
                                       style: GoogleFonts.dmSans(
                                         fontSize: 14.5,
                                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                        color: const Color(0xFF231F20),
+                                        color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                                       ),
                                     ),
                                   ),
                                   if (isSelected)
-                                    const Icon(Icons.check, color: Color(0xFF865561), size: 20),
+                                    Icon(Icons.check, color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)), size: 20),
                                 ],
                               ),
                             ),
@@ -2176,25 +2176,25 @@ class SexDropdown extends StatelessWidget {
             child: TextField(
               controller: TextEditingController(text: selectedValue),
               readOnly: true,
-              style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
+              style: GoogleFonts.dmSans(fontSize: 14.5, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
               decoration: InputDecoration(
                 hintText: 'Select your sex',
-                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
-                prefixIcon: Icon(_selectedIcon, color: const Color(0xFF9E8F91), size: 20),
-                suffixIcon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF9E8F91)),
+                hintStyle: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFFB5A8AA))),
+                prefixIcon: Icon(_selectedIcon, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)), size: 20),
+                suffixIcon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91))),
                 errorText: isError ? errorMessage : null,
             errorMaxLines: 3,
                 errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+                  borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+                  borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -2312,7 +2312,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF231F20)),
+              icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
               onPressed: widget.onBack,
             ),
           ),
@@ -2326,7 +2326,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
           style: GoogleFonts.playfairDisplay(
             fontSize: 26,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
+            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             letterSpacing: -0.3,
           ),
         ),
@@ -2336,7 +2336,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
           textAlign: TextAlign.center,
           style: GoogleFonts.dmSans(
             fontSize: 13,
-            color: const Color(0xFF7A6E72),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),
         if (widget.showGoogleSignUp) ...[
@@ -2392,9 +2392,9 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
             width: double.infinity,
             height: 46,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE5D7D7), width: 1.2),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -2420,7 +2420,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
                   style: GoogleFonts.dmSans(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF231F20),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                   ),
                 ),
               ],
@@ -2437,7 +2437,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
                 'or register with email',
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
-                  color: const Color(0xFF9E8F91),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)),
                 ),
               ),
             ),
@@ -2567,7 +2567,7 @@ class RoleSelectionSection extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF231F20),
+              color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
             children: const [
               TextSpan(
@@ -2639,7 +2639,7 @@ class RegistrationFooter extends StatelessWidget {
           children: [
             Text(
               'Already have an account? ',
-              style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
             ),
             GestureDetector(
               onTap: onBackToLogin,
@@ -2648,7 +2648,7 @@ class RegistrationFooter extends StatelessWidget {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF865561),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                 ),
               ),
             ),
@@ -2663,7 +2663,7 @@ class RegistrationFooter extends StatelessWidget {
             children: [
               Text(
                 'Looking to shop on cartzy instead? ',
-                style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF7A6E72)),
+                style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
               ),
               GestureDetector(
                 onTap: onSwitchRole,
@@ -2672,7 +2672,7 @@ class RegistrationFooter extends StatelessWidget {
                   style: GoogleFonts.dmSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF865561),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                     decoration: TextDecoration.underline,
                   ),
                 ),
@@ -2811,7 +2811,7 @@ class _RegistrationTextFieldState extends State<RegistrationTextField> {
             style: GoogleFonts.dmSans(
               fontSize: 13.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF231F20),
+              color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
             children: [
               if (isRequired)
@@ -2841,44 +2841,44 @@ class _RegistrationTextFieldState extends State<RegistrationTextField> {
             });
             widget.onChanged?.call(value);
           },
-          style: GoogleFonts.dmSans(fontSize: 14.5, color: const Color(0xFF231F20)),
+          style: GoogleFonts.dmSans(fontSize: 14.5, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
           decoration: InputDecoration(
             counterText: '',
             hintText: customHint ?? (checkPhone ? '9171234567' : displayLabel),
-            hintStyle: GoogleFonts.dmSans(fontSize: 14, color: const Color(0xFFB5A8AA)),
+            hintStyle: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFFB5A8AA))),
             prefixIcon: checkPhone
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const SizedBox(width: 14),
-                      const Icon(Icons.phone_outlined, color: Color(0xFF9E8F91), size: 20),
+                      Icon(Icons.phone_outlined, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)), size: 20),
                       const SizedBox(width: 8),
                       Text(
                         '+63',
                         style: GoogleFonts.dmSans(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF231F20),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                         ),
                       ),
                       const SizedBox(width: 10),
                     ],
                   )
-                : (icon != null ? Icon(icon, color: const Color(0xFF9E8F91), size: 20) : null),
+                : (icon != null ? Icon(icon, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8F91)), size: 20) : null),
             suffixIcon: trailing,
             errorText: _warning ?? _validationError ?? (isError ? errorMessage : null),
             errorMaxLines: 3,
             errorStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFEF4444)),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+              borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+              borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -2900,7 +2900,7 @@ class _RegistrationTextFieldState extends State<RegistrationTextField> {
             '+63 Philippines · Enter 10 digits starting with 9.',
             style: GoogleFonts.dmSans(
               fontSize: 11.5,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
           ),
         ] else if (helperText != null && helperText!.isNotEmpty) ...[
@@ -2909,7 +2909,7 @@ class _RegistrationTextFieldState extends State<RegistrationTextField> {
             helperText!,
             style: GoogleFonts.dmSans(
               fontSize: 11.5,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
           ),
         ],
@@ -3013,7 +3013,7 @@ class SecondaryButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          side: const BorderSide(color: Color(0xFFE5D7D7), width: 1.2),
+          side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7)), width: 1.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -3027,7 +3027,7 @@ class SecondaryButton extends StatelessWidget {
             style: GoogleFonts.dmSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF231F20),
+              color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
             ),
           ),
         ),
@@ -3096,7 +3096,7 @@ class StepIndicator extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: currentStep > i + 1
                                 ? (accent ?? const Color(0xFF705A7B))
-                                : const Color(0xFFE2DCE8),
+                                : CartzyColors.elevatedOf(context, light: const Color(0xFFE2DCE8)),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),

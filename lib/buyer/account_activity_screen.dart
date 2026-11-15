@@ -121,14 +121,14 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.brand50,
+      backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.brand50),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         foregroundColor: CartzyColors.brandDark,
         elevation: 0,
         title: Text(
           'Account activity',
-          style: GoogleFonts.cormorantGaramond(fontSize: 24, fontWeight: FontWeight.w700, color: CartzyColors.brand900),
+          style: GoogleFonts.cormorantGaramond(fontSize: 24, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brand900)),
         ),
       ),
       body: Column(
@@ -148,7 +148,7 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
 
   Widget _buildFilters() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       height: 56,
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -163,13 +163,13 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
                 onSelected: (_) => _setFilter(entry.key),
                 showCheckmark: false,
                 selectedColor: CartzyColors.brandDark,
-                backgroundColor: Colors.white,
-                side: BorderSide(color: _filter == entry.key ? CartzyColors.brandDark : CartzyColors.brand200, width: 1.5),
+                backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
+                side: BorderSide(color: _filter == entry.key ? CartzyColors.brandDark : CartzyColors.borderOf(context, light: CartzyColors.brand200), width: 1.5),
                 shape: const StadiumBorder(),
                 labelStyle: GoogleFonts.lato(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: _filter == entry.key ? Colors.white : CartzyColors.brandDark,
+                  color: _filter == entry.key ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.brandDark),
                 ),
               ),
             ),
@@ -206,7 +206,7 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
           child: Text(
             day.toUpperCase(),
-            style: GoogleFonts.lato(fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 1.6, color: CartzyColors.rose700),
+            style: GoogleFonts.lato(fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 1.6, color: CartzyColors.mutedOf(context, light: CartzyColors.rose700)),
           ),
         ));
         lastDay = day;
@@ -224,7 +224,7 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
                   onPressed: _load,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: CartzyColors.brandDark,
-                    side: const BorderSide(color: CartzyColors.brand200, width: 1.5),
+                    side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200), width: 1.5),
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
                   ),
@@ -251,9 +251,9 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: alert ? const Color(0xFFFFF6F6) : Colors.white,
+        color: alert ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF6F6)) : CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CartzyColors.brand200),
+        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.brand200)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,16 +274,16 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
                   children: [
                     Expanded(
                       child: Text(entry.title,
-                          style: GoogleFonts.lato(fontSize: 14.5, fontWeight: FontWeight.w700, color: CartzyColors.brand900)),
+                          style: GoogleFonts.lato(fontSize: 14.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brand900))),
                     ),
                     const SizedBox(width: 8),
                     Text(_time(entry.createdAt),
-                        style: GoogleFonts.lato(fontSize: 12, fontWeight: FontWeight.w700, color: CartzyColors.grayMid)),
+                        style: GoogleFonts.lato(fontSize: 12, fontWeight: FontWeight.w700, color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid))),
                   ],
                 ),
                 if (entry.description != null && entry.description!.isNotEmpty) ...[
                   const SizedBox(height: 3),
-                  Text(entry.description!, style: GoogleFonts.lato(fontSize: 13, color: CartzyColors.brandDark)),
+                  Text(entry.description!, style: GoogleFonts.lato(fontSize: 13, color: CartzyColors.textOf(context, light: CartzyColors.brandDark))),
                 ],
                 const SizedBox(height: 7),
                 Wrap(
@@ -293,13 +293,13 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: CartzyColors.brand100, borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100), borderRadius: BorderRadius.circular(20)),
                       child: Text(entry.channel == 'mobile' ? 'Mobile app' : 'Website',
-                          style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.brandDark)),
+                          style: GoogleFonts.lato(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brandDark))),
                     ),
                     Text(
                       [entry.device, if (entry.ipAddress != null) 'IP ${entry.ipAddress}'].where((s) => s.isNotEmpty).join(' · '),
-                      style: GoogleFonts.lato(fontSize: 11.5, color: CartzyColors.grayMid),
+                      style: GoogleFonts.lato(fontSize: 11.5, color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid)),
                     ),
                   ],
                 ),
@@ -320,15 +320,15 @@ class _AccountActivityScreenState extends State<AccountActivityScreen> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [CartzyColors.brand100, CartzyColors.rose50Warm]),
+              gradient: LinearGradient(colors: [CartzyColors.elevatedOf(context, light: CartzyColors.brand100), CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)]),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Icon(icon, size: 32, color: CartzyColors.rose700),
+            child: Icon(icon, size: 32, color: CartzyColors.mutedOf(context, light: CartzyColors.rose700)),
           ),
           const SizedBox(height: 14),
-          Text(title, style: GoogleFonts.cormorantGaramond(fontSize: 24, fontWeight: FontWeight.w700, color: CartzyColors.brand900)),
+          Text(title, style: GoogleFonts.cormorantGaramond(fontSize: 24, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brand900))),
           const SizedBox(height: 6),
-          Text(body, textAlign: TextAlign.center, style: GoogleFonts.lato(fontSize: 13.5, color: CartzyColors.grayMid)),
+          Text(body, textAlign: TextAlign.center, style: GoogleFonts.lato(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid))),
           if (_error != null) ...[
             const SizedBox(height: 16),
             OutlinedButton(onPressed: () => _load(reset: true), child: const Text('Try again')),

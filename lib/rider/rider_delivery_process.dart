@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -124,7 +125,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
             ),
           SimpleDialogOption(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel', style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF8A7780))),
+            child: Text('Cancel', style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)))),
           ),
         ],
       ),
@@ -151,7 +152,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
   Widget build(BuildContext context) {
     final isCod = _d.isCod;
     return Scaffold(
-      backgroundColor: const Color(0xFFEEE9EB),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFEEE9EB)),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -164,9 +165,9 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                   child: Container(
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: CartzyColors.surfaceOf(context, light: Colors.white),
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE9E1E5)),
+                      border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE9E1E5))),
                       boxShadow: const [BoxShadow(color: Color(0x1F241C2D), blurRadius: 22, offset: Offset(0, 8))],
                     ),
                     child: Column(
@@ -263,7 +264,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
             Container(
               width: 30,
               height: 30,
-              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.18), borderRadius: BorderRadius.circular(8)),
               child: const Icon(Icons.qr_code_scanner, size: 17, color: Colors.white),
             ),
             const SizedBox(width: 9),
@@ -281,7 +282,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
               tooltip: 'Close',
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.close, size: 17, color: Colors.white),
-              style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.16)),
+              style: IconButton.styleFrom(backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.16)),
             ),
           ],
         ),
@@ -342,7 +343,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                   controller: _trackingController,
                   textCapitalization: TextCapitalization.characters,
                   decoration: _inputDecoration(_trackingNumber),
-                  style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF352B3D)),
+                  style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.textOf(context, light: const Color(0xFF352B3D))),
                   onSubmitted: _verifyTracking,
                 ),
               ),
@@ -370,8 +371,8 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
         width: double.infinity,
         padding: const EdgeInsets.all(11),
         decoration: BoxDecoration(
-          color: const Color(0xFFFBF9F8),
-          border: Border.all(color: const Color(0xFFEDE5E0)),
+          color: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF9F8)),
+          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE5E0))),
           borderRadius: BorderRadius.circular(11),
         ),
         child: Column(
@@ -388,12 +389,12 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(_d.recipientName ?? 'Buyer', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF352B3D))),
+            Text(_d.recipientName ?? 'Buyer', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF352B3D)))),
             const SizedBox(height: 2),
-            Text(_d.recipientAddress ?? 'No address on the order', style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF67616D))),
+            Text(_d.recipientAddress ?? 'No address on the order', style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.textOf(context, light: const Color(0xFF67616D)))),
             const SizedBox(height: 2),
-            Text('Tracking: $_trackingNumber', style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF67616D))),
-            Text('Items: ${_d.itemsSummary ?? _d.itemsCount}', maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF67616D))),
+            Text('Tracking: $_trackingNumber', style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: const Color(0xFF67616D)))),
+            Text('Items: ${_d.itemsSummary ?? _d.itemsCount}', maxLines: 2, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.textOf(context, light: const Color(0xFF67616D)))),
             const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Divider(height: 1, color: Color(0xFFE8E1E5))),
           ],
         ),
@@ -408,32 +409,32 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
             controller: controller,
             maxLines: maxLines,
             decoration: _inputDecoration(hint ?? ''),
-            style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF352B3D)),
+            style: GoogleFonts.dmSans(fontSize: 10, color: CartzyColors.textOf(context, light: const Color(0xFF352B3D))),
           ),
         ],
       );
 
   Widget _sectionLabel(String text) => Text(
         text,
-        style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w700, color: const Color(0xFF514B5D)),
+        style: GoogleFonts.dmSans(fontSize: 9, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF514B5D))),
       );
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFFA49BA4)),
+        hintStyle: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.mutedOf(context, light: const Color(0xFFA49BA4))),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(7), borderSide: const BorderSide(color: Color(0xFFDCD6E2))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(7), borderSide: const BorderSide(color: Color(0xFFDCD6E2))),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFDCD6E2)))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(7), borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFDCD6E2)))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(7), borderSide: const BorderSide(color: Color(0xFF746382), width: 1.3)),
       );
 
   Widget _statusBadge(String text, bool positive) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
-          color: positive ? const Color(0xFFE1F8EF) : const Color(0xFFF1ECF3),
+          color: positive ? CartzyColors.elevatedOf(context, light: const Color(0xFFE1F8EF)) : CartzyColors.elevatedOf(context, light: const Color(0xFFF1ECF3)),
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
@@ -441,7 +442,7 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
           style: GoogleFonts.dmSans(
             fontSize: 7,
             fontWeight: FontWeight.w700,
-            color: positive ? const Color(0xFF13784F) : const Color(0xFF5A4A69),
+            color: positive ? const Color(0xFF13784F) : CartzyColors.textOf(context, light: const Color(0xFF5A4A69)),
           ),
         ),
       );

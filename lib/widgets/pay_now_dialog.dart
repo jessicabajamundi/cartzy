@@ -138,9 +138,9 @@ class _PayNowDialogState extends State<PayNowDialog>
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.9,
       ),
-      decoration: const BoxDecoration(
-        color: CartzyColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -151,7 +151,7 @@ class _PayNowDialogState extends State<PayNowDialog>
             width: 44,
             height: 4,
             decoration: BoxDecoration(
-              color: CartzyColors.border,
+              color: CartzyColors.elevatedOf(context, light: CartzyColors.border),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -180,16 +180,16 @@ class _PayNowDialogState extends State<PayNowDialog>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Pay Now',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: CartzyColors.gray),
+                  icon: Icon(Icons.close, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
@@ -202,9 +202,9 @@ class _PayNowDialogState extends State<PayNowDialog>
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: CartzyColors.background,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               ),
               child: Row(
                 children: [
@@ -212,7 +212,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                     width: 52,
                     height: 52,
                     decoration: BoxDecoration(
-                      color: CartzyColors.surface,
+                      color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: CartzyProductImage(
@@ -233,10 +233,10 @@ class _PayNowDialogState extends State<PayNowDialog>
                           widget.order.productName,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: CartzyColors.navy,
+                            color: CartzyColors.textOf(context, light: CartzyColors.navy),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -244,18 +244,18 @@ class _PayNowDialogState extends State<PayNowDialog>
                           children: [
                             Text(
                               'Qty: ${widget.order.quantity}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: CartzyColors.gray,
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                               ),
                             ),
                             const Spacer(),
                             Text(
                               widget.order.price,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: CartzyColors.navy,
+                                color: CartzyColors.textOf(context, light: CartzyColors.navy),
                               ),
                             ),
                           ],
@@ -270,12 +270,12 @@ class _PayNowDialogState extends State<PayNowDialog>
             const SizedBox(height: 22),
 
             // Payment Method Header
-            const Text(
+            Text(
               'Select Payment Method',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
 
@@ -341,12 +341,12 @@ class _PayNowDialogState extends State<PayNowDialog>
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Official Merchant QR',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: CartzyColors.navy,
+                                color: CartzyColors.textOf(context, light: CartzyColors.navy),
                               ),
                             ),
                           ],
@@ -354,7 +354,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE6F2FF),
+                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF)),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Text(
@@ -374,7 +374,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: CartzyColors.surfaceOf(context, light: Colors.white),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: const Color(0xFF007DFE), width: 1.5),
                         boxShadow: [
@@ -389,7 +389,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                         data: '00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540${widget.order.price.replaceAll(RegExp(r'[^0-9.]'), '')}5802PH5915CartzyCommerce6006Manila62080504${widget.order.id}6304',
                         version: QrVersions.auto,
                         size: 160.0,
-                        backgroundColor: Colors.white,
+                        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -409,7 +409,7 @@ class _PayNowDialogState extends State<PayNowDialog>
                       'Merchant: Cartzy Official Store • No: 0917-555-2278',
                       style: GoogleFonts.dmSans(
                         fontSize: 11.5,
-                        color: const Color(0xFF7A6E72),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -429,14 +429,14 @@ class _PayNowDialogState extends State<PayNowDialog>
                           size: 20,
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: CartzyColors.border),
+                          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: CartzyColors.border),
+                          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -465,10 +465,10 @@ class _PayNowDialogState extends State<PayNowDialog>
                     color: const Color(0xFF2AA89C).withValues(alpha: 0.2),
                   ),
                 ),
-                child: const Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
                         Icon(
                           Icons.info_outline,
@@ -488,12 +488,12 @@ class _PayNowDialogState extends State<PayNowDialog>
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     Text(
                       'Please prepare the exact amount. Your order will be shipped once confirmed. Payment will be collected upon delivery by our rider.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: CartzyColors.text,
+                        color: CartzyColors.textOf(context, light: CartzyColors.text),
                         height: 1.4,
                       ),
                     ),
@@ -508,7 +508,7 @@ class _PayNowDialogState extends State<PayNowDialog>
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: CartzyColors.background,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -523,12 +523,12 @@ class _PayNowDialogState extends State<PayNowDialog>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Total Amount',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
                       Text(
@@ -635,20 +635,20 @@ class _PayNowDialogState extends State<PayNowDialog>
             _selectedMethod == 'GCash'
                 ? 'Processing GCash Payment...'
                 : 'Confirming Cash on Delivery...',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
 
           const SizedBox(height: 6),
 
-          const Text(
+          Text(
             'Please wait, do not close this screen.',
             style: TextStyle(
               fontSize: 13,
-              color: CartzyColors.gray,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
             ),
           ),
 
@@ -723,12 +723,12 @@ class _PayNowDialogState extends State<PayNowDialog>
 
           const SizedBox(height: 20),
 
-          const Text(
+          Text(
             'Payment Successful! 🎉',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
 
@@ -739,9 +739,9 @@ class _PayNowDialogState extends State<PayNowDialog>
                 ? 'Your GCash payment has been processed successfully.'
                 : 'Your COD order has been confirmed and will be shipped soon.',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: CartzyColors.gray,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
               height: 1.4,
             ),
           ),
@@ -753,9 +753,9 @@ class _PayNowDialogState extends State<PayNowDialog>
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: CartzyColors.background,
+              color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: CartzyColors.border),
+              border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
             ),
             child: Column(
               children: [
@@ -839,10 +839,10 @@ class _PayNowDialogState extends State<PayNowDialog>
         decoration: BoxDecoration(
           color: selected
               ? color.withValues(alpha: 0.06)
-              : CartzyColors.surface,
+              : CartzyColors.surfaceOf(context, light: CartzyColors.surface),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? color : CartzyColors.border,
+            color: selected ? color : CartzyColors.borderOf(context, light: CartzyColors.border),
             width: selected ? 2 : 1,
           ),
         ),
@@ -854,12 +854,12 @@ class _PayNowDialogState extends State<PayNowDialog>
               decoration: BoxDecoration(
                 color: selected
                     ? color.withValues(alpha: 0.15)
-                    : CartzyColors.background,
+                    : CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: selected ? color : CartzyColors.gray,
+                color: selected ? color : CartzyColors.mutedOf(context, light: CartzyColors.gray),
               ),
             ),
             const SizedBox(width: 12),
@@ -872,15 +872,15 @@ class _PayNowDialogState extends State<PayNowDialog>
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: selected ? color : CartzyColors.navy,
+                      color: selected ? color : CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: CartzyColors.gray,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                     ),
                   ),
                 ],
@@ -893,7 +893,7 @@ class _PayNowDialogState extends State<PayNowDialog>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? color : CartzyColors.border,
+                  color: selected ? color : CartzyColors.borderOf(context, light: CartzyColors.border),
                   width: 2,
                 ),
                 color: selected ? color : Colors.transparent,
@@ -935,7 +935,7 @@ class _PayNowDialogState extends State<PayNowDialog>
               shape: BoxShape.circle,
               color: done || active
                   ? stepColor.withValues(alpha: 0.15)
-                  : CartzyColors.background,
+                  : CartzyColors.elevatedOf(context, light: CartzyColors.background),
               border: Border.all(color: stepColor, width: 1.5),
             ),
             child: Icon(
@@ -951,7 +951,7 @@ class _PayNowDialogState extends State<PayNowDialog>
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                color: done || active ? CartzyColors.navy : CartzyColors.gray,
+                color: done || active ? CartzyColors.textOf(context, light: CartzyColors.navy) : CartzyColors.mutedOf(context, light: CartzyColors.gray),
               ),
             ),
           ),
@@ -981,17 +981,17 @@ class _PayNowDialogState extends State<PayNowDialog>
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: CartzyColors.gray,
+            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
           ),
         ),
       ],
@@ -1004,19 +1004,19 @@ class _PayNowDialogState extends State<PayNowDialog>
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: CartzyColors.gray,
+            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
           ),
         ),
         Flexible(
           child: Text(
             value,
             textAlign: TextAlign.end,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
         ),

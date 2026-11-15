@@ -171,14 +171,14 @@ class AccountMenuScreen extends StatelessWidget {
                               TextOverflow.ellipsis,
 
                           style:
-                              const TextStyle(
+                              TextStyle(
                             fontSize: 15,
 
                             fontWeight:
                                 FontWeight.bold,
 
                             color:
-                                CartzyColors.navy,
+                                CartzyColors.textOf(context, light: CartzyColors.navy),
                           ),
                         ),
 
@@ -186,7 +186,7 @@ class AccountMenuScreen extends StatelessWidget {
                           height: 2,
                         ),
 
-                        const Text(
+                        Text(
                           'BUYER',
 
                           style:
@@ -194,7 +194,7 @@ class AccountMenuScreen extends StatelessWidget {
                             fontSize: 11,
 
                             color:
-                                CartzyColors.gray,
+                                CartzyColors.mutedOf(context, light: CartzyColors.gray),
                           ),
                         ),
                       ],
@@ -454,7 +454,7 @@ class AccountMenuScreen extends StatelessWidget {
                     onChanged: (v) => ThemeController.setDark(v),
                     secondary: Icon(
                       isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                      color: isDark ? CartzyColors.darkAccent : CartzyColors.navy,
+                      color: isDark ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                     title: Text(
                       'Dark Mode',
@@ -485,11 +485,11 @@ class AccountMenuScreen extends StatelessWidget {
                     icon: const Icon(Icons.logout_rounded, size: 19),
                     label: const Text('Log out'),
                     style: OutlinedButton.styleFrom(
-                      backgroundColor: CartzyColors.rose50Warm,
+                      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                       foregroundColor: CartzyColors.rose700,
                       minimumSize: const Size(0, 52),
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      side: const BorderSide(color: CartzyColors.rose200),
+                      side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
                       shape: const StadiumBorder(),
                       textStyle: GoogleFonts.dmSans(
                         fontSize: 14,
@@ -508,7 +508,7 @@ class AccountMenuScreen extends StatelessWidget {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: CartzyColors.brandDark,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -517,7 +517,7 @@ class AccountMenuScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
-                      color: CartzyColors.brandDeep,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                     ),
                   ),
                 ],
@@ -550,11 +550,11 @@ class AccountMenuScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.shield_outlined, color: CartzyColors.navy),
-            SizedBox(width: 8),
-            Expanded(
+            Icon(Icons.shield_outlined, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
+            const SizedBox(width: 8),
+            const Expanded(
               child: Text(
                 'Role Access Control (TC-BUY-030)',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -572,28 +572,28 @@ class AccountMenuScreen extends StatelessWidget {
               Navigator.pop(ctx);
               onNavigateRole?.call('sellerDashboard');
             },
-            child: const Text('Seller Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+            child: Text('Seller Dashboard (403)', style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy))),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               onNavigateRole?.call('logisticsDashboard');
             },
-            child: const Text('Logistics Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+            child: Text('Logistics Dashboard (403)', style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy))),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               onNavigateRole?.call('riderDashboard');
             },
-            child: const Text('Rider Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+            child: Text('Rider Dashboard (403)', style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy))),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               onNavigateRole?.call('adminDashboard');
             },
-            child: const Text('Admin Dashboard (403)', style: TextStyle(color: CartzyColors.navy)),
+            child: Text('Admin Dashboard (403)', style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy))),
           ),
         ],
       ),
@@ -628,14 +628,14 @@ class _MenuSectionLabel
         text,
 
         style:
-            const TextStyle(
+            TextStyle(
           fontSize: 11,
 
           fontWeight:
               FontWeight.bold,
 
           color:
-              CartzyColors.gray,
+              CartzyColors.mutedOf(context, light: CartzyColors.gray),
 
           letterSpacing: 0.6,
         ),
@@ -728,7 +728,7 @@ class _MenuItem
               icon,
 
               color:
-                  CartzyColors.coral,
+                  CartzyColors.mutedOf(context, light: CartzyColors.coral),
 
               size: 20,
             ),
@@ -746,11 +746,11 @@ class _MenuItem
                 label,
 
                 style:
-                    const TextStyle(
+                    TextStyle(
                   fontSize: 14,
 
                   color:
-                      CartzyColors.text,
+                      CartzyColors.textOf(context, light: CartzyColors.text),
                 ),
               ),
             ),
@@ -790,14 +790,14 @@ class _MenuItem
                   trailingBadge!,
 
                   style:
-                      const TextStyle(
+                      TextStyle(
                     fontSize: 10,
 
                     fontWeight:
                         FontWeight.bold,
 
                     color:
-                        CartzyColors.navy,
+                        CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
               ),
@@ -849,11 +849,11 @@ class _MenuItem
             // ARROW
             // ----------------------------------------------
 
-            const Icon(
+            Icon(
               Icons.chevron_right,
 
               color:
-                  CartzyColors.gray,
+                  CartzyColors.mutedOf(context, light: CartzyColors.gray),
 
               size: 18,
             ),

@@ -33,9 +33,9 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           padding: const EdgeInsets.symmetric(vertical: 52, horizontal: 32),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: CartzyColors.border),
+            border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -55,13 +55,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     width: 78,
                     height: 78,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0EBF4),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF0EBF4)),
                       borderRadius: BorderRadius.circular(22),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.receipt_long_outlined,
                       size: 38,
-                      color: Color(0xFF7C6B8E),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF7C6B8E)),
                     ),
                   ),
                   Positioned(
@@ -89,7 +89,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.4,
-                  color: const Color(0xFF9C7B8A),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF9C7B8A)),
                 ),
               ),
 
@@ -101,7 +101,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: CartzyColors.text,
+                  color: CartzyColors.textOf(context, light: CartzyColors.text),
                   height: 1.2,
                 ),
                 textAlign: TextAlign.center,
@@ -115,7 +115,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   height: 1.55,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -164,7 +164,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 'Completed and cancelled purchases will appear here automatically.',
                 style: GoogleFonts.dmSans(
                   fontSize: 11.5,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -179,7 +179,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,10 +187,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             // ── Page Header ──────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
-              decoration: const BoxDecoration(
-                color: CartzyColors.background,
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 border: Border(
-                  bottom: BorderSide(color: CartzyColors.border),
+                  bottom: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
               ),
               child: Row(
@@ -203,11 +203,11 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       margin: const EdgeInsets.only(top: 2, right: 14),
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: CartzyColors.surfaceOf(context, light: Colors.white),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: CartzyColors.border),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                       ),
-                      child: const Icon(Icons.arrow_back, size: 18, color: CartzyColors.navy),
+                      child: Icon(Icons.arrow_back, size: 18, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                     ),
                   ),
 
@@ -222,7 +222,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             fontSize: 10.5,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.4,
-                            color: const Color(0xFF9C7B8A),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF9C7B8A)),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -231,7 +231,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 26,
                             fontWeight: FontWeight.w800,
-                            color: CartzyColors.text,
+                            color: CartzyColors.textOf(context, light: CartzyColors.text),
                             height: 1.1,
                           ),
                         ),
@@ -240,7 +240,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                           'A clear record of your completed and cancelled orders.',
                           style: GoogleFonts.dmSans(
                             fontSize: 12.5,
-                            color: CartzyColors.gray,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                             height: 1.4,
                           ),
                         ),
@@ -253,16 +253,16 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     margin: const EdgeInsets.only(top: 4),
                     padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: CartzyColors.surfaceOf(context, light: Colors.white),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: CartzyColors.border),
+                      border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                     ),
                     child: Text(
                       'Purchase archive',
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: CartzyColors.text,
+                        color: CartzyColors.textOf(context, light: CartzyColors.text),
                       ),
                     ),
                   ),
@@ -296,13 +296,13 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CartzyColors.border),
+        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.receipt_long_outlined, color: CartzyColors.navy),
+          Icon(Icons.receipt_long_outlined, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -312,7 +312,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           ),
           Text(
             order['status'] ?? '',
-            style: GoogleFonts.dmSans(color: CartzyColors.gray, fontSize: 12),
+            style: GoogleFonts.dmSans(color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontSize: 12),
           ),
         ],
       ),

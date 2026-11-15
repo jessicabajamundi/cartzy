@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -155,7 +156,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.receipt_long_outlined, color: Color(0xFF46333D)),
+            Icon(Icons.receipt_long_outlined, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))),
             const SizedBox(width: 8),
             Text(
               'Log COD Remittance',
@@ -172,15 +173,15 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           children: [
             Text(
               'Remit collected cash on hand to Metro South Sorting & Fulfillment Hub cashier.',
-              style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF554B62)),
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF554B62))),
             ),
             const SizedBox(height: 14),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFFAF7F5),
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFEFE8EA)),
+                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -241,7 +242,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F5),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
       body: Column(
         children: [
           RiderCommonAppBar(
@@ -284,7 +285,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF261E30),
+                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                 letterSpacing: -0.4,
               ),
             ),
@@ -293,7 +294,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               'Track delivery payouts, COD cash remittances, and performance metrics',
               style: GoogleFonts.dmSans(
                 fontSize: 11,
-                color: const Color(0xFF8A7780),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
               ),
             ),
           ],
@@ -411,9 +412,9 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,7 +429,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                   fontSize: 10.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
-                  color: const Color(0xFF8A7780),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                 ),
               ),
               Container(
@@ -436,7 +437,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                 decoration: BoxDecoration(
                   color: pillColor,
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: const Color(0xFFEFE8EA)),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
                 ),
                 child: Text(
                   pillLabel,
@@ -455,7 +456,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             style: GoogleFonts.cormorantGaramond(
               fontSize: 24,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF261E30),
+              color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
             ),
           ),
           const SizedBox(height: 4),
@@ -502,9 +503,9 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -521,7 +522,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.cormorantGaramond(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF261E30),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -529,7 +530,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     'Completed packages per day and earned commissions',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ],
@@ -537,16 +538,16 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFAF7F5),
+                  color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFEFE8EA)),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
                 ),
                 child: Text(
                   'Standard ₱65/drop',
                   style: GoogleFonts.dmSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF554B62),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
                   ),
                 ),
               ),
@@ -571,7 +572,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               const SizedBox(width: 6),
               Text(
                 'Profit Earned (₱)',
-                style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF554B62)),
+                style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.textOf(context, light: const Color(0xFF554B62))),
               ),
               const SizedBox(width: 20),
               Container(
@@ -585,7 +586,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               const SizedBox(width: 6),
               Text(
                 'Deliveries Completed',
-                style: GoogleFonts.dmSans(fontSize: 11, color: const Color(0xFF554B62)),
+                style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.textOf(context, light: const Color(0xFF554B62))),
               ),
             ],
           ),
@@ -606,7 +607,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     6,
                     (index) => Text(
                       _chartAxisLabel(index),
-                      style: const TextStyle(fontSize: 8, color: Color(0xFF8A7780)),
+                      style: TextStyle(fontSize: 8, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
                     ),
                   ),
                 ),
@@ -627,7 +628,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: List.generate(
                                     6,
-                                    (_) => Container(height: 1, color: const Color(0xFFEFE8EA)),
+                                    (_) => Container(height: 1, color: CartzyColors.elevatedOf(context, light: const Color(0xFFEFE8EA))),
                                   ),
                                 ),
                                 Row(
@@ -686,7 +687,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.dmSans(fontSize: 7, color: const Color(0xFF8A7780)),
+                              style: GoogleFonts.dmSans(fontSize: 7, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
                             ),
                           ),
                         ),
@@ -706,9 +707,9 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,7 +719,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             style: GoogleFonts.cormorantGaramond(
               fontSize: 19,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF261E30),
+              color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
             ),
           ),
           const SizedBox(height: 2),
@@ -726,7 +727,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             'Transparent compensation model',
             style: GoogleFonts.dmSans(
               fontSize: 12,
-              color: const Color(0xFF8A7780),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
             ),
           ),
           const SizedBox(height: 16),
@@ -751,7 +752,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 11,
               fontStyle: FontStyle.italic,
-              color: const Color(0xFF8A7780),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
               height: 1.3,
             ),
           ),
@@ -765,9 +766,9 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFFFBF8F9),
+        color: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF8F9)),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -778,7 +779,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               fontSize: 10,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.5,
-              color: const Color(0xFF8A7780),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
             ),
           ),
           const SizedBox(height: 3),
@@ -787,7 +788,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF46333D),
+              color: CartzyColors.textOf(context, light: const Color(0xFF46333D)),
             ),
           ),
         ],
@@ -800,9 +801,9 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -819,7 +820,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.cormorantGaramond(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF261E30),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -827,7 +828,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     'Itemized commission per delivered parcel',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ],
@@ -838,7 +839,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                 '${_records.length} Records',
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
-                  color: const Color(0xFF8A7780),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                 ),
               ),
             ],
@@ -856,11 +857,11 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           // Table Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFBF8F9),
+            decoration: BoxDecoration(
+              color: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF8F9)),
               border: Border(
-                top: BorderSide(color: Color(0xFFEFE8EA)),
-                bottom: BorderSide(color: Color(0xFFEFE8EA)),
+                top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
+                bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
               ),
             ),
             child: Row(
@@ -872,7 +873,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ),
@@ -883,7 +884,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ),
@@ -894,7 +895,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ),
@@ -905,7 +906,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ),
@@ -917,7 +918,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ),
@@ -948,22 +949,22 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
     final isCod = order.paymentMethod.toUpperCase() == 'COD';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF0EBEF)))),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0EBEF))))),
       child: Row(
         children: [
-          Expanded(flex: 3, child: Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF46333D)))),
+          Expanded(flex: 3, child: Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))))),
           Expanded(
             flex: 4,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(order.buyerName, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w600)),
-                Text(order.deliveryAddress, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 8, color: const Color(0xFF8A7780))),
+                Text(order.deliveryAddress, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.dmSans(fontSize: 8, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)))),
               ],
             ),
           ),
           Expanded(flex: 2, child: _paymentBadge(isCod)),
-          Expanded(flex: 3, child: Text(_formatCompletedDate(order), style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF554B62)))),
+          Expanded(flex: 3, child: Text(_formatCompletedDate(order), style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.textOf(context, light: const Color(0xFF554B62))))),
           Expanded(
             flex: 2,
             child: Text('+${_formatPeso(order.riderPayout)}', textAlign: TextAlign.right, style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF168456))),
@@ -978,24 +979,24 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF0EBEF)))),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0EBEF))))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF46333D)))),
+              Expanded(child: Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))))),
               _paymentBadge(isCod),
             ],
           ),
           const SizedBox(height: 6),
           Text(order.buyerName, style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600)),
-          Text(order.deliveryAddress, style: GoogleFonts.dmSans(fontSize: 10, color: const Color(0xFF8A7780))),
+          Text(order.deliveryAddress, style: GoogleFonts.dmSans(fontSize: 10, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)))),
           const SizedBox(height: 5),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_formatCompletedDate(order), style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF554B62))),
+              Text(_formatCompletedDate(order), style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.textOf(context, light: const Color(0xFF554B62)))),
               Text('+${_formatPeso(order.riderPayout)}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF168456))),
             ],
           ),
@@ -1009,7 +1010,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
-            color: isCod ? const Color(0xFFFFF5E5) : const Color(0xFFE8F8F0),
+            color: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFFFF5E5)) : CartzyColors.elevatedOf(context, light: const Color(0xFFE8F8F0)),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(

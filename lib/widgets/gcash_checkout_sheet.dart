@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -151,7 +152,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
   void _showImageSourcePicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -167,14 +168,14 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                 style: GoogleFonts.dmSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF282133),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                 ),
               ),
               const SizedBox(height: 14),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFEBF5FF),
-                  child: Icon(Icons.photo_library_outlined, color: Color(0xFF007DFE)),
+                leading: CircleAvatar(
+                  backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)),
+                  child: const Icon(Icons.photo_library_outlined, color: Color(0xFF007DFE)),
                 ),
                 title: Text('Choose from Gallery', style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
                 subtitle: Text('Select saved GCash receipt screenshot', style: GoogleFonts.dmSans(fontSize: 12)),
@@ -184,9 +185,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                 },
               ),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFEBF5FF),
-                  child: Icon(Icons.camera_alt_outlined, color: Color(0xFF007DFE)),
+                leading: CircleAvatar(
+                  backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)),
+                  child: const Icon(Icons.camera_alt_outlined, color: Color(0xFF007DFE)),
                 ),
                 title: Text('Take a Photo', style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
                 subtitle: Text('Capture receipt using device camera', style: GoogleFonts.dmSans(fontSize: 12)),
@@ -343,9 +344,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.92,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         top: false,
@@ -397,21 +398,21 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                           style: GoogleFonts.dmSans(
                             fontSize: 16.5,
                             fontWeight: FontWeight.w800,
-                            color: const Color(0xFF282133),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                           ),
                         ),
                         Text(
                           'Scan seller QR, upload receipt & enter reference',
                           style: GoogleFonts.dmSans(
                             fontSize: 12,
-                            color: const Color(0xFF7A6E72),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                           ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Color(0xFF7A6E72)),
+                    icon: Icon(Icons.close, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                     onPressed: _submitting ? null : () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -437,9 +438,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF4F9FF),
+                              color: CartzyColors.elevatedOf(context, light: const Color(0xFFF4F9FF)),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFD0E4FF)),
+                              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFD0E4FF))),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -465,7 +466,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: CartzyColors.surfaceOf(context, light: Colors.white),
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(color: const Color(0xFF007DFE), width: 2),
                                 boxShadow: [
@@ -507,7 +508,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: _hasCustomQr ? const Color(0xFFE8F5E9) : const Color(0xFFE6F2FF),
+                                      color: _hasCustomQr ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)) : CartzyColors.elevatedOf(context, light: const Color(0xFFE6F2FF)),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
@@ -533,9 +534,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF0F7FF),
+                                color: CartzyColors.elevatedOf(context, light: const Color(0xFFF0F7FF)),
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFB9DBFF)),
+                                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFB9DBFF))),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -567,9 +568,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF9FBFF),
+                              color: CartzyColors.surfaceOf(context, light: const Color(0xFFF9FBFF)),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: const Color(0xFFE1EBF7)),
+                              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE1EBF7))),
                             ),
                             child: Column(
                               children: [
@@ -617,7 +618,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                         style: GoogleFonts.dmSans(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF282133),
+                                          color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                                         ),
                                       ),
                                       const SizedBox(width: 4),
@@ -657,20 +658,20 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                   fontSize: 14.5,
                                   fontWeight: FontWeight.w600,
                                   letterSpacing: 0.8,
-                                  color: const Color(0xFF282133),
+                                  color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                                 ),
                                 decoration: InputDecoration(
                                   hintText: 'e.g. 1024 5829 3819 (13 digits)',
                                   hintStyle: GoogleFonts.dmSans(
                                     fontSize: 13,
-                                    color: const Color(0xFFB0A4A8),
+                                    color: CartzyColors.mutedOf(context, light: const Color(0xFFB0A4A8)),
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                     vertical: 14,
                                   ),
                                   filled: true,
-                                  fillColor: const Color(0xFFF9FBFF),
+                                  fillColor: CartzyColors.surfaceOf(context, light: const Color(0xFFF9FBFF)),
                                   prefixIcon: const Icon(
                                     Icons.receipt_long_outlined,
                                     color: Color(0xFF007DFE),
@@ -678,11 +679,11 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Color(0xFFD0E4FF)),
+                                    borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFD0E4FF))),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Color(0xFFD0E4FF)),
+                                    borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFD0E4FF))),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -708,7 +709,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                     style: GoogleFonts.dmSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF282133),
+                                      color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -725,10 +726,10 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                     width: double.infinity,
                                     padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFF8FAFF),
+                                      color: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFF)),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
-                                        color: const Color(0xFFB9DBFF),
+                                        color: CartzyColors.borderOf(context, light: const Color(0xFFB9DBFF)),
                                         style: BorderStyle.solid,
                                         width: 1.5,
                                       ),
@@ -739,7 +740,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                           width: 44,
                                           height: 44,
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFEBF5FF),
+                                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF5FF)),
                                             borderRadius: BorderRadius.circular(10),
                                           ),
                                           child: const Icon(
@@ -762,7 +763,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                           'Supports JPG, PNG (Max 5MB)',
                                           style: GoogleFonts.dmSans(
                                             fontSize: 11.5,
-                                            color: const Color(0xFF7A6E72),
+                                            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                                           ),
                                         ),
                                       ],
@@ -773,9 +774,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF0FDF4),
+                                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF0FDF4)),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                                    border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFBBF7D0))),
                                   ),
                                   child: Row(
                                     children: [
@@ -814,7 +815,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                               overflow: TextOverflow.ellipsis,
                                               style: GoogleFonts.dmSans(
                                                 fontSize: 11.5,
-                                                color: const Color(0xFF4B5563),
+                                                color: CartzyColors.textOf(context, light: const Color(0xFF4B5563)),
                                               ),
                                             ),
                                           ],
@@ -836,9 +837,9 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
+                                color: CartzyColors.elevatedOf(context, light: const Color(0xFFFEF2F2)),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: const Color(0xFFFECACA)),
+                                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFFECACA))),
                               ),
                               child: Row(
                                 children: [
@@ -862,7 +863,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFFFBEB),
+                                color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB)),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: const Color(0xFFFDE68A)),
                               ),
@@ -894,20 +895,20 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
+                              color: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFC)),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE2E8F0))),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.shield_outlined, size: 16, color: Color(0xFF64748B)),
+                                Icon(Icons.shield_outlined, size: 16, color: CartzyColors.mutedOf(context, light: const Color(0xFF64748B))),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     'Your order will stay pending until the seller or admin approves your payment receipt.',
                                     style: GoogleFonts.dmSans(
                                       fontSize: 11,
-                                      color: const Color(0xFF64748B),
+                                      color: CartzyColors.mutedOf(context, light: const Color(0xFF64748B)),
                                       height: 1.3,
                                     ),
                                   ),
@@ -997,7 +998,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                 style: GoogleFonts.dmSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF7A6E72),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                 ),
               ),
               const SizedBox(height: 2),
@@ -1007,12 +1008,12 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                     ? GoogleFonts.dmMono(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isHighlighted ? const Color(0xFF007DFE) : const Color(0xFF282133),
+                        color: isHighlighted ? const Color(0xFF007DFE) : CartzyColors.textOf(context, light: const Color(0xFF282133)),
                       )
                     : GoogleFonts.dmSans(
                         fontSize: isHighlighted ? 17 : 14,
                         fontWeight: isHighlighted ? FontWeight.w800 : FontWeight.w700,
-                        color: isHighlighted ? const Color(0xFF007DFE) : const Color(0xFF282133),
+                        color: isHighlighted ? const Color(0xFF007DFE) : CartzyColors.textOf(context, light: const Color(0xFF282133)),
                       ),
               ),
             ],
@@ -1024,7 +1025,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFEBF4FF),
+              color: CartzyColors.elevatedOf(context, light: const Color(0xFFEBF4FF)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

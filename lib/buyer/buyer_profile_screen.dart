@@ -71,24 +71,24 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
 
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         elevation: 0,
 
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
           ),
           onPressed: widget.onBack,
         ),
 
-        title: const Text(
+        title: Text(
           'My Profile',
           style: TextStyle(
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -96,9 +96,9 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
 
         actions: [
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.logout,
-              color: CartzyColors.coral,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
             ),
             onPressed: widget.onLogout,
           ),
@@ -110,17 +110,17 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
           // PROFILE HEADER
           Container(
             width: double.infinity,
-            color: CartzyColors.surface,
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
             child: Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 34,
-                  backgroundColor: CartzyColors.background,
+                  backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                   child: Icon(
                     Icons.person,
                     size: 38,
-                    color: CartzyColors.coral,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                   ),
                 ),
 
@@ -132,10 +132,10 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
                     children: [
                       Text(
                         widget.userName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
 
@@ -143,9 +143,9 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
 
                       Text(
                         widget.userEmail,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: CartzyColors.gray,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                         ),
                       ),
                     ],
@@ -154,9 +154,9 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
 
                 // EDIT PROFILE
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.edit_outlined,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                   onPressed: widget.onEditProfile,
                 ),
@@ -167,20 +167,20 @@ class _BuyerProfileScreenState extends State<BuyerProfileScreen>
           // MY ORDERS
           Container(
             width: double.infinity,
-            color: CartzyColors.surface,
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: const Text(
+            child: Text(
               'My Orders',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
           ),
 
           Container(
-            color: CartzyColors.surface,
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
@@ -276,9 +276,9 @@ class _EmptyOrdersView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'No orders $status',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: CartzyColors.gray,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
             ),
           ),
         ],
@@ -357,7 +357,7 @@ class _OrderCard extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Not Yet', style: TextStyle(color: CartzyColors.gray)),
+                child: Text('Not Yet', style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
               ),
               TextButton(
                 onPressed: () {
@@ -382,7 +382,7 @@ class _OrderCard extends StatelessWidget {
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(rateCtx).pop(),
-                          child: const Text('Later', style: TextStyle(color: CartzyColors.gray)),
+                          child: Text('Later', style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
                         ),
                         TextButton(
                           onPressed: () {
@@ -394,10 +394,10 @@ class _OrderCard extends StatelessWidget {
                               userName: userName,
                             );
                           },
-                          child: const Text(
+                          child: Text(
                             'Rate Now',
                             style: TextStyle(
-                              color: CartzyColors.coral,
+                              color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -406,10 +406,10 @@ class _OrderCard extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text(
+                child: Text(
                   'Yes, Confirm',
                   style: TextStyle(
-                    color: CartzyColors.coral,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -428,11 +428,11 @@ class _OrderCard extends StatelessWidget {
           context: context,
           builder: (ctx) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.local_shipping, color: CartzyColors.coral),
-                SizedBox(width: 8),
-                Text('Shipment Tracking'),
+                Icon(Icons.local_shipping, color: CartzyColors.mutedOf(context, light: CartzyColors.coral)),
+                const SizedBox(width: 8),
+                const Text('Shipment Tracking'),
               ],
             ),
             content: Column(
@@ -452,19 +452,19 @@ class _OrderCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.radio_button_checked, color: CartzyColors.coral, size: 18),
-                    SizedBox(width: 8),
-                    Text('In Transit - Assigned to Rider', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    Icon(Icons.radio_button_checked, color: CartzyColors.mutedOf(context, light: CartzyColors.coral), size: 18),
+                    const SizedBox(width: 8),
+                    const Text('In Transit - Assigned to Rider', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.radio_button_unchecked, color: CartzyColors.gray, size: 18),
-                    SizedBox(width: 8),
-                    Text('Estimated Delivery: Tomorrow', style: TextStyle(fontSize: 12, color: CartzyColors.gray)),
+                    Icon(Icons.radio_button_unchecked, color: CartzyColors.mutedOf(context, light: CartzyColors.gray), size: 18),
+                    const SizedBox(width: 8),
+                    Text('Estimated Delivery: Tomorrow', style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
                   ],
                 ),
               ],
@@ -472,7 +472,7 @@ class _OrderCard extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Close', style: TextStyle(color: CartzyColors.coral)),
+                child: Text('Close', style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.coral))),
               ),
             ],
           ),
@@ -489,10 +489,10 @@ class _OrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: CartzyColors.surface,
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: CartzyColors.border,
+          color: CartzyColors.borderOf(context, light: CartzyColors.border),
         ),
       ),
       child: Column(
@@ -504,7 +504,7 @@ class _OrderCard extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: CartzyColors.background,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: CartzyProductImage(
@@ -527,18 +527,18 @@ class _OrderCard extends StatelessWidget {
                       order.productName,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Qty: ${order.quantity}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: CartzyColors.gray,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                       ),
                     ),
                   ],
@@ -574,9 +574,9 @@ class _OrderCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: CartzyColors.background,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,18 +597,18 @@ class _OrderCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         '${order.userRating!.toStringAsFixed(1)} ★',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Your Review',
                         style: TextStyle(
                           fontSize: 11,
-                          color: CartzyColors.gray,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                         ),
                       ),
                     ],
@@ -617,9 +617,9 @@ class _OrderCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       order.userReview!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: CartzyColors.text,
+                        color: CartzyColors.textOf(context, light: CartzyColors.text),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -639,10 +639,10 @@ class _OrderCard extends StatelessWidget {
             children: [
               Text(
                 order.price,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
               if (order.status == 'To Review' && !order.hasReviewed)

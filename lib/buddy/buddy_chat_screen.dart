@@ -295,10 +295,10 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
         curve: Curves.easeOut,
         child: Container(
           height: sheetHeight,
-          decoration: const BoxDecoration(
-            color: CartzyColors.brand50,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-            boxShadow: [
+          decoration: BoxDecoration(
+            color: CartzyColors.surfaceOf(context, light: CartzyColors.brand50),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black26,
                 blurRadius: 20,
@@ -313,7 +313,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
     }
 
     return Scaffold(
-      backgroundColor: CartzyColors.brand50,
+      backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.brand50),
       body: content,
     );
   }
@@ -341,7 +341,7 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.5),
+                    color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -432,12 +432,12 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
         separatorBuilder: (_, __) => const SizedBox(width: 7),
         itemBuilder: (_, i) => ActionChip(
           label: Text(_suggestions[i]),
-          labelStyle: const TextStyle(
-            color: CartzyColors.rose700,
+          labelStyle: TextStyle(
+            color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
             fontWeight: FontWeight.w700,
             fontSize: 13,
           ),
-          backgroundColor: CartzyColors.rose50Warm,
+          backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
           side: const BorderSide(color: CartzyColors.rose400, width: 1.5),
           shape: const StadiumBorder(),
           onPressed: () => _send(_suggestions[i]),
@@ -448,9 +448,9 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
 
   Widget _buildComposer() {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: CartzyColors.brand200)),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        border: Border(top: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200))),
       ),
       child: SafeArea(
         top: false,
@@ -473,15 +473,15 @@ class _BuddyChatScreenState extends State<BuddyChatScreen> {
                     hintText: 'Say hi to Cozy...',
                     isDense: true,
                     filled: true,
-                    fillColor: CartzyColors.brand50,
+                    fillColor: CartzyColors.surfaceOf(context, light: CartzyColors.brand50),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(22),
-                      borderSide: const BorderSide(color: CartzyColors.brand200, width: 1.5),
+                      borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200), width: 1.5),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(22),
-                      borderSide: const BorderSide(color: CartzyColors.brand200, width: 1.5),
+                      borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.brand200), width: 1.5),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(22),
@@ -556,11 +556,11 @@ class _Bubble extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: fromUser ? null : Colors.white,
+          color: fromUser ? null : CartzyColors.surfaceOf(context, light: Colors.white),
           gradient: fromUser
               ? const LinearGradient(colors: [CartzyColors.brandDeep, Color(0xFF8C7892)])
               : null,
-          border: fromUser ? null : Border.all(color: CartzyColors.brand200),
+          border: fromUser ? null : Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.brand200)),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(18),
             topRight: const Radius.circular(18),
@@ -571,7 +571,7 @@ class _Bubble extends StatelessWidget {
         child: Text(
           text,
           style: TextStyle(
-            color: fromUser ? Colors.white : const Color(0xFF3E354C),
+            color: fromUser ? Colors.white : CartzyColors.textOf(context, light: const Color(0xFF3E354C)),
             fontSize: 14.5,
             height: 1.4,
           ),
@@ -610,8 +610,8 @@ class _TypingBubbleState extends State<_TypingBubble> with SingleTickerProviderS
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: CartzyColors.brand200),
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
+            border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.brand200)),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(18),
               topRight: Radius.circular(18),
@@ -668,9 +668,9 @@ class _ProductRow extends StatelessWidget {
                 ? 'Out of stock'
                 : (product.rating != null ? '★ ${product.rating} · ${product.sold} sold' : '${product.sold} sold');
             return Material(
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               shape: RoundedRectangleBorder(
-                side: const BorderSide(color: CartzyColors.rose200, width: 1.5),
+                side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 1.5),
                 borderRadius: BorderRadius.circular(16),
               ),
               clipBehavior: Clip.antiAlias,
@@ -685,11 +685,11 @@ class _ProductRow extends StatelessWidget {
                         width: 138,
                         height: 104,
                         child: product.image.isEmpty
-                            ? const ColoredBox(color: CartzyColors.brand100)
+                            ? ColoredBox(color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100))
                             : Image.network(
                                 product.image,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const ColoredBox(color: CartzyColors.brand100),
+                                errorBuilder: (_, __, ___) => ColoredBox(color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100)),
                               ),
                       ),
                       Padding(
@@ -701,13 +701,13 @@ class _ProductRow extends StatelessWidget {
                               product.name,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Color(0xFF3E354C), fontSize: 12.5, height: 1.2),
+                              style: TextStyle(color: CartzyColors.textOf(context, light: const Color(0xFF3E354C)), fontSize: 12.5, height: 1.2),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               peso(product.price),
-                              style: const TextStyle(
-                                color: CartzyColors.rose700,
+                              style: TextStyle(
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -716,7 +716,7 @@ class _ProductRow extends StatelessWidget {
                               meta,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Color(0xFF75687D), fontSize: 11),
+                              style: TextStyle(color: CartzyColors.mutedOf(context, light: const Color(0xFF75687D)), fontSize: 11),
                             ),
                           ],
                         ),
@@ -1000,12 +1000,12 @@ class _BuddyLauncherState extends State<BuddyLauncher>
                       BuddyChatScreen.showPopup(context);
                     },
                     child: Material(
-                      color: Colors.white,
+                      color: CartzyColors.surfaceOf(context, light: Colors.white),
                       elevation: 6,
                       shadowColor: CartzyColors.brandDark.withValues(alpha: .25),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: const BorderSide(color: CartzyColors.rose200, width: 1.5),
+                        side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 1.5),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1018,7 +1018,7 @@ class _BuddyLauncherState extends State<BuddyLauncher>
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: CartzyColors.brand900,
+                                color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                               ),
                             ),
                           ],
@@ -1057,8 +1057,8 @@ class _BuddyLauncherState extends State<BuddyLauncher>
                                     : const Color(0xE62A1B28),
                                 border: Border.all(
                                   color: _isOverDiscard
-                                      ? Colors.white
-                                      : Colors.white.withValues(alpha: 0.4),
+                                      ? CartzyColors.borderOf(context, light: Colors.white)
+                                      : CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.4)),
                                   width: _isOverDiscard ? 2.5 : 1.5,
                                 ),
                                 boxShadow: [

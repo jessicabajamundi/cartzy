@@ -1299,12 +1299,12 @@ class _BuyerAccountScreenState
       child: Text(
         title,
 
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight:
               FontWeight.w700,
           color:
-              CartzyColors.text,
+              CartzyColors.textOf(context, light: CartzyColors.text),
         ),
       ),
     );
@@ -1325,12 +1325,12 @@ class _BuyerAccountScreenState
       child: Text(
         label,
 
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight:
               FontWeight.w600,
           color:
-              CartzyColors.text,
+              CartzyColors.textOf(context, light: CartzyColors.text),
         ),
       ),
     );
@@ -1359,10 +1359,10 @@ class _BuyerAccountScreenState
       inputFormatters:
           inputFormatters,
 
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         color:
-            CartzyColors.text,
+            CartzyColors.textOf(context, light: CartzyColors.text),
       ),
 
       decoration:
@@ -1385,24 +1385,24 @@ class _BuyerAccountScreenState
       hintText: hint,
 
       hintStyle:
-          const TextStyle(
+          TextStyle(
         fontSize: 13,
         color:
-            CartzyColors.gray,
+            CartzyColors.mutedOf(context, light: CartzyColors.gray),
       ),
 
       prefixIcon:
           Icon(
         icon,
         color:
-            CartzyColors.coral,
+            CartzyColors.mutedOf(context, light: CartzyColors.coral),
         size: 20,
       ),
 
       filled: true,
 
       fillColor:
-          CartzyColors.surface,
+          CartzyColors.surfaceOf(context, light: CartzyColors.surface),
 
       contentPadding:
           const EdgeInsets.symmetric(
@@ -1418,9 +1418,9 @@ class _BuyerAccountScreenState
         ),
 
         borderSide:
-            const BorderSide(
+            BorderSide(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
           width: 1.2,
         ),
       ),
@@ -1433,9 +1433,9 @@ class _BuyerAccountScreenState
         ),
 
         borderSide:
-            const BorderSide(
+            BorderSide(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
           width: 1.2,
         ),
       ),
@@ -1463,9 +1463,9 @@ class _BuyerAccountScreenState
         ),
 
         borderSide:
-            const BorderSide(
+            BorderSide(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
           width: 1.2,
         ),
       ),
@@ -1484,31 +1484,31 @@ class _BuyerAccountScreenState
       hintText: hint,
 
       hintStyle:
-          const TextStyle(
+          TextStyle(
         fontSize: 13,
         color:
-            CartzyColors.gray,
+            CartzyColors.mutedOf(context, light: CartzyColors.gray),
       ),
 
       prefixIcon:
           Icon(
         icon,
         color:
-            CartzyColors.coral,
+            CartzyColors.mutedOf(context, light: CartzyColors.coral),
         size: 20,
       ),
 
       suffixIcon:
-          const Icon(
+          Icon(
         Icons.keyboard_arrow_down,
         color:
-            CartzyColors.gray,
+            CartzyColors.mutedOf(context, light: CartzyColors.gray),
       ),
 
       filled: true,
 
       fillColor:
-          CartzyColors.surface,
+          CartzyColors.surfaceOf(context, light: CartzyColors.surface),
 
       contentPadding:
           const EdgeInsets.symmetric(
@@ -1524,9 +1524,9 @@ class _BuyerAccountScreenState
         ),
 
         borderSide:
-            const BorderSide(
+            BorderSide(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
           width: 1.2,
         ),
       ),
@@ -1539,9 +1539,9 @@ class _BuyerAccountScreenState
         ),
 
         borderSide:
-            const BorderSide(
+            BorderSide(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
           width: 1.2,
         ),
       ),
@@ -1569,9 +1569,9 @@ class _BuyerAccountScreenState
         ),
 
         borderSide:
-            const BorderSide(
+            BorderSide(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
           width: 1.2,
         ),
       ),
@@ -1652,10 +1652,10 @@ class _BuyerAccountScreenState
             value,
 
             style:
-                const TextStyle(
+                TextStyle(
               fontSize: 13,
               color:
-                  CartzyColors.text,
+                  CartzyColors.textOf(context, light: CartzyColors.text),
             ),
           ),
         ],
@@ -1722,8 +1722,8 @@ class _BuyerAccountScreenState
 
                   color:
                       _birthday == null
-                          ? CartzyColors.gray
-                          : CartzyColors.text,
+                          ? CartzyColors.mutedOf(context, light: CartzyColors.gray)
+                          : CartzyColors.textOf(context, light: CartzyColors.text),
                 ),
               ),
             ),
@@ -1756,8 +1756,8 @@ class _BuyerAccountScreenState
 
           color:
               _age == null
-                  ? CartzyColors.gray
-                  : CartzyColors.text,
+                  ? CartzyColors.mutedOf(context, light: CartzyColors.gray)
+                  : CartzyColors.textOf(context, light: CartzyColors.text),
         ),
       ),
     );
@@ -1804,7 +1804,7 @@ class _BuyerAccountScreenState
       decoration:
           BoxDecoration(
         color:
-            CartzyColors.surface,
+            CartzyColors.surfaceOf(context, light: CartzyColors.surface),
 
         borderRadius:
             BorderRadius.circular(
@@ -1814,7 +1814,7 @@ class _BuyerAccountScreenState
         border:
             Border.all(
           color:
-              CartzyColors.border,
+              CartzyColors.borderOf(context, light: CartzyColors.border),
         ),
       ),
 
@@ -1843,12 +1843,12 @@ class _BuyerAccountScreenState
                   ),
                 ),
 
-                child: const Icon(
+                child: Icon(
                   Icons
                       .verified_user_outlined,
 
                   color:
-                      CartzyColors.coral,
+                      CartzyColors.mutedOf(context, light: CartzyColors.coral),
 
                   size: 22,
                 ),
@@ -1858,7 +1858,7 @@ class _BuyerAccountScreenState
                 width: 12,
               ),
 
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Identity Verification',
 
@@ -1868,7 +1868,7 @@ class _BuyerAccountScreenState
                     fontWeight:
                         FontWeight.w700,
                     color:
-                        CartzyColors.text,
+                        CartzyColors.textOf(context, light: CartzyColors.text),
                   ),
                 ),
               ),
@@ -1982,10 +1982,10 @@ class _BuyerAccountScreenState
             label,
 
             style:
-                const TextStyle(
+                TextStyle(
               fontSize: 12,
               color:
-                  CartzyColors.gray,
+                  CartzyColors.mutedOf(context, light: CartzyColors.gray),
             ),
           ),
         ),
@@ -1995,12 +1995,12 @@ class _BuyerAccountScreenState
             value,
 
             style:
-                const TextStyle(
+                TextStyle(
               fontSize: 13,
               fontWeight:
                   FontWeight.w600,
               color:
-                  CartzyColors.text,
+                  CartzyColors.textOf(context, light: CartzyColors.text),
             ),
           ),
         ),
@@ -2015,11 +2015,11 @@ class _BuyerAccountScreenState
   Widget _loadingScreen() {
     return Scaffold(
       backgroundColor:
-          CartzyColors.background,
+          CartzyColors.elevatedOf(context, light: CartzyColors.background),
 
       appBar: AppBar(
         backgroundColor:
-            CartzyColors.background,
+            CartzyColors.elevatedOf(context, light: CartzyColors.background),
 
         elevation: 0,
 
@@ -2038,13 +2038,13 @@ class _BuyerAccountScreenState
         ),
 
         title:
-            const Text(
+            Text(
           'Account Settings',
 
           style:
               TextStyle(
             color:
-                CartzyColors.text,
+                CartzyColors.textOf(context, light: CartzyColors.text),
 
             fontSize: 18,
 
@@ -2079,11 +2079,11 @@ class _BuyerAccountScreenState
 
     return Scaffold(
       backgroundColor:
-          CartzyColors.background,
+          CartzyColors.elevatedOf(context, light: CartzyColors.background),
 
       appBar: AppBar(
         backgroundColor:
-            CartzyColors.background,
+            CartzyColors.elevatedOf(context, light: CartzyColors.background),
 
         elevation: 0,
 
@@ -2102,13 +2102,13 @@ class _BuyerAccountScreenState
         ),
 
         title:
-            const Text(
+            Text(
           'Account Settings',
 
           style:
               TextStyle(
             color:
-                CartzyColors.text,
+                CartzyColors.textOf(context, light: CartzyColors.text),
 
             fontSize: 18,
 

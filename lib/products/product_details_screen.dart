@@ -714,7 +714,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -867,21 +867,21 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: CartzyColors.surfaceOf(context, light: const Color(0xFFF9FAFB)),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back_ios_new, size: 20, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: widget.onBack,
         ),
         title: Text(
           _name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: CartzyColors.navy,
+          style: TextStyle(
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
             fontSize: 17,
             fontWeight: FontWeight.bold,
           ),
@@ -890,7 +890,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           IconButton(
             icon: Icon(
               _isWishlisted ? Icons.favorite : Icons.favorite_border,
-              color: _isWishlisted ? Colors.redAccent : CartzyColors.navy,
+              color: _isWishlisted ? Colors.redAccent : CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
             tooltip: 'Wishlist',
             onPressed: _toggleWishlist,
@@ -909,7 +909,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined, color: CartzyColors.navy),
+                    icon: Icon(Icons.shopping_cart_outlined, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                     tooltip: 'Cart',
                     onPressed: _navigateToCart,
                   ),
@@ -1059,7 +1059,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   Widget _buildGallerySection() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       child: Column(
         children: [
           // Main 1:1 Aspect ratio photo stage
@@ -1171,7 +1171,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           if (_galleryImages.length > 1)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-              color: const Color(0xFFFBFBFB),
+              color: CartzyColors.surfaceOf(context, light: const Color(0xFFFBFBFB)),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -1194,7 +1194,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: isSelected ? CartzyColors.coral : const Color(0xFFE2E8F0),
+                            color: isSelected ? CartzyColors.coral : CartzyColors.borderOf(context, light: const Color(0xFFE2E8F0)),
                             width: isSelected ? 2.5 : 1.0,
                           ),
                           boxShadow: isSelected
@@ -1228,7 +1228,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   Widget _buildHeaderSection() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1236,11 +1236,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           // Eyebrow / Category
           Text(
             _category.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.0,
-              color: CartzyColors.coral,
+              color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
             ),
           ),
           const SizedBox(height: 6),
@@ -1248,10 +1248,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           // Product Name
           Text(
             _name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
               height: 1.3,
             ),
           ),
@@ -1269,29 +1269,29 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               const SizedBox(width: 4),
               Text(
                 _rating > 0 ? _rating.toStringAsFixed(1) : 'No ratings',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
               const SizedBox(width: 4),
               Text(
                 '($_reviewsCount ${_reviewsCount == 1 ? "review" : "reviews"})',
-                style: const TextStyle(fontSize: 13, color: CartzyColors.gray),
+                style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
               ),
 
               const SizedBox(width: 10),
-              const Text('·', style: TextStyle(color: Colors.grey, fontSize: 16)),
+              Text('·', style: TextStyle(color: CartzyColors.mutedOf(context, light: Colors.grey), fontSize: 16)),
               const SizedBox(width: 10),
 
               // Sold count
               Text(
                 _soldCount,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
               ),
             ],
@@ -1310,7 +1310,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
 
     return Container(
       width: double.infinity,
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1321,19 +1321,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             children: [
               Text(
                 _price,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: CartzyColors.coral,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                 ),
               ),
               if (_originalPrice != null && _originalPrice!.isNotEmpty) ...[
                 const SizedBox(width: 10),
                 Text(
                   _originalPrice!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
-                    color: Color(0xFF94A3B8),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF94A3B8)),
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),
@@ -1342,7 +1342,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFFEE2E2)),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -1411,7 +1411,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   Widget _buildShippingSection() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1419,12 +1419,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.local_shipping_outlined,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
               size: 20,
             ),
           ),
@@ -1433,19 +1433,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text.rich(
+                Text.rich(
                   TextSpan(
                     children: [
                       TextSpan(
                         text: 'Ships to ',
-                        style: TextStyle(fontSize: 12, color: CartzyColors.gray),
+                        style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                       ),
                       TextSpan(
                         text: 'Metro Manila, Philippines',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
                     ],
@@ -1456,13 +1456,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   _estimatedDelivery != null && _estimatedDelivery!.trim().isNotEmpty
                       ? 'Shipping fee ₱50.00 · ${_estimatedDelivery!.trim()}'
                       : 'Shipping fee ₱50.00 · Standard Delivery (2-4 business days)',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF64748B))),
                 ),
                 const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFDCFCE7)),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -1489,7 +1489,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   Widget _buildVariantSection() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1500,17 +1500,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               children: [
                 Text(
                   _sizes.isEmpty ? 'Variation: ' : 'Color: ',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: CartzyColors.gray,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                   ),
                 ),
                 Text(
                   _selectedColor ?? _colors.first,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
               ],
@@ -1525,16 +1525,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   label: Text(color),
                   selected: isSelected,
                   selectedColor: CartzyColors.navy,
-                  backgroundColor: const Color(0xFFF8FAFC),
+                  backgroundColor: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFC)),
                   labelStyle: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : CartzyColors.navy,
+                    color: isSelected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: isSelected ? CartzyColors.navy : const Color(0xFFCBD5E1),
+                      color: isSelected ? CartzyColors.navy : CartzyColors.borderOf(context, light: const Color(0xFFCBD5E1)),
                     ),
                   ),
                   showCheckmark: false,
@@ -1549,16 +1549,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           if (_sizes.isNotEmpty) ...[
             Row(
               children: [
-                const Text(
+                Text(
                   'Size: ',
-                  style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+                  style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                 ),
                 Text(
                   _selectedSize ?? _sizes.first,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
               ],
@@ -1573,16 +1573,16 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   label: Text(size),
                   selected: isSelected,
                   selectedColor: CartzyColors.navy,
-                  backgroundColor: const Color(0xFFF8FAFC),
+                  backgroundColor: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFC)),
                   labelStyle: TextStyle(
                     fontSize: 12,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : CartzyColors.navy,
+                    color: isSelected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: isSelected ? CartzyColors.navy : const Color(0xFFCBD5E1),
+                      color: isSelected ? CartzyColors.navy : CartzyColors.borderOf(context, light: const Color(0xFFCBD5E1)),
                     ),
                   ),
                   showCheckmark: false,
@@ -1616,7 +1616,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
 
   Widget _buildQuantitySection() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1636,12 +1636,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             'Quantity',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           Row(
@@ -1665,14 +1665,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: CartzyColors.rose50,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.rose50),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: CartzyColors.rose200, width: 1),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 1),
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
               ),
@@ -1697,7 +1697,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   Widget _buildSellerCard() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
@@ -1708,9 +1708,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE2E8F0))),
             ),
             clipBehavior: Clip.antiAlias,
             child: _sellerLogoUrl != null && _sellerLogoUrl!.isNotEmpty
@@ -1720,9 +1720,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                     errorBuilder: (_, __, ___) => Center(
                       child: Text(
                         _sellerName.isNotEmpty ? _sellerName[0].toUpperCase() : 'S',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                           fontSize: 18,
                         ),
                       ),
@@ -1731,9 +1731,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 : Center(
                     child: Text(
                       _sellerName.isNotEmpty ? _sellerName[0].toUpperCase() : 'S',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         fontSize: 18,
                       ),
                     ),
@@ -1748,25 +1748,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Sold by',
-                    style: TextStyle(fontSize: 11, color: CartzyColors.gray),
+                    style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   ),
                   Text(
                     _sellerName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
+                  Text(
                     'Visit store →',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: CartzyColors.coral,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                     ),
                   ),
                 ],
@@ -1797,14 +1797,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE2E8F0))),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.verified_user_outlined, color: Color(0xFF16A34A), size: 26),
-          SizedBox(width: 12),
+          const Icon(Icons.verified_user_outlined, color: Color(0xFF16A34A), size: 26),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1814,13 +1814,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
                   'Free 7-day returns & fast nationwide shipping',
-                  style: TextStyle(fontSize: 11, color: CartzyColors.gray),
+                  style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                 ),
               ],
             ),
@@ -1835,17 +1835,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
   // ==========================================
   Widget _buildSpecSection() {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Specifications',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           const SizedBox(height: 12),
@@ -1870,7 +1870,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: onTap != null ? CartzyColors.coral : CartzyColors.navy,
+        color: onTap != null ? CartzyColors.mutedOf(context, light: CartzyColors.coral) : CartzyColors.textOf(context, light: CartzyColors.navy),
         decoration: onTap != null ? TextDecoration.underline : TextDecoration.none,
       ),
     );
@@ -1884,7 +1884,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             width: 120,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+              style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF64748B))),
             ),
           ),
           Expanded(
@@ -1911,17 +1911,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             'for daily use.';
 
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Product Description',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           const SizedBox(height: 10),
@@ -1930,10 +1930,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
             text,
             maxLines: _isDescriptionExpanded ? null : 5,
             overflow: _isDescriptionExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               height: 1.6,
-              color: Color(0xFF334155),
+              color: CartzyColors.textOf(context, light: const Color(0xFF334155)),
             ),
           ),
 
@@ -1946,15 +1946,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 children: [
                   Text(
                     _isDescriptionExpanded ? 'Show less' : 'Show more',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.coral,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                     ),
                   ),
                   Icon(
                     _isDescriptionExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: CartzyColors.coral,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                     size: 18,
                   ),
                 ],
@@ -1973,7 +1973,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
     final total = _reviewsCount > 0 ? _reviewsCount : _reviews.length;
 
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1984,10 +1984,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               Expanded(
                 child: Text(
                   'Ratings & Reviews ($total)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.navy,
+                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                   ),
                 ),
               ),
@@ -2000,10 +2000,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                     userName: 'Buyer',
                   );
                 },
-                child: const Text(
+                child: Text(
                   'Write Review',
                   style: TextStyle(
-                    color: CartzyColors.coral,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
@@ -2022,10 +2022,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                 children: [
                   Text(
                     _rating > 0 ? _rating.toStringAsFixed(1) : '—',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.w900,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                   Row(
@@ -2042,7 +2042,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                   const SizedBox(height: 4),
                   Text(
                     '$total ${total == 1 ? "rating" : "ratings"}',
-                    style: const TextStyle(fontSize: 11, color: CartzyColors.gray),
+                    style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   ),
                 ],
               ),
@@ -2058,14 +2058,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Row(
                         children: [
-                          Text('$star★', style: const TextStyle(fontSize: 11, color: CartzyColors.gray)),
+                          Text('$star★', style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
                           const SizedBox(width: 6),
                           Expanded(
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(4),
                               child: LinearProgressIndicator(
                                 value: pct,
-                                backgroundColor: const Color(0xFFF1F5F9),
+                                backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
                                 color: const Color(0xFFFFA41C),
                                 minHeight: 6,
                               ),
@@ -2077,7 +2077,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                             child: Text(
                               '$count',
                               textAlign: TextAlign.right,
-                              style: const TextStyle(fontSize: 11, color: CartzyColors.gray),
+                              style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                             ),
                           ),
                         ],
@@ -2112,8 +2112,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                       backgroundColor: CartzyColors.navy.withValues(alpha: 0.1),
                       child: Text(
                         userName.isNotEmpty ? userName[0].toUpperCase() : 'B',
-                        style: const TextStyle(
-                          color: CartzyColors.navy,
+                        style: TextStyle(
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
@@ -2129,15 +2129,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                             children: [
                               Text(
                                 userName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
-                                  color: CartzyColors.navy,
+                                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                 ),
                               ),
                               Text(
                                 date,
-                                style: const TextStyle(fontSize: 11, color: CartzyColors.gray),
+                                style: TextStyle(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                               ),
                             ],
                           ),
@@ -2156,7 +2156,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                             const SizedBox(height: 6),
                             Text(
                               comment,
-                              style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.4),
+                              style: TextStyle(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF334155)), height: 1.4),
                             ),
                           ],
                           if (reply != null && reply.isNotEmpty) ...[
@@ -2164,7 +2164,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                             Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF8FAFC),
+                                color: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFC)),
                                 borderRadius: BorderRadius.circular(8),
                                 border: const Border(
                                   left: BorderSide(color: CartzyColors.coral, width: 3),
@@ -2173,18 +2173,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Seller Reply',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.bold,
-                                      color: CartzyColors.coral,
+                                      color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     reply,
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                                    style: TextStyle(fontSize: 12, color: CartzyColors.textOf(context, light: const Color(0xFF475569))),
                                   ),
                                 ],
                               ),
@@ -2198,12 +2198,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               );
             })
           else
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 child: Text(
                   'No reviews yet for this product. Be the first to review!',
-                  style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+                  style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                 ),
               ),
             ),
@@ -2224,7 +2224,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
         bottom: MediaQuery.of(context).padding.bottom + 10,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -2238,10 +2238,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           // Chat Button
           IconButton(
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            icon: const Icon(Icons.chat_bubble_outline, color: CartzyColors.navy, size: 20),
+            icon: Icon(Icons.chat_bubble_outline, color: CartzyColors.textOf(context, light: CartzyColors.navy), size: 20),
             tooltip: 'Chat with Seller',
             onPressed: _openChatWithSeller,
           ),
@@ -2250,12 +2250,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           // Favorite / Wishlist Button
           IconButton(
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             icon: Icon(
               _isWishlisted ? Icons.favorite : Icons.favorite_border,
-              color: _isWishlisted ? Colors.redAccent : CartzyColors.navy,
+              color: _isWishlisted ? Colors.redAccent : CartzyColors.textOf(context, light: CartzyColors.navy),
               size: 20,
             ),
             tooltip: 'Save to Wishlist',
@@ -2266,7 +2266,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
           // Dedicated Add to Cart Icon Button (Matching Web .pd-cart-icon-btn)
           IconButton(
             style: IconButton.styleFrom(
-              backgroundColor: const Color(0xFFF1F5F9),
+              backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             icon: AnimatedSwitcher(
@@ -2275,7 +2275,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> with Ticker
               child: Icon(
                 _justAdded ? Icons.check_circle_rounded : Icons.shopping_cart_outlined,
                 key: ValueKey(_justAdded),
-                color: _canAdd ? CartzyColors.navy : const Color(0xFF94A3B8),
+                color: _canAdd ? CartzyColors.textOf(context, light: CartzyColors.navy) : CartzyColors.mutedOf(context, light: const Color(0xFF94A3B8)),
                 size: 20,
               ),
             ),
@@ -2373,7 +2373,7 @@ class _FlyingCartImageState extends State<_FlyingCartImage> with SingleTickerPro
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 3),
                         boxShadow: [
                           BoxShadow(color: CartzyColors.brandDark.withValues(alpha: .35), blurRadius: 16, offset: const Offset(0, 6)),
                         ],

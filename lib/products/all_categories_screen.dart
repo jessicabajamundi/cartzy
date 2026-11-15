@@ -71,19 +71,19 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
     final list = _filteredCategories;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF8F7),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFBF8F7)),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back_ios_new, size: 18, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: widget.onBack ?? () => Navigator.of(context).pop(),
         ),
         title: Text(
           'All Categories',
           style: GoogleFonts.playfairDisplay(
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
             fontSize: 20,
             fontWeight: FontWeight.w700,
           ),
@@ -91,14 +91,14 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: CartzyColors.border, height: 1),
+          child: Container(color: CartzyColors.elevatedOf(context, light: CartzyColors.border), height: 1),
         ),
       ),
       body: Column(
         children: [
           // ── Search & Header Section ──
           Container(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
             child: Column(
               children: [
@@ -106,21 +106,21 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                 Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5EFEB),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF5EFEB)),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFEADFD9)),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEADFD9))),
                   ),
                   child: TextField(
                     controller: _searchController,
                     onChanged: (val) => setState(() => _searchQuery = val),
-                    style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.navy),
+                    style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                     decoration: InputDecoration(
                       hintText: 'Search categories...',
-                      hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.gray),
-                      prefixIcon: const Icon(Icons.search, size: 20, color: CartzyColors.burgundy),
+                      hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
+                      prefixIcon: Icon(Icons.search, size: 20, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18, color: CartzyColors.gray),
+                              icon: Icon(Icons.clear, size: 18, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -171,7 +171,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.apps_rounded, color: Colors.white, size: 20),
@@ -219,7 +219,7 @@ class _AllCategoriesScreenState extends State<AllCategoriesScreen> {
                         Text(
                           'No categories found for "$_searchQuery"',
                           style: GoogleFonts.dmSans(
-                            color: CartzyColors.gray,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -268,7 +268,7 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       borderRadius: BorderRadius.circular(16),
       elevation: 0,
       child: InkWell(
@@ -279,7 +279,7 @@ class _CategoryTile extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEDE2DF), width: 1.1),
+            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE2DF)), width: 1.1),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -295,14 +295,14 @@ class _CategoryTile extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFBF2EE),
+                  color: CartzyColors.elevatedOf(context, light: const Color(0xFFFBF2EE)),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFF0DFDA), width: 1),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFF0DFDA)), width: 1),
                 ),
                 child: Icon(
                   item.icon,
                   size: 22,
-                  color: CartzyColors.burgundy,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                 ),
               ),
               const SizedBox(width: 12),
@@ -318,7 +318,7 @@ class _CategoryTile extends StatelessWidget {
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         height: 1.2,
                       ),
                     ),
@@ -332,15 +332,15 @@ class _CategoryTile extends StatelessWidget {
                             style: GoogleFonts.dmSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF9E7766),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766)),
                             ),
                           ),
                         ),
                         const SizedBox(width: 2),
-                        const Icon(
+                        Icon(
                           Icons.arrow_forward_ios_rounded,
                           size: 8,
-                          color: Color(0xFF9E7766),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766)),
                         ),
                       ],
                     ),

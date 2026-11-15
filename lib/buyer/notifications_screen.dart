@@ -266,10 +266,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isRead ? Colors.white : const Color(0xFFFDF8F9),
+            color: isRead ? CartzyColors.surfaceOf(context, light: Colors.white) : CartzyColors.surfaceOf(context, light: const Color(0xFFFDF8F9)),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isRead ? CartzyColors.border : const Color(0xFFE8D4D8),
+              color: isRead ? CartzyColors.borderOf(context, light: CartzyColors.border) : CartzyColors.borderOf(context, light: const Color(0xFFE8D4D8)),
               width: isRead ? 1 : 1.3,
             ),
             boxShadow: [
@@ -307,7 +307,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: GoogleFonts.dmSans(
                               fontSize: 14,
                               fontWeight: isRead ? FontWeight.w600 : FontWeight.w800,
-                              color: isRead ? CartzyColors.text : CartzyColors.brand900,
+                              color: isRead ? CartzyColors.textOf(context, light: CartzyColors.text) : CartzyColors.textOf(context, light: CartzyColors.brand900),
                             ),
                           ),
                         ),
@@ -329,7 +329,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         height: 1.45,
-                        color: isRead ? CartzyColors.gray : const Color(0xFF4A3E4E),
+                        color: isRead ? CartzyColors.mutedOf(context, light: CartzyColors.gray) : CartzyColors.textOf(context, light: const Color(0xFF4A3E4E)),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -341,16 +341,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
-                            color: CartzyColors.gray,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                           ),
                         ),
                         if (n.orderReference != null)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                             decoration: BoxDecoration(
-                              color: CartzyColors.brand50Lavender,
+                              color: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFD6CEE0)),
+                              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFD6CEE0))),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -360,14 +360,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   style: GoogleFonts.dmSans(
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w700,
-                                    color: CartzyColors.brandDark,
+                                    color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                                   ),
                                 ),
                                 const SizedBox(width: 3),
-                                const Icon(
+                                Icon(
                                   Icons.chevron_right_rounded,
                                   size: 13,
-                                  color: CartzyColors.brandDark,
+                                  color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                                 ),
                               ],
                             ),
@@ -401,14 +401,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Container(
                       width: 64,
                       height: 64,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF3F1F4),
+                      decoration: BoxDecoration(
+                        color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3F1F4)),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.search_off_rounded,
                         size: 32,
-                        color: CartzyColors.grayMid,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -417,7 +417,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: CartzyColors.brand900,
+                        color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -426,7 +426,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
-                        color: CartzyColors.gray,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -471,9 +471,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 28),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.03),
@@ -492,13 +492,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEEEBF6),
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFEEEBF6)),
                           borderRadius: BorderRadius.circular(24),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.notifications_none_rounded,
                           size: 40,
-                          color: Color(0xFF7C6B8E),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF7C6B8E)),
                         ),
                       ),
                       Positioned(
@@ -523,7 +523,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.6,
-                      color: CartzyColors.rose700,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -532,7 +532,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: CartzyColors.brand900,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                       height: 1.2,
                     ),
                     textAlign: TextAlign.center,
@@ -543,14 +543,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 13,
                       height: 1.55,
-                      color: CartzyColors.gray,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: CartzyColors.brand50Lavender,
+                      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
                       foregroundColor: CartzyColors.brandDark,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
@@ -586,8 +586,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Container(
               width: 64,
               height: 64,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFFEBEE),
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFEBEE)),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.cloud_off_rounded, size: 30, color: Color(0xFFC62828)),
@@ -598,14 +598,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: CartzyColors.text,
+                color: CartzyColors.textOf(context, light: CartzyColors.text),
               ),
             ),
             const SizedBox(height: 8),
             Text(
               _error ?? 'An unexpected error occurred.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.gray),
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -632,7 +632,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final unread = _unreadCount;
 
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -640,9 +640,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             // ── Top Header ──────────────────────────────────────
             Container(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-              decoration: const BoxDecoration(
-                color: CartzyColors.background,
-                border: Border(bottom: BorderSide(color: CartzyColors.border)),
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
+                border: Border(bottom: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border))),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -652,12 +652,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: CartzyColors.surfaceOf(context, light: Colors.white),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: CartzyColors.border),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                       ),
-                      child: const Icon(Icons.arrow_back,
-                          size: 18, color: CartzyColors.navy),
+                      child: Icon(Icons.arrow_back,
+                          size: 18, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -671,7 +671,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.4,
-                            color: CartzyColors.rose700,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -680,7 +680,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            color: CartzyColors.brand900,
+                            color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                           ),
                         ),
                       ],
@@ -719,16 +719,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: CartzyColors.surfaceOf(context, light: Colors.white),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: CartzyColors.border),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                       ),
                       child: Text(
                         'All caught up',
                         style: GoogleFonts.dmSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: CartzyColors.gray,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                         ),
                       ),
                     ),
@@ -742,19 +742,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Container(
                 height: 40,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F1F4),
+                  color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3F1F4)),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: const Color(0xFFE5E0E8),
+                    color: CartzyColors.borderOf(context, light: const Color(0xFFE5E0E8)),
                     width: 1.2,
                   ),
                 ),
                 child: Row(
                   children: [
                     const SizedBox(width: 12),
-                    const Icon(
+                    Icon(
                       Icons.search_rounded,
-                      color: CartzyColors.brandDeep,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
@@ -765,7 +765,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                         decoration: InputDecoration(
                           isDense: true,
@@ -775,7 +775,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           hintText: 'Search notifications by order, title...',
                           hintStyle: GoogleFonts.dmSans(
                             fontSize: 12.5,
-                            color: CartzyColors.grayMid,
+                            color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                           ),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
@@ -787,9 +787,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     if (_searchQuery.isNotEmpty)
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close_rounded,
-                          color: CartzyColors.grayMid,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.grayMid),
                           size: 16,
                         ),
                         onPressed: () {
@@ -824,12 +824,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
-                        color: active ? CartzyColors.brandDark : Colors.white,
+                        color: active ? CartzyColors.brandDark : CartzyColors.surfaceOf(context, light: Colors.white),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: active
                               ? CartzyColors.brandDark
-                              : CartzyColors.border,
+                              : CartzyColors.borderOf(context, light: CartzyColors.border),
                         ),
                         boxShadow: active
                             ? [
@@ -848,7 +848,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           fontSize: 12.5,
                           fontWeight:
                               active ? FontWeight.w700 : FontWeight.w600,
-                          color: active ? Colors.white : CartzyColors.text,
+                          color: active ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.text),
                         ),
                       ),
                     ),
@@ -874,7 +874,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ? _emptyState()
                           : RefreshIndicator(
                               color: CartzyColors.brandDark,
-                              backgroundColor: Colors.white,
+                              backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
                               onRefresh: () => _fetch(silent: true),
                               child: ListView.builder(
                                 physics: const AlwaysScrollableScrollPhysics(),

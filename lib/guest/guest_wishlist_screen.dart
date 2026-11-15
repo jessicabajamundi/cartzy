@@ -16,11 +16,11 @@ class GuestWishlistScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
         centerTitle: true,
         toolbarHeight: 76,
-        backgroundColor: CartzyColors.brand50Lavender,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
         foregroundColor: CartzyColors.brandDark,
@@ -32,14 +32,14 @@ class GuestWishlistScreen extends StatelessWidget {
                   fontSize: 10,
                   letterSpacing: 1.6,
                   fontWeight: FontWeight.w700,
-                  color: CartzyColors.rose700,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                 )),
             const SizedBox(height: 4),
             Text('Your wishlist',
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  color: CartzyColors.brand900,
+                  color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                 )),
           ],
         ),

@@ -122,29 +122,29 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   Widget build(BuildContext context) {
     final needsPhotos = _selectedCategory?.needsPhotos == true;
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: _submitting ? null : () => Navigator.of(context).pop(),
         ),
         title: Text('Report a problem',
-            style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w800, color: _ink)),
+            style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
         children: [
           Text(
             '${widget.order.store} · ${widget.order.reference}',
-            style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: _muted),
+            style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.mutedOf(context, light: _muted)),
           ),
           const SizedBox(height: 4),
           Text(
             'Our team reviews every report and updates you in Notifications.',
-            style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF9E929E)),
+            style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E))),
           ),
           _section('What went wrong?'),
           for (final category in widget.categories)
@@ -179,14 +179,14 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                     child: Text(item.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.dmSans(fontSize: 13, color: _ink)),
+                        style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: _ink))),
                   ),
                 ],
               ),
             ),
           _section(needsPhotos ? 'Photos (required)' : 'Photos (optional)'),
           Text('Up to $_maxPhotos photos, 5 MB each.',
-              style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF9E929E))),
+              style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E)))),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -227,11 +227,11 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: CartzyColors.surfaceOf(context, light: Colors.white),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE1DDE7)),
+                      border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE1DDE7))),
                     ),
-                    child: const Icon(Icons.add_a_photo_outlined, color: _brand),
+                    child: Icon(Icons.add_a_photo_outlined, color: CartzyColors.textOf(context, light: _brand)),
                   ),
                 ),
             ],
@@ -291,7 +291,7 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
   Widget _section(String title) => Padding(
         padding: const EdgeInsets.only(top: 20, bottom: 8),
         child: Text(title,
-            style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: _ink)),
+            style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
       );
 
   Widget _choice({required String label, required bool selected, required VoidCallback onTap}) {
@@ -303,16 +303,16 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFFF6F4F8) : Colors.white,
+            color: selected ? CartzyColors.elevatedOf(context, light: const Color(0xFFF6F4F8)) : CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: selected ? _brand : const Color(0xFFE5E7EB)),
+            border: Border.all(color: selected ? _brand : CartzyColors.borderOf(context, light: const Color(0xFFE5E7EB))),
           ),
           child: Row(
             children: [
               Icon(selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                  size: 20, color: selected ? _brand : const Color(0xFFB7AAB5)),
+                  size: 20, color: selected ? CartzyColors.textOf(context, light: _brand) : CartzyColors.mutedOf(context, light: const Color(0xFFB7AAB5))),
               const SizedBox(width: 10),
-              Expanded(child: Text(label, style: GoogleFonts.dmSans(fontSize: 13.5, color: _ink))),
+              Expanded(child: Text(label, style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.textOf(context, light: _ink)))),
             ],
           ),
         ),
@@ -335,16 +335,16 @@ class _ReportProblemScreenState extends State<ReportProblemScreen> {
       onChanged: (_) {
         if (_error != null) setState(() => _error = null);
       },
-      style: GoogleFonts.dmSans(fontSize: 13.5, color: _ink),
+      style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.textOf(context, light: _ink)),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFFAAA0A2)),
+        hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2))),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE1DDE7)),
+          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE1DDE7))),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/voucher_service.dart';
@@ -57,7 +58,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
     final vouchers = VoucherService.instance.vouchers;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F5F8),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F5F8)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
@@ -75,14 +76,14 @@ class _VouchersScreenState extends State<VouchersScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.arrow_back, size: 16, color: Color(0xFF865561)),
+                          Icon(Icons.arrow_back, size: 16, color: CartzyColors.mutedOf(context, light: const Color(0xFF865561))),
                           const SizedBox(width: 6),
                           Text(
                             'Back to dashboard',
                             style: GoogleFonts.dmSans(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF865561),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                             ),
                           ),
                         ],
@@ -113,7 +114,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 34,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF2D2640),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF2D2640)),
                             letterSpacing: -0.5,
                           ),
                         ),
@@ -122,16 +123,16 @@ class _VouchersScreenState extends State<VouchersScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFBF4EE),
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFFBF4EE)),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFEBDCCE), width: 1),
+                          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEBDCCE)), width: 1),
                         ),
                         child: Text(
                           '${vouchers.length} voucher${vouchers.length == 1 ? '' : 's'}',
                           style: GoogleFonts.dmSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF5A4B43),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF5A4B43)),
                           ),
                         ),
                       ),
@@ -145,7 +146,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 13.5,
                       fontWeight: FontWeight.w400,
-                      color: const Color(0xFF7A6E72),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -155,9 +156,9 @@ class _VouchersScreenState extends State<VouchersScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: CartzyColors.surfaceOf(context, light: Colors.white),
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFEDE5E7), width: 1.2),
+                      border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE5E7)), width: 1.2),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.02),
@@ -174,7 +175,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF231F20),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -190,24 +191,24 @@ class _VouchersScreenState extends State<VouchersScreen> {
                                   style: GoogleFonts.dmSans(
                                     fontSize: 13.5,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF231F20),
+                                    color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                                   ),
                                   decoration: InputDecoration(
                                     hintText: 'ENTER CODE, E.G. PASKO100',
                                     hintStyle: GoogleFonts.dmSans(
                                       fontSize: 12.5,
-                                      color: const Color(0xFFA89CA0),
+                                      color: CartzyColors.mutedOf(context, light: const Color(0xFFA89CA0)),
                                       letterSpacing: 0.5,
                                     ),
                                     isDense: true,
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
-                                      borderSide: const BorderSide(color: Color(0xFFE0D8DA)),
+                                      borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE0D8DA))),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
-                                      borderSide: const BorderSide(color: Color(0xFFE0D8DA)),
+                                      borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFE0D8DA))),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
@@ -309,9 +310,9 @@ class _VouchersScreenState extends State<VouchersScreen> {
     return Container(
       constraints: const BoxConstraints(maxWidth: 370),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE8E0E2), width: 1.1),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE8E0E2)), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -384,7 +385,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF231F20),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -392,7 +393,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                       voucher.description,
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
-                        color: const Color(0xFF6E6266),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF6E6266)),
                         height: 1.35,
                       ),
                       maxLines: 2,
@@ -404,7 +405,7 @@ class _VouchersScreenState extends State<VouchersScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF4A3E44),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF4A3E44)),
                       ),
                     ),
                     const SizedBox(height: 5),

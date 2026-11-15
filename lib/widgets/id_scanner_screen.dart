@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -244,11 +245,11 @@ class _IdScannerScreenState extends State<IdScannerScreen>
                 height: 72,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 4),
                 ),
                 padding: const EdgeInsets.all(5),
-                child: const DecoratedBox(
-                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: CartzyColors.surfaceOf(context, light: Colors.white), shape: BoxShape.circle),
                 ),
               ),
             ),
@@ -271,7 +272,7 @@ class _IdScannerScreenState extends State<IdScannerScreen>
     ];
 
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       child: Column(
         children: [
           Expanded(
@@ -286,19 +287,19 @@ class _IdScannerScreenState extends State<IdScannerScreen>
                 Text(
                   'Make sure all text on your ID is clear and readable.',
                   style: GoogleFonts.dmSans(
-                      fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF231F20)),
+                      fontSize: 14, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: const Color(0xFF231F20))),
                 ),
                 const SizedBox(height: 12),
                 if (found.isEmpty)
                   Text(
                     "We couldn't read the details on this photo. You can retake it, "
                     'or use it and type your details yourself.',
-                    style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+                    style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                   )
                 else ...[
                   Text(
                     "We'll fill these in for you. You can still edit them.",
-                    style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF7A6E72)),
+                    style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
                   ),
                   const SizedBox(height: 8),
                   for (final (label, value) in found)
@@ -311,14 +312,14 @@ class _IdScannerScreenState extends State<IdScannerScreen>
                             width: 96,
                             child: Text(label,
                                 style: GoogleFonts.dmSans(
-                                    fontSize: 13, color: const Color(0xFF7A6E72))),
+                                    fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
                           ),
                           Expanded(
                             child: Text(value,
                                 style: GoogleFonts.dmSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF231F20))),
+                                    color: CartzyColors.textOf(context, light: const Color(0xFF231F20)))),
                           ),
                         ],
                       ),

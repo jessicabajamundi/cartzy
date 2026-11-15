@@ -210,9 +210,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
         child: Column(
@@ -227,11 +227,11 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
-                    color: CartzyColors.burgundy,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 22, color: Colors.grey),
+                  icon: Icon(Icons.close_rounded, size: 22, color: CartzyColors.mutedOf(context, light: Colors.grey)),
                   onPressed: () => Navigator.pop(ctx),
                 ),
               ],
@@ -242,22 +242,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: CartzyColors.cream,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.camera_alt_rounded, color: CartzyColors.burgundy, size: 22),
+                child: Icon(Icons.camera_alt_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
               ),
               title: Text(
                 'Take a photo',
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                 ),
               ),
               subtitle: Text(
                 'Use camera to capture a new picture',
-                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -270,22 +270,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               leading: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: CartzyColors.cream,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.photo_library_rounded, color: CartzyColors.burgundy, size: 22),
+                child: Icon(Icons.photo_library_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
               ),
               title: Text(
                 'Choose from gallery',
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF231F20),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                 ),
               ),
               subtitle: Text(
                 'Select an image from device gallery',
-                style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -299,22 +299,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: CartzyColors.cream,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.crop_rotate_rounded, color: CartzyColors.burgundy, size: 22),
+                  child: Icon(Icons.crop_rotate_rounded, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
                 ),
                 title: Text(
                   'Crop & adjust current photo',
                   style: GoogleFonts.dmSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF231F20),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                   ),
                 ),
                 subtitle: Text(
                   'Reposition, rotate, or zoom existing photo',
-                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -342,7 +342,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 ),
                 subtitle: Text(
                   'Revert to initials avatar',
-                  style: GoogleFonts.dmSans(fontSize: 12.5, color: Colors.grey[600]),
+                  style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: Colors.grey.shade600)),
                 ),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -452,14 +452,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     const subtitleColor = Color(0xFF8E8286);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F5),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFAF7F5),
+        backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: textColor),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: textColor)),
           onPressed: widget.onBack,
         ),
         title: Text(
@@ -467,7 +467,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           style: GoogleFonts.dmSans(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: textColor,
+            color: CartzyColors.textOf(context, light: textColor),
           ),
         ),
       ),
@@ -490,7 +490,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             width: 86,
                             height: 86,
                             decoration: BoxDecoration(
-                              color: CartzyColors.cream,
+                              color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                               shape: BoxShape.circle,
                               border: Border.all(color: CartzyColors.burgundy, width: 2),
                               boxShadow: [
@@ -513,7 +513,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                             child: Text(
                                               _getInitials(),
                                               style: GoogleFonts.dmSans(
-                                                color: CartzyColors.burgundy,
+                                                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                                                 fontSize: 28,
                                                 fontWeight: FontWeight.w700,
                                               ),
@@ -529,7 +529,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                             child: Text(
                                               _getInitials(),
                                               style: GoogleFonts.dmSans(
-                                                color: CartzyColors.burgundy,
+                                                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                                                 fontSize: 28,
                                                 fontWeight: FontWeight.w700,
                                               ),
@@ -540,7 +540,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                       child: Text(
                                         _getInitials(),
                                         style: GoogleFonts.dmSans(
-                                          color: CartzyColors.burgundy,
+                                          color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                                           fontSize: 28,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -556,7 +556,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               decoration: BoxDecoration(
                                 color: CartzyColors.burgundy,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.2),
@@ -582,7 +582,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
-                          color: CartzyColors.burgundy,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                         ),
                       ),
                     ),
@@ -597,7 +597,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: labelColor,
+                  color: CartzyColors.textOf(context, light: labelColor),
                 ),
               ),
               const SizedBox(height: 8),
@@ -607,22 +607,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: textColor,
+                  color: CartzyColors.textOf(context, light: textColor),
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -640,7 +640,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: labelColor,
+                  color: CartzyColors.textOf(context, light: labelColor),
                 ),
               ),
               const SizedBox(height: 8),
@@ -650,27 +650,27 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: textColor,
+                  color: CartzyColors.textOf(context, light: textColor),
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                 ),
               ),
@@ -679,7 +679,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 'This email is linked to Google and cannot be changed here.',
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
-                  color: subtitleColor,
+                  color: CartzyColors.mutedOf(context, light: subtitleColor),
                   height: 1.35,
                 ),
               ),
@@ -692,7 +692,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: labelColor,
+                  color: CartzyColors.textOf(context, light: labelColor),
                 ),
               ),
               const SizedBox(height: 8),
@@ -703,22 +703,22 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: textColor,
+                  color: CartzyColors.textOf(context, light: textColor),
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                     borderSide:
-                        const BorderSide(color: fieldBorderColor, width: 1.2),
+                        BorderSide(color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -736,7 +736,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
-                  color: labelColor,
+                  color: CartzyColors.textOf(context, light: labelColor),
                 ),
               ),
               const SizedBox(height: 8),
@@ -750,18 +750,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: textColor,
+                      color: CartzyColors.textOf(context, light: textColor),
                     ),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 15),
-                      suffixIcon: const Padding(
-                        padding: EdgeInsets.only(right: 14),
+                      suffixIcon: Padding(
+                        padding: const EdgeInsets.only(right: 14),
                         child: Icon(
                           Icons.calendar_month_outlined,
-                          color: Color(0xFF7A6E72),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                           size: 22,
                         ),
                       ),
@@ -769,13 +769,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           const BoxConstraints(minWidth: 40, minHeight: 40),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
-                            color: fieldBorderColor, width: 1.2),
+                        borderSide: BorderSide(
+                            color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
-                            color: fieldBorderColor, width: 1.2),
+                        borderSide: BorderSide(
+                            color: CartzyColors.borderOf(context, light: fieldBorderColor), width: 1.2),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),

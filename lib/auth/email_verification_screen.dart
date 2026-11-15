@@ -152,18 +152,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
           onPressed: widget.onBackToLogin,
         ),
-        title: const Text(
+        title: Text(
           'Email Verification',
           style: TextStyle(
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -184,22 +184,22 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     color: CartzyColors.brandPrimary.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.mark_email_read_outlined,
-                    color: CartzyColors.brandDark,
+                    color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                     size: 42,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'Verify Your Email',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.brandDarkest,
+                  color: CartzyColors.textOf(context, light: CartzyColors.brandDarkest),
                 ),
               ),
               const SizedBox(height: 10),
@@ -207,17 +207,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               Text(
                 'We have sent a 6-digit verification code to:\n${widget.email}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: CartzyColors.gray,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                   height: 1.4,
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
+              Text(
                 "Can't find it? Check your spam folder.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: CartzyColors.gray),
+                style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
               ),
               const SizedBox(height: 16),
 
@@ -237,7 +237,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       Icon(
                         Icons.timer_outlined,
                         size: 13,
-                        color: _secondsRemaining > 0 ? CartzyColors.brandDark : CartzyColors.error,
+                        color: _secondsRemaining > 0 ? CartzyColors.textOf(context, light: CartzyColors.brandDark) : CartzyColors.error,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -245,7 +245,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: _secondsRemaining > 0 ? CartzyColors.brandDark : CartzyColors.error,
+                          color: _secondsRemaining > 0 ? CartzyColors.textOf(context, light: CartzyColors.brandDark) : CartzyColors.error,
                         ),
                       ),
                     ],
@@ -262,31 +262,31 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 maxLength: 6,
                 autofillHints: const [AutofillHints.oneTimeCode],
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 8,
-                  color: CartzyColors.brandDarkest,
+                  color: CartzyColors.textOf(context, light: CartzyColors.brandDarkest),
                 ),
                 decoration: InputDecoration(
                   counterText: '',
                   hintText: '• • • • • •',
-                  hintStyle: const TextStyle(
+                  hintStyle: TextStyle(
                     fontSize: 20,
                     letterSpacing: 6,
-                    color: CartzyColors.brandPrimary,
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.brandPrimary),
                   ),
                   filled: true,
-                  fillColor: CartzyColors.surface,
+                  fillColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                   contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: CartzyColors.border, width: 1.2),
+                    borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border), width: 1.2),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: _errorMessage != null ? CartzyColors.error : CartzyColors.border,
+                      color: _errorMessage != null ? CartzyColors.error : CartzyColors.borderOf(context, light: CartzyColors.border),
                       width: 1.2,
                     ),
                   ),
@@ -369,18 +369,18 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     "Didn't receive the code? ",
-                    style: TextStyle(fontSize: 13, color: CartzyColors.gray),
+                    style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   ),
                   TextButton(
                     onPressed: _isResending ? null : _handleResendOtp,
                     child: Text(
                       _isResending ? 'Sending...' : 'Resend code',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.brandDark,
+                        color: CartzyColors.textOf(context, light: CartzyColors.brandDark),
                       ),
                     ),
                   ),

@@ -138,18 +138,18 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Sign Out Session',
-          style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xFF1E1B2E)),
+          style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, fontSize: 18, color: CartzyColors.textOf(context, light: const Color(0xFF1E1B2E))),
         ),
         content: Text(
           'Are you sure you want to log out of the Courier Rider Portal?',
-          style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF6B7280), height: 1.4),
+          style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: const Color(0xFF6B7280)), height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: const Color(0xFF6B7280)),
+              style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: CartzyColors.mutedOf(context, light: const Color(0xFF6B7280))),
             ),
           ),
           ElevatedButton(
@@ -290,7 +290,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                       decoration: BoxDecoration(
                         color: _isOnline ? const Color(0xFF10B981) : const Color(0xFF9CA3AF),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 2),
                       ),
                     ),
                   ),
@@ -308,7 +308,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1E1B2E),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF1E1B2E)),
                         letterSpacing: -0.3,
                       ),
                       maxLines: 1,
@@ -324,16 +324,16 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF3EFF7),
+                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3EFF7)),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFFE5DCEF)),
+                            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCEF))),
                           ),
                           child: Text(
                             'LAST-MILE RIDER',
                             style: GoogleFonts.dmSans(
                               fontSize: 9.5,
                               fontWeight: FontWeight.w800,
-                              color: const Color(0xFF564B68),
+                              color: CartzyColors.textOf(context, light: const Color(0xFF564B68)),
                               letterSpacing: 0.3,
                             ),
                           ),
@@ -342,7 +342,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
+                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFECFDF5)),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: const Color(0xFFA7F3D0)),
                           ),
@@ -366,7 +366,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFFBEB),
+                            color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB)),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: const Color(0xFFFDE68A)),
                           ),
@@ -416,10 +416,10 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: _isOnline ? const Color(0xFFECFDF5) : const Color(0xFFF3F4F6),
+              color: _isOnline ? CartzyColors.elevatedOf(context, light: const Color(0xFFECFDF5)) : CartzyColors.elevatedOf(context, light: const Color(0xFFF3F4F6)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _isOnline ? const Color(0xFFA7F3D0) : const Color(0xFFE5E7EB),
+                color: _isOnline ? const Color(0xFFA7F3D0) : CartzyColors.borderOf(context, light: const Color(0xFFE5E7EB)),
               ),
             ),
             child: Row(
@@ -439,7 +439,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: _isOnline ? const Color(0xFF065F46) : const Color(0xFF374151),
+                      color: _isOnline ? const Color(0xFF065F46) : CartzyColors.textOf(context, light: const Color(0xFF374151)),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -452,10 +452,10 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: CartzyColors.surfaceOf(context, light: Colors.white),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: _isOnline ? const Color(0xFFA7F3D0) : const Color(0xFFD1D5DB),
+                        color: _isOnline ? const Color(0xFFA7F3D0) : CartzyColors.borderOf(context, light: const Color(0xFFD1D5DB)),
                       ),
                     ),
                     child: Text(
@@ -463,7 +463,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
-                        color: _isOnline ? const Color(0xFF065F46) : const Color(0xFF374151),
+                        color: _isOnline ? const Color(0xFF065F46) : CartzyColors.textOf(context, light: const Color(0xFF374151)),
                       ),
                     ),
                   ),
@@ -479,14 +479,14 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
   Widget _buildContactRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: const Color(0xFF6F6382)),
+        Icon(icon, size: 14, color: CartzyColors.mutedOf(context, light: const Color(0xFF6F6382))),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
             style: GoogleFonts.dmSans(
               fontSize: 12,
-              color: const Color(0xFF554B62),
+              color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
               fontWeight: FontWeight.w500,
             ),
             maxLines: 1,
@@ -643,7 +643,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                 child: Icon(
                   Icons.verified_user_outlined,
                   size: 17,
-                  color: CartzyColors.isDark(context) ? CartzyColors.darkAccent : const Color(0xFF564B68),
+                  color: CartzyColors.isDark(context) ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: const Color(0xFF564B68)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -696,9 +696,9 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
             valueWidget: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
               decoration: BoxDecoration(
-                color: const Color(0xFFFBF8FA),
+                color: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF8FA)),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFE5DCEF)),
+                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCEF))),
               ),
               child: Text(
                 _plateController.text,
@@ -706,7 +706,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   fontSize: 11.5,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 0.8,
-                  color: const Color(0xFF1E1B2E),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF1E1B2E)),
                 ),
               ),
             ),
@@ -720,7 +720,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1B2E),
+                color: CartzyColors.textOf(context, light: const Color(0xFF1E1B2E)),
               ),
             ),
           ),
@@ -746,7 +746,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
               style: GoogleFonts.dmSans(
                 fontSize: 11.5,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF554B62),
+                color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -765,7 +765,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
           label,
           style: GoogleFonts.dmSans(
             fontSize: 12,
-            color: const Color(0xFF8A7780),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
           ),
         ),
         const SizedBox(width: 8),
@@ -791,13 +791,13 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: CartzyColors.isDark(context) ? const Color(0xFF332325) : const Color(0xFFFDF2F0),
+                  color: CartzyColors.isDark(context) ? const Color(0xFF332325) : CartzyColors.elevatedOf(context, light: const Color(0xFFFDF2F0)),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.edit_note_rounded,
                   size: 19,
-                  color: Color(0xFF8C5A50),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -842,16 +842,16 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFFAF9FB),
+              color: CartzyColors.surfaceOf(context, light: const Color(0xFFFAF9FB)),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE5DCEF)),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCEF))),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
                 value: _vehicleClassification,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF564B68)),
-                style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFF1E1B2E)),
+                icon: Icon(Icons.keyboard_arrow_down_rounded, color: CartzyColors.textOf(context, light: const Color(0xFF564B68))),
+                style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: const Color(0xFF1E1B2E))),
                 items: ['Motorcycle', 'Car', 'Van', 'Bicycle', 'Tricycle', 'E-bike']
                     .map((item) => DropdownMenuItem(value: item, child: Text(item)))
                     .toList(),
@@ -962,7 +962,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
               color: _elevated,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(Icons.home_outlined, color: CartzyColors.isDark(context) ? CartzyColors.darkAccent : const Color(0xFF564B68), size: 18),
+            child: Icon(Icons.home_outlined, color: CartzyColors.isDark(context) ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: const Color(0xFF564B68)), size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1033,7 +1033,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: CartzyColors.isDark(context) ? const Color(0xFF33281E) : const Color(0xFFFFF7ED),
+                  color: CartzyColors.isDark(context) ? const Color(0xFF33281E) : CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7ED)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.auto_awesome_outlined, size: 18, color: Color(0xFFD97706)),
@@ -1100,7 +1100,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
             onChanged: (v) => ThemeController.setDark(v),
             secondary: Icon(
               isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-              color: isDark ? CartzyColors.darkAccent : const Color(0xFF4C3E56),
+              color: isDark ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: const Color(0xFF4C3E56)),
             ),
             title: Text(
               'Dark Mode',
@@ -1125,7 +1125,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
         onPressed: widget.onLogout ?? _confirmLogout,
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFFDC2626),
-          side: const BorderSide(color: Color(0xFFFECACA)),
+          side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFFECACA))),
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

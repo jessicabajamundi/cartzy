@@ -111,7 +111,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final activeOrders = _activeParcels;
 
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Column(
           children: [
@@ -162,16 +162,16 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: const BoxDecoration(
-        color: CartzyColors.surface,
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         border: Border(
-          bottom: BorderSide(color: CartzyColors.border, width: 1),
+          bottom: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border), width: 1),
         ),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+            icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
             onPressed: widget.onBack,
             tooltip: 'Back to Dashboard',
           ),
@@ -181,7 +181,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
         ],
@@ -199,7 +199,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
             fontSize: 11,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.4,
-            color: const Color(0xFF94626D),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF94626D)),
           ),
         ),
         const SizedBox(height: 6),
@@ -208,7 +208,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
           style: GoogleFonts.playfairDisplay(
             fontSize: isMobile ? 26 : 34,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF282133),
+            color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
             letterSpacing: -0.5,
           ),
         ),
@@ -217,7 +217,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
           'Follow your parcel, from order confirmation to your doorstep.',
           style: GoogleFonts.dmSans(
             fontSize: isMobile ? 12.5 : 14,
-            color: const Color(0xFF7A6F7B),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6F7B)),
           ),
         ),
       ],
@@ -226,16 +226,16 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     final badge = Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9EFEA),
+        color: CartzyColors.elevatedOf(context, light: const Color(0xFFF9EFEA)),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF2DED6)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFF2DED6))),
       ),
       child: Text(
         'Parcel tracking',
         style: GoogleFonts.dmSans(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF8C5C50),
+          color: CartzyColors.mutedOf(context, light: const Color(0xFF8C5C50)),
         ),
       ),
     );
@@ -272,9 +272,9 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return Container(
       padding: EdgeInsets.all(isMobile ? 16 : 22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFECE4E7)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE4E7))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -291,7 +291,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF756877),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF756877)),
             ),
           ),
           const SizedBox(height: 10),
@@ -321,22 +321,22 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
   Widget _buildSearchTextField() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFFCFAFB),
+        color: CartzyColors.surfaceOf(context, light: const Color(0xFFFCFAFB)),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE8DEE3)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE8DEE3))),
       ),
       child: TextField(
         controller: _trackingController,
         style: GoogleFonts.dmSans(
           fontSize: 13.5,
-          color: const Color(0xFF282133),
+          color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
         ),
         onSubmitted: (_) => _searchOrder(),
         decoration: InputDecoration(
           hintText: 'Enter order reference (e.g. ORD-...) or courier tracking number',
           hintStyle: GoogleFonts.dmSans(
             fontSize: 12.5,
-            color: const Color(0xFFA197A3),
+            color: CartzyColors.mutedOf(context, light: const Color(0xFFA197A3)),
           ),
           filled: false,
           fillColor: Colors.transparent,
@@ -387,9 +387,9 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFECE4E7)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE4E7))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -419,7 +419,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.3,
-                    color: const Color(0xFF94626D),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF94626D)),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -430,7 +430,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: isMobile ? 20 : 24,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF282133),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -445,7 +445,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                         : 'When you place an order, live shipping status and courier timeline will appear here.',
                     style: GoogleFonts.dmSans(
                       fontSize: 13,
-                      color: const Color(0xFF7A6F7B),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6F7B)),
                       height: 1.45,
                     ),
                     textAlign: TextAlign.center,
@@ -498,11 +498,11 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFCFAFA),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+            decoration: BoxDecoration(
+              color: CartzyColors.surfaceOf(context, light: const Color(0xFFFCFAFA)),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
               border: Border(
-                top: BorderSide(color: Color(0xFFF0E8EA)),
+                top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0E8EA))),
               ),
             ),
             child: InkWell(
@@ -521,7 +521,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                   'Find your order reference in My Orders.',
                   style: GoogleFonts.dmSans(
                     fontSize: 12.5,
-                    color: const Color(0xFF7A6F7B),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6F7B)),
                     fontWeight: FontWeight.w500,
                     decoration: TextDecoration.underline,
                     decorationColor: const Color(0xFFB5A8B4),
@@ -543,22 +543,22 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: const Color(0xFFEADDE0),
+          color: CartzyColors.borderOf(context, light: const Color(0xFFEADDE0)),
           width: 1.2,
         ),
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFEFE8EF),
+          color: CartzyColors.elevatedOf(context, light: const Color(0xFFEFE8EF)),
           borderRadius: BorderRadius.circular(24),
         ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.inventory_2_outlined,
               size: 34,
-              color: Color(0xFF4C3E54),
+              color: CartzyColors.textOf(context, light: const Color(0xFF4C3E54)),
             ),
             Positioned(
               right: 8,
@@ -593,7 +593,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
             style: GoogleFonts.dmSans(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF282133),
+              color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
             ),
           ),
         ),
@@ -612,9 +612,9 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFECE4E7)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE4E7))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -637,7 +637,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                   child: Container(
                     width: 54,
                     height: 54,
-                    color: CartzyColors.background,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                     child: CartzyProductImage(
                       imageUrl: order.effectiveImage,
                       width: 54,
@@ -661,7 +661,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF94626D),
+                                color: CartzyColors.mutedOf(context, light: const Color(0xFF94626D)),
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -673,8 +673,8 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: isInTransit
-                                  ? const Color(0xFFE8F5E9)
-                                  : const Color(0xFFFFF7E6),
+                                  ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))
+                                  : CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7E6)),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -696,7 +696,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF282133),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -706,7 +706,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                         'Qty: ${order.quantity} • Total: ${order.price}',
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
-                          color: const Color(0xFF8A7E8C),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7E8C)),
                         ),
                       ),
                     ],
@@ -741,7 +741,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF282133),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF282133)),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -782,11 +782,11 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFCFAFA),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+            decoration: BoxDecoration(
+              color: CartzyColors.surfaceOf(context, light: const Color(0xFFFCFAFA)),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
               border: Border(
-                top: BorderSide(color: Color(0xFFF0E8EA)),
+                top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0E8EA))),
               ),
             ),
             child: Row(
@@ -807,13 +807,13 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.timeline, size: 16, color: Color(0xFF564B68)),
+                  icon: Icon(Icons.timeline, size: 16, color: CartzyColors.textOf(context, light: const Color(0xFF564B68))),
                   label: Text(
                     'Full Delivery Timeline',
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF564B68),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF564B68)),
                     ),
                   ),
                   style: TextButton.styleFrom(
@@ -832,7 +832,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF94626D),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF94626D)),
                     ),
                   ),
                 ),
@@ -888,7 +888,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                     width: 2,
                     color: isCompleted
                         ? const Color(0xFF2E7D32).withValues(alpha: 0.3)
-                        : const Color(0xFFECE4E7),
+                        : CartzyColors.elevatedOf(context, light: const Color(0xFFECE4E7)),
                     margin: const EdgeInsets.symmetric(vertical: 3),
                   ),
                 ),
@@ -912,7 +912,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                           : FontWeight.w500,
                       color: isCurrent
                           ? const Color(0xFF8B3A3A)
-                          : const Color(0xFF282133),
+                          : CartzyColors.textOf(context, light: const Color(0xFF282133)),
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -920,7 +920,7 @@ class _TrackOrderScreenState extends State<TrackOrderScreen> {
                     subtitle,
                     style: GoogleFonts.dmSans(
                       fontSize: 11.5,
-                      color: const Color(0xFF8A7E8C),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7E8C)),
                       height: 1.35,
                     ),
                   ),

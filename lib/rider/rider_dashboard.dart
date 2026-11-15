@@ -82,7 +82,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
           Builder(
             builder: (ctx) => IconButton(
               tooltip: 'Menu',
-              icon: const Icon(Icons.menu_rounded, color: Color(0xFF261E30), size: 26),
+              icon: Icon(Icons.menu_rounded, color: CartzyColors.textOf(context, light: const Color(0xFF261E30)), size: 26),
               onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
           ),
@@ -94,7 +94,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,
-                color: const Color(0xFF261E30),
+                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
               ),
             ),
           ),
@@ -106,7 +106,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_none_rounded, color: Color(0xFF261E30), size: 26),
+                  Icon(Icons.notifications_none_rounded, color: CartzyColors.textOf(context, light: const Color(0xFF261E30)), size: 26),
                   if (unread > 0)
                     Positioned(
                       right: -4,
@@ -118,7 +118,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFD1495B),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: CartzyColors.background, width: 1.5),
+                          border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.background), width: 1.5),
                         ),
                         alignment: Alignment.center,
                         child: Text(
@@ -196,10 +196,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
     return Container(
       height: 64,
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         border: Border(
-          bottom: BorderSide(color: Color(0xFFEFE8EA), width: 1.1),
+          bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA)), width: 1.1),
         ),
       ),
       child: Row(
@@ -207,7 +207,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
           if (isMobile)
             Builder(
               builder: (ctx) => IconButton(
-                icon: const Icon(Icons.menu, color: Color(0xFF261E30)),
+                icon: Icon(Icons.menu, color: CartzyColors.textOf(context, light: const Color(0xFF261E30))),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
@@ -269,7 +269,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 16.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF261E30),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -280,7 +280,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       '|  Sector: Metro South Sector',
                       style: GoogleFonts.dmSans(
                         fontSize: 12.5,
-                        color: const Color(0xFF8A7780),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -306,13 +306,13 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
                   color: _isOnline
-                      ? const Color(0xFFE8F5E9)
-                      : const Color(0xFFF3ECEE),
+                      ? CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9))
+                      : CartzyColors.elevatedOf(context, light: const Color(0xFFF3ECEE)),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: _isOnline
-                        ? const Color(0xFFC8E6C9)
-                        : const Color(0xFFE2D4D6),
+                        ? CartzyColors.borderOf(context, light: const Color(0xFFC8E6C9))
+                        : CartzyColors.borderOf(context, light: const Color(0xFFE2D4D6)),
                   ),
                 ),
                 child: Row(
@@ -336,7 +336,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         fontWeight: FontWeight.w600,
                         color: _isOnline
                             ? const Color(0xFF2E7D32)
-                            : const Color(0xFF756A7C),
+                            : CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                       ),
                     ),
                   ],
@@ -353,10 +353,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
   Widget _buildSidebar() {
     return Container(
       width: 235,
-      decoration: const BoxDecoration(
-        color: Color(0xFFFAF7F8),
+      decoration: BoxDecoration(
+        color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F8)),
         border: Border(
-          right: BorderSide(color: Color(0xFFEFE6E8), width: 1.1),
+          right: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE6E8)), width: 1.1),
         ),
       ),
       child: Column(
@@ -366,9 +366,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
             margin: const EdgeInsets.fromLTRB(14, 16, 14, 10),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFEDE2E4)),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE2E4))),
             ),
             child: Row(
               children: [
@@ -405,7 +405,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF261E30),
+                                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                               ),
                             ),
                           ),
@@ -425,7 +425,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         'car - 123ABC',
                         style: GoogleFonts.dmSans(
                           fontSize: 11,
-                          color: const Color(0xFF8A7780),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                         ),
                       ),
                     ],
@@ -446,7 +446,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     fontSize: 9.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
-                    color: const Color(0xFF8A7680),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7680)),
                   ),
                 ),
                 const Spacer(),
@@ -454,7 +454,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Row(
@@ -577,17 +577,17 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: CartzyColors.surfaceOf(context, light: Colors.white),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE5D5D8)),
+                  border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D5D8))),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.logout,
                       size: 15,
-                      color: Color(0xFF865561),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                     ),
                     const SizedBox(width: 7),
                     Text(
@@ -595,7 +595,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       style: GoogleFonts.dmSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF865561),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                       ),
                     ),
                   ],
@@ -647,7 +647,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       Icon(
                         icon,
                         size: 18,
-                        color: highlighted ? Colors.white : const Color(0xFF756A7C),
+                        color: highlighted ? Colors.white : CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                       ),
                       const SizedBox(width: 11),
                       Expanded(
@@ -656,7 +656,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                           style: GoogleFonts.dmSans(
                             fontSize: 12.5,
                             fontWeight: highlighted ? FontWeight.w600 : FontWeight.w500,
-                            color: highlighted ? Colors.white : const Color(0xFF2C2436),
+                            color: highlighted ? Colors.white : CartzyColors.textOf(context, light: const Color(0xFF2C2436)),
                           ),
                         ),
                       ),
@@ -695,9 +695,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
       margin: const EdgeInsets.only(bottom: 18),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8F5E9),
+        color: CartzyColors.elevatedOf(context, light: const Color(0xFFE8F5E9)),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFC8E6C9)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFC8E6C9))),
       ),
       child: Row(
         children: [
@@ -769,10 +769,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     width: isNarrow ? 48 : 58,
                     height: isNarrow ? 48 : 58,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.16),
+                      color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25),
+                        color: CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.25)),
                         width: 1.2,
                       ),
                     ),
@@ -806,7 +806,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                                 vertical: 3,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.18),
+                                color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -912,8 +912,8 @@ class _RiderDashboardState extends State<RiderDashboard> {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFEDE5E0)),
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE5E0))),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Material(
@@ -929,10 +929,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: CartzyColors.brand100,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.badge_outlined, color: CartzyColors.brandDark),
+                  child: Icon(Icons.badge_outlined, color: CartzyColors.textOf(context, light: CartzyColors.brandDark)),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -941,17 +941,17 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     children: [
                       Text(
                         'Attendance (Time in / out)',
-                        style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: CartzyColors.brand900),
+                        style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: CartzyColors.brand900)),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Scan the QR code at your hub to start or end your shift',
-                        style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF6F6779)),
+                        style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF6F6779))),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.qr_code_scanner, color: CartzyColors.brandDark),
+                Icon(Icons.qr_code_scanner, color: CartzyColors.textOf(context, light: CartzyColors.brandDark)),
               ],
             ),
           ),
@@ -1061,9 +1061,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFECE3E5)),
+          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE3E5))),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.02),
@@ -1084,7 +1084,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.8,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                   ),
                 ),
@@ -1105,7 +1105,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF261E30),
+                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
               ),
             ),
             const SizedBox(height: 8),
@@ -1115,7 +1115,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 style: GoogleFonts.dmSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF8A7780),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                 ),
               )
             else if (subtext != null)
@@ -1138,9 +1138,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
     return Container(
       margin: const EdgeInsets.only(top: 22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFECE3E5)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE3E5))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1153,13 +1153,13 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF7F2F3),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F3)),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.local_shipping_outlined,
                     size: 18,
-                    color: Color(0xFF6E5E7E),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF6E5E7E)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1172,7 +1172,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         style: GoogleFonts.playfairDisplay(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF261E30),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1180,7 +1180,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         'Parcels scheduled for direct doorstep delivery',
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
-                          color: const Color(0xFF8A7780),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                         ),
                       ),
                     ],
@@ -1198,7 +1198,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF865561),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                     ),
                   ),
                 ),
@@ -1218,14 +1218,14 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F0F2),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF5F0F2)),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFE5DCDD)),
+                      border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD))),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check,
                       size: 22,
-                      color: Color(0xFF9E8A92),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF9E8A92)),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -1234,7 +1234,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF261E30),
+                      color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -1242,7 +1242,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     'Check the pickup dashboard to collect new packages from merchants.',
                     style: GoogleFonts.dmSans(
                       fontSize: 12.5,
-                      color: const Color(0xFF8A7780),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -1260,9 +1260,9 @@ class _RiderDashboardState extends State<RiderDashboard> {
     return Container(
       margin: const EdgeInsets.only(top: 22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFECE3E5)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFECE3E5))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1275,7 +1275,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                 Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF7F2F3),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F3)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -1294,7 +1294,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         style: GoogleFonts.playfairDisplay(
                           fontSize: 15.5,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF261E30),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1302,7 +1302,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         'Merchants waiting for courier collection',
                         style: GoogleFonts.dmSans(
                           fontSize: 12,
-                          color: const Color(0xFF8A7780),
+                          color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                         ),
                       ),
                     ],
@@ -1320,7 +1320,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     style: GoogleFonts.dmSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF865561),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                     ),
                   ),
                 ),
@@ -1341,8 +1341,8 @@ class _RiderDashboardState extends State<RiderDashboard> {
                     Container(
                       width: 48,
                       height: 48,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF7F2F3),
+                      decoration: BoxDecoration(
+                        color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F3)),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -1357,7 +1357,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF261E30),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1366,7 +1366,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.dmSans(
                         fontSize: 12,
-                        color: const Color(0xFF8A7780),
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                       ),
                     ),
                   ],
@@ -1406,7 +1406,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF261E30),
+                                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                               ),
                             ),
                             // Parcels badge
@@ -1433,7 +1433,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                               req['time'] as String,
                               style: GoogleFonts.dmSans(
                                 fontSize: 11.5,
-                                color: const Color(0xFF8A7780),
+                                color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                               ),
                             ),
                           ],
@@ -1442,10 +1442,10 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.location_on_outlined,
                               size: 14,
-                              color: Color(0xFF865561),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                             ),
                             const SizedBox(width: 5),
                             Expanded(
@@ -1453,7 +1453,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                                 req['address'] as String,
                                 style: GoogleFonts.dmSans(
                                   fontSize: 12,
-                                  color: const Color(0xFF5A4D54),
+                                  color: CartzyColors.textOf(context, light: const Color(0xFF5A4D54)),
                                 ),
                               ),
                             ),
@@ -1465,7 +1465,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                           style: GoogleFonts.dmSans(
                             fontSize: 11.5,
                             fontStyle: FontStyle.italic,
-                            color: const Color(0xFF8A7780),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                           ),
                         ),
                       ],
@@ -1682,7 +1682,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                               Color(0xFF6B2525),
                             ],
                           ),
-                          border: Border.all(color: Colors.white, width: 3.5),
+                          border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 3.5),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x4D8B3A3A),
@@ -1705,7 +1705,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                         style: GoogleFonts.dmSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: CartzyColors.burgundy,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                           letterSpacing: 0.2,
                         ),
                       ),

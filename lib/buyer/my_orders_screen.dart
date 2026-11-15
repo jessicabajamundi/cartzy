@@ -206,15 +206,15 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text('Pay for ${order.reference}?',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, color: _ink)),
+            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
         content: Text(
           'Confirm payment of ${_peso(order.total)} via ${order.payment}.',
-          style: GoogleFonts.dmSans(fontSize: 14, color: _muted, height: 1.4),
+          style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: _muted), height: 1.4),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Not now', style: GoogleFonts.dmSans(color: _muted)),
+            child: Text('Not now', style: GoogleFonts.dmSans(color: CartzyColors.mutedOf(context, light: _muted))),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: _brand),
@@ -282,7 +282,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
-      color: CartzyColors.background,
+      color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -293,9 +293,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
               margin: const EdgeInsets.only(top: 2, right: 14),
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.02),
@@ -304,10 +304,10 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
                 size: 18,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
           ),
@@ -323,7 +323,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.4,
-                    color: const Color(0xFF9E7766),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766)),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -332,7 +332,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
-                    color: _ink,
+                    color: CartzyColors.textOf(context, light: _ink),
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -341,7 +341,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   'Follow your active orders, track deliveries and look back at past purchases.',
                   style: GoogleFonts.dmSans(
                     fontSize: 12.5,
-                    color: _muted,
+                    color: CartzyColors.mutedOf(context, light: _muted),
                   ),
                 ),
               ],
@@ -353,16 +353,16 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             margin: const EdgeInsets.only(top: 4),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFFAF6F5),
+              color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF6F5)),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFEADFD8)),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEADFD8))),
             ),
             child: Text(
               '${_orders.length} ${_orders.length == 1 ? 'order' : 'orders'}',
               style: GoogleFonts.dmSans(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF867570),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF867570)),
               ),
             ),
           ),
@@ -384,7 +384,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       return Padding(
         padding: const EdgeInsets.only(right: 8),
         child: Material(
-          color: active ? _brand : Colors.white,
+          color: active ? _brand : CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
@@ -393,7 +393,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: active ? _brand : _cardBorder),
+                border: Border.all(color: active ? _brand : CartzyColors.borderOf(context, light: _cardBorder)),
               ),
               child: Text.rich(
                 TextSpan(children: [
@@ -404,7 +404,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                       child: Icon(
                         _statusIcon(key),
                         size: 16,
-                        color: active ? Colors.white : const Color(0xFF8A7E8A),
+                        color: active ? Colors.white : CartzyColors.mutedOf(context, light: const Color(0xFF8A7E8A)),
                       ),
                     ),
                   ),
@@ -413,14 +413,14 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                     text: '  $count',
                     style: TextStyle(
                       fontSize: 11.5,
-                      color: active ? Colors.white70 : const Color(0xFF9E929E),
+                      color: active ? Colors.white70 : CartzyColors.mutedOf(context, light: const Color(0xFF9E929E)),
                     ),
                   ),
                 ]),
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: active ? Colors.white : const Color(0xFF6B6270),
+                  color: active ? Colors.white : CartzyColors.textOf(context, light: const Color(0xFF6B6270)),
                 ),
               ),
             ),
@@ -438,7 +438,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                 fontSize: 9.5,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.1,
-                color: const Color(0xFFA99BA6),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFFA99BA6)),
               ),
             ),
           ),
@@ -469,27 +469,27 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       child: TextField(
         controller: _searchController,
         onChanged: (value) => setState(() => _search = value),
-        style: GoogleFonts.dmSans(fontSize: 14, color: _ink),
+        style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: _ink)),
         decoration: InputDecoration(
           isDense: true,
           hintText: 'Search by order ID, store or product',
-          hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFFAAA0A2)),
-          prefixIcon: const Icon(Icons.search, size: 20, color: _muted),
+          hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2))),
+          prefixIcon: Icon(Icons.search, size: 20, color: CartzyColors.mutedOf(context, light: _muted)),
           suffixIcon: _search.isEmpty
               ? null
               : IconButton(
-                  icon: const Icon(Icons.close, size: 18, color: _muted),
+                  icon: Icon(Icons.close, size: 18, color: CartzyColors.mutedOf(context, light: _muted)),
                   onPressed: () {
                     _searchController.clear();
                     setState(() => _search = '');
                   },
                 ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: _cardBorder),
+            borderSide: BorderSide(color: CartzyColors.borderOf(context, light: _cardBorder)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -506,9 +506,9 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _cardBorder, width: 1.1),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _cardBorder), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.025),
@@ -547,13 +547,13 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                         width: 66,
                         height: 66,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEFEBF4),
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFEFEBF4)),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.shopping_bag_outlined,
                           size: 32,
-                          color: Color(0xFF5E4E6D),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF5E4E6D)),
                         ),
                       ),
 
@@ -600,7 +600,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: _ink,
+                    color: CartzyColors.textOf(context, light: _ink),
                     letterSpacing: -0.2,
                   ),
                   textAlign: TextAlign.center,
@@ -613,7 +613,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                   'When you buy something, your order will appear here with live tracking\nand status updates.',
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
-                    color: _muted,
+                    color: CartzyColors.mutedOf(context, light: _muted),
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -680,7 +680,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
               'Order details and delivery updates will be available right here.',
               style: GoogleFonts.dmSans(
                 fontSize: 12,
-                color: const Color(0xFF9E929E),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E)),
               ),
               textAlign: TextAlign.center,
             ),
@@ -702,21 +702,21 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: _cardBorder, width: 1.1),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _cardBorder), width: 1.1),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 34, color: const Color(0xFF9E7766)),
+          Icon(icon, size: 34, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E7766))),
           const SizedBox(height: 12),
           Text(title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700, color: _ink)),
+              style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
           const SizedBox(height: 6),
           Text(text,
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(fontSize: 13, height: 1.45, color: _muted)),
+              style: GoogleFonts.dmSans(fontSize: 13, height: 1.45, color: CartzyColors.mutedOf(context, light: _muted))),
           if (action != null) ...[
             const SizedBox(height: 16),
             _OrderButton(label: action, primary: true, onTap: onAction),
@@ -786,7 +786,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,9 +835,9 @@ class _OrderCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _cardBorder, width: 1.1),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _cardBorder), width: 1.1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.025),
@@ -859,10 +859,10 @@ class _OrderCard extends StatelessWidget {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF4F1F7),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFF4F1F7)),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.storefront_outlined, size: 18, color: _brand),
+                  child: Icon(Icons.storefront_outlined, size: 18, color: CartzyColors.textOf(context, light: _brand)),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -873,10 +873,10 @@ class _OrderCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.dmSans(
-                              fontSize: 14, fontWeight: FontWeight.w700, color: _ink)),
+                              fontSize: 14, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
                       const SizedBox(height: 2),
                       Text(meta,
-                          style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFF9E929E))),
+                          style: GoogleFonts.dmSans(fontSize: 11.5, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E)))),
                     ],
                   ),
                 ),
@@ -925,11 +925,11 @@ class _OrderCard extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.dmSans(
-                                fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+                                fontSize: 13.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
                         const SizedBox(height: 2),
                         Text(
                           [if (item.variation.isNotEmpty) item.variation, 'x${item.qty}'].join(' · '),
-                          style: GoogleFonts.dmSans(fontSize: 12, color: _muted),
+                          style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: _muted)),
                         ),
                       ],
                     ),
@@ -937,7 +937,7 @@ class _OrderCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(_peso(item.price),
                       style: GoogleFonts.dmSans(
-                          fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF4B4452))),
+                          fontSize: 13, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF4B4452)))),
                 ],
               ),
             ),
@@ -976,31 +976,31 @@ class _OrderCard extends StatelessWidget {
           // Total + actions
           Container(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFBF9FA),
-              border: Border(top: BorderSide(color: Color(0xFFF3ECEE))),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+            decoration: BoxDecoration(
+              color: CartzyColors.surfaceOf(context, light: const Color(0xFFFBF9FA)),
+              border: Border(top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF3ECEE)))),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
-                    Text('Order total ', style: GoogleFonts.dmSans(fontSize: 12.5, color: _muted)),
+                    Text('Order total ', style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: _muted))),
                     Text(_peso(order.total),
                         style: GoogleFonts.dmSans(
-                            fontSize: 15, fontWeight: FontWeight.w800, color: _ink)),
+                            fontSize: 15, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
                     const Spacer(),
                     if (order.payment.isNotEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF1EFF5),
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1EFF5)),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(order.payment,
                             style: GoogleFonts.dmSans(
-                                fontSize: 11, fontWeight: FontWeight.w700, color: _brand)),
+                                fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _brand))),
                       ),
                   ],
                 ),
@@ -1110,9 +1110,9 @@ class _OrderButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           gradient: primary ? const LinearGradient(colors: [_brand, _brandLight]) : null,
-          color: primary ? null : Colors.white,
+          color: primary ? null : CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(10),
-          border: primary ? null : Border.all(color: const Color(0xFFE1DDE7)),
+          border: primary ? null : Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE1DDE7))),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1153,9 +1153,9 @@ class _SheetFrame extends StatelessWidget {
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
@@ -1169,18 +1169,18 @@ class _SheetFrame extends StatelessWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: CartzyColors.border,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.border),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               Text(title,
-                  style: GoogleFonts.dmSans(fontSize: 19, fontWeight: FontWeight.w800, color: _ink)),
+                  style: GoogleFonts.dmSans(fontSize: 19, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(subtitle!,
                     style: GoogleFonts.dmSans(
-                        fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF9E929E))),
+                        fontSize: 13, fontWeight: FontWeight.w600, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E)))),
               ],
               const SizedBox(height: 12),
               ...children,
@@ -1224,7 +1224,7 @@ class _CancelOrderSheetState extends State<_CancelOrderSheet> {
       children: [
         Text(
           'Select a reason to send to the seller. Your order will only be cancelled after the seller approves your request.',
-          style: GoogleFonts.dmSans(fontSize: 13, height: 1.45, color: _muted),
+          style: GoogleFonts.dmSans(fontSize: 13, height: 1.45, color: CartzyColors.mutedOf(context, light: _muted)),
         ),
         const SizedBox(height: 12),
         for (final reason in widget.reasons)
@@ -1237,19 +1237,19 @@ class _CancelOrderSheetState extends State<_CancelOrderSheet> {
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _reason == reason ? _brand : const Color(0xFFE5E7EB)),
-                  color: _reason == reason ? const Color(0xFFF6F4F8) : Colors.white,
+                  border: Border.all(color: _reason == reason ? _brand : CartzyColors.borderOf(context, light: const Color(0xFFE5E7EB))),
+                  color: _reason == reason ? CartzyColors.elevatedOf(context, light: const Color(0xFFF6F4F8)) : CartzyColors.surfaceOf(context, light: Colors.white),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       _reason == reason ? Icons.radio_button_checked : Icons.radio_button_unchecked,
                       size: 20,
-                      color: _reason == reason ? _brand : const Color(0xFFB7AAB5),
+                      color: _reason == reason ? CartzyColors.textOf(context, light: _brand) : CartzyColors.mutedOf(context, light: const Color(0xFFB7AAB5)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text(reason, style: GoogleFonts.dmSans(fontSize: 13.5, color: _ink)),
+                      child: Text(reason, style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.textOf(context, light: _ink))),
                     ),
                   ],
                 ),
@@ -1266,18 +1266,18 @@ class _CancelOrderSheetState extends State<_CancelOrderSheet> {
             style: GoogleFonts.dmSans(fontSize: 13.5),
             decoration: InputDecoration(
               hintText: 'Please specify your reason.',
-              hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFFAAA0A2)),
+              hintStyle: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2))),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),
         ],
         const SizedBox(height: 6),
         Text('Send this cancellation request to the seller?',
-            style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+            style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
         const SizedBox(height: 4),
         Text(
           'If approved and already paid, contact the seller to arrange your refund. Sending a request does not issue a refund.',
-          style: GoogleFonts.dmSans(fontSize: 12, height: 1.4, color: const Color(0xFF9E929E)),
+          style: GoogleFonts.dmSans(fontSize: 12, height: 1.4, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E))),
         ),
         const SizedBox(height: 16),
         Row(
@@ -1374,7 +1374,7 @@ class _RateItemsSheetState extends State<_RateItemsSheet> {
                 child: Text(item.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: _ink)),
+                    style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
               ),
             ],
           ),
@@ -1401,7 +1401,7 @@ class _RateItemsSheetState extends State<_RateItemsSheet> {
             style: GoogleFonts.dmSans(fontSize: 13.5),
             decoration: InputDecoration(
               hintText: 'Share your thoughts (optional)',
-              hintStyle: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFAAA0A2)),
+              hintStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2))),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ),

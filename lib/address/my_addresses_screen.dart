@@ -167,10 +167,10 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: isDefault ? CartzyColors.navy : CartzyColors.border,
+            color: isDefault ? CartzyColors.navy : CartzyColors.borderOf(context, light: CartzyColors.border),
             width: isDefault ? 1.5 : 1,
           ),
           boxShadow: [
@@ -189,7 +189,7 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: CartzyColors.background,
+                    color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -204,15 +204,15 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                                     ? Icons.location_on_outlined
                                     : Icons.home_outlined,
                         size: 16,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                       const SizedBox(width: 5),
                       Text(
                         address['label'] ?? 'Address',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: CartzyColors.navy,
+                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                         ),
                       ),
                     ],
@@ -236,17 +236,17 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
             const SizedBox(height: 16),
             Text(
               address['name'] ?? '',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: CartzyColors.text),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.text)),
             ),
             const SizedBox(height: 4),
             Text(
               address['phone'] ?? '',
-              style: const TextStyle(fontSize: 13, color: CartzyColors.gray),
+              style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
             ),
             const SizedBox(height: 10),
             Text(
               _formatAddress(address),
-              style: const TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.text),
+              style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.textOf(context, light: CartzyColors.text)),
             ),
             const SizedBox(height: 16),
             const Divider(color: CartzyColors.border, height: 1),
@@ -311,22 +311,22 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
             Container(
               width: 90,
               height: 90,
-              decoration: const BoxDecoration(
-                color: CartzyColors.background,
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.location_on_outlined, size: 42, color: CartzyColors.navy),
+              child: Icon(Icons.location_on_outlined, size: 42, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'No saved addresses',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: CartzyColors.text),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.text)),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Add an address so you can check out faster.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.gray),
+              style: TextStyle(fontSize: 13, height: 1.5, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -359,9 +359,9 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
         widget.onBack();
       },
       child: Scaffold(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
         appBar: AppBar(
-          backgroundColor: CartzyColors.background,
+          backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
           elevation: 0,
           leading: IconButton(
             onPressed: widget.onBack,
@@ -405,10 +405,10 @@ class _MyAddressesScreenState extends State<MyAddressesScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Expanded(
+                                  Expanded(
                                     child: Text(
                                       'Saved Addresses',
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CartzyColors.text),
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                                     ),
                                   ),
                                   TextButton.icon(

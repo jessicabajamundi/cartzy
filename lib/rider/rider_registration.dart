@@ -649,7 +649,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       barrierDismissible: false,
       builder: (dialogContext) {
         return Dialog(
-          backgroundColor: Colors.white,
+          backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
           surfaceTintColor: Colors.white,
           insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           shape: RoundedRectangleBorder(
@@ -667,9 +667,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   height: 68,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFFDF3F5),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFFDF3F5)),
                     border: Border.all(
-                      color: const Color(0xFFF2DCE2),
+                      color: CartzyColors.borderOf(context, light: const Color(0xFFF2DCE2)),
                       width: 1.5,
                     ),
                     boxShadow: [
@@ -706,9 +706,9 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFBF0F3),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFFBF0F3)),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFFEED6DD)),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEED6DD))),
                   ),
                   child: Text(
                     'PENDING APPROVAL',
@@ -716,7 +716,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                       fontSize: 10.5,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.1,
-                      color: const Color(0xFF865561),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                     ),
                   ),
                 ),
@@ -727,7 +727,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   'Registration Submitted',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.playfairDisplay(
-                    color: const Color(0xFF231F20),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                     fontWeight: FontWeight.w700,
                     fontSize: 22,
                   ),
@@ -740,7 +740,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.dmSans(
                     fontSize: 13.5,
-                    color: const Color(0xFF6E6266),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF6E6266)),
                     height: 1.5,
                   ),
                 ),
@@ -751,25 +751,25 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFAF6F7),
+                    color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF6F7)),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFEDE3E6)),
+                    border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE3E6))),
                   ),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.local_shipping_outlined,
                             size: 16,
-                            color: Color(0xFF865561),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Partner:',
                             style: GoogleFonts.dmSans(
                               fontSize: 12,
-                              color: const Color(0xFF7A6E72),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -780,7 +780,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                               style: GoogleFonts.dmSans(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF231F20),
+                                color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                               ),
                             ),
                           ),
@@ -793,17 +793,17 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                         ),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.mark_email_read_outlined,
                               size: 16,
-                              color: Color(0xFF865561),
+                              color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                             ),
                             const SizedBox(width: 8),
                             Text(
                               'Email:',
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
-                                color: const Color(0xFF7A6E72),
+                                color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -816,7 +816,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                                 style: GoogleFonts.dmSans(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF231F20),
+                                  color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                                 ),
                               ),
                             ),
@@ -851,7 +851,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -889,7 +889,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       children: [
         Text(
           'What kind of courier will you be? *',
-          style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700, color: const Color(0xFF282133)),
+          style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF282133))),
         ),
         const SizedBox(height: 8),
         for (final (value, label, description, icon) in courierTypeOptions) ...[
@@ -907,30 +907,30 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 duration: const Duration(milliseconds: 160),
                 padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
-                  color: _courierType == value ? const Color(0xFFF6F4F8) : Colors.white,
+                  color: _courierType == value ? CartzyColors.elevatedOf(context, light: const Color(0xFFF6F4F8)) : CartzyColors.surfaceOf(context, light: Colors.white),
                   border: Border.all(
-                    color: _courierType == value ? const Color(0xFF6F6382) : const Color(0xFFE1DDE7),
+                    color: _courierType == value ? const Color(0xFF6F6382) : CartzyColors.borderOf(context, light: const Color(0xFFE1DDE7)),
                     width: 1.5,
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Icon(icon, color: const Color(0xFF6F6382)),
+                    Icon(icon, color: CartzyColors.mutedOf(context, light: const Color(0xFF6F6382))),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(label, style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: const Color(0xFF282133))),
+                          Text(label, style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: const Color(0xFF282133)))),
                           const SizedBox(height: 2),
-                          Text(description, style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF6B7280))),
+                          Text(description, style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF6B7280)))),
                         ],
                       ),
                     ),
                     Icon(
                       _courierType == value ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                      color: const Color(0xFF6F6382),
+                      color: CartzyColors.mutedOf(context, light: const Color(0xFF6F6382)),
                     ),
                   ],
                 ),
@@ -952,7 +952,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           style: GoogleFonts.dmSans(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF231F20),
+            color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
           ),
         ),
         if (subtitle != null) ...[
@@ -961,7 +961,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             subtitle,
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
           ),
         ],
@@ -982,7 +982,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           width: double.infinity,
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF9F9),
+            color: CartzyColors.surfaceOf(context, light: const Color(0xFFFFF9F9)),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: borderColor, width: 1.2),
           ),
@@ -1002,7 +1002,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                       Flexible(
                         child: Text('Reading your ID…',
                             style: GoogleFonts.dmSans(
-                                fontSize: 13, color: const Color(0xFF7A6E72))),
+                                fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)))),
                       ),
                     ],
                   ),
@@ -1057,7 +1057,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             fontSize: _govIdImageError ? 13 : 11.5,
             color: _govIdImageError
                 ? const Color(0xFFEF4444)
-                : const Color(0xFF7A6E72),
+                : CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
           ),
         ),
         if (_govIdAutofilled) ...[
@@ -1065,13 +1065,13 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.auto_awesome, size: 16, color: Color(0xFF865561)),
+              Icon(Icons.auto_awesome, size: 16, color: CartzyColors.mutedOf(context, light: const Color(0xFF865561))),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Details filled in. Please check them.',
                   style: GoogleFonts.dmSans(
-                      fontSize: 12, color: const Color(0xFF865561), height: 1.35),
+                      fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)), height: 1.35),
                 ),
               ),
             ],
@@ -1097,21 +1097,21 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF9F9),
+        color: CartzyColors.surfaceOf(context, light: const Color(0xFFFFF9F9)),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE5D7D7)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5D7D7))),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 18, color: Color(0xFF865561)),
+          Icon(Icons.info_outline, size: 18, color: CartzyColors.mutedOf(context, light: const Color(0xFF865561))),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               'The logistics partner you choose reviews your application. You can sign in and accept deliveries once they approve you.',
               style: GoogleFonts.dmSans(
                 fontSize: 12.5,
-                color: const Color(0xFF7A6E72),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
                 height: 1.35,
               ),
             ),
@@ -1214,7 +1214,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
         Text('Home address *', style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700)),
         const SizedBox(height: 2),
         Text('Your hub gives you pickups and deliveries near where you live.',
-            style: GoogleFonts.dmSans(fontSize: 11.5, color: const Color(0xFF6B6275))),
+            style: GoogleFonts.dmSans(fontSize: 11.5, color: CartzyColors.mutedOf(context, light: const Color(0xFF6B6275)))),
         const SizedBox(height: 10),
         HomeAddressFields(
           initial: _homeAddress,
@@ -1384,7 +1384,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
           trailing: IconButton(
             icon: Icon(
               _passwordVisible ? Icons.visibility_off : Icons.visibility,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
             onPressed: () =>
                 setState(() => _passwordVisible = !_passwordVisible),
@@ -1413,7 +1413,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
               _confirmPasswordVisible
                   ? Icons.visibility_off
                   : Icons.visibility,
-              color: const Color(0xFF7A6E72),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),
             ),
             onPressed: () => setState(
                 () => _confirmPasswordVisible = !_confirmPasswordVisible),
@@ -1479,7 +1479,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             Text(
               "Didn't receive the code? ",
               style: GoogleFonts.dmSans(
-                  fontSize: 13, color: const Color(0xFF7A6E72)),
+                  fontSize: 13, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
             ),
             GestureDetector(
               onTap: _isResendingOtp ? null : _resendVerificationCode,
@@ -1488,7 +1488,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF865561),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF865561)),
                 ),
               ),
             ),

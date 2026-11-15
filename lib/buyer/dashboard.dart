@@ -220,14 +220,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       onSubmitted: (_) => _openSearch(),
                                       style: GoogleFonts.dmSans(
                                           fontSize: 13,
-                                          color: CartzyColors.navy),
+                                          color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                                       decoration: InputDecoration(
                                         hintText: 'Search...',
                                         hintStyle: GoogleFonts.dmSans(
                                             fontSize: 13,
-                                            color: CartzyColors.gray),
+                                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                                         filled: true,
-                                        fillColor: CartzyColors.creamSection,
+                                        fillColor: CartzyColors.elevatedOf(context, light: CartzyColors.creamSection),
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
@@ -243,21 +243,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                   MaterialTapTargetSize
                                                       .shrinkWrap),
                                           onPressed: _openSearch,
-                                          icon: const Icon(Icons.search_rounded,
+                                          icon: Icon(Icons.search_rounded,
                                               size: 19,
-                                              color: CartzyColors.burgundy),
+                                              color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                                         ),
                                         border: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(30),
-                                          borderSide: const BorderSide(
-                                              color: CartzyColors.pinkBorder),
+                                          borderSide: BorderSide(
+                                              color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder)),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(30),
-                                          borderSide: const BorderSide(
-                                              color: CartzyColors.pinkBorder),
+                                          borderSide: BorderSide(
+                                              color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder)),
                                         ),
                                         focusedBorder: OutlineInputBorder(
                                           borderRadius:
@@ -304,7 +304,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                     borderRadius:
                                                         BorderRadius.circular(7),
                                                     border: Border.all(
-                                                        color: Colors.white,
+                                                        color: CartzyColors.borderOf(context, light: Colors.white),
                                                         width: 1.2),
                                                   ),
                                                   child: Text(

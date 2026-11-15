@@ -44,7 +44,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(22),
       ),
       child: CustomPaint(
@@ -79,7 +79,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 18.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF261E30),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                   letterSpacing: -0.2,
                 ),
                 textAlign: TextAlign.center,
@@ -93,7 +93,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 style: GoogleFonts.dmSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
-                  color: const Color(0xFF756A7C),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                   height: 1.45,
                 ),
                 textAlign: TextAlign.center,
@@ -143,7 +143,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 16),
-      color: CartzyColors.background,
+      color: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -154,9 +154,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               margin: const EdgeInsets.only(top: 2, right: 14),
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.02),
@@ -165,10 +165,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
                 size: 18,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
             ),
           ),
@@ -183,7 +183,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
-                    color: const Color(0xFF261E30),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -192,7 +192,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   'Share feedback on products you\'ve received.',
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
-                    color: const Color(0xFF756A7C),
+                    color: CartzyColors.mutedOf(context, light: const Color(0xFF756A7C)),
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -207,7 +207,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

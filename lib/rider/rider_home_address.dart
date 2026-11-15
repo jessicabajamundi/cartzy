@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/psgc_api.dart';
@@ -157,7 +158,7 @@ class _HomeAddressFieldsState extends State<HomeAddressFields> {
         labelStyle: GoogleFonts.dmSans(fontSize: 13),
         isDense: true,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
         errorText: missing ? 'Required' : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       );
@@ -216,7 +217,7 @@ Future<HomeAddress?> showHomeAddressSheet(BuildContext context, {HomeAddress? in
   return showModalBottomSheet<HomeAddress>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (context) => _HomeAddressSheet(initial: initial),
   );
@@ -270,7 +271,7 @@ class _HomeAddressSheetState extends State<_HomeAddressSheet> {
             Text('Home address', style: GoogleFonts.dmSans(fontSize: 17, fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
             Text('Your hub gives you pickups and deliveries near where you live.',
-                style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFF6B6275))),
+                style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: const Color(0xFF6B6275)))),
             const SizedBox(height: 14),
             HomeAddressFields(initial: widget.initial, showError: _showError, onChanged: (v) => _value = v),
             if (_error != null) ...[

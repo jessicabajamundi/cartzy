@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'rider_common_app_bar.dart';
@@ -201,7 +202,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F5),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
       body: Column(
         children: [
           RiderCommonAppBar(
@@ -251,9 +252,9 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
   Widget _buildSidebarPane({required bool isMobile}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(isMobile ? 0 : 14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       padding: EdgeInsets.all(isMobile ? 14 : 12),
       child: Column(
@@ -264,7 +265,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
             style: GoogleFonts.cormorantGaramond(
               fontSize: isMobile ? 19 : 17,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF261E30),
+              color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
             ),
           ),
           const SizedBox(height: 2),
@@ -272,7 +273,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
             'Coordinate directly with customers and hub dispatchers',
             style: GoogleFonts.dmSans(
               fontSize: 10,
-              color: const Color(0xFF8A7780),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
             ),
           ),
           const SizedBox(height: 12),
@@ -282,12 +283,12 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
             child: Container(
               padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: _selectedChat == 'dispatch'
-                      ? const Color(0xFFE3D8DC)
-                      : const Color(0xFFEFE8EA),
+                      ? CartzyColors.borderOf(context, light: const Color(0xFFE3D8DC))
+                      : CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA)),
                 ),
               ),
               child: Row(
@@ -315,7 +316,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                           style: GoogleFonts.dmSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF261E30),
+                            color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -323,7 +324,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                           'Dispatch notifications & route updates',
                           style: GoogleFonts.dmSans(
                             fontSize: 9,
-                            color: const Color(0xFF8A7780),
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -333,7 +334,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3ECEF),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3ECEF)),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -341,7 +342,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                       style: GoogleFonts.dmSans(
                         fontSize: 8,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF554B62),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
                       ),
                     ),
                   ),
@@ -353,10 +354,10 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
-                top: BorderSide(color: Color(0xFFEFE8EA)),
-                bottom: BorderSide(color: Color(0xFFEFE8EA)),
+                top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
+                bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
               ),
             ),
             child: Text(
@@ -365,7 +366,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                 fontSize: 8,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.6,
-                color: const Color(0xFF8A7780),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
               ),
             ),
           ),
@@ -389,7 +390,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 9),
                     decoration: BoxDecoration(
-                      color: selected ? const Color(0xFFFAF7F8) : Colors.white,
+                      color: selected ? CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F8)) : CartzyColors.surfaceOf(context, light: Colors.white),
                       border: Border(
                         left: BorderSide(
                           color: selected ? const Color(0xFFC18476) : Colors.transparent,
@@ -428,7 +429,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                                 style: GoogleFonts.dmSans(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF261E30),
+                                  color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -438,7 +439,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.dmSans(
                                   fontSize: 8,
-                                  color: const Color(0xFF8A7780),
+                                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                                 ),
                               ),
                               Text(
@@ -447,7 +448,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                                 overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.dmSans(
                                   fontSize: 8,
-                                  color: const Color(0xFF554B62),
+                                  color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
                                 ),
                               ),
                             ],
@@ -476,9 +477,9 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(isMobile ? 0 : 14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Column(
         children: [
@@ -523,14 +524,14 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                         style: GoogleFonts.dmSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF261E30),
+                          color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                         ),
                       ),
                       Text(
                         detail,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.dmSans(fontSize: 8, color: const Color(0xFF8A7780)),
+                        style: GoogleFonts.dmSans(fontSize: 8, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
                       ),
                     ],
                   ),
@@ -551,10 +552,10 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
-                  top: BorderSide(color: Color(0xFFEFE8EA)),
-                  bottom: BorderSide(color: Color(0xFFEFE8EA)),
+                  top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
+                  bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
                 ),
               ),
               child: SingleChildScrollView(
@@ -582,13 +583,13 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                           Text(
                             'No previous messages with $title.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF9A91A7)),
+                            style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.mutedOf(context, light: const Color(0xFF9A91A7))),
                           ),
                           const SizedBox(height: 5),
                           Text(
                             'Send an ETA update or ask about building/gate instructions.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFF9A91A7)),
+                            style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.mutedOf(context, light: const Color(0xFF9A91A7))),
                           ),
                         ],
                       ),
@@ -610,9 +611,9 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: isMe ? const Color(0xFF46333D) : const Color(0xFFFAF7F5),
+                            color: isMe ? const Color(0xFF46333D) : CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
                             borderRadius: BorderRadius.circular(12),
-                            border: isMe ? null : Border.all(color: const Color(0xFFEFE8EA)),
+                            border: isMe ? null : Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
                           ),
                           child: Column(
                             crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -621,7 +622,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                                 msg['text'] as String,
                                 style: GoogleFonts.dmSans(
                                   fontSize: 12,
-                                  color: isMe ? Colors.white : const Color(0xFF261E30),
+                                  color: isMe ? Colors.white : CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -629,7 +630,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                                 msg['time'] as String,
                                 style: GoogleFonts.dmSans(
                                   fontSize: 9,
-                                  color: isMe ? Colors.white70 : const Color(0xFF8A7780),
+                                  color: isMe ? Colors.white70 : CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                                 ),
                               ),
                             ],
@@ -641,8 +642,8 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Color(0xFFEFE8EA))),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA)))),
             ),
             child: Row(
               children: [
@@ -655,11 +656,11 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                       hintStyle: GoogleFonts.dmSans(fontSize: 9, color: const Color(0xFFBAABB0)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: Color(0xFFEFE8EA)),
+                        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(color: Color(0xFFEFE8EA)),
+                        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -673,7 +674,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
                 const SizedBox(width: 8),
                 IconButton(
                   visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.send_rounded, size: 17, color: Color(0xFF46333D)),
+                  icon: Icon(Icons.send_rounded, size: 17, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))),
                   onPressed: _sendMessage,
                 ),
               ],
@@ -689,8 +690,8 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
       margin: const EdgeInsets.only(right: 5),
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -698,7 +699,7 @@ class _RiderChatListScreenState extends State<RiderChatListScreen> {
         children: [
           Icon(icon, size: 9, color: color),
           const SizedBox(width: 3),
-          Text(label, style: GoogleFonts.dmSans(fontSize: 8, color: const Color(0xFF554B62))),
+          Text(label, style: GoogleFonts.dmSans(fontSize: 8, color: CartzyColors.textOf(context, light: const Color(0xFF554B62)))),
         ],
       ),
     );

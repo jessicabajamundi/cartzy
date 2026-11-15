@@ -406,15 +406,15 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       labelText: label,
       hintText: hint,
       filled: true,
-      fillColor: CartzyColors.surface,
+      fillColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: CartzyColors.border),
+        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: CartzyColors.border),
+        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -427,15 +427,15 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     return InputDecoration(
       labelText: label,
       filled: true,
-      fillColor: CartzyColors.surface,
+      fillColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: CartzyColors.border),
+        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: CartzyColors.border),
+        borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -453,23 +453,23 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: selected ? CartzyColors.navy : CartzyColors.surface,
+            color: selected ? CartzyColors.navy : CartzyColors.surfaceOf(context, light: CartzyColors.surface),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected ? CartzyColors.navy : CartzyColors.border,
+              color: selected ? CartzyColors.navy : CartzyColors.borderOf(context, light: CartzyColors.border),
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 16, color: selected ? Colors.white : CartzyColors.navy),
+              Icon(icon, size: 16, color: selected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy)),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : CartzyColors.text,
+                  color: selected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.text),
                 ),
               ),
             ],
@@ -490,9 +490,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         widget.onBack();
       },
       child: Scaffold(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
         appBar: AppBar(
-          backgroundColor: CartzyColors.background,
+          backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
           elevation: 0,
           leading: IconButton(
             onPressed: isSaving ? null : widget.onBack,
@@ -501,7 +501,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
           ),
           title: Text(
             isEditing ? 'Edit Delivery Address' : 'Add Delivery Address',
-            style: const TextStyle(fontWeight: FontWeight.w700, color: CartzyColors.text),
+            style: TextStyle(fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.text)),
           ),
         ),
         body: SafeArea(
@@ -510,9 +510,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const Text(
+                Text(
                   'Address Label',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.text),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -527,9 +527,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Recipient Information',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.text),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -556,9 +556,9 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Address Details (PSGC API)',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.text),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.text)),
                 ),
                 const SizedBox(height: 12),
 
@@ -677,7 +677,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   value: isDefault,
                   onChanged: isSaving ? null : (val) => setState(() => isDefault = val ?? false),
                   title: const Text('Use as my default delivery address', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                  subtitle: const Text('Automatically selected when placing orders during checkout', style: TextStyle(fontSize: 12, color: CartzyColors.gray)),
+                  subtitle: Text('Automatically selected when placing orders during checkout', style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
                   activeColor: CartzyColors.navy,
                   contentPadding: EdgeInsets.zero,
                   controlAffinity: ListTileControlAffinity.leading,

@@ -40,12 +40,12 @@ class WishlistEmptyState extends StatelessWidget {
                           Container(
                             width: 144,
                             height: 144,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
                                 colors: [
-                                  CartzyColors.brand100,
-                                  CartzyColors.rose50Warm
+                                  CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
+                                  CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
@@ -58,7 +58,7 @@ class WishlistEmptyState extends StatelessWidget {
                               width: 90,
                               height: 108,
                               decoration: BoxDecoration(
-                                color: CartzyColors.brand200,
+                                color: CartzyColors.elevatedOf(context, light: CartzyColors.brand200),
                                 borderRadius: BorderRadius.circular(22),
                               ),
                             ),
@@ -70,9 +70,9 @@ class WishlistEmptyState extends StatelessWidget {
                               height: 108,
                               margin: const EdgeInsets.only(left: 18),
                               decoration: BoxDecoration(
-                                color: CartzyColors.rose50Warm,
+                                color: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                                 borderRadius: BorderRadius.circular(22),
-                                border: Border.all(color: CartzyColors.rose200),
+                                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
                                 boxShadow: [
                                   BoxShadow(
                                     color: CartzyColors.brandDark
@@ -98,7 +98,7 @@ class WishlistEmptyState extends StatelessWidget {
                       fontSize: 10,
                       letterSpacing: 2,
                       fontWeight: FontWeight.w700,
-                      color: CartzyColors.rose700,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -109,7 +109,7 @@ class WishlistEmptyState extends StatelessWidget {
                       fontSize: 28,
                       height: 1.2,
                       fontWeight: FontWeight.w700,
-                      color: CartzyColors.brand900,
+                      color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -121,7 +121,7 @@ class WishlistEmptyState extends StatelessWidget {
                     style: GoogleFonts.dmSans(
                       fontSize: 14,
                       height: 1.6,
-                      color: CartzyColors.brandDeep,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                     ),
                   ),
                   const SizedBox(height: 28),
@@ -141,8 +141,8 @@ class WishlistEmptyState extends StatelessWidget {
                             const WidgetStatePropertyAll(CartzyColors.rose700),
                         backgroundColor: const WidgetStatePropertyAll(
                             CartzyColors.rose50Warm),
-                        side: const WidgetStatePropertyAll(
-                            BorderSide(color: CartzyColors.rose200)),
+                        side: WidgetStatePropertyAll(
+                            BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200))),
                         minimumSize: const WidgetStatePropertyAll(Size(0, 50)),
                         shape: const WidgetStatePropertyAll(StadiumBorder()),
                       ),

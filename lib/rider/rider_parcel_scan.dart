@@ -62,11 +62,11 @@ class RiderParcelScan {
     return showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         surfaceTintColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Decline this parcel?',
-            style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: CartzyColors.brand900)),
+            style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brand900))),
         content: TextField(
           controller: controller,
           maxLength: 200,
@@ -75,7 +75,7 @@ class RiderParcelScan {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('Back', style: GoogleFonts.dmSans(color: CartzyColors.gray, fontWeight: FontWeight.w600)),
+            child: Text('Back', style: GoogleFonts.dmSans(color: CartzyColors.mutedOf(context, light: CartzyColors.gray), fontWeight: FontWeight.w600)),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
@@ -208,10 +208,10 @@ class _OutcomeSheet extends StatelessWidget {
             onPressed: () => Navigator.of(context).pop(false),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
-              side: const BorderSide(color: CartzyColors.border),
+              side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
-            child: Text('Done', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, color: CartzyColors.brandDark)),
+            child: Text('Done', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brandDark))),
           ),
         ),
         const SizedBox(width: 12),
@@ -257,9 +257,9 @@ class _SheetFrame extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.fromLTRB(22, 14, 22, 22 + MediaQuery.of(context).padding.bottom),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -269,7 +269,7 @@ class _SheetFrame extends StatelessWidget {
             child: Container(
               width: 40,
               height: 4,
-              decoration: BoxDecoration(color: CartzyColors.border, borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: CartzyColors.elevatedOf(context, light: CartzyColors.border), borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 18),
@@ -284,18 +284,18 @@ class _SheetFrame extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: CartzyColors.brand900),
+                  style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brand900)),
                 ),
               ),
             ],
           ),
           if (message.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text(message, style: GoogleFonts.dmSans(fontSize: 14, height: 1.45, color: CartzyColors.brandDark)),
+            Text(message, style: GoogleFonts.dmSans(fontSize: 14, height: 1.45, color: CartzyColors.textOf(context, light: CartzyColors.brandDark))),
           ],
           if (footnote != null) ...[
             const SizedBox(height: 8),
-            Text(footnote!, style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.gray)),
+            Text(footnote!, style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
           ],
           if (parcel.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -303,9 +303,9 @@ class _SheetFrame extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: CartzyColors.brand50Lavender,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: CartzyColors.border),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

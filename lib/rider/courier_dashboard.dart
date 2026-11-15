@@ -261,7 +261,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                   CircleAvatar(
                     radius: 22,
                     backgroundColor: (d.onShift ? _green : _muted).withValues(alpha: 0.12),
-                    child: Icon(d.onShift ? Icons.timer_outlined : Icons.timer_off_outlined, color: d.onShift ? _green : _muted),
+                    child: Icon(d.onShift ? Icons.timer_outlined : Icons.timer_off_outlined, color: d.onShift ? _green : CartzyColors.mutedOf(context, light: _muted)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -368,10 +368,10 @@ class _CourierDashboardState extends State<CourierDashboard> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: const Color(0xFFF3EFF7),
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFF3EFF7)),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.home_outlined, color: CartzyColors.brandDeep, size: 18),
+              child: Icon(Icons.home_outlined, color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep), size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -409,7 +409,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
               onChanged: (v) => ThemeController.setDark(v),
               secondary: Icon(
                 isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                color: isDark ? CartzyColors.darkAccent : _ink,
+                color: isDark ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: _ink),
               ),
               title: Text(
                 'Dark Mode',
@@ -431,7 +431,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
         label: Text('Log out', style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFFDC2626),
-          side: const BorderSide(color: Color(0xFFFECACA)),
+          side: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFFECACA))),
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
@@ -443,13 +443,13 @@ class _CourierDashboardState extends State<CourierDashboard> {
   Widget _buildMenu() {
     final name = _data?.courier.name;
     Widget item(IconData icon, String label, VoidCallback onTap, {Color color = _ink}) => ListTile(
-          leading: Icon(icon, color: color == _ink ? CartzyColors.brandDeep : color),
+          leading: Icon(icon, color: color == _ink ? CartzyColors.mutedOf(context, light: CartzyColors.brandDeep) : color),
           title: Text(label, style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: color)),
           onTap: () => _closeMenuThen(onTap),
         );
 
     return Drawer(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -459,7 +459,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('cartzy', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w800, color: _ink)),
+                  Text('cartzy', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w800, color: CartzyColors.textOf(context, light: _ink))),
                   if (name != null) Text(name, style: _sub),
                 ],
               ),
@@ -503,14 +503,14 @@ class _CourierDashboardState extends State<CourierDashboard> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, size: 22, color: selected ? CartzyColors.burgundy : CartzyColors.gray),
+                  Icon(icon, size: 22, color: selected ? CartzyColors.mutedOf(context, light: CartzyColors.burgundy) : CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   const SizedBox(height: 3),
                   Text(
                     label,
                     style: GoogleFonts.dmSans(
                       fontSize: 11,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                      color: selected ? CartzyColors.burgundy : CartzyColors.gray,
+                      color: selected ? CartzyColors.mutedOf(context, light: CartzyColors.burgundy) : CartzyColors.mutedOf(context, light: CartzyColors.gray),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -587,7 +587,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                               Color(0xFF6B2525),
                             ],
                           ),
-                          border: Border.all(color: Colors.white, width: 3.5),
+                          border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 3.5),
                           boxShadow: const [
                             BoxShadow(
                               color: Color(0x4D8B3A3A),
@@ -610,7 +610,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
                         style: GoogleFonts.dmSans(
                           fontSize: 10.5,
                           fontWeight: FontWeight.w700,
-                          color: CartzyColors.burgundy,
+                          color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                           letterSpacing: 0.2,
                         ),
                       ),
@@ -662,7 +662,7 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.16), borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -771,8 +771,8 @@ class _PickupCard extends StatelessWidget {
                 if (when.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(color: CartzyColors.brand100, borderRadius: BorderRadius.circular(20)),
-                    child: Text(when, style: GoogleFonts.dmSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: CartzyColors.brandDark)),
+                    decoration: BoxDecoration(color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100), borderRadius: BorderRadius.circular(20)),
+                    child: Text(when, style: GoogleFonts.dmSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: CartzyColors.brandDark))),
                   ),
               ],
             ),
@@ -835,10 +835,10 @@ class _ParcelRow extends StatelessWidget {
       child: _Card(
         child: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 20,
-              backgroundColor: CartzyColors.brand100,
-              child: Icon(Icons.inventory_2_outlined, size: 20, color: CartzyColors.brandDeep),
+              backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
+              child: Icon(Icons.inventory_2_outlined, size: 20, color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -879,7 +879,7 @@ class _InfoRow extends StatelessWidget {
                 fontSize: 13.5,
                 fontWeight: value == null ? FontWeight.w400 : FontWeight.w600,
                 fontStyle: value == null ? FontStyle.italic : FontStyle.normal,
-                color: value == null ? _muted : _ink,
+                color: value == null ? CartzyColors.mutedOf(context, light: _muted) : CartzyColors.textOf(context, light: _ink),
               ),
             ),
           ),
@@ -901,15 +901,15 @@ class _Empty extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 22),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
+        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _line),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _line)),
       ),
       child: Column(
         children: [
-          Icon(icon, size: 30, color: CartzyColors.brand400),
+          Icon(icon, size: 30, color: CartzyColors.mutedOf(context, light: CartzyColors.brand400)),
           const SizedBox(height: 8),
-          Text(text, textAlign: TextAlign.center, style: GoogleFonts.dmSans(fontSize: 13, height: 1.4, color: _muted)),
+          Text(text, textAlign: TextAlign.center, style: GoogleFonts.dmSans(fontSize: 13, height: 1.4, color: CartzyColors.mutedOf(context, light: _muted))),
         ],
       ),
     );
@@ -932,9 +932,9 @@ class _Message extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 44, color: CartzyColors.brand400),
+            Icon(icon, size: 44, color: CartzyColors.mutedOf(context, light: CartzyColors.brand400)),
             const SizedBox(height: 12),
-            Text(title, textAlign: TextAlign.center, style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: _ink)),
+            Text(title, textAlign: TextAlign.center, style: GoogleFonts.playfairDisplay(fontSize: 20, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
             const SizedBox(height: 6),
             Text(body, textAlign: TextAlign.center, style: _sub),
             const SizedBox(height: 12),
@@ -957,7 +957,7 @@ class _ErrorBanner extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
-      decoration: BoxDecoration(color: const Color(0xFFFDECEC), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEC)), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           Expanded(child: Text("Couldn't refresh: $message", style: GoogleFonts.dmSans(fontSize: 12.5, color: const Color(0xFFB3261E)))),

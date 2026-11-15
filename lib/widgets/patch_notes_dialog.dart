@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -376,13 +377,13 @@ class PatchNotesDialog extends StatelessWidget {
     const roseGoldBorder = Color(0xFFE8D4CD);
 
     return Dialog(
-      backgroundColor: Colors.white,
+      backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
       surfaceTintColor: Colors.transparent,
       elevation: 12,
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(26),
-        side: const BorderSide(color: roseGoldBorder, width: 1.2),
+        side: BorderSide(color: CartzyColors.borderOf(context, light: roseGoldBorder), width: 1.2),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
@@ -415,9 +416,9 @@ class PatchNotesDialog extends StatelessWidget {
                       height: 58,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.15),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
+                          color: CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.35)),
                           width: 1.5,
                         ),
                         boxShadow: [
@@ -444,10 +445,10 @@ class PatchNotesDialog extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
+                        color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
+                          color: CartzyColors.borderOf(context, light: Colors.white.withValues(alpha: 0.3)),
                           width: 1,
                         ),
                       ),
@@ -493,7 +494,7 @@ class PatchNotesDialog extends StatelessWidget {
                           : "Here are the latest updates, fixes, and improvements in this release:",
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
-                        color: const Color(0xFF5A525C),
+                        color: CartzyColors.textOf(context, light: const Color(0xFF5A525C)),
                         height: 1.45,
                       ),
                     ),
@@ -503,9 +504,9 @@ class PatchNotesDialog extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: lavenderLight,
+                        color: CartzyColors.elevatedOf(context, light: lavenderLight),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: lavenderBorder, width: 1),
+                        border: Border.all(color: CartzyColors.borderOf(context, light: lavenderBorder), width: 1),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,14 +527,14 @@ class PatchNotesDialog extends StatelessWidget {
                                   width: 18,
                                   height: 18,
                                   decoration: BoxDecoration(
-                                    color: roseGoldSoft,
+                                    color: CartzyColors.elevatedOf(context, light: roseGoldSoft),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: roseGoldBorder),
+                                    border: Border.all(color: CartzyColors.borderOf(context, light: roseGoldBorder)),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.check_rounded,
                                     size: 12,
-                                    color: roseGoldDark,
+                                    color: CartzyColors.mutedOf(context, light: roseGoldDark),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -542,16 +543,16 @@ class PatchNotesDialog extends StatelessWidget {
                                     text: TextSpan(
                                       style: GoogleFonts.dmSans(
                                         fontSize: 12.5,
-                                        color: const Color(0xFF423B47),
+                                        color: CartzyColors.textOf(context, light: const Color(0xFF423B47)),
                                         height: 1.4,
                                       ),
                                       children: [
                                         if (hasPrefix)
                                           TextSpan(
                                             text: '$title: ',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontWeight: FontWeight.w700,
-                                              color: lavenderDark,
+                                              color: CartzyColors.textOf(context, light: lavenderDark),
                                             ),
                                           ),
                                         TextSpan(text: body),
@@ -577,7 +578,7 @@ class PatchNotesDialog extends StatelessWidget {
                               onPressed: onDismiss,
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: lavenderMedium,
-                                side: const BorderSide(color: lavenderBorder, width: 1.2),
+                                side: BorderSide(color: CartzyColors.borderOf(context, light: lavenderBorder), width: 1.2),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),

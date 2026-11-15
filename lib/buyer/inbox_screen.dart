@@ -186,7 +186,7 @@ class _InboxScreenState extends State<InboxScreen>
     final followedTotal = FollowStoreService.instance.count;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F6F3),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF9F6F3)),
       body: SafeArea(
         child: Stack(
           children: [
@@ -229,7 +229,7 @@ class _InboxScreenState extends State<InboxScreen>
   Widget _buildHeader(int unreadTotal) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-      color: const Color(0xFFF9F6F3),
+      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF9F6F3)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -240,7 +240,7 @@ class _InboxScreenState extends State<InboxScreen>
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.burgundy,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                 ),
               ),
               if (unreadTotal > 0) ...[
@@ -265,8 +265,8 @@ class _InboxScreenState extends State<InboxScreen>
             ],
           ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded,
-                color: CartzyColors.burgundy, size: 22),
+            icon: Icon(Icons.refresh_rounded,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 22),
             tooltip: 'Refresh',
             onPressed: () {
               _loadConversations();
@@ -283,7 +283,7 @@ class _InboxScreenState extends State<InboxScreen>
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFECE4DE),
+        color: CartzyColors.elevatedOf(context, light: const Color(0xFFECE4DE)),
         borderRadius: BorderRadius.circular(16),
       ),
       child: TabBar(
@@ -330,14 +330,14 @@ class _InboxScreenState extends State<InboxScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 1.5),
-                    decoration: const BoxDecoration(
-                      color: CartzyColors.cream,
+                    decoration: BoxDecoration(
+                      color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                       shape: BoxShape.circle,
                     ),
                     child: Text(
                       '$unreadTotal',
                       style: GoogleFonts.dmSans(
-                        color: CartzyColors.burgundy,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
                       ),
@@ -367,7 +367,7 @@ class _InboxScreenState extends State<InboxScreen>
                         horizontal: 6, vertical: 1.5),
                     decoration: BoxDecoration(
                       color: _tabController.index == 1
-                          ? CartzyColors.cream
+                          ? CartzyColors.elevatedOf(context, light: CartzyColors.cream)
                           : CartzyColors.burgundy.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -375,8 +375,8 @@ class _InboxScreenState extends State<InboxScreen>
                       '$followedTotal',
                       style: GoogleFonts.dmSans(
                         color: _tabController.index == 1
-                            ? CartzyColors.burgundy
-                            : CartzyColors.burgundy,
+                            ? CartzyColors.mutedOf(context, light: CartzyColors.burgundy)
+                            : CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
                       ),
@@ -405,25 +405,25 @@ class _InboxScreenState extends State<InboxScreen>
             child: Container(
               height: 42,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFE8DED8), width: 1.2),
+                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE8DED8)), width: 1.2),
               ),
               child: TextField(
                 controller: _searchController,
                 onChanged: (val) => setState(() => _searchQuery = val),
                 style: GoogleFonts.dmSans(
                   fontSize: 13.5,
-                  color: CartzyColors.navy,
+                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                 ),
                 decoration: InputDecoration(
                   hintText: hint,
                   hintStyle: GoogleFonts.dmSans(
                     fontSize: 13,
-                    color: Colors.grey[500],
+                    color: CartzyColors.mutedOf(context, light: Colors.grey.shade500),
                   ),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      size: 20, color: CartzyColors.burgundy),
+                  prefixIcon: Icon(Icons.search_rounded,
+                      size: 20, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.close_rounded, size: 18),
@@ -450,12 +450,12 @@ class _InboxScreenState extends State<InboxScreen>
                 decoration: BoxDecoration(
                   color: _filterUnreadOnly
                       ? CartzyColors.burgundy
-                      : Colors.white,
+                      : CartzyColors.surfaceOf(context, light: Colors.white),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _filterUnreadOnly
                         ? CartzyColors.burgundy
-                        : const Color(0xFFE8DED8),
+                        : CartzyColors.borderOf(context, light: const Color(0xFFE8DED8)),
                     width: 1.2,
                   ),
                 ),
@@ -467,7 +467,7 @@ class _InboxScreenState extends State<InboxScreen>
                       fontWeight: FontWeight.w700,
                       color: _filterUnreadOnly
                           ? Colors.white
-                          : CartzyColors.navy,
+                          : CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                 ),
@@ -522,7 +522,7 @@ class _InboxScreenState extends State<InboxScreen>
           final isUnread = thread.unreadCount > 0;
 
           return Material(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(18),
             child: InkWell(
               onTap: () => _openConversation(thread),
@@ -534,7 +534,7 @@ class _InboxScreenState extends State<InboxScreen>
                   border: Border.all(
                     color: isUnread
                         ? CartzyColors.burgundy.withValues(alpha: 0.3)
-                        : const Color(0xFFF0EBE7),
+                        : CartzyColors.borderOf(context, light: const Color(0xFFF0EBE7)),
                     width: isUnread ? 1.5 : 1.0,
                   ),
                   boxShadow: [
@@ -576,7 +576,7 @@ class _InboxScreenState extends State<InboxScreen>
                                           fontWeight: isUnread
                                               ? FontWeight.bold
                                               : FontWeight.w700,
-                                          color: CartzyColors.navy,
+                                          color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -592,8 +592,8 @@ class _InboxScreenState extends State<InboxScreen>
                                 style: GoogleFonts.dmSans(
                                   fontSize: 11.5,
                                   color: isUnread
-                                      ? CartzyColors.burgundy
-                                      : Colors.grey[500],
+                                      ? CartzyColors.mutedOf(context, light: CartzyColors.burgundy)
+                                      : CartzyColors.mutedOf(context, light: Colors.grey.shade500),
                                   fontWeight: isUnread
                                       ? FontWeight.w700
                                       : FontWeight.w500,
@@ -609,7 +609,7 @@ class _InboxScreenState extends State<InboxScreen>
                               'Product: ${thread.productName}',
                               style: GoogleFonts.dmSans(
                                 fontSize: 11.5,
-                                color: CartzyColors.burgundy,
+                                color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 1,
@@ -630,8 +630,8 @@ class _InboxScreenState extends State<InboxScreen>
                                   style: GoogleFonts.dmSans(
                                     fontSize: 13,
                                     color: isUnread
-                                        ? const Color(0xFF231F20)
-                                        : Colors.grey[600],
+                                        ? CartzyColors.textOf(context, light: const Color(0xFF231F20))
+                                        : CartzyColors.mutedOf(context, light: Colors.grey.shade600),
                                     fontWeight: isUnread
                                         ? FontWeight.w600
                                         : FontWeight.w400,
@@ -702,9 +702,9 @@ class _InboxScreenState extends State<InboxScreen>
         return Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFF0EBE7), width: 1.2),
+            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFF0EBE7)), width: 1.2),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
@@ -739,7 +739,7 @@ class _InboxScreenState extends State<InboxScreen>
                                 style: GoogleFonts.dmSans(
                                   fontSize: 15.5,
                                   fontWeight: FontWeight.w700,
-                                  color: CartzyColors.navy,
+                                  color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -762,7 +762,7 @@ class _InboxScreenState extends State<InboxScreen>
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFF231F20),
+                                color: CartzyColors.textOf(context, light: const Color(0xFF231F20)),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -770,7 +770,7 @@ class _InboxScreenState extends State<InboxScreen>
                               '•  ${store.followersCount} followers',
                               style: GoogleFonts.dmSans(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: CartzyColors.mutedOf(context, light: Colors.grey.shade600),
                               ),
                             ),
                           ],
@@ -785,7 +785,7 @@ class _InboxScreenState extends State<InboxScreen>
                               store.location,
                               style: GoogleFonts.dmSans(
                                 fontSize: 11.5,
-                                color: Colors.grey[600],
+                                color: CartzyColors.mutedOf(context, light: Colors.grey.shade600),
                               ),
                             ),
                           ],
@@ -834,16 +834,16 @@ class _InboxScreenState extends State<InboxScreen>
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: CartzyColors.navy,
-                        side: const BorderSide(
-                            color: Color(0xFFDED4CE), width: 1.2),
+                        side: BorderSide(
+                            color: CartzyColors.borderOf(context, light: const Color(0xFFDED4CE)), width: 1.2),
                         padding: const EdgeInsets.symmetric(vertical: 9),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       onPressed: () => _openStoreChat(store),
-                      icon: const Icon(Icons.chat_bubble_outline_rounded,
-                          size: 15, color: CartzyColors.burgundy),
+                      icon: Icon(Icons.chat_bubble_outline_rounded,
+                          size: 15, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                       label: Text(
                         'Chat',
                         style: GoogleFonts.dmSans(
@@ -858,14 +858,14 @@ class _InboxScreenState extends State<InboxScreen>
                   // Unfollow Button
                   IconButton(
                     style: IconButton.styleFrom(
-                      backgroundColor: const Color(0xFFF5EFEB),
+                      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF5EFEB)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.all(8),
                     ),
-                    icon: const Icon(Icons.check_rounded,
-                        color: CartzyColors.burgundy, size: 18),
+                    icon: Icon(Icons.check_rounded,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), size: 18),
                     tooltip: 'Following',
                     onPressed: () {
                       FollowStoreService.instance.unfollowStore(
@@ -894,9 +894,9 @@ class _InboxScreenState extends State<InboxScreen>
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: CartzyColors.cream,
+          color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
           shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFFEFE6E0), width: 1.5),
+          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE6E0)), width: 1.5),
         ),
         child: ClipOval(
           child: Image.network(
@@ -923,15 +923,15 @@ class _InboxScreenState extends State<InboxScreen>
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: CartzyColors.cream,
+        color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
         shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFEFE6E0), width: 1.5),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE6E0)), width: 1.5),
       ),
       child: Center(
         child: Text(
           initials,
           style: GoogleFonts.dmSans(
-            color: CartzyColors.burgundy,
+            color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
             fontSize: size * 0.35,
             fontWeight: FontWeight.bold,
           ),
@@ -981,14 +981,14 @@ class _InboxScreenState extends State<InboxScreen>
             Container(
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: CartzyColors.cream,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: CartzyColors.burgundy.withValues(alpha: 0.15),
                   width: 2,
                 ),
               ),
-              child: Icon(icon, size: 44, color: CartzyColors.burgundy),
+              child: Icon(icon, size: 44, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
             ),
             const SizedBox(height: 16),
             Text(
@@ -996,7 +996,7 @@ class _InboxScreenState extends State<InboxScreen>
               style: GoogleFonts.playfairDisplay(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
               textAlign: TextAlign.center,
             ),
@@ -1005,7 +1005,7 @@ class _InboxScreenState extends State<InboxScreen>
               subtitle,
               style: GoogleFonts.dmSans(
                 fontSize: 13,
-                color: Colors.grey[600],
+                color: CartzyColors.mutedOf(context, light: Colors.grey.shade600),
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
@@ -1052,11 +1052,11 @@ class _InboxScreenState extends State<InboxScreen>
           children: [
             Container(
               padding: const EdgeInsets.all(22),
-              decoration: const BoxDecoration(
-                color: CartzyColors.cream,
+              decoration: BoxDecoration(
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.cream),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 44, color: CartzyColors.burgundy),
+              child: Icon(icon, size: 44, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
             ),
             const SizedBox(height: 16),
             Text(
@@ -1064,7 +1064,7 @@ class _InboxScreenState extends State<InboxScreen>
               style: GoogleFonts.playfairDisplay(
                 fontSize: 19,
                 fontWeight: FontWeight.bold,
-                color: CartzyColors.navy,
+                color: CartzyColors.textOf(context, light: CartzyColors.navy),
               ),
               textAlign: TextAlign.center,
             ),
@@ -1073,7 +1073,7 @@ class _InboxScreenState extends State<InboxScreen>
               subtitle,
               style: GoogleFonts.dmSans(
                 fontSize: 13,
-                color: Colors.grey[600],
+                color: CartzyColors.mutedOf(context, light: Colors.grey.shade600),
                 height: 1.4,
               ),
               textAlign: TextAlign.center,
@@ -1089,12 +1089,12 @@ class _InboxScreenState extends State<InboxScreen>
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        decoration: const ShapeDecoration(
-          color: CartzyColors.surface,
+        decoration: ShapeDecoration(
+          color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
           shape: StadiumBorder(
-            side: BorderSide(color: CartzyColors.border),
+            side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
           ),
-          shadows: [
+          shadows: const [
             BoxShadow(
               color: Color(0x148B3A3A),
               blurRadius: 16,

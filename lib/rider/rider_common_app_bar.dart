@@ -106,9 +106,9 @@ class RiderCommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E3323) : const Color(0xFFEAF6ED),
+                color: isDark ? const Color(0xFF1E3323) : CartzyColors.elevatedOf(context, light: const Color(0xFFEAF6ED)),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isDark ? const Color(0xFF2D5135) : const Color(0xFFC7E7CE)),
+                border: Border.all(color: isDark ? const Color(0xFF2D5135) : CartzyColors.borderOf(context, light: const Color(0xFFC7E7CE))),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

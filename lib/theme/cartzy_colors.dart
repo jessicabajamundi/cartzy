@@ -78,14 +78,33 @@ class CartzyColors {
       Theme.of(context).brightness == Brightness.dark;
   static Color bgOf(BuildContext context) =>
       isDark(context) ? darkBackground : background;
-  static Color surfaceOf(BuildContext context) =>
-      isDark(context) ? darkSurface : Colors.white;
-  static Color elevatedOf(BuildContext context) =>
-      isDark(context) ? darkSurfaceElevated : brand50;
-  static Color borderOf(BuildContext context) =>
-      isDark(context) ? darkBorder : border;
-  static Color textOf(BuildContext context) =>
-      isDark(context) ? darkText : text;
-  static Color mutedOf(BuildContext context) =>
-      isDark(context) ? darkMuted : grayMid;
+  // Optional light values retain each component's original light palette.
+  static Color surfaceOf(BuildContext context, {Color light = Colors.white}) =>
+      isDark(context) ? darkSurface : light;
+  static Color elevatedOf(BuildContext context, {Color light = brand50}) =>
+      isDark(context) ? darkSurfaceElevated : light;
+  static Color borderOf(BuildContext context, {Color light = border}) =>
+      isDark(context) ? darkBorder : light;
+  static Color textOf(BuildContext context, {Color light = text}) =>
+      isDark(context) ? darkText : light;
+  static Color mutedOf(BuildContext context, {Color light = grayMid}) =>
+      isDark(context) ? darkMuted : light;
+
+  static LinearGradient softGradientOf(
+    BuildContext context, {
+    required LinearGradient light,
+  }) =>
+      isDark(context)
+          ? LinearGradient(
+              begin: light.begin,
+              end: light.end,
+              colors: [
+                for (var i = 0; i < light.colors.length; i++)
+                  i == 0 ? darkSurfaceElevated : darkSurface,
+              ],
+              stops: light.stops,
+              tileMode: light.tileMode,
+              transform: light.transform,
+            )
+          : light;
 }

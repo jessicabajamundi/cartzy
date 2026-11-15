@@ -295,7 +295,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F5),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
       body: _isLoading && _seller.isEmpty
           ? const Center(
               child: CircularProgressIndicator(
@@ -316,17 +316,17 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.store_mall_directory_outlined, size: 64, color: CartzyColors.gray),
+              Icon(Icons.store_mall_directory_outlined, size: 64, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
               const SizedBox(height: 16),
               Text(
                 'Store Unavailable',
-                style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
               ),
               const SizedBox(height: 8),
               Text(
                 _errorMessage ?? 'Could not load store details.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.gray),
+                style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -432,8 +432,8 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                               height: 60,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                                color: Colors.white,
+                                border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 2),
+                                color: CartzyColors.surfaceOf(context, light: Colors.white),
                               ),
                               clipBehavior: Clip.antiAlias,
                               child: logo != null && logo.isNotEmpty
@@ -557,7 +557,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                             // Chat Button
                             Expanded(
                               child: Material(
-                                color: Colors.white.withValues(alpha: 0.15),
+                                color: CartzyColors.surfaceOf(context, light: Colors.white).withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                                 child: InkWell(
                                   onTap: _openChatWithSeller,
@@ -566,7 +566,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                                     height: 42,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: Colors.white, width: 1.2),
+                                      border: Border.all(color: CartzyColors.borderOf(context, light: Colors.white), width: 1.2),
                                     ),
                                     alignment: Alignment.center,
                                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -607,7 +607,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
           // Stats Bar Sliver
           SliverToBoxAdapter(
             child: Container(
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -630,7 +630,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
               child: Container(
                 margin: const EdgeInsets.only(top: 8),
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -638,11 +638,11 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Row(
                         children: [
-                          const Icon(Icons.confirmation_num_outlined, size: 16, color: CartzyColors.burgundy),
+                          Icon(Icons.confirmation_num_outlined, size: 16, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                           const SizedBox(width: 6),
                           Text(
                             'Shop Vouchers',
-                            style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                            style: GoogleFonts.dmSans(fontSize: 13.5, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                           ),
                         ],
                       ),
@@ -664,8 +664,8 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                             width: 180,
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+                              gradient: LinearGradient(
+                                colors: [CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7ED)), CartzyColors.elevatedOf(context, light: const Color(0xFFFFEDD5))],
                               ),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: const Color(0xFFFDBA74)),
@@ -698,7 +698,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                                       style: GoogleFonts.dmMono(
                                         fontSize: 11,
                                         fontWeight: FontWeight.bold,
-                                        color: CartzyColors.navy,
+                                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                       ),
                                     ),
                                     InkWell(
@@ -711,7 +711,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                                         style: GoogleFonts.dmSans(
                                           fontSize: 10.5,
                                           fontWeight: FontWeight.bold,
-                                          color: CartzyColors.coral,
+                                          color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                                         ),
                                       ),
                                     ),
@@ -804,7 +804,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
           style: GoogleFonts.dmSans(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
           ),
         ),
         const SizedBox(height: 2),
@@ -812,7 +812,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
           label,
           style: GoogleFonts.dmSans(
             fontSize: 11,
-            color: CartzyColors.gray,
+            color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
           ),
         ),
       ],
@@ -823,7 +823,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
     return Container(
       height: 20,
       width: 1,
-      color: const Color(0xFFE2E8F0),
+      color: CartzyColors.elevatedOf(context, light: const Color(0xFFE2E8F0)),
     );
   }
 
@@ -840,14 +840,14 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.all(12),
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               child: Column(
                 children: [
                   // Search Box
                   Container(
                     height: 42,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: TextField(
@@ -856,8 +856,8 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                       onSubmitted: (_) => _loadStoreData(),
                       decoration: InputDecoration(
                         hintText: 'Search in $_effectiveSellerName...',
-                        hintStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.gray),
-                        prefixIcon: const Icon(Icons.search, size: 20, color: CartzyColors.gray),
+                        hintStyle: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
+                        prefixIcon: Icon(Icons.search, size: 20, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                         suffixIcon: _searchController.text.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.clear, size: 18),
@@ -881,16 +881,16 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFC)),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE2E8F0))),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             value: _selectedSort,
                             isDense: true,
-                            icon: const Icon(Icons.keyboard_arrow_down, size: 18, color: CartzyColors.navy),
-                            style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: CartzyColors.navy),
+                            icon: Icon(Icons.keyboard_arrow_down, size: 18, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
+                            style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                             items: _sortLabels.entries.map((e) {
                               return DropdownMenuItem(
                                 value: e.key,
@@ -939,11 +939,11 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.inventory_2_outlined, size: 54, color: CartzyColors.gray),
+                      Icon(Icons.inventory_2_outlined, size: 54, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                       const SizedBox(height: 12),
                       Text(
                         'No products found',
-                        style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                        style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -951,7 +951,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                             ? 'Try clearing filters to see all store products.'
                             : '$_effectiveSellerName has not listed products yet.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.gray),
+                        style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                       ),
                     ],
                   ),
@@ -1038,11 +1038,11 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         label: Text(label),
         selected: isSelected,
         selectedColor: CartzyColors.burgundy,
-        backgroundColor: const Color(0xFFF1F5F9),
+        backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
         labelStyle: GoogleFonts.dmSans(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : CartzyColors.navy,
+          color: isSelected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         side: BorderSide.none,
@@ -1077,9 +1077,9 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: CartzyColors.surfaceOf(context, light: Colors.white),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFEDE4E7)),
+              border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE4E7))),
             ),
             child: Row(
               children: [
@@ -1092,7 +1092,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                       style: GoogleFonts.dmSans(
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1109,7 +1109,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                     const SizedBox(height: 4),
                     Text(
                       '$reviewTotal ${reviewTotal == 1 ? 'review' : 'reviews'}',
-                      style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.gray),
+                      style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                     ),
                   ],
                 ),
@@ -1126,7 +1126,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                           children: [
                             Text(
                               '$star★',
-                              style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.gray),
+                              style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                             ),
                             const SizedBox(width: 6),
                             Expanded(
@@ -1134,7 +1134,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                                 borderRadius: BorderRadius.circular(3),
                                 child: LinearProgressIndicator(
                                   value: ratio,
-                                  backgroundColor: const Color(0xFFF1F5F9),
+                                  backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
                                   valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                                   minHeight: 6,
                                 ),
@@ -1143,7 +1143,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                             const SizedBox(width: 6),
                             Text(
                               '$count',
-                              style: GoogleFonts.dmSans(fontSize: 10, color: CartzyColors.gray),
+                              style: GoogleFonts.dmSans(fontSize: 10, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                             ),
                           ],
                         ),
@@ -1177,11 +1177,11 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
               alignment: Alignment.center,
               child: Column(
                 children: [
-                  const Icon(Icons.rate_review_outlined, size: 48, color: CartzyColors.gray),
+                  Icon(Icons.rate_review_outlined, size: 48, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   const SizedBox(height: 8),
                   Text(
                     'No reviews yet',
-                    style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.gray),
+                    style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                   ),
                 ],
               ),
@@ -1203,16 +1203,16 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         label: Text(label),
         selected: isSelected,
         selectedColor: CartzyColors.burgundy,
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         labelStyle: GoogleFonts.dmSans(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : CartzyColors.navy,
+          color: isSelected ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy),
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: isSelected ? CartzyColors.burgundy : const Color(0xFFE2E8F0),
+            color: isSelected ? CartzyColors.burgundy : CartzyColors.borderOf(context, light: const Color(0xFFE2E8F0)),
           ),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1238,9 +1238,9 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFEDE4E7)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE4E7))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1252,7 +1252,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                 backgroundColor: CartzyColors.burgundy.withValues(alpha: 0.1),
                 child: Text(
                   userName.isNotEmpty ? userName[0].toUpperCase() : 'B',
-                  style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: CartzyColors.burgundy),
+                  style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1262,11 +1262,11 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
                   children: [
                     Text(
                       userName,
-                      style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                      style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                     ),
                     Text(
                       date,
-                      style: GoogleFonts.dmSans(fontSize: 10.5, color: CartzyColors.gray),
+                      style: GoogleFonts.dmSans(fontSize: 10.5, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                     ),
                   ],
                 ),
@@ -1287,12 +1287,12 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
+                color: CartzyColors.surfaceOf(context, light: const Color(0xFFF8FAFC)),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 'Product: $productName',
-                style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.gray),
+                style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1302,7 +1302,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
             const SizedBox(height: 8),
             Text(
               comment,
-              style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFF334155), height: 1.35),
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF334155)), height: 1.35),
             ),
           ],
           if (reply != null && reply.isNotEmpty) ...[
@@ -1310,7 +1310,7 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFBEB),
+                color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFFBEB)),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: const Color(0xFFFDE68A)),
               ),
@@ -1353,23 +1353,23 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEDE4E7)),
+            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE4E7))),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'About $name',
-                style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+                style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
               ),
               const SizedBox(height: 8),
               Text(
                 desc != null && desc.trim().isNotEmpty
                     ? desc.trim()
                     : 'This seller has not added a store description yet.',
-                style: GoogleFonts.dmSans(fontSize: 13.5, color: const Color(0xFF475569), height: 1.45),
+                style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.textOf(context, light: const Color(0xFF475569)), height: 1.45),
               ),
             ],
           ),
@@ -1381,9 +1381,9 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEDE4E7)),
+            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEDE4E7))),
           ),
           child: Column(
             children: [
@@ -1410,17 +1410,17 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F5F9),
+            color: CartzyColors.elevatedOf(context, light: const Color(0xFFF1F5F9)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
-              const Icon(Icons.help_outline, color: CartzyColors.navy, size: 22),
+              Icon(Icons.help_outline, color: CartzyColors.textOf(context, light: CartzyColors.navy), size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Have questions about products or shipping? Use Chat to talk directly with the seller.',
-                  style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF334155)),
+                  style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.textOf(context, light: const Color(0xFF334155))),
                 ),
               ),
             ],
@@ -1435,16 +1435,16 @@ class _OfficialStoreScreenState extends State<OfficialStoreScreen>
   Widget _buildAboutRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: CartzyColors.burgundy),
+        Icon(icon, size: 18, color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
         const SizedBox(width: 10),
         Text(
           label,
-          style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.gray),
+          style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
         ),
         const Spacer(),
         Text(
           value,
-          style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: CartzyColors.navy),
+          style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
         ),
       ],
     );
@@ -1466,7 +1466,7 @@ class _SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context, light: Colors.white),
       child: _tabBar,
     );
   }

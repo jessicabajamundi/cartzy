@@ -365,7 +365,7 @@ class TermsPoliciesScreen extends StatelessWidget {
       length: _policies.length,
       initialIndex: initialTab.clamp(0, _policies.length - 1),
       child: Scaffold(
-        backgroundColor: CartzyColors.brand50Lavender,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,8 +377,8 @@ class TermsPoliciesScreen extends StatelessWidget {
                     IconButton(
                       tooltip: 'Back',
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 18, color: _Palette.ink),
+                      icon: Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 18, color: CartzyColors.textOf(context, light: _Palette.ink)),
                     ),
                     const SizedBox(width: 2),
                     Text(
@@ -386,7 +386,7 @@ class TermsPoliciesScreen extends StatelessWidget {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: _Palette.ink,
+                        color: CartzyColors.textOf(context, light: _Palette.ink),
                       ),
                     ),
                   ],
@@ -449,13 +449,13 @@ class _PolicyView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFF7F2), Color(0xFFFDECEE)],
+            gradient: LinearGradient(
+              colors: [CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7F2)), CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEE))],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: CartzyColors.rose200, width: 1.2),
+            border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200), width: 1.2),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,7 +478,7 @@ class _PolicyView extends StatelessWidget {
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 19,
                         fontWeight: FontWeight.w700,
-                        color: _Palette.ink,
+                        color: CartzyColors.textOf(context, light: _Palette.ink),
                       ),
                     ),
                   ),
@@ -491,7 +491,7 @@ class _PolicyView extends StatelessWidget {
                   style: GoogleFonts.dmSans(
                     fontSize: 13,
                     height: 1.55,
-                    color: _Palette.body,
+                    color: CartzyColors.textOf(context, light: _Palette.body),
                   ),
                 ),
               ],
@@ -518,7 +518,7 @@ class _SectionCard extends StatelessWidget {
         style: GoogleFonts.dmSans(
           fontSize: 14.5,
           fontWeight: FontWeight.w800,
-          color: _Palette.ink,
+          color: CartzyColors.textOf(context, light: _Palette.ink),
         ),
       ),
     ];
@@ -532,9 +532,9 @@ class _SectionCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _Palette.line),
+        border: Border.all(color: CartzyColors.borderOf(context, light: _Palette.line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

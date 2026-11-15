@@ -105,21 +105,21 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         title: Text(
           'Login Required',
           style: GoogleFonts.playfairDisplay(
-              color: CartzyColors.navy, fontWeight: FontWeight.w700),
+              color: CartzyColors.textOf(context, light: CartzyColors.navy), fontWeight: FontWeight.w700),
         ),
         content: Text(
           'Please log in or create an account to continue.',
-          style: GoogleFonts.dmSans(color: CartzyColors.gray),
+          style: GoogleFonts.dmSans(color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text('Cancel',
-                style: GoogleFonts.dmSans(color: CartzyColors.gray)),
+                style: GoogleFonts.dmSans(color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
           ),
           TextButton(
             onPressed: () {
@@ -128,7 +128,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
             },
             child: Text('Log In',
                 style: GoogleFonts.dmSans(
-                    color: CartzyColors.burgundy, fontWeight: FontWeight.w700)),
+                    color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy), fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -246,14 +246,14 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                       onSubmitted: (_) => _openSearch(),
                                       style: GoogleFonts.dmSans(
                                           fontSize: 13,
-                                          color: CartzyColors.navy),
+                                          color: CartzyColors.textOf(context, light: CartzyColors.navy)),
                                       decoration: InputDecoration(
                                         hintText: 'Search...',
                                         hintStyle: GoogleFonts.dmSans(
                                             fontSize: 13,
-                                            color: CartzyColors.gray),
+                                            color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
                                         filled: true,
-                                        fillColor: CartzyColors.creamSection,
+                                        fillColor: CartzyColors.elevatedOf(context, light: CartzyColors.creamSection),
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
@@ -269,21 +269,21 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                                   MaterialTapTargetSize
                                                       .shrinkWrap),
                                           onPressed: _openSearch,
-                                          icon: const Icon(Icons.search_rounded,
+                                          icon: Icon(Icons.search_rounded,
                                               size: 19,
-                                              color: CartzyColors.burgundy),
+                                              color: CartzyColors.mutedOf(context, light: CartzyColors.burgundy)),
                                         ),
                                         border: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(30),
-                                          borderSide: const BorderSide(
-                                              color: CartzyColors.pinkBorder),
+                                          borderSide: BorderSide(
+                                              color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder)),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
                                               BorderRadius.circular(30),
-                                          borderSide: const BorderSide(
-                                              color: CartzyColors.pinkBorder),
+                                          borderSide: BorderSide(
+                                              color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder)),
                                         ),
                                         focusedBorder: OutlineInputBorder(
                                           borderRadius:

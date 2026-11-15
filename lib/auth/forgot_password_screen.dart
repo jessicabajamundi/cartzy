@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -246,7 +247,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         if (!didPop) _handleBack();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context, light: Colors.white),
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -264,14 +265,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.arrow_back_rounded, size: 18, color: _brand),
+                            Icon(Icons.arrow_back_rounded, size: 18, color: CartzyColors.mutedOf(context, light: _brand)),
                             const SizedBox(width: 5),
                             Text(
                               _step == _ResetStep.email ? 'Back to login' : 'Back',
                               style: GoogleFonts.dmSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: _brand,
+                                color: CartzyColors.mutedOf(context, light: _brand),
                               ),
                             ),
                           ],
@@ -287,7 +288,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           color: _brand.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(icon, color: _brand, size: 36),
+                        child: Icon(icon, color: CartzyColors.mutedOf(context, light: _brand), size: 36),
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -298,7 +299,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         style: GoogleFonts.playfairDisplay(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
-                          color: _ink,
+                          color: CartzyColors.textOf(context, light: _ink),
                           letterSpacing: -0.3,
                         ),
                       ),
@@ -308,7 +309,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       child: Text(
                         subtitle,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.dmSans(fontSize: 13, height: 1.45, color: _muted),
+                        style: GoogleFonts.dmSans(fontSize: 13, height: 1.45, color: CartzyColors.mutedOf(context, light: _muted)),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -355,14 +356,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.timer_outlined, size: 13, color: expired ? _error : _brand),
+              Icon(Icons.timer_outlined, size: 13, color: expired ? _error : CartzyColors.mutedOf(context, light: _brand)),
               const SizedBox(width: 4),
               Text(
                 expired ? 'Code expired' : 'Code expires in ${_formatTimer()}',
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: expired ? _error : _brand,
+                  color: expired ? _error : CartzyColors.mutedOf(context, light: _brand),
                 ),
               ),
             ],
@@ -392,12 +393,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text("Didn't get the code? ",
-              style: GoogleFonts.dmSans(fontSize: 13, color: _muted)),
+              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.mutedOf(context, light: _muted))),
           TextButton(
             onPressed: _isResending || _isBusy ? null : _resendCode,
             child: Text(
               _isResending ? 'Sending...' : 'Resend code',
-              style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700, color: _brand),
+              style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w700, color: CartzyColors.mutedOf(context, light: _brand)),
             ),
           ),
         ],
@@ -405,7 +406,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       Center(
         child: Text(
           "Can't find it? Check your spam folder.",
-          style: GoogleFonts.dmSans(fontSize: 12, color: _muted),
+          style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: _muted)),
         ),
       ),
     ];
@@ -442,7 +443,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         padding: const EdgeInsets.only(bottom: 5),
         child: Text(
           text,
-          style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, color: _ink),
+          style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, color: CartzyColors.textOf(context, light: _ink)),
         ),
       );
 
@@ -478,17 +479,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           },
           onSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
           style: isCode
-              ? GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 8, color: _ink)
-              : GoogleFonts.dmSans(fontSize: 14, color: _ink),
+              ? GoogleFonts.dmSans(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 8, color: CartzyColors.textOf(context, light: _ink))
+              : GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: _ink)),
           decoration: InputDecoration(
             isDense: true,
             hintText: hint,
             hintStyle: GoogleFonts.dmSans(
               fontSize: isCode ? 20 : 14,
               letterSpacing: isCode ? 6 : null,
-              color: const Color(0xFFAAA0A2),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFFAAA0A2)),
             ),
-            prefixIcon: icon == null ? null : Icon(icon, size: 21, color: _brand),
+            prefixIcon: icon == null ? null : Icon(icon, size: 21, color: CartzyColors.mutedOf(context, light: _brand)),
             prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 52),
             suffixIcon: onToggleObscure == null
                 ? null
@@ -496,21 +497,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     icon: Icon(
                       obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
                       size: 21,
-                      color: _muted,
+                      color: CartzyColors.mutedOf(context, light: _muted),
                     ),
                     onPressed: onToggleObscure,
                   ),
             suffixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 52),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: CartzyColors.surfaceOf(context, light: Colors.white),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: error != null ? _error : _border),
+              borderSide: BorderSide(color: error != null ? _error : CartzyColors.borderOf(context, light: _border)),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: _border),
+              borderSide: BorderSide(color: CartzyColors.borderOf(context, light: _border)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),

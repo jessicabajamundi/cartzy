@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/services/mock_data.dart';
@@ -50,7 +51,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF7F5),
+      backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
       body: Column(
         children: [
           RiderCommonAppBar(
@@ -94,7 +95,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
               style: GoogleFonts.cormorantGaramond(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF261E30),
+                color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                 letterSpacing: -0.4,
               ),
             ),
@@ -103,7 +104,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
               'Official log of your successfully completed drops and recipient signatures',
               style: GoogleFonts.dmSans(
                 fontSize: 10,
-                color: const Color(0xFF8A7780),
+                color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
               ),
             ),
           ],
@@ -114,9 +115,9 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
               height: 42,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFE5DCDD)),
+                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD))),
               ),
               child: Row(
                 children: [
@@ -204,10 +205,10 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF46333D) : Colors.white,
+          color: isSelected ? const Color(0xFF46333D) : CartzyColors.surfaceOf(context, light: Colors.white),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF46333D) : const Color(0xFFE5DCDD),
+            color: isSelected ? const Color(0xFF46333D) : CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD)),
           ),
         ),
         child: Text(
@@ -215,7 +216,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
           style: GoogleFonts.dmSans(
             fontSize: 11,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            color: isSelected ? Colors.white : const Color(0xFF554B62),
+            color: isSelected ? Colors.white : CartzyColors.textOf(context, light: const Color(0xFF554B62)),
           ),
         ),
       ),
@@ -293,9 +294,9 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: CartzyColors.surfaceOf(context, light: Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFEFE8EA)),
+        border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
       ),
       child: Row(
         children: [
@@ -319,7 +320,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
                   fontSize: 8,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
-                  color: const Color(0xFF8A7780),
+                  color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
                 ),
               ),
               const SizedBox(height: 2),
@@ -328,7 +329,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
                 style: GoogleFonts.dmSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF261E30),
+                  color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
                 ),
               ),
             ],
@@ -346,7 +347,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
         Flexible(
           child: Row(
             children: [
-              const Icon(Icons.history, size: 16, color: Color(0xFF8A7780)),
+              Icon(Icons.history, size: 16, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
@@ -354,7 +355,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
                   style: GoogleFonts.dmSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF554B62),
+                    color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
                   ),
                 ),
               ),
@@ -368,7 +369,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
             textAlign: TextAlign.end,
             style: GoogleFonts.dmSans(
               fontSize: 9,
-              color: const Color(0xFF8A7780),
+              color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
             ),
           ),
         ),
@@ -386,9 +387,9 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
         return Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: CartzyColors.surfaceOf(context, light: Colors.white),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEFE8EA)),
+            border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
           ),
           child: orders.isEmpty
               ? Padding(
@@ -396,7 +397,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
                   child: Center(
                     child: Text(
                       'No completed deliveries found.',
-                      style: GoogleFonts.dmSans(fontSize: 12, color: const Color(0xFF8A7780)),
+                      style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
                     ),
                   ),
                 )
@@ -426,15 +427,15 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
   }
 
   Widget _buildHistoryTableHeader() {
-    const style = TextStyle(
+    final style = TextStyle(
       fontSize: 9,
       fontWeight: FontWeight.w600,
-      color: Color(0xFF554B62),
+      color: CartzyColors.textOf(context, light: const Color(0xFF554B62)),
     );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      color: const Color(0xFFFAF8FA),
-      child: const Row(
+      color: CartzyColors.surfaceOf(context, light: const Color(0xFFFAF8FA)),
+      child: Row(
         children: [
           Expanded(flex: 3, child: Text('Tracking / Waybill', style: style)),
           Expanded(flex: 6, child: Text('Recipient & Destination', style: style)),
@@ -451,8 +452,8 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
     final completedAt = order.completedAt.isNotEmpty ? order.completedAt : order.createdAt;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFF0EBEF))),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0EBEF)))),
       ),
       child: Row(
         children: [
@@ -523,8 +524,8 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFF0EBEF))),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0EBEF)))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,10 +566,10 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
   Widget _historyStoreBadge(String storeName) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         decoration: BoxDecoration(
-          color: const Color(0xFFF7F2F8),
+          color: CartzyColors.elevatedOf(context, light: const Color(0xFFF7F2F8)),
           borderRadius: BorderRadius.circular(5),
         ),
-        child: Text(storeName, style: GoogleFonts.dmSans(fontSize: 8, color: const Color(0xFF554B62))),
+        child: Text(storeName, style: GoogleFonts.dmSans(fontSize: 8, color: CartzyColors.textOf(context, light: const Color(0xFF554B62)))),
       );
 
   Widget _historyPaymentBadge(RiderOrder order) {
@@ -576,8 +577,8 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
         decoration: BoxDecoration(
-          color: isCod ? const Color(0xFFEFFAF4) : const Color(0xFFEFF4FF),
-          border: Border.all(color: isCod ? const Color(0xFFB9E8D0) : const Color(0xFFD4E0FF)),
+          color: isCod ? CartzyColors.elevatedOf(context, light: const Color(0xFFEFFAF4)) : CartzyColors.elevatedOf(context, light: const Color(0xFFEFF4FF)),
+          border: Border.all(color: isCod ? CartzyColors.borderOf(context, light: const Color(0xFFB9E8D0)) : CartzyColors.borderOf(context, light: const Color(0xFFD4E0FF))),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
@@ -601,12 +602,12 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
 
   String _formatHistoryTime(String raw) => raw.length > 11 ? raw.substring(11) : 'Completed';
 
-  static const _historyPrimary = TextStyle(
+  TextStyle get _historyPrimary => TextStyle(
     fontSize: 9,
     fontWeight: FontWeight.w700,
-    color: Color(0xFF261E30),
+    color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
   );
-  static const _historySecondary = TextStyle(fontSize: 8, color: Color(0xFF8A7780));
+  TextStyle get _historySecondary => TextStyle(fontSize: 8, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)));
   static const _historySuccess = TextStyle(
     fontSize: 7,
     color: Color(0xFF21845A),

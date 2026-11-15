@@ -1,3 +1,4 @@
+import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Bulk orders: once a buyer orders more than [threshold] pieces of one item,
@@ -32,7 +33,7 @@ class WarehouseShippingNote extends StatelessWidget {
           vertical: compact ? 7 : 9,
         ),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF8EB),
+          color: CartzyColors.elevatedOf(context, light: const Color(0xFFFFF8EB)),
           borderRadius: BorderRadius.circular(compact ? 9 : 12),
           border: Border.all(color: const Color(0xFFF1D9A8)),
         ),

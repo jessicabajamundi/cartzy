@@ -31,7 +31,7 @@ class RiderOrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: CartzyColors.surface,
+        color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -46,49 +46,49 @@ class RiderOrderCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(badgeIcon, color: CartzyColors.coral, size: 20),
+              Icon(badgeIcon, color: CartzyColors.mutedOf(context, light: CartzyColors.coral), size: 20),
               const SizedBox(width: 8),
               Text(
                 badgeLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: CartzyColors.coral,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                   letterSpacing: 0.6,
                 ),
               ),
               const Spacer(),
               Text(
                 '#${order.id}',
-                style: const TextStyle(fontSize: 12, color: CartzyColors.gray),
+                style: TextStyle(fontSize: 12, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             order.itemsSummary,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             '${order.buyerName}${order.buyerPhone.isNotEmpty ? ' · ${order.buyerPhone}' : ''}',
-            style: const TextStyle(fontSize: 13, color: CartzyColors.gray),
+            style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
           ),
           Text(
             order.deliveryAddress,
-            style: const TextStyle(fontSize: 13, color: CartzyColors.gray),
+            style: TextStyle(fontSize: 13, color: CartzyColors.mutedOf(context, light: CartzyColors.gray)),
           ),
           const SizedBox(height: 6),
           Text(
             '₱${order.totalAmount.toStringAsFixed(2)}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: CartzyColors.navy,
+              color: CartzyColors.textOf(context, light: CartzyColors.navy),
             ),
           ),
           if (actionLabel != null) ...[

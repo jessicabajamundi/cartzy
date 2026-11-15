@@ -106,11 +106,11 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: CartzyColors.rose50Warm,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
       appBar: AppBar(
         centerTitle: true,
         toolbarHeight: 76,
-        backgroundColor: CartzyColors.brand50Lavender,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
         foregroundColor: CartzyColors.brandDark,
@@ -124,7 +124,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                 fontSize: 10,
                 letterSpacing: 1.6,
                 fontWeight: FontWeight.w700,
-                color: CartzyColors.rose700,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
               ),
             ),
             const SizedBox(height: 4),
@@ -133,18 +133,18 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
               style: GoogleFonts.playfairDisplay(
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
-                color: CartzyColors.brand900,
+                color: CartzyColors.textOf(context, light: CartzyColors.brand900),
               ),
             ),
           ],
         ),
       ),
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [CartzyColors.brand50Lavender, CartzyColors.rose50Warm],
+            colors: [CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender), CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)],
           ),
         ),
         child: SafeArea(
@@ -175,7 +175,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                   fontSize: 10,
                                   letterSpacing: 1.8,
                                   fontWeight: FontWeight.w700,
-                                  color: CartzyColors.rose700,
+                                  color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -186,7 +186,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                   fontSize: 28,
                                   height: 1.2,
                                   fontWeight: FontWeight.w700,
-                                  color: CartzyColors.brand900,
+                                  color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -196,7 +196,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                 style: GoogleFonts.dmSans(
                                   fontSize: 14,
                                   height: 1.6,
-                                  color: CartzyColors.brandDeep,
+                                  color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                                 ),
                               ),
                               const SizedBox(height: 28),
@@ -218,8 +218,8 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                       CartzyColors.rose700),
                                   backgroundColor: const WidgetStatePropertyAll(
                                       CartzyColors.rose50Warm),
-                                  side: const WidgetStatePropertyAll(
-                                      BorderSide(color: CartzyColors.rose200)),
+                                  side: WidgetStatePropertyAll(
+                                      BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200))),
                                   minimumSize:
                                       const WidgetStatePropertyAll(Size(0, 50)),
                                   shape:
@@ -247,17 +247,17 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16, vertical: 14),
                                   decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
+                                    gradient: LinearGradient(
                                       colors: [
-                                        Color(0xFFFFF7F2),
-                                        Color(0xFFFDECEE),
+                                        CartzyColors.elevatedOf(context, light: const Color(0xFFFFF7F2)),
+                                        CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEE)),
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
                                     borderRadius: BorderRadius.circular(22),
                                     border: Border.all(
-                                        color: CartzyColors.rose200,
+                                        color: CartzyColors.borderOf(context, light: CartzyColors.rose200),
                                         width: 1.2),
                                   ),
                                   child: Row(
@@ -266,10 +266,10 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                         width: 48,
                                         height: 48,
                                         decoration: BoxDecoration(
-                                          color: Colors.white,
+                                          color: CartzyColors.surfaceOf(context, light: Colors.white),
                                           shape: BoxShape.circle,
                                           border: Border.all(
-                                              color: CartzyColors.pinkBorder,
+                                              color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder),
                                               width: 1.5),
                                         ),
                                         child: const Center(
@@ -299,7 +299,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                                       .playfairDisplay(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.w700,
-                                                    color: CartzyColors.navy,
+                                                    color: CartzyColors.textOf(context, light: CartzyColors.navy),
                                                   ),
                                                 ),
                                                 Container(
@@ -309,13 +309,12 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                                       vertical: 2),
                                                   decoration: BoxDecoration(
                                                     color:
-                                                        CartzyColors.rose50Warm,
+                                                        CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             10),
                                                     border: Border.all(
-                                                        color: CartzyColors
-                                                            .rose200,
+                                                        color: CartzyColors.borderOf(context, light: CartzyColors.rose200),
                                                         width: 0.8),
                                                   ),
                                                   child: Text(
@@ -325,7 +324,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                                       fontWeight:
                                                           FontWeight.w700,
                                                       color:
-                                                          CartzyColors.burgundy,
+                                                          CartzyColors.mutedOf(context, light: CartzyColors.burgundy),
                                                     ),
                                                   ),
                                                 ),
@@ -336,7 +335,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
                                               'Tap to bring out Cozy or chat now',
                                               style: GoogleFonts.dmSans(
                                                 fontSize: 11.5,
-                                                color: CartzyColors.brandDeep,
+                                                color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                                               ),
                                             ),
                                           ],
@@ -414,12 +413,12 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
             duration: const Duration(milliseconds: 200),
             child: Container(
               margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              decoration: const ShapeDecoration(
-                color: CartzyColors.surface,
+              decoration: ShapeDecoration(
+                color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                 shape: StadiumBorder(
-                  side: BorderSide(color: CartzyColors.border),
+                  side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
-                shadows: [
+                shadows: const [
                   BoxShadow(
                     color: Color(0x148B3A3A),
                     blurRadius: 16,
@@ -540,9 +539,9 @@ class _AccountIllustration extends StatelessWidget {
             Container(
               width: 148,
               height: 148,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: CartzyColors.brand100,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
               ),
             ),
             Transform.rotate(
@@ -551,7 +550,7 @@ class _AccountIllustration extends StatelessWidget {
                 width: 106,
                 height: 112,
                 decoration: BoxDecoration(
-                  color: CartzyColors.brand200,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.brand200),
                   borderRadius: BorderRadius.circular(28),
                 ),
               ),
@@ -561,9 +560,9 @@ class _AccountIllustration extends StatelessWidget {
               height: 112,
               margin: const EdgeInsets.only(left: 16, top: 8),
               decoration: BoxDecoration(
-                color: CartzyColors.rose50Warm,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: CartzyColors.rose200),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
                 boxShadow: [
                   BoxShadow(
                     color: CartzyColors.brandDark.withValues(alpha: 0.1),
@@ -572,10 +571,10 @@ class _AccountIllustration extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.person_outline_rounded,
                 size: 46,
-                color: CartzyColors.rose700,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
               ),
             ),
             Positioned(

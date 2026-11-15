@@ -107,11 +107,11 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      backgroundColor: CartzyColors.rose50Warm,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
       appBar: AppBar(
         centerTitle: true,
         toolbarHeight: 76,
-        backgroundColor: CartzyColors.brand50Lavender,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
         elevation: 0,
         scrolledUnderElevation: 0,
         foregroundColor: CartzyColors.brandDark,
@@ -123,24 +123,24 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                   fontSize: 10,
                   letterSpacing: 1.6,
                   fontWeight: FontWeight.w700,
-                  color: CartzyColors.rose700,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                 )),
             const SizedBox(height: 4),
             Text('Your cart',
                 style: GoogleFonts.playfairDisplay(
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
-                  color: CartzyColors.brand900,
+                  color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                 )),
           ],
         ),
       ),
       body: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [CartzyColors.brand50Lavender, CartzyColors.rose50Warm],
+            colors: [CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender), CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm)],
           ),
         ),
         child: SafeArea(
@@ -169,7 +169,7 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                                     fontSize: 10,
                                     letterSpacing: 1.8,
                                     fontWeight: FontWeight.w700,
-                                    color: CartzyColors.rose700,
+                                    color: CartzyColors.mutedOf(context, light: CartzyColors.rose700),
                                   )),
                               const SizedBox(height: 10),
                               Text('Your next favorite awaits',
@@ -178,7 +178,7 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                                     fontSize: 28,
                                     height: 1.2,
                                     fontWeight: FontWeight.w700,
-                                    color: CartzyColors.brand900,
+                                    color: CartzyColors.textOf(context, light: CartzyColors.brand900),
                                   )),
                               const SizedBox(height: 12),
                               Text(
@@ -187,7 +187,7 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                                   style: GoogleFonts.dmSans(
                                     fontSize: 14,
                                     height: 1.6,
-                                    color: CartzyColors.brandDeep,
+                                    color: CartzyColors.mutedOf(context, light: CartzyColors.brandDeep),
                                   )),
                               const SizedBox(height: 28),
                               ElevatedButton.icon(
@@ -208,8 +208,8 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
                                       CartzyColors.rose700),
                                   backgroundColor: const WidgetStatePropertyAll(
                                       CartzyColors.rose50Warm),
-                                  side: const WidgetStatePropertyAll(
-                                      BorderSide(color: CartzyColors.rose200)),
+                                  side: WidgetStatePropertyAll(
+                                      BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.rose200))),
                                   minimumSize:
                                       const WidgetStatePropertyAll(Size(0, 50)),
                                   shape:
@@ -256,12 +256,12 @@ class _GuestCartScreenState extends State<GuestCartScreen> {
             duration: const Duration(milliseconds: 200),
             child: Container(
               margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              decoration: const ShapeDecoration(
-                color: CartzyColors.surface,
+              decoration: ShapeDecoration(
+                color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
                 shape: StadiumBorder(
-                  side: BorderSide(color: CartzyColors.border),
+                  side: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
                 ),
-                shadows: [
+                shadows: const [
                   BoxShadow(
                     color: Color(0x148B3A3A),
                     blurRadius: 16,
@@ -374,9 +374,9 @@ class _CartIllustration extends StatelessWidget {
             Container(
               width: 148,
               height: 148,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: CartzyColors.brand100,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
               ),
             ),
             Transform.rotate(
@@ -385,7 +385,7 @@ class _CartIllustration extends StatelessWidget {
                 width: 106,
                 height: 112,
                 decoration: BoxDecoration(
-                  color: CartzyColors.brand200,
+                  color: CartzyColors.elevatedOf(context, light: CartzyColors.brand200),
                   borderRadius: BorderRadius.circular(28),
                 ),
               ),
@@ -395,9 +395,9 @@ class _CartIllustration extends StatelessWidget {
               height: 112,
               margin: const EdgeInsets.only(left: 16, top: 8),
               decoration: BoxDecoration(
-                color: CartzyColors.rose50Warm,
+                color: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: CartzyColors.rose200),
+                border: Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.rose200)),
                 boxShadow: [
                   BoxShadow(
                     color: CartzyColors.brandDark.withValues(alpha: 0.1),
@@ -406,8 +406,8 @@ class _CartIllustration extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.shopping_cart_outlined,
-                  size: 46, color: CartzyColors.rose700),
+              child: Icon(Icons.shopping_cart_outlined,
+                  size: 46, color: CartzyColors.mutedOf(context, light: CartzyColors.rose700)),
             ),
             Positioned(
               top: 12,

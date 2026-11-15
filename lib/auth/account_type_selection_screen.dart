@@ -21,14 +21,14 @@ class AccountTypeSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
       appBar: AppBar(
-        backgroundColor: CartzyColors.background,
+        backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back,
-            color: CartzyColors.navy,
+            color: CartzyColors.textOf(context, light: CartzyColors.navy),
           ),
           onPressed: onBackToGuest,
         ),
@@ -47,22 +47,22 @@ class AccountTypeSelectionScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     'Continue As',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: CartzyColors.navy,
+                      color: CartzyColors.textOf(context, light: CartzyColors.navy),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Choose your account type to continue',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      color: CartzyColors.gray,
+                      color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                     ),
                   ),
                   const SizedBox(height: 36),
@@ -133,7 +133,7 @@ class _RoleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: CartzyColors.surface,
+      color: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -143,7 +143,7 @@ class _RoleCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: CartzyColors.border,
+              color: CartzyColors.borderOf(context, light: CartzyColors.border),
             ),
           ),
           child: Row(
@@ -159,7 +159,7 @@ class _RoleCard extends StatelessWidget {
                 ),
                 child: Icon(
                   icon,
-                  color: CartzyColors.coral,
+                  color: CartzyColors.mutedOf(context, light: CartzyColors.coral),
                 ),
               ),
               const SizedBox(width: 16),
@@ -170,26 +170,26 @@ class _RoleCard extends StatelessWidget {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: CartzyColors.navy,
+                        color: CartzyColors.textOf(context, light: CartzyColors.navy),
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: CartzyColors.gray,
+                        color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: CartzyColors.gray,
+                color: CartzyColors.mutedOf(context, light: CartzyColors.gray),
               ),
             ],
           ),
