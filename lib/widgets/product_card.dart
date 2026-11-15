@@ -5,6 +5,7 @@ import 'package:cartzy/utils/product_images.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/cart_service.dart';
 import 'package:cartzy/services/wishlist_service.dart';
+import 'package:cartzy/theme/cartzy_colors.dart';
 
 /// Mobile product card used by Daily Discover and the Sale / product grids:
 /// - Edge-to-edge square photo with a corner discount tag, a floating
@@ -88,7 +89,7 @@ class _ProductCardState extends State<ProductCard> {
         widget.discountPercent != null && widget.discountPercent! > 0 && widget.inStock;
 
     return Material(
-      color: Colors.white,
+      color: CartzyColors.surfaceOf(context),
       borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -96,7 +97,7 @@ class _ProductCardState extends State<ProductCard> {
         child: Ink(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEDE6EA)),
+            border: Border.all(color: CartzyColors.borderOf(context)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -279,7 +280,7 @@ class _ProductCardState extends State<ProductCard> {
                         style: GoogleFonts.dmSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w600,
-                          color: _ink,
+                          color: CartzyColors.textOf(context),
                           height: 1.25,
                         ),
                       ),

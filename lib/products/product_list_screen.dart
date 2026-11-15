@@ -319,31 +319,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
       },
       child: Scaffold(
       extendBody: true,
-      backgroundColor: CartzyColors.background,
+      backgroundColor: CartzyColors.bgOf(context),
       appBar: AppBar(
-        backgroundColor: CartzyColors.surface,
+        backgroundColor: CartzyColors.surfaceOf(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: CartzyColors.navy),
+          icon: Icon(Icons.arrow_back, color: CartzyColors.textOf(context)),
           onPressed: widget.onHomeClick ?? widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         title: Text(
           widget.title ?? 'Products',
-          style: const TextStyle(
-              color: CartzyColors.navy, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: CartzyColors.textOf(context), fontWeight: FontWeight.bold),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.shuffle, color: CartzyColors.navy, size: 20),
+            icon: Icon(Icons.shuffle, color: CartzyColors.textOf(context), size: 20),
             tooltip: 'Shuffle Random Products',
             onPressed: _shuffleProducts,
           ),
           Center(
             child: Text(
               '${filtered.length} items',
-              style: const TextStyle(color: CartzyColors.gray, fontSize: 13),
+              style: TextStyle(color: CartzyColors.mutedOf(context), fontSize: 13),
             ),
           ),
           const SizedBox(width: 4),
@@ -355,8 +355,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 alignment: Alignment.center,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined,
-                        color: CartzyColors.navy),
+                    icon: Icon(Icons.shopping_cart_outlined,
+                        color: CartzyColors.textOf(context)),
                     tooltip: 'View Cart',
                     onPressed: () => _navigateToCart(context),
                   ),

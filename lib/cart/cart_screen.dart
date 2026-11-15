@@ -282,7 +282,7 @@ class _CartScreenState extends State<CartScreen>
       context: context,
       barrierColor: _CartPalette.ink.withValues(alpha: 0.35),
       builder: (ctx) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: CartzyColors.surfaceOf(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 32),
         child: Padding(

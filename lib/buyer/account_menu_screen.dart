@@ -100,7 +100,8 @@ class AccountMenuScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
 
               decoration: BoxDecoration(
-                color: CartzyColors.surface,
+                color: CartzyColors.surfaceOf(context),
+                border: Border.all(color: CartzyColors.borderOf(context)),
 
                 borderRadius:
                     BorderRadius.circular(14),
@@ -692,7 +693,10 @@ class _MenuItem
         decoration:
             BoxDecoration(
           color:
-              CartzyColors.surface,
+              CartzyColors.surfaceOf(context),
+          border: Border.all(
+            color: CartzyColors.borderOf(context),
+          ),
 
           borderRadius:
               BorderRadius.circular(
