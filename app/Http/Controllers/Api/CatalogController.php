@@ -47,6 +47,7 @@ class CatalogController extends Controller
             // Null when not on sale or when the sale has no end date.
             'sale_ends_at' => $product->sale_is_active ? $product->discount_ends_at?->toIso8601String() : null,
             'badge' => $product->badge ?: null,
+            'description' => $product->description,
             'image' => $this->imageUrl($product->coverImage?->path) ?? $variants->map->image_url->filter()->first(),
             'rating' => $product->reviews_avg_rating !== null ? round((float) $product->reviews_avg_rating, 1) : null,
             'reviews_count' => (int) ($product->reviews_count ?? 0),
