@@ -5,15 +5,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ThemeController {
   static const _prefKey = 'cartzy_theme_mode';
 
-  static final ValueNotifier<ThemeMode> mode = ValueNotifier<ThemeMode>(ThemeMode.system);
+  static final ValueNotifier<ThemeMode> mode = ValueNotifier<ThemeMode>(ThemeMode.light);
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getString(_prefKey);
     mode.value = switch (saved) {
       'dark' => ThemeMode.dark,
-      'light' => ThemeMode.light,
-      _ => ThemeMode.system,
+      _ => ThemeMode.light,
     };
   }
 
