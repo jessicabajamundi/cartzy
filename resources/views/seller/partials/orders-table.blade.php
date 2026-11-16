@@ -9,11 +9,14 @@
     $payment = $order->order;
     $handedOver = in_array($order->status, ['delivered', 'completed'], true)
         || ($shipment && !in_array($shipment->status, ['unassigned', 'assigned'], true));
-    $canPack = in_array($order->status, ['pending', 'accepted', 'packed'], true)
+    $needsDecision = $order->status === 'pending'
+        && $order->cancellation_status !== 'pending'
+        && !in_array($payment?->payment_status, ['refunded', 'partially_refunded'], true);
+    $canPack = in_array($order->status, ['accepted', 'packed'], true)
         && !in_array($payment?->payment_status, ['refunded', 'partially_refunded'], true)
         && (($payment?->payment_method ?? 'cod') === 'cod' || $payment?->payment_status === 'paid');
     $awaitingPayment = in_array($order->status, ['pending', 'accepted', 'packed'], true)
-        && !$canPack && !in_array($payment?->payment_status, ['refunded', 'partially_refunded'], true);
+        && !$needsDecision && !$canPack && !in_array($payment?->payment_status, ['refunded', 'partially_refunded'], true);
     $needsPickup = $order->status === 'ready_to_ship' && (!$shipment || ($shipment->status === 'unassigned' && !$shipment->received_at));
     $awaitingRider = $order->status === 'ready_to_ship' && !$needsPickup;
     $address = $payment?->shipping_address ?? [];
@@ -82,6 +85,19 @@
                     <form method="POST" action="{{ route('seller.orders.cancellation', $order) }}" class="inline">@csrf
                         @if($order->canBeCancelledByBuyer())<button class="button small" name="decision" value="approved" type="submit">Approve cancellation</button>@endif
                         <button class="button small secondary" name="decision" value="rejected" type="submit">Decline request</button>
+                    </form>
+                </div>
+            @elseif($needsDecision)
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <form method="POST" action="{{ route('seller.orders.decision', ['id' => $order->id]) }}" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="decision" value="accepted">
+                        <button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:var(--dm-on-light, #fff);">Accept</button>
+                    </form>
+                    <form method="POST" action="{{ route('seller.orders.decision', ['id' => $order->id]) }}" style="display:inline;">
+                        @csrf
+                        <input type="hidden" name="decision" value="rejected">
+                        <button class="button small secondary" type="submit" style="color:var(--dm-red-ink, #dc2626);" onclick="return confirm('Reject this order and restore item stock?');">Reject</button>
                     </form>
                 </div>
             @elseif($canPack)

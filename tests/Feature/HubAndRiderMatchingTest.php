@@ -127,6 +127,8 @@ class HubAndRiderMatchingTest extends TestCase
         $another = $this->packedOrder($seller);
         $destination = route('seller.courier', ['status' => 'ready_to_ship', 'order' => $order->id]);
 
+        $this->actingAs($seller->user)->post(route('seller.orders.pack', $order->id))->assertUnprocessable();
+        $this->actingAs($seller->user)->post(route('seller.orders.decision', $order->id), ['decision' => 'accepted'])->assertRedirect();
         $this->actingAs($seller->user)->post(route('seller.orders.pack', $order->id))->assertRedirect($destination);
         $this->get($destination)->assertOk()->assertSee('Pick up from my shop')->assertSee('Drop off at logistics partner')
             ->assertViewHas('orders', fn ($orders) => $orders->total() === 1 && $orders->first()->id === $order->id);
@@ -254,5 +256,39 @@ class HubAndRiderMatchingTest extends TestCase
 
         Sanctum::actingAs(User::factory()->create(['role' => 'buyer', 'status' => 'active']));
         $this->putJson('/api/rider/home-address', ['province' => 'Laguna', 'city' => 'Santa Cruz', 'barangay' => 'Bubukal'])->assertForbidden();
+    }
+
+    public function test_seller_must_accept_before_packing_and_rejecting_restores_stock(): void
+    {
+        $sellerUser = User::factory()->create(['role' => 'seller', 'status' => 'active']);
+        $seller = Seller::create(['user_id' => $sellerUser->id, 'name' => 'Verify Shop', 'slug' => 'verify-shop-acc', 'status' => 'approved']);
+        $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active']);
+        $order = Order::create([
+            'buyer_id' => $buyer->id,
+            'reference' => 'ORD-ACC-001',
+            'total_minor' => 25000,
+            'payment_method' => 'cod',
+            'payment_status' => 'pending',
+            'shipping_address' => ['recipient' => $buyer->name, 'address' => 'Test address'],
+        ]);
+        $sellerOrder = SellerOrder::create([
+            'order_id' => $order->id,
+            'seller_id' => $seller->id,
+            'subtotal_minor' => 25000,
+            'shipping_fee_minor' => 0,
+            'commission_minor' => 2500,
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($seller->user)
+            ->post(route('seller.orders.pack', $sellerOrder->id))
+            ->assertUnprocessable();
+
+        $this->actingAs($seller->user)
+            ->post(route('seller.orders.decision', $sellerOrder->id), ['decision' => 'rejected', 'reason' => 'Out of stock'])
+            ->assertRedirect();
+
+        $this->assertSame('cancelled', $sellerOrder->fresh()->status);
+        $this->assertSame('Out of stock', $sellerOrder->fresh()->note);
     }
 }

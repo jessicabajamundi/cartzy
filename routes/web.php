@@ -248,6 +248,7 @@ Route::middleware('auth')->group(function () {
         // 2. Order management and packing slips
         Route::get('/orders', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orders'])->name('orders');
         Route::get('/order-history', [\App\Http\Controllers\Seller\SellerPortalController::class, 'orderHistory'])->name('order-history');
+        Route::post('/orders/{id}/decision', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reviewOrder'])->whereNumber('id')->name('orders.decision');
         Route::post('/orders/{id}/pack', [\App\Http\Controllers\Seller\SellerPortalController::class, 'packOrder'])->name('orders.pack');
         Route::post('/orders/{id}/payment-verify', [\App\Http\Controllers\Seller\SellerPortalController::class, 'verifyPayment'])->whereNumber('id')->name('orders.payment-verify');
         Route::post('/orders/{id}/cancellation', [\App\Http\Controllers\Seller\SellerPortalController::class, 'reviewCancellation'])->name('orders.cancellation');

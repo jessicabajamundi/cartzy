@@ -365,12 +365,80 @@ class SellerPortalController extends Controller
         return $this->page('order-history', compact('orders', 'summary', 'statusCounts', 'status', 'range', 'sort'));
     }
 
+    public function reviewOrder(Request $request, int $id)
+    {
+        $data = $request->validate([
+            'decision' => ['required', 'string', 'in:accepted,rejected'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $shop = $this->shop();
+        $decision = $data['decision'];
+        $reason = trim((string) ($data['reason'] ?? ''));
+
+        DB::transaction(function () use ($id, $shop, $decision, $reason) {
+            $order = $this->ordersQuery()->with(['items', 'order', 'shipment'])->lockForUpdate()->findOrFail($id);
+            abort_if($order->cancellation_status === 'pending', 422, 'Review the buyer cancellation request first.');
+            abort_unless($order->status === 'pending', 422, 'Only pending orders can be accepted or rejected.');
+
+            $parent = $order->order;
+            if ($decision === 'accepted') {
+                $order->update(['status' => 'accepted']);
+
+                if ($parent?->buyer_id) {
+                    \App\Services\NotificationService::notify(
+                        $parent->buyer_id,
+                        'order_update',
+                        'Order Accepted',
+                        "Your order {$parent->reference} was accepted by {$shop->name} and is now being prepared.",
+                        route('buyer.dashboard', ['tab' => 'orders'])
+                    );
+                }
+                return;
+            }
+
+            $note = $reason !== '' ? $reason : 'Order rejected by seller.';
+            $order->update(['status' => 'cancelled', 'note' => $note]);
+
+            foreach ($order->items as $item) {
+                if ($item->product_variant_id) {
+                    \App\Models\ProductVariant::whereKey($item->product_variant_id)->increment('stock', (int) $item->quantity);
+                }
+            }
+
+            if ($order->shipment) {
+                $order->shipment->update(['status' => 'cancelled']);
+                $order->shipment->deliveryEvents()->create([
+                    'status' => 'cancelled',
+                    'attempt' => \App\Models\DeliveryEvent::nextAttempt($order->shipment->id, 'cancelled'),
+                    'user_id' => Auth::id(),
+                    'note' => "Order rejected by {$shop->name}: {$note}",
+                    'occurred_at' => now(),
+                ]);
+            }
+
+            if ($parent?->buyer_id) {
+                \App\Services\NotificationService::notify(
+                    $parent->buyer_id,
+                    'order_update',
+                    'Order Rejected',
+                    "Your order {$parent->reference} was rejected by {$shop->name}. {$note}",
+                    route('buyer.dashboard', ['tab' => 'orders'])
+                );
+            }
+        });
+
+        return back()->with('success', $decision === 'accepted'
+            ? 'Order accepted. You can now pack the parcel.'
+            : 'Order rejected and stock restored.');
+    }
+
     public function packOrder(Request $request, int $id)
     {
         DB::transaction(function () use ($id) {
             $order = $this->ordersQuery()->lockForUpdate()->findOrFail($id);
             abort_if($order->cancellation_status === 'pending', 422, 'Review the cancellation request before packing.');
-            abort_unless(in_array($order->status, ['pending', 'accepted', 'packed']), 422, 'This order cannot be packed in its current status.');
+            abort_unless(in_array($order->status, ['accepted', 'packed']), 422, 'Accept the order before packing.');
             abort_if(in_array($order->order->payment_status, ['refunded', 'partially_refunded']), 422, 'A refunded order cannot be packed.');
             abort_if($order->order->payment_method !== 'cod' && $order->order->payment_status !== 'paid', 422, 'Payment must be received before packing.');
             $order->update(['status' => 'ready_to_ship']);
