@@ -86,35 +86,12 @@ class ReviewService extends ChangeNotifier {
           cleanTarget.contains(cleanName);
     }).toList();
 
-    // If no direct matching reviews, return general sample reviews for lively UI
-    if (matching.isEmpty) {
-      return [
-        ProductReview(
-          id: 'def-1',
-          productName: productName,
-          userName: 'Maria Santos',
-          rating: 5.0,
-          comment: 'Super fast delivery and the item arrived in perfect condition! Highly recommended seller.',
-          tags: ['Fast Shipping', 'Great Quality', 'Well Packaged'],
-          date: DateTime.now().subtract(const Duration(days: 2)),
-        ),
-        ProductReview(
-          id: 'def-2',
-          productName: productName,
-          userName: 'Juan Dela Cruz',
-          rating: 4.8,
-          comment: 'Good value for money. Quality matches the description accurately.',
-          tags: ['True to Description', 'Great Value'],
-          date: DateTime.now().subtract(const Duration(days: 5)),
-        ),
-      ];
-    }
     return matching;
   }
 
   double getAverageRating(String productName) {
     final list = getReviewsForProduct(productName);
-    if (list.isEmpty) return 4.9;
+    if (list.isEmpty) return 0.0;
     final total = list.fold<double>(0.0, (sum, r) => sum + r.rating);
     return double.parse((total / list.length).toStringAsFixed(1));
   }

@@ -81,15 +81,7 @@ class _RiderChatScreenState extends State<RiderChatScreen> {
 
     if (!mounted) return;
 
-    final existing = MockData.chatMessages[widget.otherUserId] ?? [
-      ChatMessage(
-        id: 1,
-        senderId: widget.otherUserId,
-        receiverId: widget.myUserId,
-        body: 'Hello! I will be waiting for the delivery.',
-        createdAt: 'Just now',
-      ),
-    ];
+    final existing = MockData.chatMessages[widget.otherUserId] ?? const <ChatMessage>[];
 
     setState(() {
       _messages = List.from(existing);

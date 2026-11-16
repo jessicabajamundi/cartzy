@@ -48,69 +48,12 @@ class RiderChatListScreen extends StatefulWidget {
 }
 
 class _RiderChatListScreenState extends State<RiderChatListScreen> {
-  String? _selectedChat = 'jessica'; // 'dispatch' = Cartzy Central Dispatch
+  String? _selectedChat = 'dispatch'; // 'dispatch' = Cartzy Central Dispatch
   final TextEditingController _msgInputController = TextEditingController();
   final ScrollController _chatScroll = ScrollController();
   final Map<String, List<Map<String, dynamic>>> _customerMessages = {};
 
-  static const List<Map<String, String>> _customerThreads = [
-    {
-      'id': 'jessica',
-      'initials': 'JE',
-      'name': 'Jessica Pambago',
-      'order': 'ORD-2026-96349',
-      'store': 'Logitech Official Store',
-      'preview': 'Start coordinating delivery with customer',
-    },
-    {
-      'id': 'eng',
-      'initials': 'EN',
-      'name': 'Engr. Roberto Dela Cruz',
-      'order': 'ORD-MTR-102',
-      'store': 'TechZone Official Mall',
-      'preview': 'Start coordinating delivery with customer',
-    },
-    {
-      'id': 'patricia',
-      'initials': 'DR',
-      'name': 'Dra. Patricia Evangelista',
-      'order': 'ORD-MTR-103',
-      'store': 'TechZone Official Mall',
-      'preview': 'Start coordinating delivery with customer',
-    },
-    {
-      'id': 'jerome',
-      'initials': 'JE',
-      'name': 'Jerome Villafuerte',
-      'order': 'ORD-MTR-091',
-      'store': 'TechZone Official Mall',
-      'preview': 'Start coordinating delivery with customer',
-    },
-    {
-      'id': 'lisa',
-      'initials': 'LI',
-      'name': 'Lisa Soberano Tan',
-      'order': 'ORD-MTR-092',
-      'store': 'TechZone Official Mall',
-      'preview': 'Start coordinating delivery with customer',
-    },
-    {
-      'id': 'ferdinand',
-      'initials': 'CA',
-      'name': 'Capt. Ferdinand Cruz',
-      'order': 'ORD-MTR-093',
-      'store': 'TechZone Official Mall',
-      'preview': 'Start coordinating delivery with customer',
-    },
-    {
-      'id': 'juan',
-      'initials': 'JU',
-      'name': 'Juan Dela Cruz',
-      'order': 'ORD-LOG-1000',
-      'store': 'TechZone Official Mall',
-      'preview': 'Start coordinating delivery with customer',
-    },
-  ];
+  static const List<Map<String, String>> _customerThreads = [];
 
   List<Map<String, dynamic>> get _activeMessages {
     if (_selectedChat == 'dispatch') return _dispatchMessages;
