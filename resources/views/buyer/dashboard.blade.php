@@ -610,7 +610,11 @@ window.markNotificationAsRead = function (id, el) {
             updateHeaderNotifCount(data.unread ?? 0);
         }
     })
-    .catch(() => {});
+    .catch(() => {})
+    .finally(() => {
+        const link = el?.dataset.notifLink;
+        if (link) window.location.assign(link);
+    });
 };
 
 window.markAllNotificationsAsRead = function () {

@@ -385,15 +385,7 @@ class SellerPortalController extends Controller
             if ($decision === 'accepted') {
                 $order->update(['status' => 'accepted']);
 
-                if ($parent?->buyer_id) {
-                    \App\Services\NotificationService::notify(
-                        $parent->buyer_id,
-                        'order_update',
-                        'Order Accepted',
-                        "Your order {$parent->reference} was accepted by {$shop->name} and is now being prepared.",
-                        route('buyer.dashboard', ['tab' => 'orders'])
-                    );
-                }
+                app(\App\Services\OrderAcceptanceMessage::class)->send($order);
                 return;
             }
 
@@ -429,7 +421,7 @@ class SellerPortalController extends Controller
         });
 
         return back()->with('success', $decision === 'accepted'
-            ? 'Order accepted. You can now pack the parcel.'
+            ? 'Order accepted. A thank-you message was sent to the buyer. You can now pack the parcel.'
             : 'Order rejected and stock restored.');
     }
 

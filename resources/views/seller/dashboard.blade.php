@@ -259,7 +259,7 @@
                                             <div class="so-actions">
                                                 @if($needsDecision)
                                                     <form method="POST" action="{{ route('seller.orders.decision', ['id' => $order->id]) }}" style="display:inline;">@csrf<input type="hidden" name="decision" value="accepted"><button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:var(--dm-on-light, #fff);">Accept</button></form>
-                                                    <form method="POST" action="{{ route('seller.orders.decision', ['id' => $order->id]) }}" style="display:inline;">@csrf<input type="hidden" name="decision" value="rejected"><button class="button small secondary" type="submit" style="color:var(--dm-red-ink, #dc2626);" onclick="return confirm('Reject this order and restore item stock?');">Reject</button></form>
+                                                    <button class="button small secondary" type="button" style="color:var(--dm-red-ink, #dc2626);" onclick="openSellerRejectModal('{{ route('seller.orders.decision', ['id' => $order->id]) }}', '{{ addslashes($payment?->reference ?? 'ORD-'.$order->id) }}')">Reject</button>
                                                 @elseif($canPack)
                                                     <form method="POST" action="{{ route('seller.orders.pack', $order) }}">@csrf<button class="button small" type="submit">Mark packed</button></form>
                                                 @elseif($needsPickup)
@@ -269,7 +269,9 @@
                                                 @else
                                                     <span class="so-hint">{{ $isDelivered ? 'Delivered' : ($isCancelled ? 'Cancelled' : ($isRefunded ? 'Refunded' : 'Completed')) }}</span>
                                                 @endif
-                                                <a class="button small secondary" href="{{ route('seller.orders', ['search' => $payment?->reference]) }}" title="View order in orders page">Orders page →</a>
+                                                @if($order->status !== 'pending')
+                                                    <a class="button small secondary" href="{{ route('seller.orders', ['search' => $payment?->reference]) }}" title="View order in orders page">Orders page →</a>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

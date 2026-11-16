@@ -6,6 +6,7 @@
         'review' => 'm12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z',
     ];
     $notificationBell = 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4';
+    $notificationIcons['order_accepted'] = $notificationIcons['order'];
     $archivedNotifications ??= [];
     $showingArchive = ($notificationBox ?? 'inbox') === 'archived';
     $visibleNotifications = $showingArchive ? $archivedNotifications : $notifications;
@@ -33,12 +34,14 @@
             @forelse($visibleNotifications as $n)
                 <div class="dash-notif-row notification-item" data-title="{{ strtolower($n['title']) }}" data-message="{{ strtolower($n['message']) }}">
                 <button type="button" data-notif-id="{{ $n['id'] ?? '' }}"
+                        data-notif-link="{{ ($n['type'] ?? '') === 'order_accepted' ? ($n['link'] ?? '') : '' }}"
                         onclick="markNotificationAsRead({{ $n['id'] ?? 'null' }}, this)" class="notification-row">
                     <span class="notification-type-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $notificationIcons[$n['type']] ?? $notificationBell }}"/></svg></span>
                     <span class="notification-body">
-                        <span class="notification-meta"><span>{{ ucfirst($n['type'] ?? 'Account') }} update</span><span>{{ $n['time'] }}</span></span>
+                        <span class="notification-meta"><span>{{ ($n['type'] ?? '') === 'order_accepted' ? 'Order' : ucfirst($n['type'] ?? 'Account') }} update</span><span>{{ $n['time'] }}</span></span>
                         <span class="notification-title">{{ $n['title'] }}</span>
                         <span class="notification-message">{{ $n['message'] }}</span>
+                        @if(($n['type'] ?? '') === 'order_accepted')<span class="notification-meta">Open order conversation →</span>@endif
                     </span>
                     @if($n['unread'])<span class="dash-notif-dot notification-unread"><span class="sr-only">Unread</span></span>@endif
                 </button>

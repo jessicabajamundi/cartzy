@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SellerMessage extends Model
 {
-    protected $fillable = ['seller_order_id', 'sender_id', 'body', 'delivered_at', 'read_at'];
+    protected $fillable = ['seller_order_id', 'sender_id', 'body', 'delivered_at', 'read_at', 'event_key'];
 
     protected $casts = [
         'delivered_at' => 'datetime',

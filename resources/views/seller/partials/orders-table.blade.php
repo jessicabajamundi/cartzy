@@ -94,11 +94,7 @@
                         <input type="hidden" name="decision" value="accepted">
                         <button class="button small" type="submit" style="background:#16a34a; border-color:#16a34a; color:var(--dm-on-light, #fff);">Accept</button>
                     </form>
-                    <form method="POST" action="{{ route('seller.orders.decision', ['id' => $order->id]) }}" style="display:inline;">
-                        @csrf
-                        <input type="hidden" name="decision" value="rejected">
-                        <button class="button small secondary" type="submit" style="color:var(--dm-red-ink, #dc2626);" onclick="return confirm('Reject this order and restore item stock?');">Reject</button>
-                    </form>
+                    <button class="button small secondary" type="button" style="color:var(--dm-red-ink, #dc2626);" onclick="openSellerRejectModal('{{ route('seller.orders.decision', ['id' => $order->id]) }}', '{{ addslashes($payment?->reference ?? 'ORD-'.$order->id) }}')">Reject</button>
                 </div>
             @elseif($canPack)
                 <form method="POST" action="{{ route('seller.orders.pack', $order) }}">@csrf<button class="button small" type="submit">Mark packed</button></form>
@@ -136,13 +132,16 @@
             @if($shipment?->delivery_proof_url)
                 <a class="button small secondary" href="{{ $shipment->delivery_proof_url }}" target="_blank" rel="noopener">Proof of Delivery ↗</a>
             @endif
-            @if($shipment && !in_array($order->status, ['cancelled', 'delivered', 'completed'], true) && $shipment->status !== 'delivered')
-                <a class="button small secondary so-print" href="{{ route('seller.orders.waybill', ['id' => $order->id, 'print' => 1]) }}">@include('seller.partials.icon', ['name' => 'printer', 'size' => 16])<span>Print waybill</span></a>
+            @if($order->status !== 'pending')
+                @if($shipment && !in_array($order->status, ['cancelled', 'delivered', 'completed'], true) && $shipment->status !== 'delivered')
+                    <a class="button small secondary so-print" href="{{ route('seller.orders.waybill', ['id' => $order->id, 'print' => 1]) }}">@include('seller.partials.icon', ['name' => 'printer', 'size' => 16])<span>Print waybill</span></a>
+                @endif
+                <button type="button" class="so-details" popovertarget="so-details-{{ $order->id }}">Details</button>
+                <a class="so-chat" href="{{ route('seller.chat', ['contact' => $order->id]) }}" aria-label="Message buyer for {{ $payment?->reference ?? 'order' }}" title="Message buyer">@include('seller.partials.icon', ['name' => 'chat', 'size' => 18])</a>
             @endif
-            <button type="button" class="so-details" popovertarget="so-details-{{ $order->id }}">Details</button>
-            <a class="so-chat" href="{{ route('seller.chat', ['contact' => $order->id]) }}" aria-label="Message buyer for {{ $payment?->reference ?? 'order' }}" title="Message buyer">@include('seller.partials.icon', ['name' => 'chat', 'size' => 18])</a>
         </div>
         @if($order->status === 'cancelled' && $order->note)<small class="so-note">{{ $order->note }}</small>@endif
+        @if($order->status !== 'pending')
         <div class="so-popover" id="so-details-{{ $order->id }}" popover aria-label="Details for {{ $payment?->reference ?? 'order' }}">
             <h3>Delivery details</h3>
             <p>{{ $address['recipient'] ?? $payment?->buyer?->name ?? 'Recipient' }} · {{ $address['phone'] ?? $payment?->buyer?->phone ?? 'No phone number' }}</p>
@@ -158,6 +157,7 @@
             </ul>
             <a class="so-waybill-link" href="{{ route('seller.orders.waybill', $order) }}">View full waybill</a>
         </div>
+        @endif
     </td>
 </tr>
 @empty
@@ -165,7 +165,32 @@
 @endforelse
 </tbody></table></div>
 @once
+<dialog id="seller-reject-dialog" style="border:1px solid var(--line, #e5e7eb); border-radius:14px; padding:20px; max-width:420px; width:92%; background:var(--surface, #fff); color:var(--ink, #111827); box-shadow:0 20px 45px rgba(0,0,0,0.2);">
+    <form method="POST" id="seller-reject-form" action="">
+        @csrf
+        <input type="hidden" name="decision" value="rejected">
+        <h3 style="margin:0 0 6px; font-size:1.05rem;">Reject Order <span id="seller-reject-ref"></span></h3>
+        <p style="margin:0 0 12px; font-size:0.85rem; color:var(--muted, #6b7280);">This will cancel the order and restore item stock. You can optionally send a reason to the buyer.</p>
+        <label for="seller-reject-reason" style="display:block; font-size:0.8rem; font-weight:600; margin-bottom:6px;">Reason for buyer (optional)</label>
+        <textarea id="seller-reject-reason" name="reason" rows="3" maxlength="500" placeholder="e.g. Out of stock, damaged item, or unable to fulfill" style="width:100%; padding:10px; border:1px solid var(--line, #d1d5db); border-radius:8px; background:var(--surface, #fff); color:var(--ink, #111827); font-size:0.85rem; resize:vertical;"></textarea>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+            <button type="button" class="button small secondary" onclick="document.getElementById('seller-reject-dialog').close()">Cancel</button>
+            <button type="submit" class="button small" style="background:#dc2626; border-color:#dc2626; color:#fff;">Confirm Reject</button>
+        </div>
+    </form>
+</dialog>
 <script>
+window.openSellerRejectModal = function(actionUrl, orderRef) {
+    const dialog = document.getElementById('seller-reject-dialog');
+    const form = document.getElementById('seller-reject-form');
+    const refEl = document.getElementById('seller-reject-ref');
+    const reasonEl = document.getElementById('seller-reject-reason');
+    if (!dialog || !form) return;
+    form.action = actionUrl;
+    if (refEl) refEl.textContent = orderRef ? `(${orderRef})` : '';
+    if (reasonEl) reasonEl.value = '';
+    dialog.showModal();
+};
 // Opens each order's details box next to its button, flipping up when there's no room below.
 document.addEventListener('toggle', (event) => {
     const box = event.target;

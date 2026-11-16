@@ -281,6 +281,13 @@ class HubAndRiderMatchingTest extends TestCase
         ]);
 
         $this->actingAs($seller->user)
+            ->get(route('seller.orders'))
+            ->assertOk()
+            ->assertSee('Accept')
+            ->assertSee('Reject')
+            ->assertDontSee('Print waybill');
+
+        $this->actingAs($seller->user)
             ->post(route('seller.orders.pack', $sellerOrder->id))
             ->assertUnprocessable();
 

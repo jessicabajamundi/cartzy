@@ -36,6 +36,16 @@ class NotificationController extends Controller
                 $orderRef = $matches[0];
             }
 
+            // Reuse the saved web conversation link for native mobile navigation.
+            $conversationId = null;
+            if ($n->type === 'order_accepted' && $n->link) {
+                parse_str(parse_url($n->link, PHP_URL_QUERY) ?? '', $query);
+                $contact = $query['contact'] ?? null;
+                if (is_scalar($contact) && ctype_digit((string) $contact) && (int) $contact > 0) {
+                    $conversationId = (int) $contact;
+                }
+            }
+
             return [
                 'id'              => $n->id,
                 'type'            => $n->type,
@@ -48,6 +58,7 @@ class NotificationController extends Controller
                 'is_read'         => (bool) $n->is_read,
                 'link'            => $n->link,
                 'order_reference' => $orderRef,
+                'conversation_order_id' => $conversationId,
                 'time'            => $n->created_at ? $n->created_at->diffForHumans() : 'Just now',
                 'created_at'      => $n->created_at ? $n->created_at->toIso8601String() : null,
             ];
