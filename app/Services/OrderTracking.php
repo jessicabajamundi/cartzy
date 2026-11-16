@@ -18,6 +18,9 @@ class OrderTracking
         $format = fn ($date) => $date?->copy()->timezone('Asia/Manila')->format('M d, Y · h:i A');
         $isDropoff = $shipment?->isDropoff() ?? false;
         $isHubToHub = $shipment?->requiresHubToHub() ?? false;
+        $pickup = !$isDropoff
+            ? \App\Models\PickupRequest::where('seller_order_id', $order->id)->latest('id')->first()
+            : null;
         $originHubName = $shipment?->originHub?->name ?? 'Origin Hub';
         $destHubName = $shipment?->destinationHub?->name ?? 'Destination Hub';
         if ($isDropoff) {
@@ -26,29 +29,30 @@ class OrderTracking
                 'dropoff' => ['Dropped off by seller', 'The seller dropped off the parcel at the logistics hub.'],
                 'received_at_hub' => ['Received at sorting hub', 'The parcel is scanned at the logistics hub.'],
                 'sorted' => ['Sorted for delivery', 'The hub sorts the parcel for its delivery area.'],
-                'assigned_to_rider' => ['Assigned to rider', 'A rider is assigned; delivery has not necessarily started.'],
                 'in_transit' => $isHubToHub
                     ? ['In Hub-to-Hub transit', "In transit from {$originHubName} to {$destHubName}."]
                     : ['In transit', 'The parcel travels through the courier network.'],
                 ...($isHubToHub ? ['arrived_at_destination_hub' => ['Arrived at destination hub', "Arrived at {$destHubName} for local sorting."]] : []),
+                'assigned_to_rider' => ['Assigned to delivery rider', 'A rider is assigned for the final delivery to the buyer.'],
                 'out_for_delivery' => ['Out for delivery', 'The rider starts the delivery trip.'],
-                'delivered' => ['Delivered', 'Delivery is confirmed by the courier.'],
+                'delivered' => ['Delivered', 'Delivery is confirmed by the rider.'],
             ];
         } else {
             $definitions = [
                 'packed' => ['Packed by seller', 'Seller preparation and packing.'],
-                'pickup_requested' => ['Pickup requested', 'The seller requests courier collection.'],
+                'pickup_requested' => ['Pickup requested', 'The seller requests rider collection.'],
                 'pickup_confirmed' => ['Pickup schedule confirmed', 'The logistics partner confirms the pickup request.'],
-                'picked_up' => ['Picked up by courier', 'Courier collection from the seller.'],
+                'pickup_assigned' => ['Pickup rider assigned', 'A rider is assigned to collect the parcel from the seller.'],
+                'picked_up' => ['Picked up by rider', 'The rider collected the parcel from the seller.'],
                 'received_at_hub' => ['Received at sorting hub', 'The parcel is scanned at the logistics hub.'],
                 'sorted' => ['Sorted for delivery', 'The hub sorts the parcel for its delivery area.'],
-                'assigned_to_rider' => ['Assigned to rider', 'A rider is assigned; delivery has not necessarily started.'],
                 'in_transit' => $isHubToHub
                     ? ['In Hub-to-Hub transit', "In transit from {$originHubName} to {$destHubName}."]
                     : ['In transit', 'The parcel travels through the courier network.'],
                 ...($isHubToHub ? ['arrived_at_destination_hub' => ['Arrived at destination hub', "Arrived at {$destHubName} for local sorting."]] : []),
+                'assigned_to_rider' => ['Assigned to delivery rider', 'A rider is assigned for the final delivery to the buyer.'],
                 'out_for_delivery' => ['Out for delivery', 'The rider starts the delivery trip.'],
-                'delivered' => ['Delivered', 'Delivery is confirmed by the courier.'],
+                'delivered' => ['Delivered', 'Delivery is confirmed by the rider.'],
             ];
         }
         $labels = array_map(fn ($definition) => $definition[0], $definitions) + [
@@ -68,10 +72,16 @@ class OrderTracking
         ]];
         foreach ($definitions as $status => [$label, $detail]) {
             $event = $byStatus->get($status) ?? match ($status) {
+                'pickup_confirmed' => $byStatus->get('pickup_assigned'),
                 'dropoff' => $byStatus->get('dropoff_requested') ?? $byStatus->get('dropoff'),
                 default => null,
             };
             $time = $event?->occurred_at ?? match ($status) {
+                'pickup_requested' => $pickup?->created_at,
+                'pickup_confirmed' => $pickup?->confirmed_at,
+                'pickup_assigned' => $pickup?->assigned_at,
+                'in_transit' => $shipment?->dispatched_to_hub_at,
+                'arrived_at_destination_hub' => $shipment?->arrived_at_destination_hub_at,
                 'received_at_hub' => $shipment?->received_at,
                 'sorted' => $shipment?->sorted_at,
                 'assigned_to_rider' => $shipment?->assigned_at,
@@ -83,13 +93,12 @@ class OrderTracking
             if ($status === 'picked_up') {
                 $isPickedUp = ($event !== null)
                     || ($shipment?->status === 'picked_up')
-                    || ($shipment?->pickup_rider_id !== null)
                     || ($shipment?->received_at !== null);
 
                 $steps[] = [
                     'label' => $label,
                     'detail' => $detail,
-                    'time' => $isPickedUp ? ($format($time ?? $shipment?->received_at) ?? 'Time not recorded') : 'Awaiting courier collection',
+                    'time' => $isPickedUp ? ($format($time ?? $shipment?->received_at) ?? 'Time not recorded') : 'Awaiting rider collection',
                     'done' => $isPickedUp,
                 ];
                 continue;
@@ -141,15 +150,6 @@ class OrderTracking
             }
         }
 
-        // Auto-complete all preceding milestones up to the latest confirmed milestone so checkmarks are complete
-        for ($earlier = 0; $earlier < $latestDoneIndex; $earlier++) {
-            $steps[$earlier]['done'] = true;
-            if (empty($steps[$earlier]['time']) || in_array($steps[$earlier]['time'], ['No scan recorded', 'Awaiting update', 'Time not recorded'], true)) {
-                // Carry forward the chronological timestamp from the closest preceding recorded stage
-                $steps[$earlier]['time'] = $steps[$earlier > 0 ? $earlier - 1 : 0]['time'] ?? $steps[0]['time'];
-            }
-        }
-
         // Set current active stage indicator
         $current = $steps[0]['label'];
         for ($i = 0; $i < count($steps); $i++) {
@@ -185,6 +185,8 @@ class OrderTracking
         $lastRecorded = collect([
             $order->order->created_at, $order->delivered_at, $order->cancellation_reviewed_at,
             $shipment?->received_at, $shipment?->sorted_at, $shipment?->assigned_at,
+            $shipment?->dispatched_to_hub_at, $shipment?->arrived_at_destination_hub_at,
+            $pickup?->created_at, $pickup?->confirmed_at, $pickup?->assigned_at,
             ...$events->pluck('occurred_at')->all(),
         ])->filter()->sortDesc()->first();
 
@@ -207,6 +209,8 @@ class OrderTracking
             'tracking_no' => $shipment?->tracking_code ?? 'Not assigned yet',
             'courier' => $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Not assigned yet',
             'rider' => $hasRider ? $shipment->rider->user->name : 'Not assigned yet',
+            'pickup_rider' => $shipment?->pickupRider?->user?->name ?? $pickup?->rider?->user?->name ?? 'Not assigned yet',
+            'hub_to_hub_courier' => $shipment?->linehaulCourier?->user?->name ?? 'Not assigned yet',
             'area' => $shipment?->delivery_area ?: 'Not recorded yet',
             'rescheduled_until' => $format($shipment?->rescheduled_until),
             'rescheduled_days_left' => $shipment?->rescheduled_until ? max(0, (int) ceil(now()->diffInDays($shipment->rescheduled_until, false))) : null,
@@ -272,8 +276,8 @@ class OrderTracking
             $terminal === 'cancelled' => 0.0,
             $currentStatus === 'Out for delivery' => 0.72 + min(0.24, ((time() % 300) / 300) * 0.24), // moves smoothly between 72% and 96%
             $currentStatus === 'In transit' => 0.42 + min(0.20, ((time() % 300) / 300) * 0.20),
-            in_array($currentStatus, ['Sorted for delivery', 'Received at sorting hub', 'Assigned to rider'], true) => 0.33,
-            in_array($currentStatus, ['Picked up by courier', 'Pickup schedule confirmed'], true) => 0.18,
+            in_array($currentStatus, ['Sorted for delivery', 'Received at sorting hub', 'Assigned to delivery rider', 'Arrived at destination hub'], true) => 0.33,
+            in_array($currentStatus, ['Picked up by rider', 'Pickup schedule confirmed', 'Pickup rider assigned'], true) => 0.18,
             default => 0.05,
         };
 

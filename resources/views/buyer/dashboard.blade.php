@@ -62,13 +62,15 @@
                                     <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Tracking no.</p><p class="font-extrabold">{{ $tracking['tracking_no'] }}</p></div>
                                     <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Estimated arrival</p><p class="font-extrabold text-[#E8C9C0]">{{ $tracking['eta'] }}</p></div>
                                 </div>
-                                <p class="mt-4 text-sm text-gray-500">Courier: <span class="font-bold text-gray-800">{{ $tracking['courier'] }}</span></p>
+                                <p class="mt-4 text-sm text-gray-500">Logistics provider: <span class="font-bold text-gray-800">{{ $tracking['courier'] }}</span></p>
                                 <div class="tracking-status-panel">
                                     <div><span class="tracking-caption">Latest confirmed stage</span><strong>{{ $tracking['current_status'] }}</strong></div>
                                     <div><span class="tracking-caption">Last recorded update · Philippine time</span><strong>{{ $tracking['last_update'] }}</strong></div>
                                 </div>
                                 <dl class="tracking-details">
-                                    <div><dt>Assigned rider</dt><dd>{{ $tracking['rider'] }}</dd></div>
+                                    <div><dt>Pickup rider</dt><dd>{{ $tracking['pickup_rider'] ?? 'Not assigned yet' }}</dd></div>
+                                    <div><dt>Hub-to-Hub courier</dt><dd>{{ $tracking['hub_to_hub_courier'] ?? 'Not assigned yet' }}</dd></div>
+                                    <div><dt>Delivery rider</dt><dd>{{ $tracking['rider'] }}</dd></div>
                                     <div><dt>Delivery area</dt><dd>{{ $tracking['area'] }}</dd></div>
                                     <div><dt>Delivery attempts</dt><dd>{{ $tracking['attempts'] ?: 'No attempt recorded' }}</dd></div>
                                 </dl>
