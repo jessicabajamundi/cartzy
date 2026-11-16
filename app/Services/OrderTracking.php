@@ -17,6 +17,9 @@ class OrderTracking
         $byStatus = $events->unique('status')->keyBy('status');
         $format = fn ($date) => $date?->copy()->timezone('Asia/Manila')->format('M d, Y · h:i A');
         $isDropoff = $shipment?->isDropoff() ?? false;
+        $isHubToHub = $shipment?->requiresHubToHub() ?? false;
+        $originHubName = $shipment?->originHub?->name ?? 'Origin Hub';
+        $destHubName = $shipment?->destinationHub?->name ?? 'Destination Hub';
         if ($isDropoff) {
             $definitions = [
                 'packed' => ['Packed by seller', 'Seller preparation and packing.'],
@@ -24,7 +27,10 @@ class OrderTracking
                 'received_at_hub' => ['Received at sorting hub', 'The parcel is scanned at the logistics hub.'],
                 'sorted' => ['Sorted for delivery', 'The hub sorts the parcel for its delivery area.'],
                 'assigned_to_rider' => ['Assigned to rider', 'A rider is assigned; delivery has not necessarily started.'],
-                'in_transit' => ['In transit', 'The parcel travels through the courier network.'],
+                'in_transit' => $isHubToHub
+                    ? ['In Hub-to-Hub transit', "In transit from {$originHubName} to {$destHubName}."]
+                    : ['In transit', 'The parcel travels through the courier network.'],
+                ...($isHubToHub ? ['arrived_at_destination_hub' => ['Arrived at destination hub', "Arrived at {$destHubName} for local sorting."]] : []),
                 'out_for_delivery' => ['Out for delivery', 'The rider starts the delivery trip.'],
                 'delivered' => ['Delivered', 'Delivery is confirmed by the courier.'],
             ];
@@ -37,12 +43,16 @@ class OrderTracking
                 'received_at_hub' => ['Received at sorting hub', 'The parcel is scanned at the logistics hub.'],
                 'sorted' => ['Sorted for delivery', 'The hub sorts the parcel for its delivery area.'],
                 'assigned_to_rider' => ['Assigned to rider', 'A rider is assigned; delivery has not necessarily started.'],
-                'in_transit' => ['In transit', 'The parcel travels through the courier network.'],
+                'in_transit' => $isHubToHub
+                    ? ['In Hub-to-Hub transit', "In transit from {$originHubName} to {$destHubName}."]
+                    : ['In transit', 'The parcel travels through the courier network.'],
+                ...($isHubToHub ? ['arrived_at_destination_hub' => ['Arrived at destination hub', "Arrived at {$destHubName} for local sorting."]] : []),
                 'out_for_delivery' => ['Out for delivery', 'The rider starts the delivery trip.'],
                 'delivered' => ['Delivered', 'Delivery is confirmed by the courier.'],
             ];
         }
         $labels = array_map(fn ($definition) => $definition[0], $definitions) + [
+            'arrived_at_destination_hub' => 'Arrived at destination hub',
             'dropoff' => 'Dropped off by seller',
             'dropoff_requested' => 'Drop-off requested',
             'failed' => 'Delivery attempt unsuccessful',

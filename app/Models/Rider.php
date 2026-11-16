@@ -15,17 +15,21 @@ class Rider extends Model
 
     public const FIRST_MILE = 'first_mile';
 
+    public const LINEHAUL = 'linehaul';
+
     public const LAST_MILE = 'last_mile';
 
     /** Courier types with the label and short description shown in the portals. */
     public const COURIER_TYPES = [
         self::FIRST_MILE => ['First Mile', 'Picks up parcels from sellers and brings them to the hub'],
+        self::LINEHAUL => ['Hub-to-Hub Courier', 'Transports sorted parcel batches between logistics hubs'],
         self::LAST_MILE => ['Last Mile', 'Delivers parcels from the hub to buyers'],
     ];
 
     /** Vehicles each courier type may use (value => label): couriers haul bigger loads, riders ride. */
     public const VEHICLE_TYPES = [
         self::FIRST_MILE => ['car' => 'Car', 'van' => 'Van', 'truck' => 'Truck'],
+        self::LINEHAUL => ['van' => 'Van', 'truck' => 'Truck', 'cargo' => 'Cargo'],
         self::LAST_MILE => ['motorcycle' => 'Motorcycle', 'tricycle' => 'Tricycle', 'ebike' => 'E-bike'],
     ];
 
@@ -76,9 +80,32 @@ class Rider extends Model
         return $query->where('courier_type', self::LAST_MILE);
     }
 
+    public function scopeLinehaul($query)
+    {
+        return $query->where('courier_type', self::LINEHAUL);
+    }
+
+    public function scopeAvailableForLinehaul($query)
+    {
+        return $query->whereIn('courier_type', [self::LINEHAUL, self::FIRST_MILE])
+            ->where('status', 'approved')
+            ->where('is_active', true)
+            ->whereHas('user', fn ($q) => $q->where('role', 'courier')->where('status', 'active')->where('is_suspended', false));
+    }
+
     public function isFirstMile(): bool
     {
         return $this->courier_type === self::FIRST_MILE;
+    }
+
+    public function isLinehaul(): bool
+    {
+        return $this->courier_type === self::LINEHAUL;
+    }
+
+    public function canCarryLinehaul(): bool
+    {
+        return in_array($this->courier_type, [self::LINEHAUL, self::FIRST_MILE], true);
     }
 
     public function isLastMile(): bool

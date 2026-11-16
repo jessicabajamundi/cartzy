@@ -18,8 +18,12 @@ class Shipment extends Model
     protected $fillable = [
         'seller_order_id',
         'logistics_provider_id',
+        'origin_hub_id',
+        'destination_hub_id',
+        'current_hub_id',
         'rider_id',
         'pickup_rider_id',
+        'linehaul_courier_id',
         'tracking_code',
         'status',
         'handover_method',
@@ -29,6 +33,8 @@ class Shipment extends Model
         'received_at',
         'sorted_at',
         'assigned_at',
+        'dispatched_to_hub_at',
+        'arrived_at_destination_hub_at',
         'rescheduled_until',
         'reschedule_reason',
         'reschedule_count',
@@ -55,6 +61,8 @@ class Shipment extends Model
         'received_at'      => 'datetime',
         'sorted_at'        => 'datetime',
         'assigned_at'      => 'datetime',
+        'dispatched_to_hub_at' => 'datetime',
+        'arrived_at_destination_hub_at' => 'datetime',
         'rescheduled_until'=> 'datetime',
         'returned_at'      => 'datetime',
         'reschedule_count' => 'integer',
@@ -85,6 +93,57 @@ class Shipment extends Model
     public function pickupRider()
     {
         return $this->belongsTo(Rider::class, 'pickup_rider_id');
+    }
+
+    public function originHub()
+    {
+        return $this->belongsTo(LogisticsProvider::class, 'origin_hub_id');
+    }
+
+    public function destinationHub()
+    {
+        return $this->belongsTo(LogisticsProvider::class, 'destination_hub_id');
+    }
+
+    public function currentHub()
+    {
+        return $this->belongsTo(LogisticsProvider::class, 'current_hub_id');
+    }
+
+    /** The linehaul courier transporting this parcel between hubs. */
+    public function linehaulCourier()
+    {
+        return $this->belongsTo(Rider::class, 'linehaul_courier_id');
+    }
+
+    public function requiresHubToHub(): bool
+    {
+        return $this->origin_hub_id !== null
+            && $this->destination_hub_id !== null
+            && (int) $this->origin_hub_id !== (int) $this->destination_hub_id;
+    }
+
+    public function isWaitingForLinehaulDispatch(): bool
+    {
+        return $this->requiresHubToHub()
+            && $this->received_at !== null
+            && $this->dispatched_to_hub_at === null
+            && $this->arrived_at_destination_hub_at === null
+            && (int) $this->current_hub_id !== (int) $this->destination_hub_id;
+    }
+
+    public function isInHubToHubTransit(): bool
+    {
+        return $this->requiresHubToHub()
+            && $this->dispatched_to_hub_at !== null
+            && $this->arrived_at_destination_hub_at === null;
+    }
+
+    public function hasArrivedAtDestinationHub(): bool
+    {
+        return !$this->requiresHubToHub()
+            || $this->arrived_at_destination_hub_at !== null
+            || (int) $this->current_hub_id === (int) $this->destination_hub_id;
     }
 
     public function deliveryEvents()

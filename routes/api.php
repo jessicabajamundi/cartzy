@@ -73,9 +73,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/scan', [RiderAttendanceController::class, 'scan'])->middleware('throttle:20,1');
     });
 
-    // First Mile courier dashboard in the app (real data only).
+    // First Mile & Linehaul courier dashboard + Hub-to-Hub actions in the app (real data only).
     Route::get('/courier/dashboard', [\App\Http\Controllers\Api\CourierDashboardController::class, 'show'])
         ->middleware('api.role:courier');
+    Route::middleware(['api.role:courier', 'throttle:60,1'])->prefix('courier/linehaul')->group(function () {
+        Route::post('/{id}/dispatch', [\App\Http\Controllers\Api\CourierDashboardController::class, 'dispatchLinehaul'])->whereNumber('id');
+        Route::post('/{id}/arrive', [\App\Http\Controllers\Api\CourierDashboardController::class, 'arriveLinehaul'])->whereNumber('id');
+    });
 
     // Rider scans a waybill barcode or QR code (shows the parcel, changes nothing), then accepts or
     // declines it. Accepting hands the parcel to the rider and notifies seller, buyer and hub.

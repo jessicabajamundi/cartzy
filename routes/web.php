@@ -400,6 +400,8 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::match(['get', 'post'], '/scan/lookup', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'lookupParcel'])->name('scan.lookup');
     Route::get('/waybills', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'waybills'])->name('waybills');
     Route::post('/hub-desk/process-all', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'processAll'])->name('hub.process-all');
+    Route::post('/hub-desk/{id}/dispatch-hub', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dispatchHubToHub'])->whereNumber('id')->name('hub.dispatch');
+    Route::post('/hub-desk/dispatch-hub-all', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'dispatchAllHubToHub'])->name('hub.dispatch-all');
     Route::post('/parcels/receive-all',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveAllParcels'])->name('parcels.receive-all');
     Route::post('/parcels/{id}/receive',[\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'receiveParcel'])->name('parcels.receive');
     Route::post('/parcels/scan', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'scanParcel'])->name('parcels.scan');

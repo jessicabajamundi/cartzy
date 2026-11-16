@@ -178,10 +178,13 @@ class OrderPlacement
                 $groupShopShippingDiscount = $shopShippingSelection[$seller->id]['discount_minor'] ?? 0;
                 $groupShippingDiscount = $shippingShares[$seller->id];
                 $groupVoucherDiscount = $itemShares[$seller->id];
+                $originHubId = (int) ($seller->logistics_provider_id ?: $provider->id);
+                $destinationHubId = app(HubToHubService::class)->resolveDestinationHub($destination ?? $buyer, $originHubId);
+
                 $sellerOrder = SellerOrder::create([
                     'order_id'                => $order->id,
                     'seller_id'               => $seller->id,
-                    'logistics_provider_id'   => $provider->id,
+                    'logistics_provider_id'   => $originHubId,
                     'subtotal_minor'          => $groupSubtotal,
                     'shipping_fee_minor'      => $groupParcelFee - $groupShopShippingDiscount - $groupShippingDiscount,
                     'shipping_discount_minor' => $groupShippingDiscount,
@@ -206,7 +209,10 @@ class OrderPlacement
 
                 $shipment = Shipment::create([
                     'seller_order_id'       => $sellerOrder->id,
-                    'logistics_provider_id' => $provider->id,
+                    'logistics_provider_id' => $originHubId,
+                    'origin_hub_id'         => $originHubId,
+                    'destination_hub_id'    => $destinationHubId,
+                    'current_hub_id'        => $originHubId,
                     'tracking_code'         => 'CTZ-' . strtoupper(Str::random(10)),
                     'status'                => 'unassigned',
                     'fee_minor'             => $sellerOrder->courierFeeMinor(),

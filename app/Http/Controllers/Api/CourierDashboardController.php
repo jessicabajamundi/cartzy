@@ -7,6 +7,7 @@ use App\Models\DeliveryEvent;
 use App\Models\PickupRequest;
 use App\Models\Rider;
 use App\Models\Shipment;
+use App\Services\HubToHubService;
 use App\Services\RiderAttendanceService;
 use Illuminate\Http\Request;
 
@@ -31,6 +32,7 @@ class CourierDashboardController extends Controller
         $pickups = $this->pickupsToDo($rider);
         $inVehicle = $this->inVehicle($rider);
         $handedOver = $this->handedToHub($rider);
+        $linehaul = $this->linehaulTransfers($rider);
         $today = now('Asia/Manila')->startOfDay()->utc();
 
         return response()->json([
@@ -63,10 +65,12 @@ class CourierDashboardController extends Controller
                     ->whereHas('deliveryEvents', fn ($q) => $q->where('status', 'picked_up')->where('occurred_at', '>=', $today))
                     ->count(),
                 'handed_to_hub_today' => Shipment::where('pickup_rider_id', $rider->id)->where('received_at', '>=', $today)->count(),
+                'linehaul_in_transit' => $linehaul->where('is_in_transit', true)->count(),
             ],
             'pickups' => $pickups->values(),
             'in_vehicle' => $inVehicle->values(),
             'handed_to_hub' => $handedOver->values(),
+            'linehaul_transfers' => $linehaul->values(),
         ]);
     }
 
@@ -138,6 +142,89 @@ class CourierDashboardController extends Controller
     {
         return DeliveryEvent::where('shipment_id', $shipment->id)->where('status', 'picked_up')
             ->latest('occurred_at')->first()?->occurred_at?->toIso8601String();
+    }
+
+    public function dispatchLinehaul(Request $request, int $id)
+    {
+        $rider = $request->user()->rider;
+        if (!$rider || $rider->status !== 'approved' || !$rider->canCarryLinehaul()) {
+            return response()->json(['message' => 'Only approved Hub-to-Hub or First Mile couriers can dispatch linehaul parcels.'], 403);
+        }
+
+        $shipment = Shipment::where('origin_hub_id', $rider->logistics_provider_id)
+            ->where(function ($q) use ($rider) {
+                $q->whereNull('linehaul_courier_id')->orWhere('linehaul_courier_id', $rider->id);
+            })
+            ->findOrFail($id);
+
+        $updated = app(HubToHubService::class)->dispatchToDestinationHub($shipment, $rider->id, null, $request->user()->id);
+
+        return response()->json([
+            'message' => "Parcel {$updated->tracking_code} is now in Hub-to-Hub transit to {$updated->destinationHub?->name}.",
+            'transfer' => $this->linehaulJson($updated),
+        ]);
+    }
+
+    public function arriveLinehaul(Request $request, int $id)
+    {
+        $rider = $request->user()->rider;
+        if (!$rider || $rider->status !== 'approved' || !$rider->canCarryLinehaul()) {
+            return response()->json(['message' => 'Only approved Hub-to-Hub or First Mile couriers can complete linehaul transfers.'], 403);
+        }
+
+        $shipment = Shipment::where(function ($q) use ($rider) {
+                $q->where('linehaul_courier_id', $rider->id)
+                  ->orWhere('origin_hub_id', $rider->logistics_provider_id);
+            })
+            ->whereNotNull('dispatched_to_hub_at')
+            ->whereNull('arrived_at_destination_hub_at')
+            ->findOrFail($id);
+
+        $updated = app(HubToHubService::class)->receiveAtDestinationHub($shipment, $request->user()->id);
+
+        return response()->json([
+            'message' => "Parcel {$updated->tracking_code} handed over at {$updated->destinationHub?->name}.",
+            'transfer' => $this->linehaulJson($updated),
+        ]);
+    }
+
+    /** Hub-to-Hub transfers assigned to this courier or waiting at their origin hub. */
+    private function linehaulTransfers(Rider $rider)
+    {
+        if (!$rider->canCarryLinehaul()) {
+            return collect();
+        }
+
+        return Shipment::with(['originHub', 'destinationHub', 'sellerOrder.seller', 'sellerOrder.order'])
+            ->whereNotNull('origin_hub_id')
+            ->whereNotNull('destination_hub_id')
+            ->whereColumn('origin_hub_id', '!=', 'destination_hub_id')
+            ->whereNull('arrived_at_destination_hub_at')
+            ->whereNotNull('received_at')
+            ->where(function ($q) use ($rider) {
+                $q->where('linehaul_courier_id', $rider->id)
+                  ->orWhere(function ($oq) use ($rider) {
+                      $oq->where('origin_hub_id', $rider->logistics_provider_id)
+                         ->whereNull('linehaul_courier_id');
+                  });
+            })
+            ->latest('updated_at')
+            ->get()
+            ->map(fn (Shipment $s) => $this->linehaulJson($s));
+    }
+
+    private function linehaulJson(Shipment $s): array
+    {
+        return [
+            'id' => $s->id,
+            'tracking_code' => $s->tracking_code,
+            'order_reference' => $s->sellerOrder?->order?->reference,
+            'origin_hub' => $s->originHub?->name ?? 'Origin Hub',
+            'destination_hub' => $s->destinationHub?->name ?? 'Destination Hub',
+            'is_in_transit' => $s->isInHubToHubTransit(),
+            'dispatched_at' => $s->dispatched_to_hub_at?->toIso8601String(),
+            'arrived_at' => $s->arrived_at_destination_hub_at?->toIso8601String(),
+        ];
     }
 
     private function parcel(Shipment $shipment, ?string $at): array

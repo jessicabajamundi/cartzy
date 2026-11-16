@@ -13,6 +13,7 @@ use App\Models\Rider;
 use App\Models\Shipment;
 use App\Models\User;
 use App\Services\DeliveryAssignment;
+use App\Services\HubToHubService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -1150,7 +1151,7 @@ class LogisticsPortalController extends Controller
 
     private const NO_LAST_MILE = 'No online, active Last Mile couriers. Riders must time in or set their availability to online.';
 
-    public const HUB_TABS = ['receive' => 'Receive', 'sort' => 'Sort', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
+    public const HUB_TABS = ['receive' => 'Receive', 'sort' => 'Sort', 'linehaul' => 'Hub-to-Hub', 'assign' => 'Assign rider', 'assigned' => 'Assigned'];
 
     public function hub(Request $request)
     {
@@ -1160,6 +1161,8 @@ class LogisticsPortalController extends Controller
 
         $stageOf = function (array $p): ?string {
             if ($p['status'] === 'pending_receipt') return 'receive';
+            if ($p['requires_hub_to_hub'] && !$p['is_in_linehaul_transit'] && !$p['arrived_at_destination_hub']) return 'linehaul';
+            if ($p['is_in_linehaul_transit']) return null;
             if ($p['sort_status'] === 'unsorted') return 'sort';
             if ($p['sort_status'] === 'sorted' && !$p['assigned_rider_id']) return 'assign';
             if ($p['delivery_status'] === 'at_hub') return 'assigned'; // assigned, not yet picked up by the rider
@@ -1171,7 +1174,7 @@ class LogisticsPortalController extends Controller
         $tab = $request->query('tab');
         if (!array_key_exists((string) $tab, self::HUB_TABS)) {
             // Open on the first step that has work waiting.
-            $tab = collect(['receive', 'sort', 'assign'])->first(fn ($key) => $counts[$key] > 0) ?? 'assigned';
+            $tab = collect(['receive', 'sort', 'linehaul', 'assign'])->first(fn ($key) => $counts[$key] > 0) ?? 'assigned';
         }
 
         $filtered = $all->where('stage', $tab)->filter(fn ($p) => $search === '' || mb_stripos(
@@ -1199,7 +1202,25 @@ class LogisticsPortalController extends Controller
         $sortSuggestable = $all->where('stage', 'sort')->whereNotNull('suggested_area')->count();
         $processable = $counts['receive'] + $sortSuggestable + ($riderModels->isNotEmpty() ? $counts['assign'] : 0);
 
-        return view('logistics.hub', compact('hub', 'tab', 'counts', 'parcels', 'search', 'riders', 'processable', 'sortSuggestable'));
+        $linehaulCouriers = Rider::where('logistics_provider_id', $provider->id)
+            ->availableForLinehaul()
+            ->with('user')
+            ->get()
+            ->map(fn ($r) => [
+                'id' => $r->id,
+                'name' => $r->user->name ?? 'Courier',
+                'type' => $r->courierTypeLabel(),
+                'vehicle' => $r->vehicle_type ? ucfirst($r->vehicle_type) : 'Van/Truck',
+            ])
+            ->values()
+            ->all();
+
+        $otherHubs = LogisticsProvider::where('status', 'approved')
+            ->where('id', '!=', $provider->id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return view('logistics.hub', compact('hub', 'tab', 'counts', 'parcels', 'search', 'riders', 'processable', 'sortSuggestable', 'linehaulCouriers', 'otherHubs'));
     }
 
     /** The old Incoming Parcels / Sorting / Delivery Assignment pages now open the matching Hub Desk tab. */
@@ -1221,7 +1242,20 @@ class LogisticsPortalController extends Controller
     public function receiveParcel(Request $request, $id)
     {
         $provider = $this->provider();
-        $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
+        $shipment = Shipment::where(function ($q) use ($provider) {
+            $q->where('logistics_provider_id', $provider->id)
+              ->orWhere('destination_hub_id', $provider->id);
+        })->findOrFail($id);
+
+        if ($shipment->isInHubToHubTransit() && (int) $shipment->destination_hub_id === (int) $provider->id) {
+            $updated = app(HubToHubService::class)->receiveAtDestinationHub($shipment, Auth::id());
+            $area = $this->suggestDeliveryArea($this->shipmentAddress($updated));
+            if ($area) {
+                $this->sortShipment($updated, $area, "Auto-sorted to {$area} upon arrival at destination hub.");
+            }
+            app(DeliveryAssignment::class)->assign($updated->fresh(), actorId: Auth::id());
+            return back()->with('success', "{$updated->tracking_code} arrived at {$provider->name} and is ready for local Last Mile delivery.");
+        }
 
         if ($shipment->received_at) {
             return back()->with('success', 'This parcel has already been received.');
@@ -1277,6 +1311,28 @@ class LogisticsPortalController extends Controller
                 return response()->json(['success' => false, 'message' => "No parcel found matching \"{$code}\"."], 404);
             }
             return back()->with('error', "No parcel found matching \"{$code}\".");
+        }
+
+        if ($shipment->isInHubToHubTransit() && (int) $shipment->destination_hub_id === (int) $provider->id) {
+            $updated = app(HubToHubService::class)->receiveAtDestinationHub($shipment, Auth::id());
+            $area = $this->suggestDeliveryArea($this->shipmentAddress($updated));
+            if ($area) {
+                $this->sortShipment($updated, $area, "Auto-sorted to {$area} upon arrival at destination hub.");
+            }
+            app(DeliveryAssignment::class)->assign($updated->fresh(), actorId: Auth::id());
+            $msg = "Parcel {$updated->tracking_code} arrived at destination hub ({$provider->name}) and is ready for Last Mile delivery.";
+            if ($request->expectsJson() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'parcel' => [
+                        'tracking_code' => $updated->tracking_code,
+                        'status' => 'arrived_at_destination_hub',
+                        'delivery_area' => $updated->fresh()->delivery_area,
+                    ],
+                ]);
+            }
+            return back()->with('success', $msg);
         }
 
         if ($shipment->received_at) {
@@ -1638,6 +1694,55 @@ class LogisticsPortalController extends Controller
         app(DeliveryAssignment::class)->assign($shipment, (int) $riderId, Auth::id());
 
         return back()->with('success', "{$shipment->tracking_code} assigned to ".($rider->user->name ?? 'the rider').'.');
+    }
+
+    public function dispatchHubToHub(Request $request, int $id)
+    {
+        $provider = $this->provider();
+        $shipment = Shipment::where('logistics_provider_id', $provider->id)->findOrFail($id);
+        $data = $request->validate([
+            'courier_id' => ['nullable', 'integer', 'exists:riders,id'],
+            'destination_hub_id' => ['nullable', 'integer', 'exists:logistics_providers,id'],
+        ]);
+
+        $updated = app(HubToHubService::class)->dispatchToDestinationHub(
+            $shipment,
+            isset($data['courier_id']) && $data['courier_id'] !== '' ? (int) $data['courier_id'] : null,
+            isset($data['destination_hub_id']) && $data['destination_hub_id'] !== '' ? (int) $data['destination_hub_id'] : null,
+            Auth::id()
+        );
+
+        $destName = $updated->destinationHub?->name ?? 'Destination Hub';
+        return back()->with('success', "{$updated->tracking_code} dispatched for Hub-to-Hub transit to {$destName}.");
+    }
+
+    public function dispatchAllHubToHub(Request $request)
+    {
+        $provider = $this->provider();
+        $data = $request->validate([
+            'courier_id' => ['nullable', 'integer', 'exists:riders,id'],
+        ]);
+        $courierId = isset($data['courier_id']) && $data['courier_id'] !== '' ? (int) $data['courier_id'] : null;
+
+        $waiting = Shipment::where('logistics_provider_id', $provider->id)
+            ->whereNotNull('received_at')
+            ->whereNotNull('origin_hub_id')
+            ->whereNotNull('destination_hub_id')
+            ->whereColumn('origin_hub_id', '!=', 'destination_hub_id')
+            ->whereNull('dispatched_to_hub_at')
+            ->whereNull('arrived_at_destination_hub_at')
+            ->get();
+
+        $service = app(HubToHubService::class);
+        $count = 0;
+        foreach ($waiting as $shipment) {
+            $service->dispatchToDestinationHub($shipment, $courierId, null, Auth::id());
+            $count++;
+        }
+
+        return back()->with('success', $count > 0
+            ? "Dispatched {$count} parcel(s) for Hub-to-Hub transit."
+            : 'No parcels waiting for Hub-to-Hub dispatch.');
     }
 
     /**
@@ -2484,8 +2589,15 @@ class LogisticsPortalController extends Controller
 
     private function fetchFormattedParcels(LogisticsProvider $provider, ?int $limit = null, string $filter = 'all'): array
     {
-        $query = Shipment::where('logistics_provider_id', $provider->id)
-            ->with(['sellerOrder.seller.user', 'sellerOrder.order.buyer', 'sellerOrder.items', 'rider.user']);
+        $query = Shipment::where(function ($q) use ($provider) {
+                $q->where('logistics_provider_id', $provider->id)
+                  ->orWhere(function ($dq) use ($provider) {
+                      $dq->where('destination_hub_id', $provider->id)
+                         ->whereNotNull('dispatched_to_hub_at')
+                         ->whereNull('arrived_at_destination_hub_at');
+                  });
+            })
+            ->with(['sellerOrder.seller.user', 'sellerOrder.order.buyer', 'sellerOrder.items', 'rider.user', 'originHub', 'destinationHub', 'linehaulCourier.user']);
 
         if ($filter === 'received') {
             $query->whereNotNull('received_at');
@@ -2497,7 +2609,7 @@ class LogisticsPortalController extends Controller
             $query->take($limit);
         }
 
-        return $query->latest()->get()->map(function ($s) {
+        return $query->latest()->get()->map(function ($s) use ($provider) {
             $order       = $s->sellerOrder?->order;
             $seller      = $s->sellerOrder?->seller;
             $itemsList   = $s->sellerOrder?->items?->pluck('product_name')->implode(', ');
@@ -2520,6 +2632,8 @@ class LogisticsPortalController extends Controller
                 default            => 'at_hub',
             };
 
+            $isIncomingLinehaul = $s->isInHubToHubTransit() && (int) $s->destination_hub_id === (int) $provider->id;
+
             return [
                 'id'                  => $s->id,
                 'tracking_code'       => $s->tracking_code,
@@ -2531,7 +2645,7 @@ class LogisticsPortalController extends Controller
                 'weight_kg'           => $s->weight_kg ?: 1.0,
                 'payment_method'      => $method,
                 'cod_amount'          => $codAmount,
-                'status'              => $s->received_at ? 'received' : 'pending_receipt',
+                'status'              => ($s->received_at && !$isIncomingLinehaul) ? 'received' : 'pending_receipt',
                 'handover_method'     => $s->handover_method ?: 'pickup',
                 'sort_status'         => $s->sort_status ?: 'unsorted',
                 'delivery_area'       => $s->delivery_area,
@@ -2541,6 +2655,17 @@ class LogisticsPortalController extends Controller
                 'assigned_rider_user_id' => $s->rider?->user_id,
                 'updated_at'          => $s->updated_at?->timezone('Asia/Manila')->format('M d, Y g:i A'),
                 'assigned_rider_name' => $s->rider?->user?->name,
+                'origin_hub_id'       => $s->origin_hub_id,
+                'origin_hub_name'     => $s->originHub?->name,
+                'destination_hub_id'  => $s->destination_hub_id,
+                'destination_hub_name'=> $s->destinationHub?->name,
+                'current_hub_id'      => $s->current_hub_id,
+                'requires_hub_to_hub' => $s->requiresHubToHub(),
+                'is_in_linehaul_transit' => $s->isInHubToHubTransit(),
+                'arrived_at_destination_hub' => $s->hasArrivedAtDestinationHub(),
+                'is_incoming_linehaul'=> $isIncomingLinehaul,
+                'linehaul_courier_id' => $s->linehaul_courier_id,
+                'linehaul_courier_name' => $s->linehaulCourier?->user?->name,
                 'barangay'            => self::extractBarangay($s),
                 'rescheduled_until'   => $s->rescheduled_until?->timezone('Asia/Manila')->format('M d, Y'),
                 'rescheduled_days_left' => $s->rescheduled_until ? max(0, (int) ceil(now()->diffInDays($s->rescheduled_until, false))) : null,

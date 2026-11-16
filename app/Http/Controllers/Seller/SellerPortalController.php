@@ -595,7 +595,11 @@ class SellerPortalController extends Controller
                     .(!empty($data['notes']) ? "\n".$data['notes'] : ''),
             ]);
             $shipment = Shipment::updateOrCreate(['seller_order_id' => $order->id], [
-                'logistics_provider_id' => $provider->id, 'tracking_code' => $shipment?->tracking_code ?? 'CTZ-'.Str::upper(Str::random(12)),
+                'logistics_provider_id' => $provider->id,
+                'origin_hub_id' => $provider->id,
+                'current_hub_id' => $provider->id,
+                'destination_hub_id' => $shipment?->destination_hub_id ?? $provider->id,
+                'tracking_code' => $shipment?->tracking_code ?? 'CTZ-'.Str::upper(Str::random(12)),
                 'status' => 'unassigned', 'handover_method' => $method, 'fee_minor' => $order->courierFeeMinor(),
                 'cod_amount_minor' => $shipment?->cod_amount_minor ?? ($order->order->payment_method === 'cod' ? $order->buyerDueMinor() : 0),
                 // A new choice of hub or method starts the First Mile over.

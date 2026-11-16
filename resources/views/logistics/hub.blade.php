@@ -31,20 +31,23 @@
     $steps = [
         'receive'  => ['Step 1', 'Receive', 'Parcels arriving at the hub', 'box'],
         'sort'     => ['Step 2', 'Sort', 'Address had no known area', 'file'],
-        'assign'   => ['Step 3', 'Assign rider', 'Sorted, waiting for a Last Mile courier', 'users'],
-        'assigned' => ['Step 4', 'Assigned', 'Waiting for rider pickup', 'truck'],
+        'linehaul' => ['Step 3', 'Hub-to-Hub', 'Bound for another hub via Courier', 'truck'],
+        'assign'   => ['Step 4', 'Assign rider', 'Sorted, waiting for a Last Mile rider', 'users'],
+        'assigned' => ['Step 5', 'Assigned', 'Waiting for rider pickup', 'truck'],
     ];
     $hints = [
-        'receive'  => 'Mark parcels received as they arrive. Each one is sorted automatically when its address names a delivery area.',
+        'receive'  => 'Mark parcels received as they arrive (including incoming Hub-to-Hub batches from other hubs). Each one is sorted automatically when its address names a delivery area.',
         'sort'     => 'These addresses didn’t match a delivery area. Check the suggestion or choose the closest area.',
-        'assign'   => 'Last Mile couriers deliver from the hub to the buyer. The best one for each parcel is already selected. Assign them all at once, or one at a time.',
+        'linehaul' => 'These parcels are bound for another Logistics Hub. Dispatch them with a Hub-to-Hub / First-Mile Courier so the destination hub can receive and deliver them.',
+        'assign'   => 'Last Mile riders deliver from this hub to the buyer. The best one for each parcel is already selected. Assign them all at once, or one at a time.',
         'assigned' => 'These parcels have a rider and are waiting to be picked up. Follow them in Delivery Monitoring.',
     ];
-    $next = collect(['receive', 'sort', 'assign'])->first(fn ($key) => $key !== $tab && $counts[$key] > 0); // for the empty state
+    $next = collect(['receive', 'sort', 'linehaul', 'assign'])->first(fn ($key) => $key !== $tab && $counts[$key] > 0); // for the empty state
     $bulk = [
-        'receive' => [$counts['receive'], 'logistics.parcels.receive-all', '✓ Receive all', 'Mark all :n waiting parcel(s) as received?'],
-        'sort'    => [$sortSuggestable, 'logistics.sorting.sort-suggested', 'Sort all to suggested areas', 'Sort :n parcel(s) into the areas found in their addresses?'],
-        'assign'  => [$riders ? $counts['assign'] : 0, 'logistics.assignments.auto-assign', 'Assign best riders to all', 'Assign the best-matching rider to all :n waiting parcel(s)?'],
+        'receive'  => [$counts['receive'], 'logistics.parcels.receive-all', '✓ Receive all', 'Mark all :n waiting parcel(s) as received?'],
+        'sort'     => [$sortSuggestable, 'logistics.sorting.sort-suggested', 'Sort all to suggested areas', 'Sort :n parcel(s) into the areas found in their addresses?'],
+        'linehaul' => [$counts['linehaul'], 'logistics.hub.dispatch-all', '🚚 Dispatch all Hub-to-Hub', 'Dispatch all :n parcel(s) for Hub-to-Hub transit?'],
+        'assign'   => [$riders ? $counts['assign'] : 0, 'logistics.assignments.auto-assign', 'Assign best riders to all', 'Assign the best-matching rider to all :n waiting parcel(s)?'],
     ][$tab] ?? null;
 @endphp
 <section class="hub-desk" aria-label="Hub desk">
@@ -178,9 +181,25 @@
                     <div class="hub-action">
                         @if($tab === 'receive')
                             <form method="POST" action="{{ route('logistics.parcels.receive', ['id' => $parcel['id']], false) }}" class="hub-once">@csrf
-                                <button type="submit" class="hub-button primary">✓ Receive</button>
+                                <button type="submit" class="hub-button primary">{{ !empty($parcel['is_incoming_linehaul']) ? '✓ Receive from '.$parcel['origin_hub_name'] : '✓ Receive' }}</button>
                             </form>
-                            <small>{{ $parcel['suggested_area'] ? 'Will sort to '.$parcel['suggested_area'] : 'Will need an area' }}</small>
+                            <small>{{ !empty($parcel['is_incoming_linehaul']) ? 'Hub-to-Hub arrival from '.$parcel['origin_hub_name'] : ($parcel['suggested_area'] ? 'Will sort to '.$parcel['suggested_area'] : 'Will need an area') }}</small>
+                        @elseif($tab === 'linehaul')
+                            <form method="POST" action="{{ route('logistics.hub.dispatch', ['id' => $parcel['id']], false) }}" class="hub-inline hub-once" style="flex-wrap: wrap;">@csrf
+                                <select name="destination_hub_id" aria-label="Destination hub for {{ $parcel['tracking_code'] }}">
+                                    @foreach($otherHubs ?? [] as $otherHub)
+                                        <option value="{{ $otherHub->id }}" @selected($otherHub->id === ($parcel['destination_hub_id'] ?? null))>→ {{ $otherHub->name }}</option>
+                                    @endforeach
+                                </select>
+                                <select name="courier_id" aria-label="Linehaul courier for {{ $parcel['tracking_code'] }}">
+                                    <option value="">Any Hub-to-Hub Courier</option>
+                                    @foreach($linehaulCouriers ?? [] as $lc)
+                                        <option value="{{ $lc['id'] }}">{{ $lc['name'] }} ({{ $lc['type'] }} · {{ $lc['vehicle'] }})</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="hub-button primary">🚚 Dispatch Hub-to-Hub</button>
+                            </form>
+                            <small>Destination: {{ $parcel['destination_hub_name'] ?? 'Destination Hub' }}</small>
                         @elseif($tab === 'sort')
                             <form method="POST" action="{{ route('logistics.sorting.sort', ['id' => $parcel['id']], false) }}" class="hub-inline hub-once">@csrf
                                 <label class="hub-sr" for="area-{{ $parcel['id'] }}">Delivery area for {{ $parcel['tracking_code'] }}</label>

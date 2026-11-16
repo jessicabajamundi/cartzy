@@ -43,6 +43,7 @@ class DeliveryAssignment
         return DB::transaction(function () use ($shipment, $riderId, $actorId) {
             $parcel = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
             if (!$parcel->received_at || !in_array($parcel->status, self::HUB_STATUSES, true)
+                || ($parcel->requiresHubToHub() && !$parcel->hasArrivedAtDestinationHub())
                 || in_array($parcel->sellerOrder?->status, ['cancelled', 'canceled', 'delivered', 'completed'], true)) {
                 if ($riderId !== null) {
                     throw ValidationException::withMessages(['rider_id' => 'Only parcels still at the hub can be assigned.']);
