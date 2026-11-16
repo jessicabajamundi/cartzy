@@ -2,16 +2,16 @@
    Colours merge Cartzy's two palettes — lavender & deep violet for structure, rose gold & blush for accents. */
 .acct {
     --acct-ink: var(--dm-ink, #282133);
-    --acct-violet: #564B68;
+    --acct-violet: var(--dm-accent-ink, #564B68);
     --acct-lavender: #6F6382;
     --acct-muted: var(--dm-muted, #776E83);
     --acct-line: var(--dm-border, #E1DDE7);
-    --acct-lilac: #F1EFF5;
+    --acct-lilac: var(--dm-elevated, #F1EFF5);
     --acct-soft: var(--dm-surface, #FAF9FB);
     --acct-rose: #C08B7F;
     --acct-rose-soft: #D4A69A;
     --acct-rose-ink: var(--dm-muted, #8C5A50);
-    --acct-blush: #FFF5F3;
+    --acct-blush: var(--dm-elevated, #FFF5F3);
     --acct-blush-line: var(--dm-border, #F5CFC7);
     --acct-gradient: linear-gradient(120deg, #564B68 0%, #6F6382 45%, #C08B7F 100%);
     display: grid;
@@ -65,7 +65,7 @@ body:has(.acct-banner) { overflow-x: clip; } /* 100vw includes the scrollbar; do
     box-shadow: 0 10px 30px -22px rgba(40, 33, 51, .35);
 }
 .acct-who { display: flex; align-items: center; flex-shrink: 0; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--acct-line); background: linear-gradient(135deg, var(--acct-soft), var(--acct-blush)); }
-.acct-who-avatar { display: grid; place-items: center; flex: 0 0 38px; height: 38px; overflow: hidden; border-radius: 50%; background: var(--acct-lilac); color: var(--acct-violet); font-size: 17px; font-weight: 900; box-shadow: 0 0 0 3px #fff, 0 0 0 4.5px var(--acct-blush-line); }
+.acct-who-avatar { display: grid; place-items: center; flex: 0 0 38px; height: 38px; overflow: hidden; border-radius: 50%; background: var(--acct-lilac); color: var(--acct-violet); font-size: 17px; font-weight: 900; box-shadow: 0 0 0 3px var(--dm-surface, #fff), 0 0 0 4.5px var(--acct-blush-line); }
 .acct-who-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .acct-who-text { min-width: 0; }
 .acct-who-name { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
@@ -95,7 +95,7 @@ body:has(.acct-banner) { overflow-x: clip; } /* 100vw includes the scrollbar; do
 .acct-nav-item::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--acct-gradient); transform: scaleY(0); transition: transform .25s ease; }
 .acct-nav-item:hover { background: var(--acct-soft); color: var(--dm-accent-ink, var(--acct-violet)); transform: translateX(3px); }
 .acct-nav-item:hover svg { color: var(--acct-rose); transform: scale(1.12); }
-.acct-nav-item[aria-current="true"] { background: linear-gradient(90deg, var(--acct-lilac), var(--acct-blush)); color: var(--dm-on-light, var(--acct-ink)); font-weight: 700; }
+.acct-nav-item[aria-current="true"] { background: linear-gradient(90deg, var(--acct-lilac), var(--acct-blush)); color: var(--acct-ink); font-weight: 700; }
 .acct-nav-item[aria-current="true"] svg { color: var(--acct-rose-ink); }
 .acct-nav-item[aria-current="true"]::before { transform: scaleY(1); }
 .acct-nav-item:focus-visible { outline: 2px solid var(--acct-rose); outline-offset: 2px; }
@@ -125,9 +125,9 @@ body:has(.acct-banner) { overflow-x: clip; } /* 100vw includes the scrollbar; do
 .acct-lead { margin: 6px 0 0; color: var(--acct-muted); font-size: 13px; line-height: 1.6; }
 .acct-badge { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .acct-badge svg { width: 14px; height: 14px; }
-.acct-badge-verified { background: var(--acct-lilac); color: var(--acct-violet); box-shadow: inset 0 0 0 1px var(--acct-line); }
+.acct-badge-verified { background: var(--dm-green-surface, var(--acct-lilac)); color: var(--dm-green-ink, var(--acct-violet)); box-shadow: inset 0 0 0 1px var(--acct-line); }
 .acct-badge-pending { background: var(--dm-gold-surface, #FFF8E8); color: var(--dm-gold-ink, #8A5A00); box-shadow: inset 0 0 0 1px #F3DDA8; }
-.acct-badge-unverified { background: var(--acct-blush); color: var(--dm-on-light, var(--acct-rose-ink)); box-shadow: inset 0 0 0 1px var(--acct-blush-line); }
+.acct-badge-unverified { background: var(--acct-blush); color: var(--dm-red-ink, var(--acct-rose-ink)); box-shadow: inset 0 0 0 1px var(--acct-blush-line); }
 
 /* Photo row */
 .acct-photo { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--acct-line); }
@@ -211,7 +211,7 @@ body:has(.acct-banner) { overflow-x: clip; } /* 100vw includes the scrollbar; do
 .acct-divider { height: 1px; margin: 22px 0; background: var(--acct-line); }
 .acct-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px 14px; border-radius: 12px; background: linear-gradient(120deg, var(--acct-soft), var(--acct-blush)); }
 .acct-row strong { display: block; font-size: 13.5px; }
-.acct-row span { color: var(--acct-muted); font-size: 12.5px; overflow-wrap: anywhere; }
+.acct-row > div > span { color: var(--acct-muted); font-size: 12.5px; overflow-wrap: anywhere; }
 .acct-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--acct-line); color: var(--acct-muted); font-size: 12.5px; }
 
 /* Buttons: gradient primary with a light sweep, outline secondary; both lift and press. */
