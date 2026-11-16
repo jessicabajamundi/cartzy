@@ -1,6 +1,21 @@
 @once
 <style>
 .commerce-page { max-width:1180px; margin-inline:auto; color:var(--dm-ink, #3E354C); }
+/* Both cart columns keep their own visible panel in either theme. */
+@media screen {
+    .commerce-cart :is(.cart-items-panel, .cart-summary) {
+        background:var(--dm-surface, #FFFFFF) !important;
+        border:1px solid #DDD5E3 !important;
+        border-radius:24px;
+        box-shadow:0 8px 24px rgba(40,33,51,.06);
+    }
+    html[data-theme="dark"] .commerce-cart :is(.cart-items-panel, .cart-summary) {
+        background:#211C23 !important;
+        border:2px solid #75627E !important;
+        box-shadow:0 8px 24px rgba(0,0,0,.18);
+    }
+    .commerce-cart .cart-summary { padding:24px; }
+}
 .commerce-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; padding:8px 0 26px; margin-bottom:0; }
 .commerce-eyebrow { margin:0 0 10px; color:var(--dm-muted, #95695F); font:800 10px/1.5 'Inter',sans-serif; letter-spacing:.16em; text-transform:uppercase; }
 .commerce-heading h1,.commerce-heading h2 { font:800 clamp(27px,3vw,34px)/1.2 'Inter',sans-serif; letter-spacing:-.9px; color:var(--dm-ink, #3E354C); margin:0; }

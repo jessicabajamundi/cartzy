@@ -692,13 +692,7 @@ html[data-theme="dark"] :is(.discovery-tag-delivery, .discovery-tag, .flash-deli
     color: var(--dm-green-ink) !important;
 }
 
-/* Keep the cart open and readable, including its translucent light utilities. */
-html[data-theme="dark"] .commerce-cart :is(.cart-items-panel, .cart-summary) {
-    background: transparent !important;
-    border: 0 !important;
-    border-radius: 0;
-    box-shadow: none;
-}
+/* Cart panel backgrounds and borders are defined in commerce-style. */
 html[data-theme="dark"] .commerce-cart :is(.cart-table-heading, .cart-shop-heading, .cart-item-row, .cart-qty-form, .cart-qty-btn),
 html[data-theme="dark"] .commerce-cart :is(.cart-item-row, .cart-qty-btn):hover {
     background: transparent !important;
