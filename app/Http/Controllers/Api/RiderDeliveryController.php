@@ -56,9 +56,22 @@ class RiderDeliveryController extends Controller
             'code' => ['required', 'string', 'max:500'],
             'received_by' => ['nullable', 'string', 'max:150'],
             'note' => ['nullable', 'string', 'max:500'],
+            'proof_photo' => ['nullable', 'image', 'max:5120'],
         ]);
 
-        return $this->run($request, fn (Rider $rider) => $this->deliveries->deliver($rider, $id, $data['code'], $data['received_by'] ?? null, $data['note'] ?? null));
+        $proofPath = null;
+        if ($request->hasFile('proof_photo') && $request->file('proof_photo')->isValid()) {
+            $proofPath = $request->file('proof_photo')->store('delivery_proofs', 'public');
+        }
+
+        return $this->run($request, fn (Rider $rider) => $this->deliveries->deliver(
+            $rider,
+            $id,
+            $data['code'],
+            $data['received_by'] ?? null,
+            $data['note'] ?? null,
+            $proofPath
+        ));
     }
 
     public function fail(Request $request, int $id): JsonResponse
@@ -122,6 +135,7 @@ class RiderDeliveryController extends Controller
             'is_cod' => $order?->payment_method === 'cod',
             'cod_amount' => self::codMinor($shipment) / 100,
             'attempts' => (int) $shipment->attempts,
+            'delivery_proof_url' => $shipment->delivery_proof_url,
             'assigned_at' => $shipment->assigned_at?->toIso8601String(),
         ];
     }

@@ -37,9 +37,9 @@ class RiderDeliveries
      *
      * @return array{shipment: Shipment, already: bool, message: string}
      */
-    public function deliver(Rider $rider, int $shipmentId, string $code, ?string $receivedBy, ?string $note): array
+    public function deliver(Rider $rider, int $shipmentId, string $code, ?string $receivedBy, ?string $note, ?string $proofPhotoPath = null): array
     {
-        return DB::transaction(function () use ($rider, $shipmentId, $code, $receivedBy, $note) {
+        return DB::transaction(function () use ($rider, $shipmentId, $code, $receivedBy, $note, $proofPhotoPath) {
             $shipment = $this->mine($rider, $shipmentId);
             if ($shipment->status === 'delivered') {
                 return ['shipment' => $shipment, 'already' => true, 'message' => "Parcel {$shipment->tracking_code} was already delivered."];
@@ -55,8 +55,12 @@ class RiderDeliveries
             $recipient = trim((string) $receivedBy) !== '' ? trim($receivedBy) : ($order?->shipping_address['recipient'] ?? 'the buyer');
             $riderName = $rider->user?->name ?? 'your rider';
 
-            $shipment->update(['status' => 'delivered', 'cod_collected' => $isCod]);
-            $sellerOrder->update(['status' => 'delivered', 'delivered_at' => now()]);
+            $shipment->update([
+                'status' => 'delivered',
+                'cod_collected' => $isCod,
+                'delivery_proof_photo' => $proofPhotoPath ?: $shipment->delivery_proof_photo,
+            ]);
+            $sellerOrder->update(['status' => 'completed', 'delivered_at' => now()]);
             if ($isCod && $order) {
                 $order->update(['payment_status' => 'paid']);
                 $order->payments()->where('status', 'pending')->update(['status' => 'completed']);

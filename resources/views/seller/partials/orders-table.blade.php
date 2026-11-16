@@ -133,6 +133,9 @@
             @if($handedOver)
                 <span class="so-handover">@include('seller.partials.icon', ['name' => 'check', 'size' => 18])<span>Handover confirmed</span></span>
             @endif
+            @if($shipment?->delivery_proof_url)
+                <a class="button small secondary" href="{{ $shipment->delivery_proof_url }}" target="_blank" rel="noopener">Proof of Delivery ↗</a>
+            @endif
             @if($shipment && !in_array($order->status, ['cancelled', 'delivered', 'completed'], true) && $shipment->status !== 'delivered')
                 <a class="button small secondary so-print" href="{{ route('seller.orders.waybill', ['id' => $order->id, 'print' => 1]) }}">@include('seller.partials.icon', ['name' => 'printer', 'size' => 16])<span>Print waybill</span></a>
             @endif

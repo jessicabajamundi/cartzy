@@ -49,6 +49,7 @@ class Shipment extends Model
         'cod_remittance_method',
         'cod_remittance_ref',
         'cod_remittance_notes',
+        'delivery_proof_photo',
         'attempts',
     ];
 
@@ -160,6 +161,18 @@ class Shipment extends Model
     public function getCodAmountAttribute(): float
     {
         return $this->cod_amount_minor / 100;
+    }
+
+    public function getDeliveryProofUrlAttribute(): ?string
+    {
+        if (empty($this->delivery_proof_photo)) {
+            return null;
+        }
+        if (str_starts_with($this->delivery_proof_photo, 'http://') || str_starts_with($this->delivery_proof_photo, 'https://')) {
+            return $this->delivery_proof_photo;
+        }
+
+        return asset('storage/' . ltrim($this->delivery_proof_photo, '/'));
     }
 
     public function codRemittedBy()

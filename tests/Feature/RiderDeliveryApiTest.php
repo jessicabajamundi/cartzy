@@ -99,7 +99,7 @@ class RiderDeliveryApiTest extends TestCase
         $parcel->refresh();
         $this->assertSame('delivered', $parcel->status);
         $this->assertTrue($parcel->cod_collected);
-        $this->assertSame('delivered', $parcel->sellerOrder->status);
+        $this->assertSame('completed', $parcel->sellerOrder->status);
         $this->assertSame('paid', $parcel->sellerOrder->order->payment_status);
         $this->assertStringContainsString('Maria (sister)', DeliveryEvent::where('shipment_id', $parcel->id)->where('status', 'delivered')->value('note'));
         $this->assertContains('Order delivered', AppNotification::where('user_id', $parcel->sellerOrder->order->buyer_id)->pluck('title')->all());
