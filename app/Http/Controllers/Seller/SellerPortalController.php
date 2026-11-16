@@ -385,6 +385,17 @@ class SellerPortalController extends Controller
             if ($decision === 'accepted') {
                 $order->update(['status' => 'accepted']);
 
+                if ($order->shipment) {
+                    $order->shipment->deliveryEvents()->firstOrCreate(
+                        ['status' => 'order_accepted', 'attempt' => 1],
+                        [
+                            'user_id' => Auth::id(),
+                            'note' => "Order accepted by {$shop->name}.",
+                            'occurred_at' => now(),
+                        ]
+                    );
+                }
+
                 app(\App\Services\OrderAcceptanceMessage::class)->send($order);
                 return;
             }

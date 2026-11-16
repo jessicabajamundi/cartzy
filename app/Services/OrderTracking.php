@@ -25,6 +25,7 @@ class OrderTracking
         $destHubName = $shipment?->destinationHub?->name ?? 'Destination Hub';
         if ($isDropoff) {
             $definitions = [
+                'order_accepted' => ['Awaiting seller confirmation', 'Waiting for the seller to accept or reject your order.'],
                 'packed' => ['Packed by seller', 'Seller preparation and packing.'],
                 'dropoff' => ['Dropped off by seller', 'The seller dropped off the parcel at the logistics hub.'],
                 'received_at_hub' => ['Received at sorting hub', 'The parcel is scanned at the logistics hub.'],
@@ -39,6 +40,7 @@ class OrderTracking
             ];
         } else {
             $definitions = [
+                'order_accepted' => ['Awaiting seller confirmation', 'Waiting for the seller to accept or reject your order.'],
                 'packed' => ['Packed by seller', 'Seller preparation and packing.'],
                 'pickup_requested' => ['Pickup requested', 'The seller requests rider collection.'],
                 'pickup_confirmed' => ['Pickup schedule confirmed', 'The logistics partner confirms the pickup request.'],
@@ -56,6 +58,7 @@ class OrderTracking
             ];
         }
         $labels = array_map(fn ($definition) => $definition[0], $definitions) + [
+            'order_accepted' => 'Accepted by seller',
             'arrived_at_destination_hub' => 'Arrived at destination hub',
             'dropoff' => 'Dropped off by seller',
             'dropoff_requested' => 'Drop-off requested',
@@ -112,6 +115,24 @@ class OrderTracking
                     'detail' => $detail,
                     'time' => $isReceivedAtHub ? ($format($time ?? $shipment?->received_at) ?? 'Time not recorded') : 'Awaiting update',
                     'done' => $isReceivedAtHub,
+                ];
+                continue;
+            }
+
+            if ($status === 'order_accepted') {
+                $isAccepted = $event !== null
+                    || in_array($order->status, ['accepted', 'packed', 'ready_to_ship', 'shipped', 'delivered', 'completed'], true);
+                $isRejected = $order->status === 'cancelled' && !$isAccepted;
+
+                $steps[] = [
+                    'label' => $isAccepted ? 'Accepted by seller' : ($isRejected ? 'Order rejected by seller' : 'Awaiting seller confirmation'),
+                    'detail' => $isAccepted
+                        ? 'The seller accepted your order and is preparing it.'
+                        : ($isRejected ? ($order->note ?: 'The seller rejected this order.') : 'Waiting for the seller to accept or reject your order.'),
+                    'time' => $isAccepted
+                        ? ($format($event?->occurred_at) ?? 'Confirmed')
+                        : ($isRejected ? ($format($order->updated_at) ?? 'Rejected') : 'Waiting for seller'),
+                    'done' => $isAccepted,
                 ];
                 continue;
             }
