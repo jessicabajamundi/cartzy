@@ -84,7 +84,7 @@ html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
 }
 
 /* Storefront Header & Navigation */
-html[data-theme="dark"] header,
+html[data-theme="dark"] body > header,
 html[data-theme="dark"] .site-header,
 html[data-theme="dark"] .header-primary {
     background-color: #171419 !important;
@@ -93,8 +93,8 @@ html[data-theme="dark"] .header-primary {
 
 html[data-theme="dark"] .header-search,
 html[data-theme="dark"] .header-search-input,
-html[data-theme="dark"] header input[type="search"],
-html[data-theme="dark"] header input[type="text"] {
+html[data-theme="dark"] body > header input[type="search"],
+html[data-theme="dark"] body > header input[type="text"] {
     background-color: #211C23 !important;
     border-color: #3A313E !important;
     color: #F4EEF5 !important;
@@ -247,7 +247,7 @@ html[data-theme="dark"] .cartzy-theme-toggle .icon-sun { display: block; }
 html[data-theme="dark"] .cartzy-theme-toggle .icon-moon { display: none; }
 
 /* Header Logo */
-html[data-theme="dark"] header img[alt="cartzy"],
+html[data-theme="dark"] body > header img[alt="cartzy"],
 html[data-theme="dark"] .brand img[alt="cartzy"],
 html[data-theme="dark"] .brand img {
     filter: brightness(0) invert(1);
@@ -681,6 +681,53 @@ html[data-theme="dark"] .text-rose-800 { color: var(--dm-red-ink) !important; }
 html[data-theme="dark"] .text-rose-900 { color: var(--dm-red-ink) !important; }
 html[data-theme="dark"] .text-slate-500 { color: var(--dm-muted) !important; }
 html[data-theme="dark"] .text-violet-700 { color: var(--dm-accent-ink) !important; }
+
+/* Delivery and shipping labels read as plain text across the catalog. */
+html[data-theme="dark"] :is(.discovery-tag-delivery, .discovery-tag, .flash-delivery-badge, .flash-free-shipping, .st-delivery, .st-free-shipping) {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding-inline: 0 !important;
+    color: var(--dm-green-ink) !important;
+}
+
+/* Keep the cart open and readable, including its translucent light utilities. */
+html[data-theme="dark"] .commerce-cart :is(.cart-items-panel, .cart-summary) {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0;
+    box-shadow: none;
+}
+html[data-theme="dark"] .commerce-cart :is(.cart-table-heading, .cart-shop-heading, .cart-item-row, .cart-qty-form, .cart-qty-btn),
+html[data-theme="dark"] .commerce-cart :is(.cart-item-row, .cart-qty-btn):hover {
+    background: transparent !important;
+    border-color: var(--dm-border) !important;
+}
+html[data-theme="dark"] .commerce-cart :is(.text-gray-900, .text-gray-800, .text-gray-700, .cart-qty-btn) {
+    color: var(--dm-ink) !important;
+}
+html[data-theme="dark"] .commerce-cart :is(.text-gray-400, .text-gray-500, .text-gray-600) {
+    color: var(--dm-muted) !important;
+}
+html[data-theme="dark"] .commerce-cart .cart-qty-val {
+    background: transparent !important;
+    color: var(--dm-ink) !important;
+}
+html[data-theme="dark"] .commerce-cart .divide-gray-100 > :not(:last-child) {
+    border-color: var(--dm-border);
+}
+/* The checkout action stays still and has no passing shine on hover. */
+html[data-theme="dark"] .commerce-cart #cart-checkout-button {
+    background: #655274 !important;
+    color: #FFFFFF !important;
+    animation: none;
+    transform: none;
+    box-shadow: none;
+}
+html[data-theme="dark"] .commerce-cart #cart-checkout-button::after {
+    content: none;
+}
 }
 
 @media print {
