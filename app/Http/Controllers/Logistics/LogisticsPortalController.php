@@ -1975,12 +1975,11 @@ class LogisticsPortalController extends Controller
         foreach (array_keys($labels) as $status) {
             if ($status !== 'all') $counts[$status] = $all->where('delivery_status', $status)->count();
         }
-        $priority = ['failed' => 0, 'out_for_delivery' => 1, 'in_transit' => 2, 'at_hub' => 3, 'delivered' => 4, 'returned' => 5];
         $filtered = $all->filter(function ($parcel) use ($filter, $search) {
             $text = implode(' ', [$parcel['tracking_code'], $parcel['recipient_name'], $parcel['recipient_address'], $parcel['delivery_area'], $parcel['assigned_rider_name']]);
             return ($filter === 'all' || $parcel['delivery_status'] === $filter)
                 && ($search === '' || mb_stripos($text, $search) !== false);
-        })->sortBy(fn ($parcel) => $priority[$parcel['delivery_status']] ?? 5)->values();
+        })->sortByDesc(fn ($parcel) => [$parcel['updated_at_ts'] ?? 0, $parcel['id'] ?? 0])->values();
         $page = max(1, (int) $request->query('page', 1));
         $parcels = new \Illuminate\Pagination\LengthAwarePaginator($filtered->forPage($page, 15)->values(), $filtered->count(), 15, $page, [
             'path' => $request->url(), 'query' => $request->query(),
@@ -2493,6 +2492,7 @@ class LogisticsPortalController extends Controller
                 'assigned_rider_id'   => $s->rider_id,
                 'assigned_rider_user_id' => $s->rider?->user_id,
                 'updated_at'          => $s->updated_at?->timezone('Asia/Manila')->format('M d, Y g:i A'),
+                'updated_at_ts'       => $s->updated_at?->timestamp ?? 0,
                 'assigned_rider_name' => $s->rider?->user?->name,
                 'origin_hub_id'       => $s->origin_hub_id,
                 'origin_hub_name'     => $s->originHub?->name,
