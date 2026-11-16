@@ -121,7 +121,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
             AuthService.currentUser?['role'] == 'courier') {
           riderToken = AuthService.token;
           pendingAccountType =
-              AuthService.currentUser?['courier_type'] == 'first_mile'
+              AuthService.isCourierAccount(AuthService.currentUser)
                   ? AccountType.courier
                   : AccountType.rider;
         } else {
@@ -385,7 +385,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
                       AuthService.currentUser?['role'] == 'courier') {
                     riderToken = AuthService.token;
                     pendingAccountType =
-                        AuthService.currentUser?['courier_type'] == 'first_mile'
+                        AuthService.isCourierAccount(AuthService.currentUser)
                             ? AccountType.courier
                             : AccountType.rider;
                   } else {
@@ -675,7 +675,7 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
           _loadCourierType();
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        if (courierType == 'first_mile') {
+        if (AuthService.isCourierAccount(loggedInUser)) {
           return CourierDashboard(
             token: riderToken ?? AuthService.token ?? '',
             onLogout: confirmLogout,

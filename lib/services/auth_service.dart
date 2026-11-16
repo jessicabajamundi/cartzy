@@ -16,6 +16,14 @@ class AuthService {
 
   static Map<String, dynamic>? get currentUser => _currentUser;
   static String? get token => _token;
+
+  /// Registered vehicles determine the dashboard, including saved legacy sessions.
+  static bool isCourierAccount(Map<String, dynamic>? user) {
+    final vehicle = '${user?['vehicle_type'] ?? ''}'.toLowerCase().replaceAll(RegExp(r'[-_\s]'), '');
+    if (['car', 'van', 'truck', 'cargo'].contains(vehicle)) return true;
+    if (['motorcycle', 'tricycle', 'ebike'].contains(vehicle)) return false;
+    return ['first_mile', 'linehaul'].contains(user?['courier_type']);
+  }
   static bool get isAuthenticated => (_token != null && _token!.isNotEmpty) || _currentUser != null;
   static bool get isLoggedIn => isAuthenticated;
 

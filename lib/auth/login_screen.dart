@@ -126,18 +126,18 @@ class _LoginScreenState extends State<LoginScreen> {
       final token = response['token']?.toString();
       final serverCourierType = user['courier_type']?.toString();
       if (_accountType == AccountType.courier) {
-        if (serverCourierType != null && serverCourierType != 'first_mile') {
+        if (!AuthService.isCourierAccount(user)) {
           AuthService.clearSession();
           _showRoleMismatch();
           return;
         }
-        user['courier_type'] = 'first_mile';
+        user['courier_type'] = serverCourierType == 'linehaul' ? 'linehaul' : 'first_mile';
         AuthService.setSession(user: user, token: token);
         widget.onLogin(AccountType.courier, user, token: token);
         return;
       }
       if (_accountType == AccountType.rider) {
-        if (serverCourierType == 'first_mile') {
+        if (AuthService.isCourierAccount(user)) {
           AuthService.clearSession();
           _showRoleMismatch();
           return;
@@ -149,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       widget.onLogin(
         user['role'] == 'rider'
-            ? (serverCourierType == 'first_mile' ? AccountType.courier : AccountType.rider)
+            ? (AuthService.isCourierAccount(user) ? AccountType.courier : AccountType.rider)
             : AccountType.buyer,
         user,
         token: token,
@@ -208,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = Map<String, dynamic>.from(response['user'] as Map);
       final token = response['token']?.toString();
       final userRole = (user['role'] == 'rider' || user['role'] == 'courier')
-          ? (user['courier_type'] == 'first_mile' ? AccountType.courier : AccountType.rider)
+          ? (AuthService.isCourierAccount(user) ? AccountType.courier : AccountType.rider)
           : AccountType.buyer;
 
       widget.onLogin(userRole, user, token: token);
