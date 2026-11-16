@@ -43,6 +43,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   String? _lastStatus;
   int _lastDoneCount = 0;
   String? _lastRecordedUpdate;
+  bool _pollInFlight = false;
 
   @override
   void initState() {
@@ -97,7 +98,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   }
 
   Future<void> _pollSilentUpdate() async {
-    if (!mounted) return;
+    if (!mounted || _pollInFlight || _loading) return;
+    _pollInFlight = true;
     try {
       final tracking =
           await (widget.loadTracking ?? OrderService.fetchTracking)(widget.sellerOrderId);
@@ -112,26 +114,21 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           (_lastDoneCount > 0 && doneCount > _lastDoneCount) ||
           (_lastRecordedUpdate != null && newUpdate != null && newUpdate != _lastRecordedUpdate);
 
+      _lastStatus = newStatus;
+      _lastDoneCount = doneCount;
+      _lastRecordedUpdate = newUpdate;
+      // Assignment and confirmation can change within the same status/minute.
+      // Always apply the complete server response, including timeline and crew.
+      setState(() {
+        _tracking = tracking;
+      });
       if (hasChanged) {
-        _lastStatus = newStatus;
-        _lastDoneCount = doneCount;
-        _lastRecordedUpdate = newUpdate;
-
-        setState(() {
-          _tracking = tracking;
-        });
-
         _notifyUpdate(newStatus ?? 'Status updated', tracking);
-      } else {
-        // Silently update live telemetry coordinates if map is moving
-        if (mounted && _tracking != null && tracking['map'] != null) {
-          setState(() {
-            _tracking!['map'] = tracking['map'];
-          });
-        }
       }
     } catch (_) {
       // Background poll failure is silent
+    } finally {
+      _pollInFlight = false;
     }
   }
 
@@ -317,7 +314,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           children: [
             Text.rich(
               TextSpan(children: [
-                const TextSpan(text: 'Courier: '),
+                const TextSpan(text: 'Logistics provider: '),
                 TextSpan(
                     text: _text('courier'),
                     style: TextStyle(fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: _ink))),
@@ -327,7 +324,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             const SizedBox(height: 14),
             _detail('Latest confirmed stage', _text('current_status')),
             _detail('Last recorded update · Philippine time', _text('last_update')),
-            _detail('Assigned rider', _text('rider')),
+            if (_tracking?.containsKey('pickup_rider') == true)
+              _detail('Pickup rider', _text('pickup_rider')),
+            if (_tracking?.containsKey('hub_to_hub_courier') == true)
+              _detail('Hub-to-Hub courier', _text('hub_to_hub_courier')),
+            _detail('Delivery rider', _text('rider')),
             _detail('Delivery area', _text('area')),
             _detail('Delivery attempts',
                 attempts == null || attempts == 0 ? 'No attempt recorded' : '$attempts'),
@@ -347,7 +348,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               ),
             const SizedBox(height: 10),
             Text(
-              'Realtime OpenStreetMap GPS tracking active. Courier location updates continuously along the delivery route.',
+              'Delivery updates refresh automatically while this screen is open.',
               style: GoogleFonts.dmSans(fontSize: 11.5, height: 1.45, color: CartzyColors.mutedOf(context, light: const Color(0xFF9E929E))),
             ),
           ],
@@ -390,7 +391,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               ),
               const SizedBox(height: 10),
               if (history.isEmpty)
-                Text('No courier scans recorded yet.',
+                Text('No delivery scans recorded yet.',
                     style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.mutedOf(context, light: _muted)))
               else
                 for (final event in history)
