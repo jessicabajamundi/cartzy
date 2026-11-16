@@ -400,10 +400,17 @@ class LogisticsPortalController extends Controller
         $filter = in_array($filter, ['all', 'pending', 'approved', 'active', 'inactive', 'suspended', 'rejected'], true) ? $filter : 'all';
         $search = trim((string) $request->query('search', ''));
         $type = $request->query('type', 'all');
-        $type = array_key_exists((string) $type, Rider::COURIER_TYPES) ? $type : 'all';
+        $type = match ($type) {
+            'rider', Rider::LAST_MILE => 'rider',
+            'courier', Rider::FIRST_MILE, Rider::LINEHAUL => 'courier',
+            default => 'all',
+        };
         $typeCounts = ['all' => Rider::where('logistics_provider_id', $provider->id)->count()]
-            + collect(Rider::COURIER_TYPES)->map(fn ($label, $key) => Rider::where('logistics_provider_id', $provider->id)->where('courier_type', $key)->count())->all();
-        $base = Rider::where('logistics_provider_id', $provider->id)->when($type !== 'all', fn ($query) => $query->where('courier_type', $type));
+            + ['rider' => Rider::where('logistics_provider_id', $provider->id)->lastMile()->count(),
+                'courier' => Rider::where('logistics_provider_id', $provider->id)->vehicleCouriers()->count()];
+        $base = Rider::where('logistics_provider_id', $provider->id)
+            ->when($type === 'rider', fn ($query) => $query->lastMile())
+            ->when($type === 'courier', fn ($query) => $query->vehicleCouriers());
         $counts = [
             'all' => (clone $base)->count(),
             'pending' => (clone $base)->where('status', 'pending')->count(),
@@ -451,6 +458,7 @@ class LogisticsPortalController extends Controller
                 'id'               => $r->id,
                 'name'             => $r->user->name ?? 'Rider',
                 'courier_type'     => $r->courier_type ?: Rider::LAST_MILE,
+                'classification'   => $r->isLastMile() ? 'Rider' : 'Courier',
                 'email'            => $r->user->email ?? 'N/A',
                 'phone'            => $r->user->phone ?? '',
                 'vehicle_type'     => $r->vehicle_type ?: 'Motorcycle',
@@ -475,23 +483,10 @@ class LogisticsPortalController extends Controller
         $provider = $this->provider();
         $data = $request->validate(['courier_type' => ['required', \Illuminate\Validation\Rule::in(array_keys(Rider::COURIER_TYPES))]]);
         $rider = Rider::where('logistics_provider_id', $provider->id)->with('user')->findOrFail($id);
-        $name = $rider->user->name ?? 'The rider';
-
         if ($rider->courier_type === $data['courier_type']) {
             return back();
         }
-
-        // Don't strand work: open pickups need their first-mile courier, parcels on the road need their last-mile courier.
-        if ($rider->isFirstMile() && PickupRequest::where('rider_id', $rider->id)->whereIn('status', ['pending', 'confirmed'])->exists()) {
-            return back()->with('error', "{$name} still has open pickups. Reassign them on Pickup requests first.");
-        }
-        if ($rider->isLastMile() && Shipment::where('rider_id', $rider->id)->whereIn('status', ['assigned', 'in_transit', 'out_for_delivery'])->exists()) {
-            return back()->with('error', "{$name} still has parcels to deliver. Wait until they are delivered or reassign them first.");
-        }
-
-        $rider->update(['courier_type' => $data['courier_type']]);
-
-        return back()->with('success', "{$name} is now a ".Rider::COURIER_TYPES[$data['courier_type']][0].' courier.');
+        return back()->withErrors(['courier_type' => 'Classification is locked to the registered vehicle. Vehicle re-registration is required to change it.']);
     }
 
     public function updateRiderStatus(Request $request, $id)

@@ -1,7 +1,7 @@
 @extends('layouts.logistics')
 @section('title', 'Rider Management | Logistics Hub | cartzy')
 @section('page_eyebrow', 'YOUR DELIVERY TEAM')
-@section('page_title', 'Rider Management')
+@section('page_title', 'Rider & courier management')
 @section('page_description', 'Find a rider, review an application, or update courier availability.')
 @section('page_subtitle', 'Review applications and manage your delivery team')
 @section('page_actions')
@@ -42,9 +42,9 @@
             <button class="rider-button rider-primary" type="submit">Search riders</button>
             @if($search !== '')<a class="rider-button" href="{{ route('logistics.riders', ['filter' => $filter]) }}">Clear search</a>@endif
         </form>
-        {{-- First Mile couriers collect from sellers; Last Mile couriers deliver to buyers --}}
-        <nav class="rider-type-filters" aria-label="Filter riders by courier type">
-            @foreach(['all' => ['All couriers', 'Everyone in your hub']] + \App\Models\Rider::COURIER_TYPES as $key => [$label, $hint])
+        {{-- Classification follows the registered vehicle and cannot be reassigned here. --}}
+        <nav class="rider-type-filters" aria-label="Filter personnel by classification">
+            @foreach(['all' => ['All personnel', 'Everyone in your hub'], 'rider' => ['Riders', 'Motorcycle, tricycle and e-bike'], 'courier' => ['Couriers', 'Car, van and truck']] as $key => [$label, $hint])
             <a href="{{ route('logistics.riders', ['type' => $key, 'filter' => $filter, 'search' => $search]) }}" @if($type === $key) aria-current="page" @endif title="{{ $hint }}"><span>{{ $label }}</span> <strong>{{ $typeCounts[$key] }}</strong></a>
             @endforeach
         </nav>
@@ -64,16 +64,9 @@
                     <tr>
                         <td data-label="Rider"><div class="rider-person"><span class="rider-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($rider['name'], 0, 1)) }}</span><div><strong>{{ $rider['name'] }}</strong><a href="mailto:{{ $rider['email'] }}">{{ $rider['email'] }}</a>@if($rider['phone'])<a href="tel:{{ $rider['phone'] }}">{{ $rider['phone'] }}</a>@else<small>No phone provided</small>@endif @if(!empty($rider['id_photo']))<a href="{{ $rider['id_photo'] }}" target="_blank" rel="noopener">View ID ↗</a>@endif</div></div></td>
                         <td data-label="Courier type">
-                            <form method="POST" action="{{ route('logistics.riders.type', $rider['id']) }}" class="rider-type-form">@csrf
-                                <label class="rider-sr-only" for="courier-type-{{ $rider['id'] }}">Courier type for {{ $rider['name'] }}</label>
-                                <select id="courier-type-{{ $rider['id'] }}" name="courier_type" class="rider-type-select is-{{ $rider['courier_type'] }}" onchange="this.form.submit()">
-                                    @foreach(\App\Models\Rider::COURIER_TYPES as $key => [$label])
-                                        <option value="{{ $key }}" @selected($rider['courier_type'] === $key)>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                                <noscript><button class="rider-button" type="submit">Save</button></noscript>
-                            </form>
-                            <small>{{ \App\Models\Rider::COURIER_TYPES[$rider['courier_type']][1] }}</small>
+                            <span class="rider-badge">{{ $rider['classification'] }}</span>
+                            <small>Based on registered vehicle</small>
+                            <small>Vehicle re-registration is required to change classification.</small>
                         </td>
                         <td data-label="Vehicle & area"><strong>{{ $rider['vehicle_type'] }} <span class="rider-plate">{{ $rider['plate_no'] }}</span></strong><small>{{ $rider['area'] }}</small></td>
                         <td data-label="Status"><span class="rider-badge rider-badge-{{ $state }}">{{ ucfirst($state) }}</span><small>Applied {{ $rider['applied_at'] }}</small>@if($rider['rejection_reason'])<details class="rider-reason"><summary>Rejection reason</summary><p>{{ $rider['rejection_reason'] }}</p></details>@endif</td>

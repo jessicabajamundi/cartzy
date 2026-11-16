@@ -527,6 +527,11 @@ class AuthController extends Controller
         if (is_string($request->input('license_number'))) {
             $request->merge(['license_number' => strtoupper(trim($request->input('license_number')))]);
         }
+        if ($request->input('role') === User::ROLE_COURIER && is_string($request->input('vehicle_type'))) {
+            $vehicle = \App\Models\Rider::normalizeVehicle($request->input('vehicle_type'));
+            $requestedType = $request->input('courier_type');
+            $request->merge(['vehicle_type' => $vehicle, 'courier_type' => \App\Models\Rider::typeForVehicle($vehicle, is_string($requestedType) ? $requestedType : null)]);
+        }
         $sellerRules = $request->input('role') === 'seller' ? [
             'shop_name' => ['required', 'string', 'min:3', 'max:30', function ($attribute, $value, $fail) {
                 if (\App\Models\Seller::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($value))])->exists()) {

@@ -22,6 +22,7 @@ class DeliveryAssignmentTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'courier', 'status' => 'active', 'barangay' => $barangay, 'city' => 'Santa Cruz', 'province' => 'Laguna']);
         return Rider::create($attributes + ['user_id' => $user->id, 'logistics_provider_id' => $hub->id,
+            'vehicle_type' => ($attributes['courier_type'] ?? Rider::LAST_MILE) === Rider::LAST_MILE ? 'motorcycle' : 'van',
             'courier_type' => Rider::LAST_MILE, 'status' => 'approved', 'is_active' => true, 'online_until' => now()->addHours(1)]);
     }
 

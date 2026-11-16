@@ -33,7 +33,7 @@ class CourierTypesTest extends TestCase
     {
         $user = User::factory()->create(['role' => 'courier', 'status' => 'active', 'name' => $name]);
 
-        return Rider::create(['user_id' => $user->id, 'logistics_provider_id' => $this->hub->id, 'courier_type' => $type, 'vehicle_type' => 'Motorcycle', 'status' => 'approved', 'is_active' => true, 'area' => $area]);
+        return Rider::create(['user_id' => $user->id, 'logistics_provider_id' => $this->hub->id, 'courier_type' => $type, 'vehicle_type' => $type === Rider::LAST_MILE ? 'Motorcycle' : 'Van', 'status' => 'approved', 'is_active' => true, 'online_until' => now()->addHour(), 'area' => $area]);
     }
 
     /** A seller order with its shipment and a pickup request at this hub. */
@@ -51,33 +51,33 @@ class CourierTypesTest extends TestCase
         return [$parcel, $pickup];
     }
 
-    public function test_pickups_only_go_to_first_mile_couriers_and_are_recorded_as_the_pickup_rider(): void
+    public function test_seller_pickups_go_to_registered_riders_and_are_recorded_as_the_pickup_rider(): void
     {
         $firstMile = $this->courier(Rider::FIRST_MILE, 'Dante Ramos');
         $lastMile = $this->courier(Rider::LAST_MILE, 'Arnel Gomez');
         [$parcel, $pickup] = $this->parcel();
 
         $this->actingAs($this->hub->user)->get(route('logistics.pickups'))->assertOk()
-            ->assertViewHas('allRiders', fn ($riders) => $riders->pluck('id')->all() === [$firstMile->id]);
+            ->assertViewHas('allRiders', fn ($riders) => $riders->pluck('id')->all() === [$lastMile->id]);
 
-        $this->post(route('logistics.pickups.assign', $pickup->id), ['rider_id' => $lastMile->id])
+        $this->post(route('logistics.pickups.assign', $pickup->id), ['rider_id' => $firstMile->id])
             ->assertRedirect()->assertSessionHas('error');
         $this->assertNull($pickup->fresh()->rider_id);
 
         $this->post(route('logistics.pickups.auto-assign', $pickup->id))->assertRedirect()->assertSessionHas('success');
-        $this->assertSame($firstMile->id, $pickup->fresh()->rider_id);
+        $this->assertSame($lastMile->id, $pickup->fresh()->rider_id);
         $parcel->refresh();
-        $this->assertSame($firstMile->id, $parcel->pickup_rider_id);
+        $this->assertSame($lastMile->id, $parcel->pickup_rider_id);
         $this->assertNull($parcel->rider_id, 'The last-mile courier is chosen later, at the hub.');
     }
 
-    public function test_dispatch_all_needs_a_first_mile_courier(): void
+    public function test_seller_pickup_dispatch_needs_a_registered_rider(): void
     {
-        $this->courier(Rider::LAST_MILE, 'Arnel Gomez');
+        $this->courier(Rider::FIRST_MILE, 'Dante Ramos');
         [, $pickup] = $this->parcel();
 
         $this->actingAs($this->hub->user)->post(route('logistics.pickups.dispatch-all'))
-            ->assertRedirect()->assertSessionHas('error', fn ($message) => str_contains($message, 'First Mile'));
+            ->assertRedirect()->assertSessionHas('error', fn ($message) => str_contains($message, 'Riders'));
         $this->assertNull($pickup->fresh()->rider_id);
     }
 
@@ -101,26 +101,26 @@ class CourierTypesTest extends TestCase
         $this->assertSame($firstMile->id, $parcel->pickup_rider_id);
     }
 
-    public function test_hub_can_change_a_courier_type_unless_they_still_have_open_work(): void
+    public function test_hub_cannot_change_classification_even_after_work_is_completed(): void
     {
         $rider = $this->courier(Rider::FIRST_MILE, 'Dante Ramos');
         [, $pickup] = $this->parcel();
         $pickup->update(['rider_id' => $rider->id, 'status' => 'confirmed']);
 
         $this->actingAs($this->hub->user)->post(route('logistics.riders.type', $rider->id), ['courier_type' => Rider::LAST_MILE])
-            ->assertRedirect()->assertSessionHas('error');
+            ->assertRedirect()->assertSessionHasErrors('courier_type');
         $this->assertTrue($rider->fresh()->isFirstMile());
 
         $pickup->update(['status' => 'picked_up']);
         $this->post(route('logistics.riders.type', $rider->id), ['courier_type' => Rider::LAST_MILE])
-            ->assertRedirect()->assertSessionHas('success');
-        $this->assertTrue($rider->fresh()->isLastMile());
+            ->assertRedirect()->assertSessionHasErrors('courier_type');
+        $this->assertTrue($rider->fresh()->isFirstMile());
 
         $this->post(route('logistics.riders.type', $rider->id), ['courier_type' => 'teleport'])->assertSessionHasErrors('courier_type');
 
-        $this->get(route('logistics.riders', ['type' => Rider::LAST_MILE]))->assertOk()
+        $this->get(route('logistics.riders', ['type' => 'courier']))->assertOk()
             ->assertViewHas('riders', fn ($riders) => $riders->total() === 1)
-            ->assertViewHas('typeCounts', fn ($counts) => $counts === ['all' => 1, 'first_mile' => 0, 'last_mile' => 1])
+            ->assertViewHas('typeCounts', fn ($counts) => $counts === ['all' => 1, 'rider' => 0, 'courier' => 1])
             ->assertSee('Courier type');
     }
 

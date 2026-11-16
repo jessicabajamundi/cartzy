@@ -156,13 +156,8 @@
                 <!-- Vehicle Type -->
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1">Vehicle Classification</label>
-                    <select name="vehicle_type" required class="w-full px-3.5 py-2 text-xs bg-[#FAF9FC] border border-[#ECE7EF] rounded-xl focus:outline-hidden focus:border-[#564B68] focus:bg-white transition">
-                        @foreach(\App\Models\Rider::vehicleTypesFor($rider->courier_type) as $type)
-                            <option value="{{ $type }}" {{ strcasecmp(str_replace('-', '', $rider->vehicle_type ?? ''), str_replace('-', '', $type)) === 0 ? 'selected' : '' }}>
-                                {{ $type }}
-                            </option>
-                        @endforeach
-                    </select>
+                    <input name="vehicle_type" value="{{ $rider->vehicle_type }}" readonly class="w-full px-3.5 py-2 text-xs bg-[#FAF9FC] border border-[#ECE7EF] rounded-xl">
+                    <p class="mt-1 text-xs text-gray-500">Registered vehicle. Vehicle re-registration is required to change its type.</p>
                 </div>
 
                 <!-- Plate Number -->

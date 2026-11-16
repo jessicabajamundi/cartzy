@@ -40,6 +40,7 @@ class Rider extends Model
     }
 
     protected $fillable = [
+        // Classification is derived from the registered vehicle on save.
         'user_id',
         'logistics_provider_id',
         'courier_type',
@@ -63,9 +64,38 @@ class Rider extends Model
         'deliveries_today' => 'integer',
     ];
 
+    public static function normalizeVehicle(?string $vehicle): string
+    {
+        return strtolower(str_replace(['-', ' ', '_'], '', trim((string) $vehicle)));
+    }
+
+    public static function typeForVehicle(?string $vehicle, ?string $preferred = null): string
+    {
+        $vehicle = self::normalizeVehicle($vehicle);
+        if (in_array($vehicle, ['motorcycle', 'tricycle', 'ebike'], true)) {
+            return self::LAST_MILE;
+        }
+        if (in_array($vehicle, ['car', 'van', 'truck', 'cargo'], true)) {
+            return $preferred === self::LINEHAUL ? self::LINEHAUL : self::FIRST_MILE;
+        }
+        return $preferred ?: self::LAST_MILE;
+    }
+
+    public function getCourierTypeAttribute(?string $value): string
+    {
+        return self::typeForVehicle($this->attributes['vehicle_type'] ?? null, $value);
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $rider) {
+            $rider->courier_type = self::typeForVehicle($rider->vehicle_type, $rider->getAttributes()['courier_type'] ?? null);
+        });
+    }
+
     public function scopeFirstMile($query)
     {
-        return $query->where('courier_type', self::FIRST_MILE);
+        return $query->vehicleCouriers()->where(fn ($q) => $q->whereNull('courier_type')->orWhere('courier_type', '!=', self::LINEHAUL));
     }
 
     public function scopeAvailableForDelivery($query)
@@ -77,17 +107,22 @@ class Rider extends Model
 
     public function scopeLastMile($query)
     {
-        return $query->where('courier_type', self::LAST_MILE);
+        return $query->whereRaw("LOWER(REPLACE(REPLACE(REPLACE(vehicle_type, '-', ''), ' ', ''), '_', '')) IN ('motorcycle', 'tricycle', 'ebike')");
+    }
+
+    public function scopeVehicleCouriers($query)
+    {
+        return $query->whereRaw("LOWER(REPLACE(REPLACE(REPLACE(vehicle_type, '-', ''), ' ', ''), '_', '')) IN ('car', 'van', 'truck', 'cargo')");
     }
 
     public function scopeLinehaul($query)
     {
-        return $query->where('courier_type', self::LINEHAUL);
+        return $query->vehicleCouriers()->where('courier_type', self::LINEHAUL);
     }
 
     public function scopeAvailableForLinehaul($query)
     {
-        return $query->whereIn('courier_type', [self::LINEHAUL, self::FIRST_MILE])
+        return $query->vehicleCouriers()
             ->where('status', 'approved')
             ->where('is_active', true)
             ->whereHas('user', fn ($q) => $q->where('role', 'courier')->where('status', 'active')->where('is_suspended', false));

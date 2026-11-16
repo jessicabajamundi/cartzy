@@ -34,7 +34,7 @@ class RiderDeliveryApiTest extends TestCase
         $user = User::factory()->create(['role' => 'courier', 'status' => 'active', 'name' => $name]);
 
         return Rider::create(['user_id' => $user->id, 'logistics_provider_id' => $this->hub->id, 'courier_type' => $type,
-            'vehicle_type' => 'motorcycle', 'status' => 'approved', 'is_active' => true]);
+            'vehicle_type' => $type === Rider::LAST_MILE ? 'motorcycle' : 'van', 'status' => 'approved', 'is_active' => true]);
     }
 
     /** A parcel received at the hub and assigned to [$rider]. */

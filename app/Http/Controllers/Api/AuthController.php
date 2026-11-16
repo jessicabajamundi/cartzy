@@ -92,13 +92,13 @@ class AuthController extends Controller
             ], 403);
         }
         if (isset($data['role']) && $user->role === User::ROLE_COURIER && $user->rider) {
-            if ($data['role'] === 'courier' && $user->rider->courier_type !== \App\Models\Rider::FIRST_MILE) {
+            if ($data['role'] === 'courier' && $user->rider->isLastMile()) {
                 return response()->json([
                     'message' => 'This account is a Rider account, not a Courier account.',
                     'account_role' => 'rider',
                 ], 403);
             }
-            if ($data['role'] === 'rider' && $user->rider->courier_type === \App\Models\Rider::FIRST_MILE) {
+            if ($data['role'] === 'rider' && !$user->rider->isLastMile()) {
                 return response()->json([
                     'message' => 'This account is a Courier account, not a Rider account.',
                     'account_role' => 'courier',
@@ -346,8 +346,9 @@ class AuthController extends Controller
     public function registerRider(Request $request)
     {
         if (is_string($request->input('vehicle_type'))) {
-            $vt = strtolower(str_replace('-', '', trim($request->input('vehicle_type'))));
-            $request->merge(['vehicle_type' => $vt]);
+            $vt = \App\Models\Rider::normalizeVehicle($request->input('vehicle_type'));
+            $requestedType = $request->input('courier_type');
+            $request->merge(['vehicle_type' => $vt, 'courier_type' => \App\Models\Rider::typeForVehicle($vt, is_string($requestedType) ? $requestedType : null)]);
         }
         if (is_string($request->input('license_number'))) {
             $request->merge(['license_number' => strtoupper(trim($request->input('license_number')))]);

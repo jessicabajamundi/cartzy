@@ -686,7 +686,11 @@ class DashboardController extends Controller
 
         $validated = $request->validate([
             'phone'        => 'required|string|max:20',
-            'vehicle_type' => ['required', 'string', \Illuminate\Validation\Rule::in(array_values(\App\Models\Rider::vehicleTypesFor($rider->courier_type)))],
+            'vehicle_type' => ['required', 'string', function ($attribute, $value, $fail) use ($rider) {
+                if (Rider::normalizeVehicle($value) !== Rider::normalizeVehicle($rider->vehicle_type)) {
+                    $fail('The registered vehicle type cannot be changed in profile settings. Vehicle re-registration is required.');
+                }
+            }],
             'plate_no'     => 'nullable|string|max:15',
             'area'         => 'nullable|string|max:100',
         ]);
@@ -694,7 +698,6 @@ class DashboardController extends Controller
         $courier->update(['phone' => $validated['phone']]);
 
         $rider->update([
-            'vehicle_type' => $validated['vehicle_type'],
             'plate_no'     => strtoupper(trim($validated['plate_no'] ?? $rider->plate_no)),
             'area'         => $validated['area'] ?? $rider->area,
         ]);
