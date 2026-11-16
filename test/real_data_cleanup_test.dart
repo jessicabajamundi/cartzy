@@ -6,6 +6,7 @@ import 'package:cartzy/services/review_service.dart';
 import 'package:cartzy/services/rider_records_service.dart';
 import 'package:cartzy/services/user_account_service.dart';
 import 'package:cartzy/widgets/gcash_checkout_sheet.dart';
+import 'package:cartzy/widgets/pay_now_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -83,7 +84,7 @@ void main() {
                 hubName: 'Actual Hub',
                 feePerDelivery: 37)));
     expect(find.text('Actual customer'), findsWidgets);
-    expect(find.textContaining('37.00 per completed drop'), findsOneWidget);
+    expect(find.textContaining('37.00 minimum per completed delivery'), findsOneWidget);
     expect(find.textContaining('not payout receipts'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
@@ -137,6 +138,17 @@ void main() {
     expect(find.text('Retry payment details'), findsOneWidget);
     expect(find.textContaining('0917-555-2278'), findsNothing);
     expect(confirmed, isFalse);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('legacy pay view cannot simulate a completed payment', (tester) async {
+    await mount(tester, Scaffold(body: PayNowDialog(order: Order(
+      id: 'legacy', productName: 'Legacy order', status: 'To Pay', price: '100', quantity: 1,
+    ))));
+    expect(find.text('Payment unavailable here'), findsOneWidget);
+    expect(find.textContaining('0917-555-2278'), findsNothing);
+    expect(find.text('Pay Now'), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });

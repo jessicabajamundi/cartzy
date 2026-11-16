@@ -23,6 +23,7 @@ class RiderOrder {
   final String completedAt;
   final String trackingCode;
   final String orderReference;
+  final bool codCollected;
 
   RiderOrder({
     required this.id,
@@ -39,6 +40,7 @@ class RiderOrder {
     this.completedAt = '',
     this.trackingCode = '',
     this.orderReference = '',
+    this.codCollected = false,
   });
 
   factory RiderOrder.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,7 @@ class RiderOrder {
       completedAt: json['completed_at']?.toString() ?? '',
       trackingCode: json['tracking_code']?.toString() ?? '',
       orderReference: json['order_reference']?.toString() ?? '',
+      codCollected: json['cod_collected'] == true,
     );
   }
 

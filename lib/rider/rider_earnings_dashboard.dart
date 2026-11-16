@@ -63,11 +63,11 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
   }
 
   double get _codCashOnHand => _records
-      .where((order) => order.paymentMethod.toUpperCase() == 'COD')
+      .where((order) => order.paymentMethod.toUpperCase() == 'COD' && order.codCollected)
       .fold<double>(0, (sum, order) => sum + order.totalAmount);
 
   DateTime? _completedDate(RiderOrder order) {
-    final raw = order.completedAt.isNotEmpty ? order.completedAt : order.createdAt;
+    final raw = order.completedAt;
     if (raw.length < 10) return null;
     final parsed = DateTime.tryParse(raw);
     if (parsed != null) return parsed.toLocal();
@@ -666,22 +666,22 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           const SizedBox(height: 16),
 
           _buildCommissionBox(
-            title: 'STANDARD PARCEL DROP',
-            value: '${_formatPeso(_feePerDelivery)} per completed drop',
+            title: 'CURRENT MINIMUM DELIVERY COMMISSION',
+            value: '${_formatPeso(_feePerDelivery)} minimum per completed delivery',
           ),
           const SizedBox(height: 10),
           _buildCommissionBox(
-            title: 'COD INCENTIVE',
-            value: '+100% remitted intact to hub',
+            title: 'RECORDED COD COLLECTIONS',
+            value: _formatPeso(_codCashOnHand),
           ),
           const SizedBox(height: 10),
           _buildCommissionBox(
             title: 'LOGISTICS HUB PARTNER',
-            value: 'Metro South Sorting & Fulfillment Hub',
+            value: _hubName ?? 'No hub information available',
           ),
           const SizedBox(height: 14),
           Text(
-            '* Payouts are credited directly to your registered courier account or remitted via hub cashier weekly.',
+            'Actual commission follows the server policy for each recorded delivery. Contact your assigned hub for payout and cash-handover confirmation.',
             style: GoogleFonts.dmSans(
               fontSize: 11,
               fontStyle: FontStyle.italic,

@@ -278,7 +278,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
                 iconBg: const Color(0xFFEAF6ED),
                 title: 'TOTAL COD HANDLED',
                 value: _formatPeso(_completedOrders
-                    .where((order) => order.paymentMethod.toUpperCase() == 'COD')
+                    .where((order) => order.paymentMethod.toUpperCase() == 'COD' && order.codCollected)
                     .fold<double>(0, (sum, order) => sum + order.totalAmount)),
               ),
             ),
@@ -473,7 +473,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
   }
 
   Widget _buildHistoryTableRecord(RiderOrder order, int index) {
-    final completedAt = order.completedAt.isNotEmpty ? order.completedAt : order.createdAt;
+    final completedAt = order.completedAt.isNotEmpty ? order.completedAt : 'Completion date unavailable';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -542,7 +542,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
   }
 
   Widget _buildMobileHistoryRecord(RiderOrder order, int index) {
-    final completedAt = order.completedAt.isNotEmpty ? order.completedAt : order.createdAt;
+    final completedAt = order.completedAt.isNotEmpty ? order.completedAt : 'Completion date unavailable';
     final mobilePrimary = _historyPrimary.copyWith(fontSize: 13);
     final mobileSecondary = _historySecondary.copyWith(fontSize: 11);
     return Container(
@@ -606,7 +606,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          isCod ? '✓ COD ${_formatPeso(order.totalAmount)}' : 'PREPAID',
+          isCod ? (order.codCollected ? 'COD collected ${_formatPeso(order.totalAmount)}' : 'COD collection unconfirmed') : 'PREPAID',
           style: GoogleFonts.dmSans(
             fontSize: 8,
             fontWeight: FontWeight.w700,
