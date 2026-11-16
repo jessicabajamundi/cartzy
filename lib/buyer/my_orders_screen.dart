@@ -51,10 +51,10 @@ bool _matchesStatus(String orderStatus, String filter) {
   final fNorm = filter.toLowerCase().replaceAll(' ', '_').replaceAll('-', '_');
   if (oNorm == fNorm) return true;
 
-  if (fNorm == 'to_ship' && (oNorm == 'to_ship' || oNorm == 'toship' || oNorm == 'pending' || oNorm == 'processing')) return true;
+  if (fNorm == 'to_ship' && (oNorm == 'to_ship' || oNorm == 'toship' || oNorm == 'pending' || oNorm == 'accepted' || oNorm == 'packed' || oNorm == 'ready_to_ship' || oNorm == 'processing')) return true;
   if (fNorm == 'to_receive' && (oNorm == 'to_receive' || oNorm == 'toreceive' || oNorm == 'shipped' || oNorm == 'in_transit' || oNorm == 'dispatched')) return true;
   if (fNorm == 'completed' && (oNorm == 'completed' || oNorm == 'delivered' || oNorm == 'complete' || oNorm == 'received')) return true;
-  if (fNorm == 'cancelled' && (oNorm == 'cancelled' || oNorm == 'canceled' || oNorm == 'cancel')) return true;
+  if (fNorm == 'cancelled' && (oNorm == 'cancelled' || oNorm == 'canceled' || oNorm == 'cancel' || oNorm == 'rejected')) return true;
   if (fNorm == 'to_pay' && (oNorm == 'to_pay' || oNorm == 'topay' || oNorm == 'unpaid')) return true;
 
   return false;

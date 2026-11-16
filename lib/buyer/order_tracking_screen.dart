@@ -458,6 +458,11 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
   Widget _timelineStep(Map<String, dynamic> step, {required bool isLast}) {
     final done = step['done'] == true;
     final current = step['current'] == true;
+    final rejected = step['rejected'] == true;
+    const rejectColor = Color(0xFFBE123C);
+    final circleColor = rejected
+        ? rejectColor
+        : (current ? _rose : (done ? _brand : const Color(0xFFE5E7EB)));
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -470,20 +475,28 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                   width: 28,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: current ? _rose : (done ? _brand : const Color(0xFFE5E7EB)),
+                    color: circleColor,
                     shape: BoxShape.circle,
                     border: current
-                        ? Border.all(color: _rose.withValues(alpha: 0.3), width: 4)
+                        ? Border.all(
+                            color: (rejected ? rejectColor : _rose).withValues(alpha: 0.3),
+                            width: 4)
                         : null,
                   ),
-                  child: Icon(done ? Icons.check : Icons.circle,
-                      size: done ? 15 : 6, color: done ? Colors.white : CartzyColors.mutedOf(context, light: const Color(0xFF9CA3AF))),
+                  child: Icon(
+                      rejected ? Icons.close : (done ? Icons.check : Icons.circle),
+                      size: (done || rejected) ? 15 : 6,
+                      color: (done || rejected)
+                          ? Colors.white
+                          : CartzyColors.mutedOf(context, light: const Color(0xFF9CA3AF))),
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: done && !current ? _rose : CartzyColors.elevatedOf(context, light: const Color(0xFFE5E7EB)),
+                      color: done && !current && !rejected
+                          ? _rose
+                          : CartzyColors.elevatedOf(context, light: const Color(0xFFE5E7EB)),
                     ),
                   ),
               ],
@@ -504,17 +517,27 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           style: GoogleFonts.dmSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: done ? CartzyColors.textOf(context, light: _ink) : CartzyColors.mutedOf(context, light: const Color(0xFF6B7280)))),
+                              color: rejected
+                                  ? rejectColor
+                                  : (done
+                                      ? CartzyColors.textOf(context, light: _ink)
+                                      : CartzyColors.mutedOf(context, light: const Color(0xFF6B7280))))),
                       if (current)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
-                            color: _rose.withValues(alpha: 0.15),
+                            color: (rejected ? rejectColor : _rose).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text('Latest confirmed',
+                          child: Text(rejected ? 'Rejected' : 'Latest confirmed',
                               style: GoogleFonts.dmSans(
-                                  fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.readableOf(context, light: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)), background: _rose.withValues(alpha: 0.15)))),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: rejected
+                                      ? rejectColor
+                                      : CartzyColors.readableOf(context,
+                                          light: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)),
+                                          background: _rose.withValues(alpha: 0.15)))),
                         ),
                     ],
                   ),
