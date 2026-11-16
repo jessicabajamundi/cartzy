@@ -5,6 +5,7 @@ import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/buyer/my_orders_screen.dart';
 import 'package:cartzy/buyer/vouchers_screen.dart';
+import 'package:cartzy/buyer/messages_screen.dart';
 
 // ============================================================
 // NOTIFICATIONS SCREEN (Connected to Cartzy Database API)
@@ -33,20 +34,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Map<String, int> _counts = {'all': 0, 'orders': 0, 'promos': 0, 'system': 0};
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _refreshTimer;
+  bool _fetchInFlight = false;
 
   @override
   void initState() {
     super.initState();
     _fetch();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) => _fetch(silent: true));
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   Future<void> _fetch({bool silent = false}) async {
+    if (_fetchInFlight || !mounted) return;
+    _fetchInFlight = true;
     if (!silent) {
       setState(() {
         _isLoading = true;
@@ -65,10 +72,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+      if (silent && _notifications.isNotEmpty) return;
       setState(() {
         _isLoading = false;
         _error = 'Unable to load notifications. Please check your connection.';
       });
+    } finally {
+      _fetchInFlight = false;
     }
   }
 
@@ -112,6 +122,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (!widget.openLinkedScreens) return;
+
+    final conversationId = n.conversationOrderId;
+    if (conversationId != null && conversationId > 0) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (routeContext) => MessagesScreen(
+          onBack: () => Navigator.of(routeContext).pop(),
+          initialThreadId: conversationId,
+          initialThreadType: 'order',
+        ),
+      ));
+      return;
+    }
 
     // Direct routing if notification references an order
     if (n.orderReference != null && n.orderReference!.isNotEmpty) {
@@ -333,8 +355,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           n.time,

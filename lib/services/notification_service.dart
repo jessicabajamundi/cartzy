@@ -11,6 +11,7 @@ class AppNotificationItem {
   final bool isRead;
   final String? link;
   final String? orderReference;
+  final int? conversationOrderId;
   final String time;
   final DateTime? createdAt;
 
@@ -23,6 +24,7 @@ class AppNotificationItem {
     required this.isRead,
     this.link,
     this.orderReference,
+    this.conversationOrderId,
     required this.time,
     this.createdAt,
   });
@@ -37,6 +39,7 @@ class AppNotificationItem {
       isRead: (json['is_read'] ?? json['read']) == true,
       link: json['link']?.toString(),
       orderReference: json['order_reference']?.toString(),
+      conversationOrderId: int.tryParse('${json['conversation_order_id']}'),
       time: json['time']?.toString() ?? '',
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
@@ -56,6 +59,7 @@ class AppNotificationItem {
       isRead: isRead ?? this.isRead,
       link: link,
       orderReference: orderReference,
+      conversationOrderId: conversationOrderId,
       time: time,
       createdAt: createdAt,
     );
