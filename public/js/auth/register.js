@@ -700,9 +700,13 @@ function selectRole(role) {
             if (buyerOpt) buyerOpt.classList.add('selected');
         }
     }
+    currentStep = 1;
     detailPage = 1;
     updateLogisticsDetails(role);
     updateSellerDetails(role);
+    if (typeof updateStepperUI === 'function') updateStepperUI();
+    const panel = document.getElementById('registerForm')?.closest('.lm-panel');
+    if (panel) panel.scrollTop = 0;
 }
 window.selectRole = selectRole;
 

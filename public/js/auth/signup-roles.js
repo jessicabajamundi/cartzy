@@ -35,6 +35,7 @@
         target.classList.add(step === 'form' ? 'is-entering-forward' : 'is-entering-back');
         if (dialog) dialog.setAttribute('aria-labelledby', step === 'form' ? 'authTitle' : 'su-choose-title');
         if (panel) panel.scrollTop = 0;
+        window.scrollTo(0, 0);
     }
 
     choose.addEventListener('click', function (event) {
