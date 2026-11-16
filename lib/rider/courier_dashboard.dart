@@ -111,6 +111,20 @@ class _CourierDashboardState extends State<CourierDashboard> {
   // ── Layout ──────────────────────────────────────────────────
   bool get _usesHeroHeader => _tab == 0 && !_loading && _data != null;
 
+  Future<void> _handleLinehaulAction(LinehaulTransfer transfer) async {
+    try {
+      final msg = transfer.isInTransit
+          ? await CourierService.arriveLinehaul(transfer.id)
+          : await CourierService.dispatchLinehaul(transfer.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Transfer failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final usesHero = _usesHeroHeader;
@@ -313,6 +327,14 @@ class _CourierDashboardState extends State<CourierDashboard> {
               const _Empty(icon: Icons.local_shipping_outlined, text: 'Nothing in your vehicle. Parcels you accept at a seller show up here until the hub receives them.')
             else
               ...d.inVehicle.map((p) => _ParcelRow(parcel: p, when: p.at != null ? 'Picked up ${courierDay(p.at!)}, ${courierTime(p.at!)}' : null)),
+            if (d.linehaulTransfers.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              const _SectionTitle('Hub-to-Hub Transfers'),
+              ...d.linehaulTransfers.map((t) => _LinehaulCard(
+                    transfer: t,
+                    onAction: () => _handleLinehaulAction(t),
+                  )),
+            ],
           ],
         ),
       ),
@@ -965,6 +987,69 @@ class _ErrorBanner extends StatelessWidget {
           Expanded(child: Text("Couldn't refresh: $message", style: GoogleFonts.dmSans(fontSize: 12.5, color: CartzyColors.readableOf(context, light: const Color(0xFFB3261E), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFDECEC)))))),
           TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
+      ),
+    );
+  }
+}
+
+class _LinehaulCard extends StatelessWidget {
+  final LinehaulTransfer transfer;
+  final VoidCallback onAction;
+
+  const _LinehaulCard({required this.transfer, required this.onAction});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: _Card(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    transfer.trackingCode,
+                    style: GoogleFonts.dmSans(fontSize: 14.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context)),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: CartzyColors.elevatedOf(context, light: transfer.isInTransit ? const Color(0xFFE0F2FE) : CartzyColors.brand100),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    transfer.isInTransit ? 'In Transit' : 'Ready at Origin',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: CartzyColors.textOf(context, light: transfer.isInTransit ? const Color(0xFF0369A1) : CartzyColors.brandDark),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _IconLine(Icons.swap_horiz_rounded, '${transfer.originHub} → ${transfer.destinationHub}'),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onAction,
+                icon: Icon(transfer.isInTransit ? Icons.warehouse_outlined : Icons.local_shipping_outlined, size: 17),
+                label: Text(transfer.isInTransit ? 'Hand Over at ${transfer.destinationHub}' : 'Start Hub-to-Hub Transit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CartzyColors.brandDark,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

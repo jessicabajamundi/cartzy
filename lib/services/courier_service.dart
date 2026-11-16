@@ -16,6 +16,7 @@ class CourierDashboardData {
   final List<CourierPickup> pickups;
   final List<CourierParcel> inVehicle;
   final List<CourierParcel> handedToHub;
+  final List<LinehaulTransfer> linehaulTransfers;
 
   const CourierDashboardData({
     required this.courier,
@@ -29,6 +30,7 @@ class CourierDashboardData {
     required this.pickups,
     required this.inVehicle,
     required this.handedToHub,
+    this.linehaulTransfers = const [],
   });
 
   factory CourierDashboardData.fromJson(Map<String, dynamic> json) {
@@ -49,6 +51,7 @@ class CourierDashboardData {
       pickups: list('pickups').map(CourierPickup.fromJson).toList(),
       inVehicle: list('in_vehicle').map(CourierParcel.fromJson).toList(),
       handedToHub: list('handed_to_hub').map(CourierParcel.fromJson).toList(),
+      linehaulTransfers: list('linehaul_transfers').map(LinehaulTransfer.fromJson).toList(),
     );
   }
 }
@@ -163,10 +166,47 @@ class CourierParcel {
       );
 }
 
+class LinehaulTransfer {
+  final int id;
+  final String trackingCode;
+  final String? orderReference;
+  final String originHub;
+  final String destinationHub;
+  final bool isInTransit;
+
+  const LinehaulTransfer({
+    required this.id,
+    required this.trackingCode,
+    this.orderReference,
+    required this.originHub,
+    required this.destinationHub,
+    required this.isInTransit,
+  });
+
+  factory LinehaulTransfer.fromJson(Map<String, dynamic> json) => LinehaulTransfer(
+        id: _int(json['id']),
+        trackingCode: _str(json['tracking_code']) ?? '',
+        orderReference: _str(json['order_reference']),
+        originHub: _str(json['origin_hub']) ?? 'Origin Hub',
+        destinationHub: _str(json['destination_hub']) ?? 'Destination Hub',
+        isInTransit: json['is_in_transit'] == true,
+      );
+}
+
 class CourierService {
   static Future<CourierDashboardData> fetchDashboard() async {
     final response = await ApiService.get('/courier/dashboard', token: AuthService.token);
     return CourierDashboardData.fromJson(response);
+  }
+
+  static Future<String> dispatchLinehaul(int shipmentId) async {
+    final response = await ApiService.post('/courier/linehaul/$shipmentId/dispatch', const {}, token: AuthService.token);
+    return _str(response['message']) ?? 'Hub-to-Hub transit started.';
+  }
+
+  static Future<String> arriveLinehaul(int shipmentId) async {
+    final response = await ApiService.post('/courier/linehaul/$shipmentId/arrive', const {}, token: AuthService.token);
+    return _str(response['message']) ?? 'Handed over to destination hub.';
   }
 }
 
