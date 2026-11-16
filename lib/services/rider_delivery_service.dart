@@ -127,16 +127,24 @@ class RiderDeliveryService {
   }
 
   /// [code] is the scanned or typed waybill code, checked by the server.
-  static Future<String> markDelivered(RiderDelivery delivery, {required String code, String? receivedBy, String? note}) async {
-    final response = await ApiService.post(
-      '/rider/deliveries/${delivery.id}/deliver',
-      {
-        'code': code,
-        if (receivedBy != null && receivedBy.trim().isNotEmpty) 'received_by': receivedBy.trim(),
-        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
-      },
-      token: AuthService.token,
-    );
+  static Future<String> markDelivered(RiderDelivery delivery, {required String code, String? receivedBy, String? note, String? proofPhotoPath}) async {
+    final fields = <String, String>{
+      'code': code,
+      if (receivedBy != null && receivedBy.trim().isNotEmpty) 'received_by': receivedBy.trim(),
+      if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+    };
+    final response = (proofPhotoPath != null && proofPhotoPath.isNotEmpty)
+        ? await ApiService.postMultipart(
+            '/rider/deliveries/${delivery.id}/deliver',
+            fields,
+            files: {'proof_photo': proofPhotoPath},
+            token: AuthService.token,
+          )
+        : await ApiService.post(
+            '/rider/deliveries/${delivery.id}/deliver',
+            fields,
+            token: AuthService.token,
+          );
     return response['message']?.toString() ?? 'Delivered.';
   }
 

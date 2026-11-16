@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import 'package:cartzy/services/api_service.dart';
@@ -42,6 +45,10 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
   bool _barcodeHandled = false;
   String? _verificationMessage;
   String? _error;
+  File? _proofPhoto;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  bool get _canConfirm => _isVerified && (!widget.showCamera || _proofPhoto != null);
 
   RiderDelivery get _d => widget.delivery;
   String get _trackingNumber => _d.trackingCode;
@@ -89,16 +96,39 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
     _barcodeHandled = _isVerified;
   }
 
+  Future<void> _takeProofPhoto() async {
+    try {
+      final picked = await _imagePicker.pickImage(source: ImageSource.camera, imageQuality: 75);
+      if (picked != null && mounted) {
+        setState(() {
+          _proofPhoto = File(picked.path);
+          _error = null;
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'Unable to open camera for proof of delivery photo.');
+    }
+  }
+
   Future<void> _completeDelivery() async {
-    if (!_isVerified || _isCompleting) return;
+    if (!_canConfirm || _isCompleting) return;
     setState(() {
       _isCompleting = true;
       _error = null;
     });
     try {
-      final save = widget.markDelivered ??
-          (d, code, by, note) => RiderDeliveryService.markDelivered(d, code: code, receivedBy: by, note: note);
-      await save(_d, _trackingController.text.trim(), _receiverController.text, _noteController.text);
+      if (widget.markDelivered != null) {
+        await widget.markDelivered!(_d, _trackingController.text.trim(), _receiverController.text, _noteController.text);
+      } else {
+        await RiderDeliveryService.markDelivered(
+          _d,
+          code: _trackingController.text.trim(),
+          receivedBy: _receiverController.text,
+          note: _noteController.text,
+          proofPhotoPath: _proofPhoto?.path,
+        );
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } catch (e) {
@@ -206,11 +236,15 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                                 maxLines: 1,
                               ),
                               const SizedBox(height: 8),
+                              if (widget.showCamera) ...[
+                                _buildProofPhotoSection(),
+                                const SizedBox(height: 10),
+                              ],
                               SizedBox(
                                 width: double.infinity,
                                 height: 42,
                                 child: ElevatedButton.icon(
-                                  onPressed: _isVerified && !_isCompleting ? _completeDelivery : null,
+                                  onPressed: _canConfirm && !_isCompleting ? _completeDelivery : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF5A4A69),
                                     foregroundColor: Colors.white,
@@ -222,7 +256,13 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
                                       ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                                       : const Icon(Icons.check, size: 15),
                                   label: Text(
-                                    _isCompleting ? 'SAVING…' : (_isVerified ? 'CONFIRM DELIVERY (NOTIFY SELLER & BUYER)' : 'SCAN THE WAYBILL FIRST'),
+                                    _isCompleting
+                                        ? 'SAVING…'
+                                        : (!_isVerified
+                                            ? 'SCAN THE WAYBILL FIRST'
+                                            : (_proofPhoto == null && widget.showCamera
+                                                ? 'TAKE PROOF OF DELIVERY PHOTO FIRST'
+                                                : 'CONFIRM DELIVERY (COMPLETE ORDER)')),
                                     style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700),
                                   ),
                                 ),
@@ -253,6 +293,44 @@ class _RiderDeliverProcessState extends State<RiderDeliverProcess> {
       ),
     );
   }
+
+  Widget _buildProofPhotoSection() => Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD))),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.camera_alt_outlined, size: 16, color: CartzyColors.textOf(context)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Proof of Delivery Photo (Required)',
+                    style: GoogleFonts.dmSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context)),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: _takeProofPhoto,
+                  icon: Icon(_proofPhoto == null ? Icons.camera_alt : Icons.refresh, size: 15),
+                  label: Text(_proofPhoto == null ? 'Take Photo' : 'Retake', style: GoogleFonts.dmSans(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                ),
+              ],
+            ),
+            if (_proofPhoto != null) ...[
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(_proofPhoto!, height: 120, width: double.infinity, fit: BoxFit.cover),
+              ),
+            ],
+          ],
+        ),
+      );
 
   Widget _buildHeader() => Container(
         padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
