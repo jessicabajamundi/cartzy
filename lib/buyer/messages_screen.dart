@@ -37,11 +37,11 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
-  static const _softBlend = LinearGradient(
+  LinearGradient get _softBlend => LinearGradient(
     colors: [
-      CartzyColors.brand200,
-      CartzyColors.brand100,
-      CartzyColors.rose200
+      CartzyColors.elevatedOf(context, light: CartzyColors.brand200),
+      CartzyColors.elevatedOf(context, light: CartzyColors.brand100),
+      CartzyColors.surfaceOf(context, light: CartzyColors.rose200),
     ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
@@ -442,6 +442,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         widget.initialThreadId != null;
 
     return Container(
+      key: const ValueKey('messages-header'),
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
       decoration: BoxDecoration(
         gradient: _softBlend,
