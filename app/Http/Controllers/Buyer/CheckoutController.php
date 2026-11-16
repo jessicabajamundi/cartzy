@@ -103,13 +103,12 @@ class CheckoutController extends Controller
 
         $primarySeller = null;
         foreach ($checkoutItems as $ci) {
-            if (!empty($ci['product_id'])) {
-                $p = \App\Models\Product::find($ci['product_id']);
-                if ($p?->seller) { $primarySeller = $p->seller; break; }
+            try {
+                $primarySeller = app(\App\Services\ProductPricing::class)->variant($ci)?->product?->seller;
+                if ($primarySeller) break;
+            } catch (\RuntimeException $e) {
+                // Unavailable products never select an unrelated seller's payment account.
             }
-        }
-        if (!$primarySeller) {
-            $primarySeller = \App\Models\Seller::where('status', 'approved')->first();
         }
 
         return view('buyer.checkout', compact('user', 'checkoutItems', 'selectedKeys', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress', 'destination',
@@ -164,7 +163,8 @@ class CheckoutController extends Controller
         $request->validate([
             'payment_method'   => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
             'delivery_address' => ['required', 'string'],
-            'gcash_reference'  => ['nullable', 'string', 'max:50'],
+            'gcash_reference'  => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'string', 'max:50'],
+            'receipt'          => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'selected_items' => ['required', 'array', 'min:1'],
             'selected_items.*' => ['required', 'string', 'distinct'],
             'voucher_id' => ['nullable', 'integer'],
@@ -188,35 +188,47 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')->with('info', 'Your cart is empty. Add some products before checking out!');
         }
 
+        $receiptPath = null;
+        if (strtolower($request->input('payment_method')) !== 'cod' && $request->hasFile('receipt') && $request->file('receipt')->isValid()) {
+            $receiptPath = $request->file('receipt')->store('payment_receipts', 'public');
+        }
+
         try {
-            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $checkoutItems, $request, $selectedCart, $shopVoucherIds) {
+            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $checkoutItems, $request, $selectedCart, $shopVoucherIds, $receiptPath) {
                 $chosenMethod = in_array(strtoupper(trim((string) $request->input('payment_method'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
+                $gcashRef = $chosenMethod === 'GCash' ? ($request->input('gcash_reference') ?: null) : null;
                 $order = app(OrderPlacement::class)->place(
                     $user,
                     $checkoutItems,
                     $chosenMethod,
                     $request->input('delivery_address'),
-                    ['items' => $request->integer('voucher_id') ?: null, 'shipping' => $request->integer('shipping_voucher_id') ?: null] + $shopVoucherIds
+                    ['items' => $request->integer('voucher_id') ?: null, 'shipping' => $request->integer('shipping_voucher_id') ?: null] + $shopVoucherIds,
+                    null,
+                    $gcashRef,
+                    $receiptPath
                 );
 
                 if ($chosenMethod === 'GCash') {
-                    $gcashRef = $request->input('gcash_reference') ?: ('GCASH-' . strtoupper(\Illuminate\Support\Str::random(10)));
-                    \App\Models\Payment::create([
-                        'order_id' => $order->id,
-                        'method' => 'gcash',
-                        'amount_minor' => $order->total_minor,
-                        'status' => 'completed',
-                        'provider_ref' => $gcashRef,
-                    ]);
-                    $order->update(['payment_status' => 'paid']);
-                    \App\Models\ActivityLog::forUser($user->id, 'order_paid', $order->reference);
+                    foreach ($order->sellerOrders()->with('seller')->get() as $sellerOrder) {
+                        if ($sellerUserId = $sellerOrder->seller?->user_id) {
+                            \App\Services\NotificationService::notify(
+                                $sellerUserId,
+                                'order_update',
+                                'GCash Payment Pending Verification',
+                                "Order {$order->reference} submitted a GCash payment" . ($gcashRef ? " (Ref: {$gcashRef})" : '') . '. Please verify the receipt in Orders.',
+                                route('seller.orders')
+                            );
+                        }
+                    }
                 }
 
                 app(\App\Services\BuyerCart::class)->remove(array_keys($selectedCart));
                 return $order;
             });
-        } catch (\RuntimeException $e) {
-            return redirect()->route('cart.index')->with('info', $e->getMessage());
+        } catch (\Throwable $e) {
+            if ($receiptPath) \Illuminate\Support\Facades\Storage::disk('public')->delete($receiptPath);
+            if ($e instanceof \RuntimeException) return redirect()->route('cart.index')->with('info', $e->getMessage());
+            throw $e;
         }
 
         try {

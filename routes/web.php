@@ -436,6 +436,8 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
 
     // 11. COD Remittance & 7-Day Escrow Desk
     Route::get('/cod-remittances', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'codRemittances'])->name('cod_remittances');
+    Route::get('/online-payments', [\App\Http\Controllers\Logistics\OnlinePaymentController::class, 'index'])->name('online_payments');
+    Route::get('/online-payments/{sellerOrder}/receipts/{payment}', [\App\Http\Controllers\Logistics\OnlinePaymentController::class, 'receipt'])->whereNumber(['sellerOrder', 'payment'])->name('online_payments.receipt');
     Route::post('/cod-remittances/{id}/remit', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'remitCodToSeller'])->whereNumber('id')->name('cod_remittances.remit');
     Route::post('/cod-remittances/batch-remit', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'batchRemitEligibleCod'])->name('cod_remittances.batch');
 });

@@ -47,9 +47,9 @@
             </div>
             <div style="font-size: 13px; color: var(--dm-blue-ink, #4c1d95); line-height: 1.5;">
                 <strong>Cartzy 7-Day Payment & Refund Flow:</strong><br>
-                • <strong>Online Payment (GCash):</strong> Buyer pays seller directly.<br>
+                • <strong>Online Payment (GCash):</strong> Buyer pays seller directly; this is manually verified and is not held by the hub. <a href="{{ route('logistics.online_payments') }}">View online payment records</a>.<br>
                 • <strong>Cash on Delivery (COD):</strong> Rider collects cash → Remits to Logistics Hub → Logistics holds for <strong>7 days</strong>.<br>
-                • <strong>Buyer Refunds:</strong> If buyer requests within 7 days and <em>Seller Approves</em>, Logistics disburses the refund from held COD funds. After 7 days, refunds are locked and funds are remitted to the seller.
+                • <strong>Buyer Refunds:</strong> If buyer requests within 7 days and <em>Seller Approves</em>, Logistics disburses the refund from held COD funds. Seller remittance is available after 7 days only when there is no open dispute or recorded refund. Existing refund cases remain open until resolved. Online refunds are arranged and recorded by administration.
             </div>
         </div>
         <a href="{{ route('logistics.returns') }}" style="font-size: 12px; font-weight: 700; color: var(--dm-blue-ink, #7c3aed); text-decoration: none; padding: 8px 14px; border: 1px solid var(--dm-border, #c4b5fd); border-radius: 8px; background: var(--dm-surface, white); white-space: nowrap;">

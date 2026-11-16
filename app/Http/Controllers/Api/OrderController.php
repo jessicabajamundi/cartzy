@@ -81,8 +81,8 @@ class OrderController extends Controller
         $data = $request->validate([
             'checkout_key' => ['required', 'string', 'max:64'],
             'payment_method' => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
-            'gcash_reference' => ['nullable', 'string', 'max:50'],
-            'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
+            'gcash_reference' => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'string', 'max:50'],
+            'receipt' => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'address_id' => ['required', 'integer'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => ['nullable', 'integer'],
@@ -98,12 +98,7 @@ class OrderController extends Controller
         $user = $request->user();
         $cacheKey = "api-checkout:{$user->id}:{$data['checkout_key']}";
 
-        $receiptPath = null;
-        if ($request->hasFile('receipt') && $request->file('receipt')->isValid()) {
-            $receiptPath = $request->file('receipt')->store('payment_receipts', 'public');
-        }
-
-        return Cache::lock($cacheKey.':lock', 30)->block(15, function () use ($data, $user, $cacheKey, $placement, $pricing, $receiptPath) {
+        return Cache::lock($cacheKey.':lock', 30)->block(15, function () use ($data, $user, $cacheKey, $placement, $pricing, $request) {
             // Same tap sent twice (e.g. a retry after a slow network): answer with the first order.
             if ($orderId = Cache::get($cacheKey)) {
                 $order = Order::find($orderId);
@@ -143,9 +138,30 @@ class OrderController extends Controller
             }
 
             $chosenMethod = in_array(strtoupper(trim((string) ($data['payment_method'] ?? 'COD'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
+            $receiptPath = null;
+            if ($chosenMethod === 'GCash' && $request->hasFile('receipt')) {
+                $receiptPath = $request->file('receipt')->store('payment_receipts', 'public');
+            }
+            $placed = false;
 
             try {
                 $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address, $data['gcash_reference'] ?? null, $receiptPath);
+                $placed = true;
+
+                if ($chosenMethod === 'GCash') {
+                    $gcashRef = $data['gcash_reference'] ?? null;
+                    foreach ($order->sellerOrders()->with('seller')->get() as $sellerOrder) {
+                        if ($sellerUserId = $sellerOrder->seller?->user_id) {
+                            \App\Services\NotificationService::notify(
+                                $sellerUserId,
+                                'order_update',
+                                'GCash Payment Pending Verification',
+                                "Order {$order->reference} submitted a GCash payment" . ($gcashRef ? " (Ref: {$gcashRef})" : '') . '. Please verify the receipt in Orders.',
+                                route('seller.orders')
+                            );
+                        }
+                    }
+                }
 
                 // Clean up ordered items from the server cart so mobile and web remain synchronized
                 $cartKeysToRemove = [];
@@ -157,8 +173,10 @@ class OrderController extends Controller
                 if (!empty($cartKeysToRemove)) {
                     app(\App\Services\BuyerCart::class)->remove($cartKeysToRemove);
                 }
-            } catch (RuntimeException $e) {
-                return response()->json(['message' => $e->getMessage()], 422);
+            } catch (\Throwable $e) {
+                if (!$placed && $receiptPath) \Illuminate\Support\Facades\Storage::disk('public')->delete($receiptPath);
+                if ($e instanceof RuntimeException) return response()->json(['message' => $e->getMessage()], 422);
+                throw $e;
             }
 
             Cache::put($cacheKey, $order->id, now()->addDay());
@@ -196,7 +214,7 @@ class OrderController extends Controller
             $latestPayment = $order->payments()->latest()->first();
             $json['order']['gcash'] = [
                 'merchant_name' => $primarySeller?->gcash_name ?: ($primarySeller?->name ?: 'Cartzy Official Store'),
-                'merchant_number' => $primarySeller?->gcash_number ?: '0917-555-2278',
+                'merchant_number' => $primarySeller?->gcash_number ?: '',
                 'qr_url' => $primarySeller?->gcash_qr_url,
                 'amount' => $totalFormatted,
                 'reference' => $order->reference,
@@ -204,7 +222,7 @@ class OrderController extends Controller
                 'receipt_url' => $latestPayment?->receipt_url,
                 'payment_status' => $latestPayment?->status ?? 'pending',
                 'verification_status' => 'pending_verification',
-                'qr_data' => "00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540" . sprintf("%02d", strlen((string)$totalFormatted)) . $totalFormatted . "5802PH5915Cartzy Commerce6006Manila62" . sprintf("%02d", strlen($order->reference) + 4) . "05" . sprintf("%02d", strlen($order->reference)) . $order->reference . "6304",
+                'qr_data' => null, // Only a seller-uploaded QR is valid for manual GCash transfers.
                 'expiry_minutes' => 15,
             ];
         }
@@ -221,6 +239,9 @@ class OrderController extends Controller
 
         $seller = null;
         if (!empty($productIds)) {
+            if (\App\Models\Product::whereIn('id', $productIds)->distinct()->count('seller_id') > 1) {
+                return response()->json(['message' => 'Check out one store at a time for direct GCash payments.'], 422);
+            }
             $product = \App\Models\Product::whereIn('id', $productIds)->with('seller')->first();
             if ($product && $product->seller) {
                 $seller = $product->seller;
@@ -235,15 +256,11 @@ class OrderController extends Controller
             $seller = \App\Models\Seller::find($request->input('seller_id'));
         }
 
-        if (!$seller) {
-            $seller = \App\Models\Seller::where('status', 'approved')->first();
-        }
-
         return response()->json([
             'seller_id'     => $seller?->id,
             'store_name'    => $seller?->name ?? 'Cartzy Official Store',
             'gcash_name'    => $seller?->gcash_name ?: ($seller?->name ?? 'Cartzy Commerce'),
-            'gcash_number'  => $seller?->gcash_number ?: '0917-555-2278',
+            'gcash_number'  => $seller?->gcash_number ?: '',
             'gcash_qr_url'  => $seller?->gcash_qr_url,
             'has_custom_qr' => !empty($seller?->gcash_qr_url),
         ]);

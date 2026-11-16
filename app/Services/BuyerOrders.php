@@ -100,6 +100,7 @@ class BuyerOrders
      */
     public function pay(string $reference, int $buyerId): Order
     {
+        abort_unless(app()->environment('testing'), 403, 'Demo payment confirmation is disabled. Submit your payment evidence for verification.');
         return DB::transaction(function () use ($reference, $buyerId) {
             $order = Order::where('reference', $reference)->where('buyer_id', $buyerId)->lockForUpdate()->firstOrFail();
 

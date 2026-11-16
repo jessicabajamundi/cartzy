@@ -27,7 +27,7 @@
             @foreach($selectedKeys as $key)<input type="hidden" name="selected_items[]" value="{{ $key }}">@endforeach
         </form>
 
-        <form action="{{ route('checkout.process') }}" method="POST" class="checkout-layout" id="checkout-form" data-subtotal="{{ (int) round($subtotal * 100) }}" data-shipping="{{ (int) round($shippingFee * 100) }}" data-product-savings="{{ (int) round($productDiscount * 100) }}" data-shop-discount="{{ (int) round(($shopVoucherDiscount + $shopShippingDiscount) * 100) }}">
+        <form action="{{ route('checkout.process') }}" method="POST" enctype="multipart/form-data" class="checkout-layout" id="checkout-form" data-subtotal="{{ (int) round($subtotal * 100) }}" data-shipping="{{ (int) round($shippingFee * 100) }}" data-product-savings="{{ (int) round($productDiscount * 100) }}" data-shop-discount="{{ (int) round(($shopVoucherDiscount + $shopShippingDiscount) * 100) }}">
             @csrf
             @foreach($selectedKeys as $key)<input type="hidden" name="selected_items[]" value="{{ $key }}">@endforeach
             <input type="hidden" name="delivery_address" value="{{ $checkoutAddress ?? '' }}">
@@ -172,6 +172,7 @@
                 </section>
 
                 <section class="checkout-card" aria-labelledby="payment-title">
+                    @php($canUseGcash = count($storeItems) === 1 && (!empty($primarySeller?->gcash_number) || !empty($primarySeller?->gcash_qr_url)))
                     <div class="checkout-card-heading"><div class="checkout-section-title"><span class="checkout-step">04</span><h2 id="payment-title">Payment method</h2></div></div>
                     <fieldset class="checkout-payments"><legend class="checkout-sr-only">Choose your payment method</legend>
                         <label class="checkout-payment is-selected" id="payment-label-cod">
@@ -181,8 +182,8 @@
                         </label>
                         <label class="checkout-payment" id="payment-label-gcash">
                             <span class="checkout-payment-icon gcash" aria-hidden="true" style="background:#007DFE; color:var(--dm-on-light, #fff); font-weight:800;">G</span>
-                            <span class="checkout-payment-copy"><strong>GCash QR Code <span class="checkout-badge" style="background:var(--dm-blue-surface, #EBF5FF); color:var(--dm-blue-ink, #007DFE); font-weight:700;">Instant Payment</span></strong><small>Scan and pay with your GCash app for faster dispatch.</small></span>
-                            <input type="radio" name="payment_method" value="GCash" required>
+                            <span class="checkout-payment-copy"><strong>GCash <span class="checkout-badge">Seller verification</span></strong><small>{{ $canUseGcash ? 'Pay the seller, then submit the reference and receipt for manual verification.' : 'GCash requires one store per checkout and a seller-configured payment account. Choose COD or check out one store at a time.' }}</small></span>
+                            <input type="radio" name="payment_method" value="GCash" required @disabled(!$canUseGcash)>
                         </label>
                     </fieldset>
 
@@ -202,10 +203,10 @@
                                     @if(!empty($primarySeller?->gcash_qr_url))
                                         <img id="gcash-qr-img" src="{{ $primarySeller->gcash_qr_url }}" alt="Seller GCash QR Code" style="width:180px; height:180px; object-fit:contain; display:block;">
                                     @else
-                                        <img id="gcash-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?data=00020101021226580014ph.com.gcash011891755522780210CARTZYPH520459995303608540{{ number_format($total, 2, '.', '') }}5802PH5915CartzyCommerce6006Manila6304&size=180x180&margin=4" alt="GCash Payment QR Code" style="width:180px; height:180px; display:block;" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'180\' height=\'180\' viewBox=\'0 0 100 100\'><rect width=\'100\' height=\'100\' fill=\'%23f7fafc\'/><rect x=\'10\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'65\' y=\'10\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><rect x=\'10\' y=\'65\' width=\'25\' height=\'25\' fill=\'%23007DFE\'/><text x=\'50\' y=\'55\' font-size=\'10\' font-weight=\'bold\' fill=\'%23007DFE\' text-anchor=\'middle\'>GCASH QR</text></svg>';">
+                                        <p>No QR code uploaded. Use the seller-configured GCash number, and confirm the recipient before paying.</p>
                                     @endif
                                 </div>
-                                <div style="margin-top:8px; font-size:11px; font-weight:700; color:var(--dm-blue-ink, #007DFE); letter-spacing:0.5px;">{{ !empty($primarySeller?->gcash_qr_url) ? 'SELLER GCASH QR' : 'OFFICIAL MERCHANDISE QR' }}</div>
+                                <div style="margin-top:8px; font-size:11px; font-weight:700; color:var(--dm-blue-ink, #007DFE); letter-spacing:0.5px;">{{ !empty($primarySeller?->gcash_qr_url) ? 'SELLER GCASH QR' : 'SELLER PAYMENT DETAILS' }}</div>
                             </div>
                             <div style="flex:1; min-width:200px;">
                                 <div style="margin-bottom:10px;">
@@ -214,15 +215,19 @@
                                 </div>
                                 <div style="margin-bottom:10px;">
                                     <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--dm-muted, #718096); display:block;">GCash Account No.</span>
-                                    <strong style="font-size:14px; font-family:monospace; color:var(--dm-blue-ink, #007DFE);">{{ $primarySeller?->gcash_number ?: '0917-555-2278' }}</strong>
+                                    <strong style="font-size:14px; font-family:monospace; color:var(--dm-blue-ink, #007DFE);">{{ $primarySeller?->gcash_number ?: 'Not configured' }}</strong>
                                 </div>
                                 <div style="margin-bottom:14px;">
                                     <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--dm-muted, #718096); display:block;">Total Amount to Pay</span>
                                     <strong style="font-size:18px; font-weight:900; color:var(--dm-blue-ink, #007DFE);" data-total>&#8369;{{ number_format($total, 2) }}</strong>
                                 </div>
-                                <div>
-                                    <label for="gcash_reference" style="font-size:12px; font-weight:700; color:var(--dm-ink, #4a5568); display:block; margin-bottom:4px;">GCash Reference No. (Optional)</label>
+                                <div style="margin-bottom:10px;">
+                                    <label for="gcash_reference" style="font-size:12px; font-weight:700; color:var(--dm-ink, #4a5568); display:block; margin-bottom:4px;">GCash Reference No.</label>
                                     <input type="text" name="gcash_reference" id="gcash_reference" placeholder="e.g. 1002 9845 2819" maxlength="30" style="width:100%; padding:9px 12px; font-size:13px; border:1px solid var(--dm-border, #CBD5E0); border-radius:8px; background:var(--dm-surface, #fff);">
+                                </div>
+                                <div>
+                                    <label for="gcash_receipt" style="font-size:12px; font-weight:700; color:var(--dm-ink, #4a5568); display:block; margin-bottom:4px;">Upload GCash Receipt Screenshot</label>
+                                    <input type="file" name="receipt" id="gcash_receipt" accept="image/jpeg,image/png,image/webp,application/pdf" style="width:100%; padding:7px 10px; font-size:12px; border:1px dashed var(--dm-border, #CBD5E0); border-radius:8px; background:var(--dm-surface, #fff);">
                                 </div>
                             </div>
                         </div>
@@ -303,12 +308,16 @@
 
     function updatePaymentMethod() {
         const selected = form.querySelector('input[name="payment_method"]:checked')?.value || 'COD';
+        ['gcash_reference', 'gcash_receipt'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.required = selected === 'GCash';
+        });
         if (selected === 'GCash') {
             labelGcash?.classList.add('is-selected');
             labelCod?.classList.remove('is-selected');
             if (gcashPanel) gcashPanel.style.display = 'block';
-            if (paymentNote) paymentNote.innerHTML = 'Scan the GCash QR code above using your GCash app and complete payment before placing order.';
-            if (reviewPayment) reviewPayment.textContent = 'GCash QR (Instant)';
+            if (paymentNote) paymentNote.textContent = 'Pay only the seller account shown above. Submit the transaction reference and receipt; payment stays pending until the seller verifies receipt.';
+            if (reviewPayment) reviewPayment.textContent = 'GCash (seller verification)';
         } else {
             labelCod?.classList.add('is-selected');
             labelGcash?.classList.remove('is-selected');

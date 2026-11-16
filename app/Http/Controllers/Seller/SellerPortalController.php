@@ -402,71 +402,13 @@ class SellerPortalController extends Controller
     {
         $data = $request->validate([
             'decision' => ['required', 'string', 'in:approved,rejected'],
-            'notes'    => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
-
-        $sellerOrder = $this->ordersQuery()->findOrFail($id);
-        $order = $sellerOrder->order;
-        $payment = $order->payments()->latest()->first();
-
-        abort_unless($payment, 404, 'No payment record found for this order.');
-
-        $decision = $data['decision'];
-        $notes = $data['notes'] ?? null;
-
-        DB::transaction(function () use ($order, $payment, $decision, $notes) {
-            if ($decision === 'approved') {
-                $payment->update([
-                    'status'             => 'completed',
-                    'verified_at'        => now(),
-                    'verified_by'        => Auth::id(),
-                    'verification_notes' => $notes,
-                ]);
-                $order->update(['payment_status' => 'paid']);
-
-                \App\Models\ActivityLog::forUser(
-                    $order->buyer_id,
-                    'payment_approved',
-                    "Order {$order->reference} GCash payment verified by seller."
-                );
-
-                \App\Services\NotificationService::notify(
-                    $order->buyer_id,
-                    'payment',
-                    'Payment Verified',
-                    "Your GCash payment for order {$order->reference} has been approved by the seller! Your order will now be prepared.",
-                    route('buyer.dashboard', ['tab' => 'orders'])
-                );
-            } else {
-                $payment->update([
-                    'status'             => 'rejected',
-                    'verified_at'        => now(),
-                    'verified_by'        => Auth::id(),
-                    'verification_notes' => $notes ?: 'Payment receipt could not be verified.',
-                ]);
-                $order->update(['payment_status' => 'payment_rejected']);
-
-                \App\Models\ActivityLog::forUser(
-                    $order->buyer_id,
-                    'payment_rejected',
-                    "Order {$order->reference} GCash payment was rejected by seller."
-                );
-
-                \App\Services\NotificationService::notify(
-                    $order->buyer_id,
-                    'payment',
-                    'Payment Rejected',
-                    "Your GCash payment receipt for order {$order->reference} was rejected: " . ($notes ?: 'Receipt could not be verified.') . " Please contact the seller.",
-                    route('buyer.dashboard', ['tab' => 'orders'])
-                );
-            }
-        });
-
-        \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
-
-        return back()->with('success', $decision === 'approved' ? 'Payment approved! Order is now ready to pack.' : 'Payment marked as rejected.');
+        $parcel = $this->ordersQuery()->findOrFail($id);
+        app(\App\Services\PaymentVerification::class)->verify($parcel, $request->user(), $data);
+        return back()->with('success', $data['decision'] === 'approved'
+            ? 'Manual GCash payment verified and recorded.' : 'Payment rejection recorded.');
     }
-
     public function printWaybill(int $id)
     {
         $order = $this->ordersQuery()->with([

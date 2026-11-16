@@ -200,6 +200,10 @@ class Shipment extends Model
         if (!$until || now()->lessThan($until)) {
             return false;
         }
+        // Refunded money must never be remitted a second time to the seller.
+        if (RefundTransaction::where('seller_order_id', $this->seller_order_id)->exists()) {
+            return false;
+        }
         // If there's an active dispute or approved refund, holding cannot be remitted to seller
         $hasActiveDispute = $this->sellerOrder?->reports()
             ->whereIn('status', ['open', 'investigating', 'escalated'])

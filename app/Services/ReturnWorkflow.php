@@ -141,9 +141,10 @@ class ReturnWorkflow
                     $case->update(['status' => $data['result'] === 'accepted' ? 'refund_pending' : 'inspection_failed', 'inspection_notes' => $notes]);
                     break;
                 case 'refund':
-                    $isLogistics = $actor->role === 'logistics' && $actor->logisticsProvider
-                        && ($case->logistics_provider_id === $actor->logisticsProvider->id
-                            || $report->sellerOrder?->shipment?->logistics_provider_id === $actor->logisticsProvider->id);
+                    // Serialize refund recording with changes to the parcel's COD remittance.
+                    $shipment = $report->sellerOrder?->shipment()->lockForUpdate()->first();
+                    $report->sellerOrder?->setRelation('shipment', $shipment);
+                    $isLogistics = $case->canLogisticsDisburse($actor);
                     abort_unless($admin || $isLogistics, 403, 'Only administrators or the handling logistics partner holding COD funds can disburse this refund.');
                     $this->requireState($case, ['refund_pending']);
                     $this->paidOrder($case, $order);
@@ -155,6 +156,8 @@ class ReturnWorkflow
                     $totalRefunded = RefundTransaction::where('order_id', $order->id)->sum('amount_minor');
                     $order->update(['payment_status' => $totalRefunded >= $order->total_minor ? 'refunded' : 'partially_refunded']);
                     $case->update(['status' => 'refunded']);
+                    $notes = trim($notes.' Payment: '.strtoupper($data['method']).' / '.$data['reference'].
+                        '; PHP '.number_format($case->amount_minor / 100, 2).'; completed payment manually recorded.');
                     $disbursedBy = $isLogistics ? ('Logistics Hub ('.$actor->logisticsProvider->name.')') : 'Administration';
                     $report->update(['status' => 'resolved', 'resolved_at' => now(),
                         'admin_notes' => "Refund payment disbursed by {$disbursedBy}: PHP ".number_format($case->amount_minor / 100, 2).'. '.$notes]);

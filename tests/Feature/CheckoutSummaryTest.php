@@ -50,14 +50,14 @@ class CheckoutSummaryTest extends TestCase
             ->assertViewHas('discount', 0)
             ->assertViewHas('total', 960)
             ->assertSee('Add your delivery address to continue.')
-            ->assertSee('class="checkout-submit" disabled', false);
+            ->assertSee('class="checkout-submit btn-blend" disabled', false);
     }
 
     public function test_checkout_rejects_unavailable_online_payment_methods(): void
     {
         $this->mock(OrderPlacement::class)->shouldNotReceive('place');
         $this->actingAs(User::factory()->create(['id_status' => 'verified']))
-            ->post(route('checkout.process'), ['payment_method' => 'GCash', 'delivery_address' => 'Test address', 'selected_items' => ['watch']])
+            ->post(route('checkout.process'), ['payment_method' => 'UnsupportedCard', 'delivery_address' => 'Test address', 'selected_items' => ['watch']])
             ->assertSessionHasErrors('payment_method');
     }
 }

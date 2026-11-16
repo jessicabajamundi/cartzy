@@ -150,7 +150,9 @@ class OrderPlacement
             $shippingDiscountMinor = $selection['shipping']['discount_minor'] ?? 0;
             $totalMinor = max(0, $subtotalMinor + $shippingMinor - $shopShippingDiscountMinor - $shippingDiscountMinor - $itemDiscountMinor - $shopDiscountMinor);
             $isCod = in_array(strtoupper(trim((string) $paymentMethod)), ['COD', 'CASH ON DELIVERY'], true);
-            $normalizedMethod = $isCod ? 'COD' : 'GCash';
+            if (!$isCod && $groups->count() !== 1) {
+                throw new RuntimeException('For direct GCash payments, check out one store at a time so each seller receives and verifies the correct payment.');
+            }
 
             $order = Order::create([
                 'buyer_id'         => $buyer->id,
@@ -231,11 +233,11 @@ class OrderPlacement
 
             Payment::create([
                 'order_id' => $order->id,
-                'method' => $normalizedMethod,
+                'method' => $isCod ? 'cod' : 'gcash',
                 'amount_minor' => $totalMinor,
                 'status' => 'pending',
-                'provider_ref' => $providerRef,
-                'receipt_path' => $receiptPath,
+                'provider_ref' => $isCod ? null : $providerRef,
+                'receipt_path' => $isCod ? null : $receiptPath,
             ]);
 
             $vouchers->record($order, [...array_values($selection), ...array_values($shopSelection), ...array_values($shopShippingSelection)]);

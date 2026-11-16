@@ -41,6 +41,7 @@
             'scan' => ['Scan parcel', 'scan'],
             'returns' => ['Return parcels', 'refresh'],
             'cod_remittances' => ['COD Remittance & Escrow', 'wallet'],
+            'online_payments' => ['Online payments & refunds', 'wallet'],
             'monitoring' => ['Delivery monitoring', 'activity'],
         ],
         'Analytics & comms' => [

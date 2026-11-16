@@ -16,6 +16,15 @@ class ReturnCase extends Model
     public function refund() { return $this->hasOne(RefundTransaction::class); }
     public function events() { return $this->hasMany(ReturnEvent::class)->orderBy('id'); }
 
+    public function canLogisticsDisburse(User $user): bool
+    {
+        $shipment = $this->dispute?->sellerOrder?->shipment;
+        return $user->role === 'logistics' && $user->logisticsProvider
+            && $this->dispute?->order?->payment_method === 'cod'
+            && $shipment && $shipment->cod_collected && !$shipment->cod_remitted_at
+            && (int) $shipment->logistics_provider_id === (int) $user->logisticsProvider->id;
+    }
+
     public function scopeVisibleTo($query, User $user)
     {
         return match ($user->role) {
@@ -24,8 +33,13 @@ class ReturnCase extends Model
             'seller' => $query->whereHas('dispute.sellerOrder.seller', fn ($q) => $q->where('user_id', $user->id)),
             'logistics' => $query->where(function ($q) use ($user) {
                 $pid = $user->logisticsProvider?->id;
+                if (!$pid) {
+                    $q->whereRaw('1 = 0');
+                    return;
+                }
                 $q->where('logistics_provider_id', $pid)
-                  ->orWhereHas('dispute.sellerOrder.shipment', fn ($sq) => $sq->where('logistics_provider_id', $pid));
+                  ->orWhereHas('dispute.sellerOrder.shipment', fn ($sq) => $sq->where('logistics_provider_id', $pid)
+                      ->orWhere('origin_hub_id', $pid)->orWhere('destination_hub_id', $pid));
             }),
             default => $query->whereRaw('1 = 0'),
         };

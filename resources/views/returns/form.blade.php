@@ -23,7 +23,7 @@
         <label>Transaction / receipt reference<input name="reference" maxlength="150" required></label>
         <label>Date paid<input type="date" name="paid_at" max="{{ now()->format('Y-m-d') }}" required></label>
         <label>Payment receipt<input type="file" name="proof" accept="image/jpeg,image/png,image/webp,application/pdf" required></label>
-        <small>Private receipt, up to 5 MB. Buyer, seller and administrators can access it. Hide unrelated financial information.</small>
+        <small>Private receipt, up to 5 MB. The buyer, seller, handling hub and administrators can access it. Hide unrelated financial information.</small>
         <label class="return-check"><input type="checkbox" name="paid_confirmation" value="1" required> I confirm this amount has already been paid to the buyer.</label>
     @endif
     <label>{{ in_array($action, ['reject', 'appeal', 'inspect']) ? 'Reason / findings' : 'Notes' }}<textarea name="notes" rows="3" minlength="3" maxlength="2000" required></textarea></label>

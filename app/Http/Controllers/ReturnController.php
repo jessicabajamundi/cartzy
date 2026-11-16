@@ -22,7 +22,7 @@ class ReturnController extends Controller
         $request->validate(['case' => ['nullable', 'integer', 'min:1']]);
         $cases = ReturnCase::visibleTo($request->user())
             ->when($request->filled('case'), fn ($q) => $q->whereKey($request->integer('case')))
-            ->with(['dispute.sellerOrder.seller', 'dispute.order', 'events', 'refund', 'logisticsProvider.user', 'rider.user'])
+            ->with(['dispute.sellerOrder.seller', 'dispute.sellerOrder.shipment', 'dispute.order.payments.verifier', 'events.actor', 'refund.recorder', 'logisticsProvider.user', 'rider.user'])
             ->latest('updated_at')->paginate(12)->withQueryString();
         if ($request->expectsJson()) {
             return response()->json(['data' => $cases->map(fn ($case) => [

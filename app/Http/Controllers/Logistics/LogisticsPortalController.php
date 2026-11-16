@@ -2715,7 +2715,9 @@ class LogisticsPortalController extends Controller
             'refund_pending_count'=> ReturnCase::where(function ($q) use ($provider) {
                     $q->where('logistics_provider_id', $provider->id)
                       ->orWhereHas('dispute.sellerOrder.shipment', fn ($sq) => $sq->where('logistics_provider_id', $provider->id));
-                })->where('status', 'refund_pending')->count(),
+                })->where('status', 'refund_pending')
+                ->whereHas('dispute.order', fn ($q) => $q->where('payment_method', 'cod'))
+                ->whereHas('dispute.sellerOrder.shipment', fn ($q) => $q->where('logistics_provider_id', $provider->id)->where('cod_collected', true)->whereNull('cod_remitted_at'))->count(),
         ];
 
         if ($search !== '') {
@@ -2733,6 +2735,8 @@ class LogisticsPortalController extends Controller
                   ->orWhereHas('dispute.sellerOrder.shipment', fn ($sq) => $sq->where('logistics_provider_id', $provider->id));
             })
             ->where('status', 'refund_pending')
+            ->whereHas('dispute.order', fn ($q) => $q->where('payment_method', 'cod'))
+            ->whereHas('dispute.sellerOrder.shipment', fn ($q) => $q->where('logistics_provider_id', $provider->id)->where('cod_collected', true)->whereNull('cod_remitted_at'))
             ->with(['dispute.sellerOrder.seller', 'dispute.order.buyer', 'events'])
             ->latest()
             ->get();
@@ -2760,6 +2764,9 @@ class LogisticsPortalController extends Controller
         ]);
 
         DB::transaction(function () use ($shipment, $data, $provider, $request) {
+            \App\Models\Order::whereKey($shipment->sellerOrder->order_id)->lockForUpdate()->firstOrFail();
+            $shipment = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+            abort_unless($shipment->isCodEligibleForRemittance(), 422, 'This parcel has a refund, an open dispute or an existing remittance. Refresh the records.');
             $shipment->update([
                 'cod_remitted_at'       => now(),
                 'cod_remitted_by'       => $request->user()->id,
@@ -2822,6 +2829,9 @@ class LogisticsPortalController extends Controller
 
         DB::transaction(function () use ($eligible, $data, $provider, $request, &$count, &$totalMinor) {
             foreach ($eligible as $shipment) {
+                \App\Models\Order::whereKey($shipment->sellerOrder->order_id)->lockForUpdate()->firstOrFail();
+                $shipment = Shipment::whereKey($shipment->id)->lockForUpdate()->firstOrFail();
+                if (!$shipment->isCodEligibleForRemittance()) continue;
                 $shipment->update([
                     'cod_remitted_at'       => now(),
                     'cod_remitted_by'       => $request->user()->id,

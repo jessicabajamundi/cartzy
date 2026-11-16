@@ -25,7 +25,7 @@
             if (($role === 'logistics' || $isAdmin) && $case->status === 'scheduled') $actions = ['dispatch' => 'Assign return rider', 'collect' => $case->handover_method === 'pickup' ? 'Confirm parcel collected' : 'Confirm drop-off received at hub'];
             if (($role === 'seller' || $isAdmin) && $case->status === 'in_transit') $actions = ['receive' => 'Confirm returned parcel received'];
             if (($role === 'seller' || $isAdmin) && $case->status === 'received') $actions = ['inspect' => 'Record inspection'];
-            if (($isAdmin || $role === 'logistics') && $case->status === 'refund_pending') $actions['refund'] = $role === 'logistics' ? 'Disburse COD refund to buyer' : 'Record completed refund payment';
+            if (($isAdmin || $case->canLogisticsDisburse(auth()->user())) && $case->status === 'refund_pending') $actions['refund'] = $role === 'logistics' ? 'Record completed COD refund to buyer' : 'Record completed refund payment';
         @endphp
         <article class="return-card" id="case-{{ $case->id }}">
             <header><div><h2>Case #{{ $case->id }} · {{ $report->order->reference }}</h2><p>{{ $report->sellerOrder->seller->name }} · {{ \App\Models\AdminDispute::RESOLUTIONS[$report->requested_resolution] }}</p></div><strong class="return-status">{{ $labels[$case->status] ?? $case->status }}</strong></header>
@@ -35,6 +35,9 @@
                 @foreach($report->evidence ?? [] as $index => $path)<a class="return-link" href="{{ route('disputes.evidence', [$report->id, $index]) }}" target="_blank" rel="noopener">View buyer photo {{ $index + 1 }}</a>@endforeach
             @endif
             @if($case->amount_minor)<p><strong>Approved refund: PHP {{ number_format($case->amount_minor / 100, 2) }}</strong></p>@endif
+            @php($originalPayment = $report->order->payments->sortByDesc('id')->first())
+            <div class="return-address"><strong>Original payment</strong><p>{{ $report->order->payment_method === 'cod' ? 'Cash on delivery' : 'Online / direct GCash' }} &middot; {{ ucfirst(str_replace('_', ' ', $report->order->payment_status)) }}<br>Reference: {{ $originalPayment?->provider_ref ?: 'No online reference' }}<br>Verified by: {{ $originalPayment?->verifier?->name ?? 'No manual verification recorded' }} @if($originalPayment?->verified_at) &middot; {{ $originalPayment->verified_at->timezone('Asia/Manila')->format('M j, Y g:i A') }} @endif</p>
+            @if($role === 'logistics' && $report->order->payment_method !== 'cod')<p>Online funds were sent directly to the seller. This hub tracks the return; administration records the completed refund after payment evidence is checked.</p>@endif</div>
             @if($case->review_notes)<p>Review: {{ $case->review_notes }}</p>@endif
             @if($case->return_address)<p class="return-address"><strong>Return to seller</strong><br>{{ $case->return_address }}</p>@endif
             @if($case->tracking_code)
@@ -47,7 +50,7 @@
             @endif
             @if($case->inspection_notes)<p>Inspection: {{ $case->inspection_notes }}</p>@endif
             @if($case->status === 'refund_pending')
-                <p class="return-notice">The refund has been approved by the seller. @if($report->order->payment_method === 'cod') Logistics is holding the COD payment in escrow and can now disburse the refund to the buyer. @else Administration or logistics will arrange the refund payment and record the receipt. @endif</p>
+                <p class="return-notice">The refund has been approved by the seller. @if($report->order->payment_method === 'cod') Logistics is holding the COD payment in escrow and can now disburse the refund to the buyer. @else Administration will arrange the online refund and record evidence of the completed payment; the logistics hub does not hold these funds. @endif</p>
             @endif
             @if($case->refund)
                 <p class="return-notice">PHP {{ number_format($case->refund->amount_minor / 100, 2) }} paid via {{ strtoupper($case->refund->method) }}. Reference: {{ $case->refund->reference }} · {{ $case->refund->paid_at->timezone('Asia/Manila')->format('M j, Y g:i A') }}.<br><a href="{{ route('returns.proof', $case->id) }}">Download payment receipt</a></p>
@@ -56,7 +59,7 @@
                 <details><summary>{{ $label }}</summary>@include('returns.form')</details>
             @endforeach</div>
             <details class="return-history"><summary>Case history</summary><ol>
-                @foreach($case->events as $event)<li><strong>{{ ucfirst(str_replace('_', ' ', $event->status)) }}</strong> · {{ $event->created_at->timezone('Asia/Manila')->format('M j, Y g:i A') }}<p>{{ $event->notes }}</p></li>@endforeach
+                @foreach($case->events as $event)<li><strong>{{ ucfirst(str_replace('_', ' ', $event->status)) }}</strong> · {{ $event->created_at->timezone('Asia/Manila')->format('M j, Y g:i A') }} · {{ $event->actor?->name ?? 'Former account' }}<p>{{ $event->notes }}</p></li>@endforeach
             </ol></details>
         </article>
     @endforeach
