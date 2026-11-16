@@ -13,6 +13,8 @@ class CourierDashboardData {
   final int inVehicleCount;
   final int collectedToday;
   final int handedToHubToday;
+  final double linehaulEarningsToday;
+  final double linehaulEarningsTotal;
   final List<CourierPickup> pickups;
   final List<CourierParcel> inVehicle;
   final List<CourierParcel> handedToHub;
@@ -27,6 +29,8 @@ class CourierDashboardData {
     required this.inVehicleCount,
     required this.collectedToday,
     required this.handedToHubToday,
+    this.linehaulEarningsToday = 0,
+    this.linehaulEarningsTotal = 0,
     required this.pickups,
     required this.inVehicle,
     required this.handedToHub,
@@ -48,6 +52,8 @@ class CourierDashboardData {
       inVehicleCount: _int(today['in_vehicle']),
       collectedToday: _int(today['collected_today']),
       handedToHubToday: _int(today['handed_to_hub_today']),
+      linehaulEarningsToday: (today['linehaul_earnings_today'] as num?)?.toDouble() ?? 0,
+      linehaulEarningsTotal: (today['linehaul_earnings_total'] as num?)?.toDouble() ?? 0,
       pickups: list('pickups').map(CourierPickup.fromJson).toList(),
       inVehicle: list('in_vehicle').map(CourierParcel.fromJson).toList(),
       handedToHub: list('handed_to_hub').map(CourierParcel.fromJson).toList(),
@@ -170,16 +176,20 @@ class LinehaulTransfer {
   final int id;
   final String trackingCode;
   final String? orderReference;
+  final String? batchCode;
   final String originHub;
   final String destinationHub;
+  final double payoutAmount;
   final bool isInTransit;
 
   const LinehaulTransfer({
     required this.id,
     required this.trackingCode,
     this.orderReference,
+    this.batchCode,
     required this.originHub,
     required this.destinationHub,
+    this.payoutAmount = 0,
     required this.isInTransit,
   });
 
@@ -187,8 +197,10 @@ class LinehaulTransfer {
         id: _int(json['id']),
         trackingCode: _str(json['tracking_code']) ?? '',
         orderReference: _str(json['order_reference']),
+        batchCode: _str(json['batch_code']),
         originHub: _str(json['origin_hub']) ?? 'Origin Hub',
         destinationHub: _str(json['destination_hub']) ?? 'Destination Hub',
+        payoutAmount: (json['payout_amount'] as num?)?.toDouble() ?? 0,
         isInTransit: json['is_in_transit'] == true,
       );
 }
@@ -207,6 +219,11 @@ class CourierService {
   static Future<String> arriveLinehaul(int shipmentId) async {
     final response = await ApiService.post('/courier/linehaul/$shipmentId/arrive', const {}, token: AuthService.token);
     return _str(response['message']) ?? 'Handed over to destination hub.';
+  }
+
+  static Future<String> arriveLinehaulBatch(String batchCode) async {
+    final response = await ApiService.post('/courier/linehaul/batch/$batchCode/arrive', const {}, token: AuthService.token);
+    return _str(response['message']) ?? 'Batch handed over to destination hub.';
   }
 }
 

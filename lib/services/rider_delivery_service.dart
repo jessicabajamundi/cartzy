@@ -54,16 +54,55 @@ class RiderDelivery {
       );
 }
 
+class RiderPickup {
+  final int id;
+  final String sellerName;
+  final String? address;
+  final String? pickupDate;
+  final int parcelCount;
+  final String? trackingCode;
+  final String status;
+
+  const RiderPickup({
+    required this.id,
+    required this.sellerName,
+    this.address,
+    this.pickupDate,
+    this.parcelCount = 1,
+    this.trackingCode,
+    this.status = 'confirmed',
+  });
+
+  factory RiderPickup.fromJson(Map<String, dynamic> json) => RiderPickup(
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        sellerName: _str(json['seller_name']) ?? 'Seller',
+        address: _str(json['address']),
+        pickupDate: _str(json['pickup_date']),
+        parcelCount: (json['parcel_count'] as num?)?.toInt() ?? 1,
+        trackingCode: _str(json['tracking_code']),
+        status: _str(json['status']) ?? 'confirmed',
+      );
+}
+
 class RiderDeliveryQueue {
   final List<RiderDelivery> deliveries;
+  final List<RiderPickup> pickups;
   final double codToCollect;
   final int deliveredToday;
 
-  const RiderDeliveryQueue({required this.deliveries, this.codToCollect = 0, this.deliveredToday = 0});
+  const RiderDeliveryQueue({
+    required this.deliveries,
+    this.pickups = const [],
+    this.codToCollect = 0,
+    this.deliveredToday = 0,
+  });
 
   factory RiderDeliveryQueue.fromJson(Map<String, dynamic> json) => RiderDeliveryQueue(
         deliveries: (json['deliveries'] as List? ?? const [])
             .map((e) => RiderDelivery.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList(),
+        pickups: (json['pickups'] as List? ?? const [])
+            .map((e) => RiderPickup.fromJson(Map<String, dynamic>.from(e as Map)))
             .toList(),
         codToCollect: (json['cod_to_collect'] as num?)?.toDouble() ?? 0,
         deliveredToday: (json['delivered_today'] as num?)?.toInt() ?? 0,
@@ -80,6 +119,11 @@ class RiderDeliveryService {
   static Future<String> startDelivery(RiderDelivery delivery) async {
     final response = await ApiService.post('/rider/parcels/accept', {'code': delivery.trackingCode}, token: AuthService.token);
     return response['message']?.toString() ?? 'Out for delivery.';
+  }
+
+  static Future<String> pickupFromSeller(String trackingCode) async {
+    final response = await ApiService.post('/rider/parcels/accept', {'code': trackingCode}, token: AuthService.token);
+    return response['message']?.toString() ?? 'Picked up from seller.';
   }
 
   /// [code] is the scanned or typed waybill code, checked by the server.

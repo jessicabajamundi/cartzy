@@ -59,10 +59,7 @@ class ProductReview {
 class ReviewService extends ChangeNotifier {
   static final ReviewService instance = ReviewService._internal();
 
-  ReviewService._internal() {
-    _seedOrders();
-    _seedReviews();
-  }
+  ReviewService._internal();
 
   final List<Order> _orders = [];
   final List<ProductReview> _reviews = [];
@@ -94,97 +91,6 @@ class ReviewService extends ChangeNotifier {
     if (list.isEmpty) return 0.0;
     final total = list.fold<double>(0.0, (sum, r) => sum + r.rating);
     return double.parse((total / list.length).toStringAsFixed(1));
-  }
-
-  void _seedOrders() {
-    _orders.addAll([
-      Order(
-        id: 'ord-101',
-        productName: 'Wireless Bluetooth Headphones Over-Ear 40H Battery',
-        status: 'To Pay',
-        price: '₱1,920',
-        quantity: 1,
-        orderDate: DateTime.now().subtract(const Duration(hours: 3)),
-      ),
-      Order(
-        id: 'ord-102',
-        productName: 'Pro Running Shoes Breathable Mesh Anti-Slip Sole',
-        status: 'To Ship',
-        price: '₱2,470',
-        quantity: 1,
-        orderDate: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-      Order(
-        id: 'ord-103',
-        productName: 'Smart Fitness Tracker Watch with Blood Oxygen',
-        status: 'To Receive',
-        price: '₱1,299',
-        quantity: 1,
-        orderDate: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-      Order(
-        id: 'ord-104',
-        productName: 'ANC Pro Wireless Noise Cancelling Earphones',
-        status: 'To Review',
-        price: '₱890',
-        quantity: 1,
-        hasReviewed: false,
-        orderDate: DateTime.now().subtract(const Duration(days: 3)),
-      ),
-      Order(
-        id: 'ord-105',
-        productName: 'Minimalist Matte Chronograph Watch Waterproof',
-        status: 'To Review',
-        price: '₱459',
-        quantity: 1,
-        hasReviewed: false,
-        orderDate: DateTime.now().subtract(const Duration(days: 4)),
-      ),
-      Order(
-        id: 'ord-106',
-        productName: 'Ceramic Aesthetic Coffee Mug & Saucer Set',
-        status: 'To Review',
-        price: '₱280',
-        quantity: 2,
-        hasReviewed: true,
-        userRating: 5.0,
-        userReview: 'The ceramic quality is top-notch! Packaged safely with bubble wrap.',
-        userTags: ['Well Packaged', 'Great Quality'],
-        orderDate: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-    ]);
-  }
-
-  void _seedReviews() {
-    _reviews.addAll([
-      ProductReview(
-        id: 'rev-1',
-        productName: 'ANC Pro Wireless Noise Cancelling Earphones',
-        userName: 'Andrea Cruz',
-        rating: 5.0,
-        comment: 'The active noise cancellation really works well! Battery lasts for days on a single charge.',
-        tags: ['Great Quality', 'Fast Shipping'],
-        date: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-      ProductReview(
-        id: 'rev-2',
-        productName: 'Smart Fitness Tracker Watch with Blood Oxygen',
-        userName: 'Mark Bautista',
-        rating: 5.0,
-        comment: 'Accurate step counting and heart rate monitor. The display is very bright even in sunlight.',
-        tags: ['True to Description', 'Great Value'],
-        date: DateTime.now().subtract(const Duration(days: 3)),
-      ),
-      ProductReview(
-        id: 'rev-3',
-        productName: 'Ceramic Aesthetic Coffee Mug & Saucer Set',
-        userName: 'Tiffany L.',
-        rating: 5.0,
-        comment: 'The ceramic quality is top-notch! Packaged safely with bubble wrap.',
-        tags: ['Well Packaged', 'Great Quality'],
-        date: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-    ]);
   }
 
   void submitReview({
@@ -221,7 +127,9 @@ class ReviewService extends ChangeNotifier {
       }
     } else {
       final orderIndex = _orders.indexWhere(
-        (o) => o.productName.toLowerCase() == productName.toLowerCase() && !o.hasReviewed,
+        (o) =>
+            o.productName.toLowerCase() == productName.toLowerCase() &&
+            !o.hasReviewed,
       );
       if (orderIndex >= 0) {
         final order = _orders[orderIndex];
@@ -264,9 +172,8 @@ class ReviewService extends ChangeNotifier {
     // COD → buyer still needs to pay, so status is 'To Pay'
     // GCash → already paid at checkout, so status is 'To Ship'
     final initialStatus = paymentMethod == 'GCash' ? 'To Ship' : 'To Pay';
-    final effectiveImage = image.isNotEmpty
-        ? image
-        : CartzyProductImages.getImage(productName);
+    final effectiveImage =
+        image.isNotEmpty ? image : CartzyProductImages.getImage(productName);
 
     _orders.insert(
       0,

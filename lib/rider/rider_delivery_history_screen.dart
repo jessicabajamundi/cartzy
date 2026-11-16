@@ -1,7 +1,7 @@
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cartzy/services/mock_data.dart';
+import 'package:cartzy/services/rider_records_service.dart';
 import 'rider_common_app_bar.dart';
 import 'rider_order_detail.dart';
 
@@ -9,12 +9,14 @@ class RiderDeliveryHistoryScreen extends StatefulWidget {
   final String token;
   final VoidCallback? onBack;
   final VoidCallback? onLogout;
+  final Future<RiderRecords> Function()? loadRecords;
 
   const RiderDeliveryHistoryScreen({
     super.key,
     required this.token,
     this.onBack,
     this.onLogout,
+    this.loadRecords,
   });
 
   @override
@@ -25,11 +27,25 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
   final TextEditingController _searchController = TextEditingController();
   String _activeTimeframe = 'All'; // 'All', 'Today', '7 Days', 'This Month'
   List<RiderOrder> _completedOrders = [];
+  bool _loading = true;
+  String? _loadError;
+  String? _hubName;
 
   @override
   void initState() {
     super.initState();
-    _completedOrders = List<RiderOrder>.from(MockData.completedDeliveries);
+    _loadRecords();
+  }
+
+  Future<void> _loadRecords() async {
+    setState(() { _loading = true; _loadError = null; });
+    try {
+      final result = await (widget.loadRecords?.call() ?? RiderRecordsService.fetch(widget.token));
+      if (!mounted) return;
+      setState(() { _completedOrders = result.orders; _hubName = result.hubName; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; _loadError = 'Could not load delivery history. Check your connection and retry.'; });
+    }
   }
 
   @override
@@ -40,9 +56,14 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
 
   List<RiderOrder> get _filteredOrders {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) return _completedOrders;
     return _completedOrders.where((order) {
-      return order.id.toString().contains(query) ||
+      final completed = DateTime.tryParse(order.completedAt)?.toLocal();
+      final now = DateTime.now();
+      if (_activeTimeframe != 'All' && completed == null) return false;
+      if (_activeTimeframe == 'Today' && (completed!.year != now.year || completed.month != now.month || completed.day != now.day)) return false;
+      if (_activeTimeframe == '7 Days' && completed!.isBefore(DateTime(now.year, now.month, now.day).subtract(const Duration(days: 6)))) return false;
+      if (_activeTimeframe == 'This Month' && (completed!.year != now.year || completed.month != now.month)) return false;
+      return query.isEmpty || order.trackingCode.toLowerCase().contains(query) || order.orderReference.toLowerCase().contains(query) || order.id.toString().contains(query) ||
           order.buyerName.toLowerCase().contains(query) ||
           order.deliveryAddress.toLowerCase().contains(query);
     }).toList();
@@ -56,12 +77,15 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
         children: [
           RiderCommonAppBar(
             title: 'Delivery History',
-            sector: 'Metro South (Laguna & NCR)',
+            sector: _hubName ?? 'Your assigned hub',
             onBack: widget.onBack ?? () => Navigator.of(context).maybePop(),
             onLogout: widget.onLogout,
           ),
           Expanded(
-            child: SingleChildScrollView(
+            child: _loading ? const Center(child: CircularProgressIndicator())
+                : _loadError != null ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_loadError!), TextButton(onPressed: _loadRecords, child: const Text('Retry'))]))
+                : RefreshIndicator(onRefresh: _loadRecords, child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +99,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
                   _buildHistoryRecords(),
                 ],
               ),
-            ),
+            )),
           ),
         ],
       ),
@@ -101,7 +125,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
             ),
             const SizedBox(height: 3),
             Text(
-              'Official log of your successfully completed drops and recipient signatures',
+              'Saved records of your completed deliveries',
               style: GoogleFonts.dmSans(
                 fontSize: 10,
                 color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
@@ -462,8 +486,8 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('CTZY-RD-${order.id}', style: _historyPrimary),
-                Text('Ref: ORD-MTR-${order.id}', style: _historySecondary),
+                Text(order.trackingCode.isEmpty ? 'Tracking unavailable' : order.trackingCode, style: _historyPrimary),
+                Text(order.orderReference.isEmpty ? 'Order reference unavailable' : order.orderReference, style: _historySecondary),
               ],
             ),
           ),
@@ -474,7 +498,7 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
               children: [
                 Text(order.buyerName, style: _historyPrimary),
                 Text(order.deliveryAddress, maxLines: 1, overflow: TextOverflow.ellipsis, style: _historySecondary),
-                const Text('✓ Delivered successfully. Barcode verified by rider.', style: _historySuccess),
+                const Text('✓ Delivery recorded on the server.', style: _historySuccess),
               ],
             ),
           ),
@@ -532,11 +556,11 @@ class _RiderDeliveryHistoryScreenState extends State<RiderDeliveryHistoryScreen>
         children: [
           Row(
             children: [
-              Expanded(child: Text('CTZY-RD-${order.id}', style: mobilePrimary)),
+              Expanded(child: Text(order.trackingCode.isEmpty ? 'Tracking unavailable' : order.trackingCode, style: mobilePrimary)),
               _historyPaymentBadge(order),
             ],
           ),
-          Text('Ref: ORD-MTR-${order.id}', style: mobileSecondary),
+          Text(order.orderReference.isEmpty ? 'Order reference unavailable' : order.orderReference, style: mobileSecondary),
           const SizedBox(height: 8),
           Text(order.buyerName, style: mobilePrimary),
           Text(order.deliveryAddress, style: mobileSecondary),

@@ -1,13 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-
-import 'package:cartzy/theme/cartzy_colors.dart';
-import 'package:cartzy/services/mock_data.dart';
-
-// ============================================================
-// CHAT — one conversation
-// ============================================================
+import 'rider_chat_list_screen.dart';
 
 class ChatMessage {
   final int id;
@@ -35,187 +27,20 @@ class ChatMessage {
   }
 }
 
-class RiderChatScreen extends StatefulWidget {
+class RiderChatScreen extends StatelessWidget {
   final String token;
   final int myUserId;
   final int otherUserId;
   final String otherUserName;
-
-  const RiderChatScreen({
-    super.key,
-    required this.token,
-    required this.myUserId,
-    required this.otherUserId,
-    required this.otherUserName,
-  });
-
+  const RiderChatScreen(
+      {super.key,
+      required this.token,
+      required this.myUserId,
+      required this.otherUserId,
+      required this.otherUserName});
   @override
-  State<RiderChatScreen> createState() => _RiderChatScreenState();
-}
-
-class _RiderChatScreenState extends State<RiderChatScreen> {
-  final _messageController = TextEditingController();
-  final _scrollController = ScrollController();
-
-  List<ChatMessage> _messages = [];
-  bool _isLoading = true;
-  bool _isSending = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _load({bool silent = false}) async {
-    if (!silent) setState(() => _isLoading = true);
-
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    if (!mounted) return;
-
-    final existing = MockData.chatMessages[widget.otherUserId] ?? const <ChatMessage>[];
-
-    setState(() {
-      _messages = List.from(existing);
-      _isLoading = false;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
-    });
-  }
-
-  Future<void> _send() async {
-    final text = _messageController.text.trim();
-    if (text.isEmpty || _isSending) return;
-
-    setState(() => _isSending = true);
-    _messageController.clear();
-
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    final newMsg = ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch,
-      senderId: widget.myUserId,
-      receiverId: widget.otherUserId,
-      body: text,
-      createdAt: 'Just now',
-    );
-
-    MockData.chatMessages.putIfAbsent(widget.otherUserId, () => []).add(newMsg);
-
-    if (!mounted) return;
-    setState(() {
-      _messages = List.from(MockData.chatMessages[widget.otherUserId]!);
-      _isSending = false;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.background),
-      appBar: AppBar(
-        backgroundColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
-        elevation: 0,
-        title: Text(
-          widget.otherUserName,
-          style: TextStyle(color: CartzyColors.textOf(context, light: CartzyColors.navy), fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _messages.isEmpty
-                      ? Center(
-                          child: Text('Say hello 👋', style: TextStyle(color: CartzyColors.mutedOf(context, light: CartzyColors.gray))),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final message = _messages[index];
-                            final isMine = message.senderId == widget.myUserId;
-                            return Align(
-                              alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 10),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
-                                decoration: BoxDecoration(
-                                  color: isMine ? CartzyColors.navy : CartzyColors.surfaceOf(context, light: CartzyColors.surface),
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: isMine ? null : Border.all(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
-                                ),
-                                child: Text(
-                                  message.body,
-                                  style: TextStyle(color: isMine ? Colors.white : CartzyColors.textOf(context, light: CartzyColors.navy)),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText: 'Type a message...',
-                        filled: true,
-                        fillColor: CartzyColors.surfaceOf(context, light: CartzyColors.surface),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(color: CartzyColors.borderOf(context, light: CartzyColors.border)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton(
-                    icon: Icon(Icons.send, color: CartzyColors.mutedOf(context, light: CartzyColors.coral)),
-                    onPressed: _isSending ? null : _send,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => RiderChatListScreen(
+      token: token,
+      myUserId: myUserId,
+      onBack: () => Navigator.of(context).maybePop());
 }

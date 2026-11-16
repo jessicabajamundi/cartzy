@@ -3,18 +3,20 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cartzy/services/mock_data.dart';
+import 'package:cartzy/services/rider_records_service.dart';
 import 'rider_common_app_bar.dart';
 import 'rider_order_detail.dart';
 
 class RiderEarningsScreen extends StatefulWidget {
   final String token;
   final VoidCallback onBack;
+  final Future<RiderRecords> Function()? loadRecords;
 
   const RiderEarningsScreen({
     super.key,
     required this.token,
     required this.onBack,
+    this.loadRecords,
   });
 
   @override
@@ -22,12 +24,36 @@ class RiderEarningsScreen extends StatefulWidget {
 }
 
 class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
-  Set<int>? _remittedOrderIds;
+  List<RiderOrder> _completedOrders = [];
+  bool _loading = true;
+  String? _loadError;
+  String? _hubName;
+  double _feePerDelivery = 0;
 
-  Set<int> get _remittedOrderIdsOrCreate => _remittedOrderIds ??= <int>{};
+  @override
+  void initState() {
+    super.initState();
+    _loadRecords();
+  }
+
+  Future<void> _loadRecords() async {
+    setState(() { _loading = true; _loadError = null; });
+    try {
+      final result = await (widget.loadRecords?.call() ?? RiderRecordsService.fetch(widget.token));
+      if (!mounted) return;
+      setState(() {
+        _completedOrders = result.orders;
+        _hubName = result.hubName;
+        _feePerDelivery = result.feePerDelivery;
+        _loading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() { _loading = false; _loadError = 'Could not load your earnings. Check your connection and retry.'; });
+    }
+  }
 
   List<RiderOrder> get _records {
-    final records = List<RiderOrder>.from(MockData.completedDeliveries);
+    final records = List<RiderOrder>.from(_completedOrders);
     records.sort((first, second) {
       final firstDate = _completedDate(first) ?? DateTime(1970);
       final secondDate = _completedDate(second) ?? DateTime(1970);
@@ -37,14 +63,14 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
   }
 
   double get _codCashOnHand => _records
-      .where((order) => order.paymentMethod.toUpperCase() == 'COD' && !_remittedOrderIdsOrCreate.contains(order.id))
+      .where((order) => order.paymentMethod.toUpperCase() == 'COD')
       .fold<double>(0, (sum, order) => sum + order.totalAmount);
 
   DateTime? _completedDate(RiderOrder order) {
     final raw = order.completedAt.isNotEmpty ? order.completedAt : order.createdAt;
     if (raw.length < 10) return null;
     final parsed = DateTime.tryParse(raw);
-    if (parsed != null) return parsed;
+    if (parsed != null) return parsed.toLocal();
     final date = DateTime.tryParse(raw.substring(0, 10));
     if (date == null) return null;
     final time = RegExp(r'(\d{1,2}):(\d{2})\s*(AM|PM)', caseSensitive: false)
@@ -120,7 +146,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
 
   double get _chartScale {
     final payouts = _dailyPayouts.fold<double>(0, (maxValue, value) => math.max(maxValue, value).toDouble());
-    final deliveries = _dailyDeliveries.fold<int>(0, (maxValue, value) => math.max(maxValue, value).toInt()) * 65.0;
+    final deliveries = _dailyDeliveries.fold<int>(0, (maxValue, value) => math.max(maxValue, value).toInt()) * _feePerDelivery;
     final peak = math.max(payouts, deliveries);
     return math.max(100, (peak / 100).ceil() * 100).toDouble();
   }
@@ -150,128 +176,35 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
 
   // Remittance dialog
   void _openRemittanceDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(Icons.receipt_long_outlined, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))),
-            const SizedBox(width: 8),
-            Text(
-              'Log COD Remittance',
-              style: GoogleFonts.cormorantGaramond(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Remit collected cash on hand to Metro South Sorting & Fulfillment Hub cashier.',
-              style: GoogleFonts.dmSans(fontSize: 13, color: CartzyColors.textOf(context, light: const Color(0xFF554B62))),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFEFE8EA))),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Current COD on Hand:', style: GoogleFonts.dmSans(fontSize: 12.5)),
-                  Text(
-                    _formatPeso(_codCashOnHand),
-                    style: GoogleFonts.dmSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: CartzyColors.readableOf(context, light: const Color(0xFFB45309), background: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5))),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF46333D),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            onPressed: () {
-              final orderIdsToRemit = _records
-                  .where((order) => order.paymentMethod.toUpperCase() == 'COD' && !_remittedOrderIdsOrCreate.contains(order.id))
-                  .map((order) => order.id)
-                  .toList();
-              final amount = _codCashOnHand;
-              if (amount > 0) {
-                setState(() => _remittedOrderIdsOrCreate.addAll(orderIdsToRemit));
-              }
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    amount > 0
-                        ? 'COD remittance of ${_formatPeso(amount)} logged.'
-                        : 'No pending COD cash on hand to remit.',
-                  ),
-                  backgroundColor: const Color(0xFF46333D),
-                ),
-              );
-            },
-            child: const Text('Confirm Remittance'),
-          ),
-        ],
-      ),
-    );
+    showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('COD collection record'),
+      content: Text('Recorded COD collections: ${_formatPeso(_codCashOnHand)}. Hand over cash to ${_hubName ?? 'your assigned hub'} and obtain a receipt. This screen does not record or confirm cash handovers.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close'))],
+    ));
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CartzyColors.elevatedOf(context, light: const Color(0xFFFAF7F5)),
-      body: Column(
-        children: [
-          RiderCommonAppBar(
-            title: 'Profit & Earnings Dashboard',
-            sector: 'Metro South (Laguna & NCR)',
-            onBack: widget.onBack,
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeaderActions(),
-                  const SizedBox(height: 20),
-                  _buildStatCards(),
-                  const SizedBox(height: 20),
-                  _buildTrendAndCommissionSection(),
-                  const SizedBox(height: 20),
-                  _buildRecentPayoutTransactions(),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+      body: Column(children: [
+        RiderCommonAppBar(title: 'Delivery earnings', sector: _hubName ?? 'Your assigned hub', onBack: widget.onBack),
+        Expanded(child: _loading ? const Center(child: CircularProgressIndicator())
+          : _loadError != null ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [Text(_loadError!), TextButton(onPressed: _loadRecords, child: const Text('Retry'))]))
+          : RefreshIndicator(onRefresh: _loadRecords, child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Estimated commission from completed deliveries at the current delivery fee. These records are not payout receipts.', style: TextStyle(color: CartzyColors.mutedOf(context))),
+              const SizedBox(height: 16), _buildHeaderActions(),
+              const SizedBox(height: 20), _buildStatCards(),
+              const SizedBox(height: 20), _buildTrendAndCommissionSection(),
+              const SizedBox(height: 20), _buildRecentPayoutTransactions(),
+            ]),
+          )),
+        ),
+      ]),
     );
   }
-
   Widget _buildHeaderActions() {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -291,7 +224,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             ),
             const SizedBox(height: 3),
             Text(
-              'Track delivery payouts, COD cash remittances, and performance metrics',
+              'Estimated delivery commissions and recorded COD collections',
               style: GoogleFonts.dmSans(
                 fontSize: 11,
                 color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780)),
@@ -313,7 +246,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
           ),
           icon: const Icon(Icons.receipt_long_outlined, size: 15),
           label: Text(
-            'Log COD Remittance',
+            'COD collection details',
             style: GoogleFonts.dmSans(
               fontSize: 12.5,
               fontWeight: FontWeight.w600,
@@ -385,7 +318,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             SizedBox(
               width: cardWidth,
               child: _buildMetricCard(
-                title: 'COD CASH ON HAND',
+                title: 'RECORDED COD COLLECTIONS',
                 pillLabel: 'COD',
                 pillColor: const Color(0xFFFFF9EE),
                 pillTextColor: const Color(0xFFB45309),
@@ -734,7 +667,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
 
           _buildCommissionBox(
             title: 'STANDARD PARCEL DROP',
-            value: '₱65.00 per completed drop',
+            value: '${_formatPeso(_feePerDelivery)} per completed drop',
           ),
           const SizedBox(height: 10),
           _buildCommissionBox(
@@ -816,7 +749,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Recent Payout Transactions',
+                    'Completed delivery earnings',
                     style: GoogleFonts.cormorantGaramond(
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
@@ -851,7 +784,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
             if (_records.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 28),
-                child: Center(child: Text('No completed payouts recorded yet.')),
+                child: Center(child: Text('No completed delivery earnings recorded yet.')),
               ),
           ] else ...[
           // Table Header
@@ -932,7 +865,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Center(
                 child: Text(
-                  'No completed payouts recorded yet.',
+                  'No completed delivery earnings recorded yet.',
                   style: GoogleFonts.dmSans(fontSize: 13, color: const Color(0xFFBAABB0)),
                 ),
               ),
@@ -952,7 +885,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: CartzyColors.borderOf(context, light: const Color(0xFFF0EBEF))))),
       child: Row(
         children: [
-          Expanded(flex: 3, child: Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))))),
+          Expanded(flex: 3, child: Text(order.trackingCode.isEmpty ? 'Tracking unavailable' : order.trackingCode, style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))))),
           Expanded(
             flex: 4,
             child: Column(
@@ -985,7 +918,7 @@ class _RiderEarningsScreenState extends State<RiderEarningsScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: Text('CTZY-RD-${order.id}', style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))))),
+              Expanded(child: Text(order.trackingCode.isEmpty ? 'Tracking unavailable' : order.trackingCode, style: GoogleFonts.dmSans(fontSize: 11, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context, light: const Color(0xFF46333D))))),
               _paymentBadge(isCod),
             ],
           ),

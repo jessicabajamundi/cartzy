@@ -51,7 +51,7 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
     _phoneController = TextEditingController(text: _user('phone'));
 
     final plate = _user('plate_no');
-    _plateController = TextEditingController(text: plate.isNotEmpty ? plate : 'NQ-4812');
+    _plateController = TextEditingController(text: plate);
 
     final area = _user('area');
     _areaController = TextEditingController(

@@ -30,6 +30,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
   final TextEditingController _searchController = TextEditingController();
   String _activeFilter = 'All'; // 'All', 'COD', 'Prepaid'
   List<RiderDelivery> _orders = [];
+  List<RiderPickup> _pickups = [];
   double _codTotal = 0;
   bool _loading = true;
   String? _error;
@@ -51,6 +52,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
       if (!mounted) return;
       setState(() {
         _orders = queue.deliveries;
+        _pickups = queue.pickups;
         _codTotal = queue.codToCollect;
         _loading = false;
       });
@@ -165,6 +167,10 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
                 children: [
                   _buildHeaderStats(),
                   const SizedBox(height: 20),
+                  if (_pickups.isNotEmpty) ...[
+                    _buildPickupsSection(),
+                    const SizedBox(height: 20),
+                  ],
                   _buildSearchFilterBar(),
                   const SizedBox(height: 20),
                   _buildQueueContent(),
@@ -175,6 +181,105 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildPickupsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Seller Pickups (${_pickups.length})',
+          style: GoogleFonts.dmSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
+          ),
+        ),
+        const SizedBox(height: 8),
+        ..._pickups.map((p) => Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: CartzyColors.surfaceOf(context, light: Colors.white),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: CartzyColors.borderOf(context, light: const Color(0xFFE5DCDD))),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          p.sellerName,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: CartzyColors.textOf(context, light: const Color(0xFF261E30)),
+                          ),
+                        ),
+                      ),
+                      if (p.trackingCode != null)
+                        Text(
+                          p.trackingCode!,
+                          style: GoogleFonts.dmSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: CartzyColors.brandDark,
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (p.address != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      p.address!,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12,
+                        color: CartzyColors.mutedOf(context, light: const Color(0xFF6B7280)),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '${p.parcelCount} parcel(s)${p.pickupDate != null ? ' · ${p.pickupDate}' : ''}',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 11.5,
+                            color: CartzyColors.mutedOf(context, light: const Color(0xFF6B7280)),
+                          ),
+                        ),
+                      ),
+                      if (p.trackingCode != null)
+                        ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              final msg = await RiderDeliveryService.pickupFromSeller(p.trackingCode!);
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+                              _load();
+                            } catch (e) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pickup failed: $e')));
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: CartzyColors.brandDark,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text('Pick Up', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            )),
+      ],
     );
   }
 

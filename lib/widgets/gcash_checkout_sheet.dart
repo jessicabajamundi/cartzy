@@ -9,7 +9,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/order_service.dart';
@@ -18,12 +17,14 @@ class GCashCheckoutSheet extends StatefulWidget {
   final double totalAmount;
   final List<int> productIds;
   final Future<void> Function(String gcashReference, String? receiptPath) onConfirmOrder;
+  final Future<Map<String, dynamic>> Function()? loadPaymentInfo;
 
   const GCashCheckoutSheet({
     super.key,
     required this.totalAmount,
     required this.productIds,
     required this.onConfirmOrder,
+    this.loadPaymentInfo,
   });
 
   static Future<void> show(
@@ -66,9 +67,10 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
 
   String _storeName = 'Seller Store';
   String _gcashName = 'Seller GCash';
-  String _gcashNumber = '0917-555-2278';
+  String _gcashNumber = '';
   String? _gcashQrUrl;
   bool _hasCustomQr = false;
+  bool get _paymentAvailable => !_loading && (_gcashNumber.trim().isNotEmpty || (_hasCustomQr && (_gcashQrUrl?.isNotEmpty ?? false)));
 
   @override
   void initState() {
@@ -83,23 +85,25 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
   }
 
   Future<void> _loadSellerPaymentInfo() async {
+    setState(() { _loading = true; _errorMessage = null; _gcashNumber = ''; _gcashQrUrl = null; _hasCustomQr = false; });
     try {
-      final info = await OrderService.fetchSellerPaymentInfo(
+      final info = await (widget.loadPaymentInfo?.call() ?? OrderService.fetchSellerPaymentInfo(
         productIds: widget.productIds,
-      );
+      ));
       if (!mounted) return;
       setState(() {
         _storeName = info['store_name']?.toString() ?? 'Official Store';
         _gcashName = info['gcash_name']?.toString() ?? 'Store Merchant';
-        _gcashNumber = info['gcash_number']?.toString() ?? '0917-555-2278';
+        _gcashNumber = info['gcash_number']?.toString().trim() ?? '';
         _gcashQrUrl = info['gcash_qr_url']?.toString();
         _hasCustomQr = info['has_custom_qr'] == true;
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
+        _errorMessage = e is ApiException ? e.message : 'Seller payment details are unavailable. Retry or choose Cash on Delivery.';
       });
     }
   }
@@ -282,6 +286,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
   }
 
   Future<void> _handleConfirm() async {
+    if (!_paymentAvailable) return;
     final ref = _refController.text.trim();
     if (ref.isEmpty) {
       setState(() {
@@ -322,23 +327,12 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
     }
   }
 
-  String _buildDynamicQrPayload() {
-    final amount = widget.totalAmount.toStringAsFixed(2);
-    final amtLen = sprintf2(amount.length);
-    final cleanPhone = _gcashNumber.replaceAll(RegExp(r'\D'), '');
-    return '00020101021226580014ph.com.gcash0118$cleanPhone'
-        '0210CARTZYPH520459995303608540$amtLen$amount'
-        '5802PH5915Cartzy Commerce6006Manila6304';
-  }
-
-  static String sprintf2(int val) => val < 10 ? '0$val' : '$val';
-
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     final bool hasValidRef = _refController.text.trim().length >= 6;
     final bool hasReceipt = _receiptFile != null;
-    final bool isReadyToSubmit = hasValidRef && hasReceipt && !_submitting;
+    final bool isReadyToSubmit = _paymentAvailable && hasValidRef && hasReceipt && !_submitting;
 
     return Container(
       constraints: BoxConstraints(
@@ -394,7 +388,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'GCash QR Payment',
+                          'GCash Payment',
                           style: GoogleFonts.dmSans(
                             fontSize: 16.5,
                             fontWeight: FontWeight.w800,
@@ -429,6 +423,10 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                         child: CircularProgressIndicator(color: CartzyColors.readableOf(context, light: const Color(0xFF007DFE), background: CartzyColors.surfaceOf(context, light: Colors.white))),
                       ),
                     )
+                  : !_paymentAvailable ? Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      Text(_errorMessage ?? 'This seller has not configured GCash. Choose Cash on Delivery or contact the seller.', style: TextStyle(color: CartzyColors.textOf(context))),
+                      TextButton(onPressed: _loadSellerPaymentInfo, child: const Text('Retry payment details')),
+                    ]))
                   : SingleChildScrollView(
                       padding: EdgeInsets.fromLTRB(20, 16, 20, bottomInset > 0 ? 16 : 24),
                       child: Column(
@@ -489,21 +487,11 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                         width: 190,
                                         height: 190,
                                         fit: BoxFit.contain,
-                                        errorBuilder: (_, __, ___) => QrImageView(
-                                          data: _buildDynamicQrPayload(),
-                                          version: QrVersions.auto,
-                                          size: 190,
-                                          gapless: true,
-                                        ),
+                                        errorBuilder: (_, __, ___) => const SizedBox(width: 190, height: 100, child: Center(child: Text('No usable seller QR. Use the configured account below or contact the seller.'))),
                                       ),
                                     )
                                   else
-                                    QrImageView(
-                                      data: _buildDynamicQrPayload(),
-                                      version: QrVersions.auto,
-                                      size: 190,
-                                      gapless: true,
-                                    ),
+                                    const SizedBox(width: 190, height: 100, child: Center(child: Text('No usable seller QR. Use the configured account below or contact the seller.'))),
                                   const SizedBox(height: 10),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -512,7 +500,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      _hasCustomQr ? 'SELLER UPLOADED QR' : 'MERCHANT GCASH QR',
+                                      _hasCustomQr ? 'SELLER UPLOADED QR' : 'SELLER ACCOUNT DETAILS',
                                       style: GoogleFonts.dmSans(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w800,
@@ -528,6 +516,7 @@ class _GCashCheckoutSheetState extends State<GCashCheckoutSheet> {
                           const SizedBox(height: 10),
 
                           // Download QR Button
+                          if (_hasCustomQr)
                           InkWell(
                             onTap: _savingQr ? null : _downloadQrCode,
                             borderRadius: BorderRadius.circular(10),

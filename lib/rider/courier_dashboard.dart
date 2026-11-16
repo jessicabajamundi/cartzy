@@ -125,6 +125,18 @@ class _CourierDashboardState extends State<CourierDashboard> {
     }
   }
 
+  Future<void> _handleBatchArrive(String batchCode) async {
+    try {
+      final msg = await CourierService.arriveLinehaulBatch(batchCode);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Batch handover failed: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final usesHero = _usesHeroHeader;
@@ -219,6 +231,46 @@ class _CourierDashboardState extends State<CourierDashboard> {
     return usesHero ? MediaQuery.removePadding(context: context, removeTop: true, child: list) : list;
   }
 
+  List<Widget> _batchActionCards(List<LinehaulTransfer> transfers) {
+    final grouped = <String, List<LinehaulTransfer>>{};
+    for (final t in transfers) {
+      if (t.isInTransit && t.batchCode != null && t.batchCode!.isNotEmpty) {
+        grouped.putIfAbsent(t.batchCode!, () => []).add(t);
+      }
+    }
+    return grouped.entries.where((e) => e.value.length > 1).map((entry) {
+      final first = entry.value.first;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: _Card(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${entry.key} (${entry.value.length} parcels)', style: _title),
+                    const SizedBox(height: 2),
+                    Text('${first.originHub} → ${first.destinationHub}', style: _sub),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => _handleBatchArrive(entry.key),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CartzyColors.brandDark,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Hand Over Batch', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+  }
+
   // ── Home ────────────────────────────────────────────────────
   List<Widget> _homeTab(CourierDashboardData d) {
     final c = d.courier;
@@ -300,36 +352,57 @@ class _CourierDashboardState extends State<CourierDashboard> {
             ),
             const SizedBox(height: 14),
 
-            // Today
+            // Today (Hub-to-Hub Transfers)
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(child: _Stat(label: 'To pick up', value: d.pickupsToDo, sub: d.parcelsToCollect == 1 ? '1 parcel' : '${d.parcelsToCollect} parcels')),
+                  Expanded(child: _Stat(label: 'Ready at Hub', value: d.pickupsToDo, sub: 'to dispatch')),
                   const SizedBox(width: 10),
-                  Expanded(child: _Stat(label: 'In vehicle', value: d.inVehicleCount, sub: 'for the hub')),
+                  Expanded(child: _Stat(label: 'In Transit', value: d.inVehicleCount, sub: 'hub-to-hub')),
                   const SizedBox(width: 10),
-                  Expanded(child: _Stat(label: 'At hub today', value: d.handedToHubToday, sub: '${d.collectedToday} collected')),
+                  Expanded(child: _Stat(label: 'Arrived Today', value: d.handedToHubToday, sub: 'at dest hub')),
                 ],
               ),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 14),
 
-            _SectionTitle('Next pickups', actionLabel: d.pickups.length > 2 ? 'See all' : null, onAction: () => setState(() => _tab = 1)),
-            if (d.pickups.isEmpty)
-              const _Empty(icon: Icons.inventory_2_outlined, text: 'No pickups assigned to you. When your hub assigns one, it shows up here.')
-            else
-              ...d.pickups.take(2).map((p) => _PickupCard(pickup: p)),
+            // Live Hub-to-Hub Earnings
+            _Card(
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: _green.withValues(alpha: 0.12),
+                    child: Icon(Icons.payments_outlined, color: CartzyColors.readableOf(context, light: _green, background: _green.withValues(alpha: 0.12))),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Hub-to-Hub Earnings', style: _title),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Today: ₱${d.linehaulEarningsToday.toStringAsFixed(2)} · Total: ₱${d.linehaulEarningsTotal.toStringAsFixed(2)}',
+                          style: _sub,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 18),
 
-            const _SectionTitle('In your vehicle'),
-            if (d.inVehicle.isEmpty)
-              const _Empty(icon: Icons.local_shipping_outlined, text: 'Nothing in your vehicle. Parcels you accept at a seller show up here until the hub receives them.')
-            else
-              ...d.inVehicle.map((p) => _ParcelRow(parcel: p, when: p.at != null ? 'Picked up ${courierDay(p.at!)}, ${courierTime(p.at!)}' : null)),
-            if (d.linehaulTransfers.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              const _SectionTitle('Hub-to-Hub Transfers'),
+            const _SectionTitle('Hub-to-Hub Transfers'),
+            if (d.linehaulTransfers.isEmpty)
+              const _Empty(
+                icon: Icons.swap_horiz_rounded,
+                text: 'No Hub-to-Hub transfers assigned yet. Parcels bound for another hub appear here once ready at the origin hub.',
+              )
+            else ...[
+              ..._batchActionCards(d.linehaulTransfers),
               ...d.linehaulTransfers.map((t) => _LinehaulCard(
                     transfer: t,
                     onAction: () => _handleLinehaulAction(t),
@@ -730,21 +803,14 @@ class _Stat extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String text;
-  final String? actionLabel;
-  final VoidCallback? onAction;
 
-  const _SectionTitle(this.text, {this.actionLabel, this.onAction});
+  const _SectionTitle(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Expanded(child: Text(text, style: GoogleFonts.playfairDisplay(fontSize: 19, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context)))),
-          if (actionLabel != null) TextButton(onPressed: onAction, child: Text(actionLabel!, style: _link)),
-        ],
-      ),
+      child: Text(text, style: GoogleFonts.playfairDisplay(fontSize: 19, fontWeight: FontWeight.w700, color: CartzyColors.textOf(context))),
     );
   }
 }
@@ -1033,6 +1099,16 @@ class _LinehaulCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _IconLine(Icons.swap_horiz_rounded, '${transfer.originHub} → ${transfer.destinationHub}'),
+            if (transfer.batchCode != null || transfer.payoutAmount > 0) ...[
+              const SizedBox(height: 4),
+              _IconLine(
+                Icons.inventory_2_outlined,
+                [
+                  if (transfer.batchCode != null) transfer.batchCode!,
+                  if (transfer.payoutAmount > 0) 'Est. payout: ₱${transfer.payoutAmount.toStringAsFixed(2)}',
+                ].join(' · '),
+              ),
+            ],
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,

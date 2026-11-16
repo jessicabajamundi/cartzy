@@ -47,73 +47,9 @@ class UserAccount {
 class UserAccountService {
   static final UserAccountService instance = UserAccountService._internal();
 
-  UserAccountService._internal() {
-    _initDefaultAccounts();
-  }
+  UserAccountService._internal();
 
   final List<UserAccount> _accounts = [];
-
-  void _initDefaultAccounts() {
-    // TC-BUY-010, 011, 015, 016, 028, 029 pre-existing buyer account
-    _accounts.add(
-      UserAccount(
-        id: '101',
-        email: 'juanmiguel.delacruz@example.com',
-        phone: '09171234567',
-        password: 'Mamimili@2026',
-        firstName: 'Juan Miguel',
-        lastName: 'Dela Cruz',
-        name: 'Juan Miguel',
-        role: 'buyer',
-        status: 'Unverified', // Unverified for TC-BUY-028; becomes Active after OTP for TC-BUY-029
-        otp: '482913',
-        otpCreatedAt: DateTime.now(),
-      ),
-    );
-
-    // Standard demo accounts
-    _accounts.add(
-      UserAccount(
-        id: '1',
-        email: 'buyer@cartzy.com',
-        phone: '09170000001',
-        password: '123456',
-        firstName: 'Demo',
-        lastName: 'Buyer',
-        name: 'Demo Buyer',
-        role: 'buyer',
-        status: 'Active',
-      ),
-    );
-
-    _accounts.add(
-      UserAccount(
-        id: '2',
-        email: 'rider@cartzy.com',
-        phone: '09180000002',
-        password: '123456',
-        firstName: 'Demo',
-        lastName: 'Rider',
-        name: 'Demo Rider',
-        role: 'rider',
-        status: 'Active',
-      ),
-    );
-
-    _accounts.add(
-      UserAccount(
-        id: '3',
-        email: 'admin@cartzy.com',
-        phone: '09190000003',
-        password: '123456',
-        firstName: 'Demo',
-        lastName: 'Admin',
-        name: 'Demo Admin',
-        role: 'admin',
-        status: 'Active',
-      ),
-    );
-  }
 
   List<UserAccount> get allAccounts => List.unmodifiable(_accounts);
 
@@ -140,7 +76,8 @@ class UserAccountService {
   static String? validateEmailFormat(String raw) {
     final email = raw.trim();
     if (email.isEmpty) return 'Email is required';
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     if (!emailRegex.hasMatch(email)) {
       return 'Please enter a valid email address';
     }
@@ -161,7 +98,9 @@ class UserAccountService {
     if (trimmed.isEmpty) return 'Mobile number is required';
 
     // Landline check (e.g. 02-8123-4567)
-    if (trimmed.startsWith('02') || trimmed.startsWith('2-') || trimmed.startsWith('02-')) {
+    if (trimmed.startsWith('02') ||
+        trimmed.startsWith('2-') ||
+        trimmed.startsWith('02-')) {
       return 'Landline numbers are not supported. Please enter a valid mobile number';
     }
 
@@ -269,7 +208,8 @@ class UserAccountService {
       _accounts.add(newAccount);
     }
 
-    debugPrint('Registered new buyer: ${newAccount.email}, status: ${newAccount.status}, OTP: ${newAccount.otp}');
+    debugPrint(
+        'Registered new buyer: ${newAccount.email}, status: ${newAccount.status}, OTP: ${newAccount.otp}');
     return newAccount;
   }
 
@@ -280,9 +220,9 @@ class UserAccountService {
   UserAccount? findAccountByEmail(String rawEmail) {
     final normalized = normalizeEmail(rawEmail);
     return _accounts.cast<UserAccount?>().firstWhere(
-      (a) => a != null && normalizeEmail(a.email) == normalized,
-      orElse: () => null,
-    );
+          (a) => a != null && normalizeEmail(a.email) == normalized,
+          orElse: () => null,
+        );
   }
 
   String? verifyOtp({
@@ -306,7 +246,8 @@ class UserAccountService {
     }
 
     // TC-BUY-026: Expired OTP (> 5 minutes or simulated)
-    final ageInSeconds = DateTime.now().difference(account.otpCreatedAt).inSeconds;
+    final ageInSeconds =
+        DateTime.now().difference(account.otpCreatedAt).inSeconds;
     if (simulateExpired || ageInSeconds > 300) {
       return 'Verification code has expired. Please click "Resend Code" to get a new one.';
     }
@@ -318,7 +259,8 @@ class UserAccountService {
 
     // TC-BUY-023: Correct code -> Activate account
     account.status = 'Active';
-    debugPrint('Account ${account.email} verified! Status is now: ${account.status}');
+    debugPrint(
+        'Account ${account.email} verified! Status is now: ${account.status}');
     return null; // Success
   }
 
@@ -338,7 +280,8 @@ class UserAccountService {
     final account = findAccountByEmail(email);
     if (account != null) {
       // Set created date to 6 minutes ago
-      account.otpCreatedAt = DateTime.now().subtract(const Duration(minutes: 6));
+      account.otpCreatedAt =
+          DateTime.now().subtract(const Duration(minutes: 6));
     }
   }
 
@@ -349,9 +292,9 @@ class UserAccountService {
   }) {
     final normalized = normalizeEmail(email);
     final account = _accounts.cast<UserAccount?>().firstWhere(
-      (a) => a != null && normalizeEmail(a.email) == normalized,
-      orElse: () => null,
-    );
+          (a) => a != null && normalizeEmail(a.email) == normalized,
+          orElse: () => null,
+        );
 
     if (account == null) {
       return true;
@@ -376,9 +319,9 @@ class UserAccountService {
   }) {
     final normalized = normalizeEmail(email);
     final account = _accounts.cast<UserAccount?>().firstWhere(
-      (a) => a != null && normalizeEmail(a.email) == normalized,
-      orElse: () => null,
-    );
+          (a) => a != null && normalizeEmail(a.email) == normalized,
+          orElse: () => null,
+        );
 
     if (account == null || account.password != password) {
       return AuthResponse(
@@ -400,7 +343,8 @@ class UserAccountService {
         success: false,
         isUnverified: true,
         account: account,
-        error: 'Your email address has not been verified yet. Please complete email verification to log in.',
+        error:
+            'Your email address has not been verified yet. Please complete email verification to log in.',
       );
     }
 
