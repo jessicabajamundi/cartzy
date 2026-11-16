@@ -711,7 +711,7 @@ html[data-theme="dark"] .commerce-cart .cart-qty-val {
 html[data-theme="dark"] .commerce-cart .divide-gray-100 > :not(:last-child) {
     border-color: var(--dm-border);
 }
-/* The checkout action stays still and has no passing shine on hover. */
+/* Keep checkout readable without a passing shine on hover. */
 html[data-theme="dark"] .commerce-cart #cart-checkout-button {
     background: #655274 !important;
     color: #FFFFFF !important;
@@ -721,6 +721,59 @@ html[data-theme="dark"] .commerce-cart #cart-checkout-button {
 }
 html[data-theme="dark"] .commerce-cart #cart-checkout-button::after {
     content: none;
+}
+
+/* Shared button motion across storefront, account and staff pages.
+   Individual translate/scale preserve positioning transforms on icon buttons. */
+@media (prefers-reduced-motion: no-preference) {
+    html[data-theme="dark"] :is(button, input[type="button"], input[type="submit"], input[type="reset"], a.button, a.btn, a.btn-blend, a.commerce-button, a.return-button, [role="button"]):not(:disabled, [aria-disabled="true"], .sidebar-overlay) {
+        transition: translate .18s ease, scale .12s ease, transform .18s ease,
+            box-shadow .18s ease, background-color .18s ease,
+            border-color .18s ease, color .18s ease, opacity .18s ease !important;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        html[data-theme="dark"] :is(button, input[type="button"], input[type="submit"], input[type="reset"], a.button, a.btn, a.btn-blend, a.commerce-button, a.return-button, [role="button"]):not(:disabled, [aria-disabled="true"], .sidebar-overlay):hover {
+            translate: 0 -2px;
+            box-shadow: 0 5px 14px rgba(0, 0, 0, .24);
+        }
+    }
+
+    html[data-theme="dark"] :is(button, input[type="button"], input[type="submit"], input[type="reset"], a.button, a.btn, a.btn-blend, a.commerce-button, a.return-button, [role="button"]):not(:disabled, [aria-disabled="true"], .sidebar-overlay):active {
+        translate: 0 0;
+        scale: .97;
+    }
+
+    html[data-theme="dark"] .btn-blend:is(:hover, :active):not(:disabled) {
+        transform: none;
+    }
+}
+
+/* A white sweep can wash out labels on the dark palette. */
+html[data-theme="dark"] .btn-blend::after {
+    display: none !important;
+}
+
+/* White account-menu highlight with dark labels and icons for contrast. */
+html[data-theme="dark"] .acct-nav-item:is(:hover, :focus-visible, [aria-current="true"]) {
+    background: #FFFFFF !important;
+    color: #282133 !important;
+}
+html[data-theme="dark"] .acct-nav-item:is(:hover, :focus-visible, [aria-current="true"]) svg {
+    color: #564B68 !important;
+}
+html[data-theme="dark"] .acct-soon-tag {
+    background: var(--dm-elevated);
+    color: var(--dm-muted);
+}
+html[data-theme="dark"] .acct-nav-item:is(:hover, :focus-visible, [aria-current="true"]) .acct-soon-tag {
+    background: #EDE8F2;
+    color: #564B68;
+}
+
+html[data-theme="dark"] :is(button, input[type="button"], input[type="submit"], input[type="reset"], a.button, a.btn, a.btn-blend, a.commerce-button, a.return-button, [role="button"]):not(:disabled, [aria-disabled="true"], .sidebar-overlay):focus-visible {
+    outline: 2px solid var(--dm-accent-ink);
+    outline-offset: 3px;
 }
 }
 
