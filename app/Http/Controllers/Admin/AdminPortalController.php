@@ -678,7 +678,7 @@ class AdminPortalController extends Controller
                 'is_suspended' => true,
             ]);
             $user->rider()->update(['is_active' => false]);
-            $user->buyer()->update(['status' => 'archived']);
+            $user->buyer()->update(['status' => 'deactivated']);
             $user->seller()->update(['status' => 'suspended']);
             if ($user->seller) {
                 Product::where('seller_id', $user->seller->id)->update(['is_active' => false]);
@@ -1239,7 +1239,7 @@ class AdminPortalController extends Controller
             ]);
 
             $user->rider()->update(['is_active' => false]);
-            $user->buyer()->update(['status' => 'removed']);
+            $user->buyer()->update(['status' => 'deactivated']);
             $user->seller()->update(['status' => 'rejected']);
             if ($user->seller) {
                 Product::where('seller_id', $user->seller->id)->update(['is_active' => false]);
