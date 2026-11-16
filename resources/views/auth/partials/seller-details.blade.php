@@ -55,7 +55,7 @@
     </div>
     </div>
     <div data-signup-page="4">
-    <div class="field-block"><h3 class="field-heading">Documents</h3></div>
+    <div class="field-block"><h3 class="field-heading">Business documents</h3></div>
     <p class="seller-field-hint">JPG, PNG or PDF, up to 5 MB each. Documents marked * are required.</p>
     <div class="form-grid-2 su-doc-grid">
     @foreach([
@@ -64,9 +64,13 @@
         'sec_certificate' => ['SEC Certificate', 'Required for corporations.', 'corporation'],
         'bir_certificate' => ['BIR Form 2303', 'Required for sole proprietorships and corporations.', 'business'],
     ] as $field => [$label, $hint, $types])
-        <div class="mb-4" data-document-types="{{ $types }}">
+        @php
+            $documentApplies = $types === 'all' || $types === old('seller_type')
+                || ($types === 'business' && in_array(old('seller_type'), ['sole_proprietorship', 'corporation'], true));
+        @endphp
+        <div class="mb-4" data-document-types="{{ $types }}" @if(!$documentApplies) hidden @endif>
             <label class="field-label" for="{{ $field }}">{{ $label }} <span class="seller-required">*</span></label>
-            <input class="auth-input seller-detail-input seller-file-input" type="file" id="{{ $field }}" name="{{ $field }}" accept=".jpg,.jpeg,.png,.pdf" data-seller-document>
+            <input class="auth-input seller-detail-input seller-file-input" type="file" id="{{ $field }}" name="{{ $field }}" accept=".jpg,.jpeg,.png,.pdf" data-seller-document @if(!$documentApplies) disabled @endif>
             <p class="seller-field-hint">{{ $hint }}</p>
             <p class="seller-field-error" id="{{ $field }}_error" role="alert">{{ $errors->first($field) }}</p>
         </div>
@@ -77,6 +81,7 @@
 </div>
 <style>
 #sellerFieldsWrapper .seller-detail-input { padding-left: 16px !important; width: 100%; }
+#sellerFieldsWrapper [data-document-types][hidden] { display: none !important; }
 #sellerFieldsWrapper .field-block { margin-top: 26px; }
 #sellerFieldsWrapper .field-heading { font-size: 17px; }
 .seller-field-hint { font-size: 12px; line-height: 1.6; color: var(--dm-muted, #82768d); margin: 7px 0 15px; }

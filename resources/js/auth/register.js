@@ -591,11 +591,15 @@ function updateSellerDetails(role = document.getElementById('role_input').value)
     wrapper.querySelectorAll('[data-document-types]').forEach(block => {
         const applies = block.dataset.documentTypes === 'all' || block.dataset.documentTypes === type
             || (block.dataset.documentTypes === 'business' && ['sole_proprietorship', 'corporation'].includes(type));
-        block.hidden = false;
+        block.hidden = !seller || !applies;
         block.querySelector('.seller-required').hidden = !seller || !applies;
         const input = block.querySelector('input');
         input.required = seller && applies;
-        input.disabled = !seller;
+        input.disabled = !seller || !applies;
+        if (input.disabled) {
+            input.setCustomValidity('');
+            showRegistrationError(input.id, '');
+        }
     });
 }
 
