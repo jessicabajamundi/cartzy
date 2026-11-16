@@ -56,6 +56,9 @@ class CartController extends Controller
             $variation = $variant->name;
             $image = $variant->resolved_image_url;
         }
+        if (!$variant) {
+            throw ValidationException::withMessages(['variant_id' => 'This product is no longer available. Select a product from a verified store.']);
+        }
 
         $cart = $this->buyerCart->all();
         $cartKey = $variant ? 'variant_'.$variant->id : $id . '_' . md5($variation);

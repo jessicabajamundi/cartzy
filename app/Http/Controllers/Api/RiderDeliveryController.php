@@ -26,9 +26,24 @@ class RiderDeliveryController extends Controller
         }
 
         $active = $this->deliveries->activeFor($rider);
+        $pickups = \App\Models\PickupRequest::with(['seller.user', 'seller.pickupAddress', 'sellerOrder.shipment'])
+            ->where('rider_id', $rider->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderBy('pickup_date')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'seller_name' => $p->seller?->name ?? 'Seller',
+                'address' => $p->address,
+                'pickup_date' => $p->pickup_date?->toDateString(),
+                'parcel_count' => (int) $p->parcel_count,
+                'tracking_code' => $p->sellerOrder?->shipment?->tracking_code,
+                'status' => $p->status,
+            ])->values();
 
         return response()->json([
             'deliveries' => $active->map(fn (Shipment $s) => self::deliveryJson($s))->values(),
+            'pickups' => $pickups,
             'cod_to_collect' => round($active->sum(fn (Shipment $s) => self::codMinor($s)) / 100, 2),
             'delivered_today' => Shipment::where('rider_id', $rider->id)->where('status', 'delivered')
                 ->whereDate('updated_at', now()->toDateString())->count(),

@@ -33,7 +33,7 @@ class RiderParcelScan
     {
         $shipment = $this->resolve($rider, $rawCode, lock: false);
 
-        return ['shipment' => $shipment, 'stage' => self::stageFor($rider), 'already' => $this->alreadyWithRider($rider, $shipment)];
+        return ['shipment' => $shipment, 'stage' => self::stageFor($rider, $shipment), 'already' => $this->alreadyWithRider($rider, $shipment)];
     }
 
     /**
@@ -48,10 +48,22 @@ class RiderParcelScan
         return DB::transaction(function () use ($rider, $rawCode) {
             $shipment = $this->resolve($rider, $rawCode, lock: true);
 
-            $stage = self::stageFor($rider);
+            $stage = self::stageFor($rider, $shipment);
             if ($this->alreadyWithRider($rider, $shipment)) {
                 return ['shipment' => $shipment, 'stage' => $stage, 'already' => true,
                     'message' => "Parcel {$shipment->tracking_code} is already with you."];
+            }
+
+            if ($stage === 'in_transit') {
+                $updated = app(HubToHubService::class)->dispatchToDestinationHub($shipment, $rider->id, null, $rider->user_id);
+                return ['shipment' => $updated, 'stage' => $stage, 'already' => false,
+                    'message' => "Parcel {$updated->tracking_code} is now in Hub-to-Hub transit to {$updated->destinationHub?->name}."];
+            }
+
+            if ($stage === 'arrived_at_destination_hub') {
+                $updated = app(HubToHubService::class)->receiveAtDestinationHub($shipment, $rider->user_id);
+                return ['shipment' => $updated, 'stage' => $stage, 'already' => false,
+                    'message' => "Parcel {$updated->tracking_code} arrived at {$updated->destinationHub?->name}."];
             }
 
             $riderName = $rider->user?->name ?? 'your rider';
@@ -126,9 +138,13 @@ class RiderParcelScan
         });
     }
 
-    private static function stageFor(Rider $rider): string
+    private static function stageFor(Rider $rider, Shipment $shipment): string
     {
-        return $rider->isFirstMile() ? 'picked_up' : 'out_for_delivery';
+        if ($rider->isLastMile()) {
+            return $shipment->received_at === null ? 'picked_up' : 'out_for_delivery';
+        }
+
+        return $shipment->isInHubToHubTransit() ? 'arrived_at_destination_hub' : 'in_transit';
     }
 
     /** Find the scanned parcel and make sure this rider may take it. */
@@ -178,7 +194,8 @@ class RiderParcelScan
 
     private function guard(Rider $rider, Shipment $shipment): void
     {
-        if ($shipment->logistics_provider_id && $rider->logistics_provider_id && $shipment->logistics_provider_id !== $rider->logistics_provider_id) {
+        $isIncomingLinehaul = $rider->canCarryLinehaul() && $shipment->isInHubToHubTransit() && $rider->logistics_provider_id === $shipment->destination_hub_id;
+        if (!$isIncomingLinehaul && $shipment->logistics_provider_id && $rider->logistics_provider_id && $shipment->logistics_provider_id !== $rider->logistics_provider_id) {
             throw new RiderParcelScanException('This parcel belongs to another logistics partner.');
         }
         if ($shipment->status === 'delivered') {
@@ -189,31 +206,46 @@ class RiderParcelScan
         }
 
         $atHub = $shipment->received_at !== null;
-        if ($rider->isFirstMile()) {
-            if ($atHub) {
-                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is already at the hub. Last Mile couriers deliver it from here.");
-            }
-            if ($shipment->isDropoff()) {
-                throw new RiderParcelScanException("The seller is dropping off parcel {$shipment->tracking_code} at the hub, so no pickup is needed.");
-            }
-            if ($shipment->pickup_rider_id && $shipment->pickup_rider_id !== $rider->id) {
-                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} was picked up by another rider.");
-            }
-        } else {
+        if ($rider->isLastMile()) {
             if (!$atHub) {
-                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} hasn't reached the hub yet. A First Mile courier picks it up from the seller first.");
+                if ($shipment->isDropoff()) {
+                    throw new RiderParcelScanException("The seller is dropping off parcel {$shipment->tracking_code} at the hub, so no pickup is needed.");
+                }
+                if ($shipment->pickup_rider_id && $shipment->pickup_rider_id !== $rider->id) {
+                    throw new RiderParcelScanException("Parcel {$shipment->tracking_code} was picked up by another rider.");
+                }
+                return;
+            }
+            if ($shipment->requiresHubToHub() && !$shipment->hasArrivedAtDestinationHub()) {
+                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is waiting for Hub-to-Hub Courier transit to its destination hub.");
             }
             if ($shipment->rider_id && $shipment->rider_id !== $rider->id) {
                 throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is assigned to another rider.");
+            }
+        } else {
+            if (!$atHub) {
+                throw new RiderParcelScanException("Couriers only handle Hub-to-Hub transfers. A Rider picks up parcel {$shipment->tracking_code} from the seller first.");
+            }
+            if (!$shipment->requiresHubToHub()) {
+                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is a local delivery and does not require Hub-to-Hub transit.");
+            }
+            if ($shipment->hasArrivedAtDestinationHub()) {
+                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} has already arrived at its destination hub. A Rider will deliver it to the buyer.");
+            }
+            if ($shipment->linehaul_courier_id && $shipment->linehaul_courier_id !== $rider->id) {
+                throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is assigned to another Hub-to-Hub courier.");
             }
         }
     }
 
     private function alreadyWithRider(Rider $rider, Shipment $shipment): bool
     {
-        return $rider->isFirstMile()
-            ? $shipment->status === 'picked_up' && $shipment->pickup_rider_id === $rider->id
-            : $shipment->status === 'out_for_delivery' && $shipment->rider_id === $rider->id;
+        if ($rider->isLastMile()) {
+            return ($shipment->received_at === null && $shipment->status === 'picked_up' && $shipment->pickup_rider_id === $rider->id)
+                || ($shipment->received_at !== null && $shipment->status === 'out_for_delivery' && $shipment->rider_id === $rider->id);
+        }
+
+        return $shipment->isInHubToHubTransit() && $shipment->linehaul_courier_id === $rider->id && $rider->logistics_provider_id === $shipment->origin_hub_id;
     }
 
     private function notifyEveryone(Shipment $shipment, string $stage, string $riderName): void

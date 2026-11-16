@@ -13,10 +13,10 @@
 @php
     $kpis = [
         ['Total parcels handled', 'Volume', number_format($reportData['total_parcels_handled']), 'Received in this period', 'box'],
-        ['Delivered on time', 'Completed', number_format($reportData['delivered_on_time']), 'Completed deliveries', 'truck'],
+        ['Delivered', 'Completed', number_format($reportData['delivered_on_time']), 'Completed deliveries', 'truck'],
         ['Failed deliveries', 'Attention', number_format($reportData['failed_deliveries']), 'Need a follow-up attempt', 'shield'],
-        ['Success rate', 'Efficiency', $reportData['success_rate'].'%', 'Delivered ÷ handled', 'chart'],
-        ['Avg. delivery time', 'Speed', $reportData['avg_delivery_days'].' days', 'From receipt to delivery', 'activity'],
+        ['Success rate', 'Efficiency', $reportData['success_rate'].'%', 'Delivered ÷ delivered and failed attempts', 'chart'],
+        ['Avg. delivery time', 'Speed', ($reportData['avg_delivery_days'] === null ? 'No delivery timing data' : $reportData['avg_delivery_days'].' days'), 'From receipt to delivery', 'activity'],
     ];
     $rateClass = fn ($rate) => $rate >= 95 ? 'good' : ($rate >= 90 ? 'warning' : 'danger');
 @endphp

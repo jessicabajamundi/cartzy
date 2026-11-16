@@ -93,36 +93,37 @@ class CourierDashboardApiTest extends TestCase
     public function test_a_pickup_moves_from_to_do_to_vehicle_to_hub(): void
     {
         $courier = $this->courier();
-        [$shipment, $pickup] = $this->parcelAtSeller($courier);
-        $this->parcelAtSeller(null); // not assigned to anyone: not shown
-        $this->parcelAtSeller($this->courier('Other Courier')); // someone else's: not shown
+        $destHubUser = User::factory()->create(['role' => 'logistics', 'status' => 'active']);
+        $destHub = LogisticsProvider::create(['user_id' => $destHubUser->id, 'name' => 'Laguna Hub', 'slug' => 'laguna-hub-api', 'status' => 'approved']);
+        [$shipment] = $this->parcelAtSeller($courier);
+        $shipment->update([
+            'origin_hub_id' => $courier->logistics_provider_id,
+            'destination_hub_id' => $destHub->id,
+            'current_hub_id' => $courier->logistics_provider_id,
+            'linehaul_courier_id' => $courier->id,
+            'received_at' => now(),
+            'status' => 'at_hub',
+        ]);
 
         $this->dashboard($courier)
             ->assertJsonPath('today.pickups_to_do', 1)
-            ->assertJsonPath('today.parcels_to_collect', 1)
-            ->assertJsonPath('pickups.0.id', $pickup->id)
-            ->assertJsonPath('pickups.0.seller_name', 'Laguna Gadgets')
-            ->assertJsonPath('pickups.0.address', '123 Rizal St, Santa Cruz, Laguna')
-            ->assertJsonCount(1, 'pickups');
+            ->assertJsonPath('linehaul_transfers.0.tracking_code', $shipment->tracking_code)
+            ->assertJsonPath('linehaul_transfers.0.is_in_transit', false);
 
-        // The courier scans and accepts the parcel at the seller.
         Sanctum::actingAs($courier->user);
-        $this->postJson('/api/rider/parcels/accept', ['code' => $shipment->tracking_code])->assertOk();
+        $this->postJson("/api/courier/linehaul/{$shipment->id}/dispatch")->assertOk();
 
         $this->dashboard($courier)
             ->assertJsonPath('today.pickups_to_do', 0)
             ->assertJsonPath('today.in_vehicle', 1)
-            ->assertJsonPath('today.collected_today', 1)
-            ->assertJsonPath('in_vehicle.0.tracking_code', $shipment->tracking_code)
-            ->assertJsonPath('in_vehicle.0.seller_name', 'Laguna Gadgets');
+            ->assertJsonPath('linehaul_transfers.0.is_in_transit', true);
 
-        // The hub receives it.
-        $shipment->update(['received_at' => now()]);
+        $this->postJson("/api/courier/linehaul/{$shipment->id}/arrive")->assertOk();
 
         $this->dashboard($courier)
             ->assertJsonPath('today.in_vehicle', 0)
             ->assertJsonPath('today.handed_to_hub_today', 1)
-            ->assertJsonPath('handed_to_hub.0.tracking_code', $shipment->tracking_code);
+            ->assertJsonCount(0, 'linehaul_transfers');
     }
 
     public function test_login_data_says_which_dashboard_to_open(): void

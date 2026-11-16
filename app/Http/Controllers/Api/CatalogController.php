@@ -18,8 +18,7 @@ class CatalogController extends Controller
     {
         return Product::where('is_active', true)
             ->where('approval_status', Product::APPROVAL_APPROVED)
-            ->whereHas('seller', fn ($q) => $q->where('status', 'approved')
-                ->whereHas('user', fn ($user) => $user->where('status', 'active')));
+            ->whereHas('seller', fn ($q) => $q->publiclyVisible());
     }
 
     private function imageUrl(?string $path): ?string

@@ -54,7 +54,7 @@ class HubAndRiderMatchingTest extends TestCase
             'shipping_fee_minor' => 0, 'commission_minor' => 0, 'status' => 'ready_to_ship']);
     }
 
-    private function rider(LogisticsProvider $hub, string $name, array $home, string $type = Rider::FIRST_MILE, string $area = ''): Rider
+    private function rider(LogisticsProvider $hub, string $name, array $home, string $type = Rider::LAST_MILE, string $area = ''): Rider
     {
         $user = User::factory()->create(['role' => 'courier', 'status' => 'active', 'name' => $name] + $home);
 
@@ -197,7 +197,7 @@ class HubAndRiderMatchingTest extends TestCase
     public function test_the_hub_dashboard_shows_its_location_service_area_and_where_riders_live(): void
     {
         $hub = $this->hub('Sta Cruz Hub', ['street_address' => '123', 'barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna'], ['IV-A']);
-        $this->rider($hub, 'Ana', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $this->rider($hub, 'Ana', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna'], Rider::FIRST_MILE);
         $this->rider($hub, 'Ben', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna'], Rider::LAST_MILE);
         $this->rider($hub, 'Cora', []);
 
@@ -215,7 +215,7 @@ class HubAndRiderMatchingTest extends TestCase
     {
         $hub = $this->hub('Sta Cruz Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
         // Ben's free-text service area says Laguna; Ana lives in the seller's barangay.
-        $this->rider($hub, 'Ben Area', [], Rider::FIRST_MILE, 'Laguna');
+        $this->rider($hub, 'Ben Area', [], Rider::LAST_MILE, 'Laguna');
         $this->rider($hub, 'Cris City', ['barangay' => 'Poblacion', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
         $ana = $this->rider($hub, 'Ana Barangay', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
         $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Sta. Cruz', 'province' => 'Laguna']);

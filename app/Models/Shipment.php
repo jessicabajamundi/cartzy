@@ -24,6 +24,7 @@ class Shipment extends Model
         'rider_id',
         'pickup_rider_id',
         'linehaul_courier_id',
+        'linehaul_batch_code',
         'tracking_code',
         'status',
         'handover_method',

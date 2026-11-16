@@ -9,6 +9,7 @@ use App\Models\Rider;
 use App\Models\Shipment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -49,9 +50,10 @@ class HubToHubService
         Shipment $shipment,
         ?int $courierId = null,
         ?int $destinationHubId = null,
-        ?int $actorId = null
+        ?int $actorId = null,
+        ?string $batchCode = null
     ): Shipment {
-        return DB::transaction(function () use ($shipment, $courierId, $destinationHubId, $actorId) {
+        return DB::transaction(function () use ($shipment, $courierId, $destinationHubId, $actorId, $batchCode) {
             $parcel = Shipment::whereKey($shipment->id)
                 ->with(['sellerOrder.order', 'sellerOrder.seller', 'originHub', 'destinationHub'])
                 ->lockForUpdate()
@@ -102,6 +104,7 @@ class HubToHubService
                 'destination_hub_id' => $parcel->destination_hub_id,
                 'current_hub_id' => $parcel->current_hub_id,
                 'linehaul_courier_id' => $courier?->id,
+                'linehaul_batch_code' => $batchCode ?: $parcel->linehaul_batch_code,
                 'rider_id' => null,
                 'assigned_at' => null,
                 'status' => 'in_transit',
@@ -131,6 +134,59 @@ class HubToHubService
 
             return $parcel->fresh(['originHub', 'destinationHub', 'currentHub', 'linehaulCourier.user']);
         }, 3);
+    }
+
+    /**
+     * Group waiting Hub-to-Hub parcels for a destination hub into a single BATCH-XXXXXX manifest.
+     *
+     * @return array{batch_code: string, count: int, shipments: array<int, Shipment>}
+     */
+    public function dispatchBatchToDestinationHub(
+        int $originHubId,
+        int $destinationHubId,
+        ?int $courierId = null,
+        ?int $actorId = null
+    ): array {
+        $batchCode = 'BATCH-' . strtoupper(Str::random(6));
+        $waiting = Shipment::where('logistics_provider_id', $originHubId)
+            ->where('destination_hub_id', $destinationHubId)
+            ->whereNotNull('received_at')
+            ->whereNull('dispatched_to_hub_at')
+            ->whereNull('arrived_at_destination_hub_at')
+            ->get();
+
+        $dispatched = [];
+        foreach ($waiting as $shipment) {
+            $dispatched[] = $this->dispatchToDestinationHub($shipment, $courierId, null, $actorId, $batchCode);
+        }
+
+        return [
+            'batch_code' => $batchCode,
+            'count' => count($dispatched),
+            'shipments' => $dispatched,
+        ];
+    }
+
+    /**
+     * Mark every in-transit parcel sharing a BATCH-XXXXXX code as arrived at its destination hub.
+     *
+     * @return array{batch_code: string, count: int}
+     */
+    public function receiveBatchByCode(string $batchCode, ?int $actorId = null): array
+    {
+        $code = strtoupper(trim($batchCode));
+        $parcels = Shipment::where('linehaul_batch_code', $code)
+            ->whereNotNull('dispatched_to_hub_at')
+            ->whereNull('arrived_at_destination_hub_at')
+            ->get();
+
+        $count = 0;
+        foreach ($parcels as $parcel) {
+            $this->receiveAtDestinationHub($parcel, $actorId);
+            $count++;
+        }
+
+        return ['batch_code' => $code, 'count' => $count];
     }
 
     public function receiveAtDestinationHub(Shipment $shipment, ?int $actorId = null): Shipment

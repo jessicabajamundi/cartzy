@@ -8,6 +8,7 @@ use App\Models\PickupRequest;
 use App\Models\Rider;
 use App\Models\Shipment;
 use App\Services\HubToHubService;
+use App\Services\LogisticsEarningsService;
 use App\Services\RiderAttendanceService;
 use Illuminate\Http\Request;
 
@@ -29,11 +30,12 @@ class CourierDashboardController extends Controller
         }
 
         $shift = $this->attendance->openShift($rider);
-        $pickups = $this->pickupsToDo($rider);
-        $inVehicle = $this->inVehicle($rider);
-        $handedOver = $this->handedToHub($rider);
         $linehaul = $this->linehaulTransfers($rider);
         $today = now('Asia/Manila')->startOfDay()->utc();
+        $completedLinehaulToday = Shipment::where('linehaul_courier_id', $rider->id)
+            ->where('arrived_at_destination_hub_at', '>=', $today)
+            ->count();
+        $earnings = app(LogisticsEarningsService::class)->courierSummary($rider, $today);
 
         return response()->json([
             'courier' => [
@@ -58,18 +60,18 @@ class CourierDashboardController extends Controller
                 'since' => $shift?->time_in_at?->toIso8601String(),
             ],
             'today' => [
-                'pickups_to_do' => $pickups->count(),
-                'parcels_to_collect' => (int) $pickups->sum('parcels_waiting'),
-                'in_vehicle' => $inVehicle->count(),
-                'collected_today' => Shipment::where('pickup_rider_id', $rider->id)
-                    ->whereHas('deliveryEvents', fn ($q) => $q->where('status', 'picked_up')->where('occurred_at', '>=', $today))
-                    ->count(),
-                'handed_to_hub_today' => Shipment::where('pickup_rider_id', $rider->id)->where('received_at', '>=', $today)->count(),
+                'pickups_to_do' => $linehaul->where('is_in_transit', false)->count(),
+                'parcels_to_collect' => $linehaul->where('is_in_transit', false)->count(),
+                'in_vehicle' => $linehaul->where('is_in_transit', true)->count(),
+                'collected_today' => $linehaul->where('is_in_transit', true)->count(),
+                'handed_to_hub_today' => $completedLinehaulToday,
                 'linehaul_in_transit' => $linehaul->where('is_in_transit', true)->count(),
+                'linehaul_earnings_today' => $earnings['earnings_today'],
+                'linehaul_earnings_total' => $earnings['earnings_total'],
             ],
-            'pickups' => $pickups->values(),
-            'in_vehicle' => $inVehicle->values(),
-            'handed_to_hub' => $handedOver->values(),
+            'pickups' => [],
+            'in_vehicle' => [],
+            'handed_to_hub' => [],
             'linehaul_transfers' => $linehaul->values(),
         ]);
     }
@@ -188,6 +190,22 @@ class CourierDashboardController extends Controller
         ]);
     }
 
+    public function arriveLinehaulBatch(Request $request, string $code)
+    {
+        $rider = $request->user()->rider;
+        if (!$rider || $rider->status !== 'approved' || !$rider->canCarryLinehaul()) {
+            return response()->json(['message' => 'Only approved Hub-to-Hub couriers can complete batch transfers.'], 403);
+        }
+
+        $result = app(HubToHubService::class)->receiveBatchByCode($code, $request->user()->id);
+
+        return response()->json([
+            'message' => "Batch {$result['batch_code']} ({$result['count']} parcel(s)) handed over at destination hub.",
+            'batch_code' => $result['batch_code'],
+            'count' => $result['count'],
+        ]);
+    }
+
     /** Hub-to-Hub transfers assigned to this courier or waiting at their origin hub. */
     private function linehaulTransfers(Rider $rider)
     {
@@ -219,8 +237,10 @@ class CourierDashboardController extends Controller
             'id' => $s->id,
             'tracking_code' => $s->tracking_code,
             'order_reference' => $s->sellerOrder?->order?->reference,
+            'batch_code' => $s->linehaul_batch_code,
             'origin_hub' => $s->originHub?->name ?? 'Origin Hub',
             'destination_hub' => $s->destinationHub?->name ?? 'Destination Hub',
+            'payout_amount' => round(LogisticsEarningsService::linehaulPayoutMinor($s) / 100, 2),
             'is_in_transit' => $s->isInHubToHubTransit(),
             'dispatched_at' => $s->dispatched_to_hub_at?->toIso8601String(),
             'arrived_at' => $s->arrived_at_destination_hub_at?->toIso8601String(),

@@ -245,15 +245,16 @@ class OrderController extends Controller
             $product = \App\Models\Product::whereIn('id', $productIds)->with('seller')->first();
             if ($product && $product->seller) {
                 $seller = $product->seller;
-            } else {
-                try {
-                    $seller = app(\App\Services\CatalogStores::class)->storeFor((string) reset($productIds));
-                } catch (\Throwable $e) {}
             }
         }
 
         if (!$seller && $request->has('seller_id')) {
-            $seller = \App\Models\Seller::find($request->input('seller_id'));
+            $seller = \App\Models\Seller::publiclyVisible()->find($request->input('seller_id'));
+        }
+
+        if (!$seller || !\App\Models\Seller::publiclyVisible()->whereKey($seller->id)->exists()
+            || (!$seller->gcash_number && !$seller->gcash_qr_url)) {
+            return response()->json(['message' => 'Seller GCash details are unavailable. Choose Cash on Delivery or contact the seller.'], 422);
         }
 
         return response()->json([

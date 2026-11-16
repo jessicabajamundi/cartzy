@@ -2,14 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Category;
 use App\Models\DeliveryEvent;
 use App\Models\LogisticsProvider;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Product;
-use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Models\SellerOrder;
 use App\Models\Shipment;
@@ -22,9 +20,8 @@ use RuntimeException;
  * Turns the session cart into real database records:
  * orders -> seller_orders -> order_items, plus payment, shipment and first delivery event.
  *
- * The storefront catalog is still hard-coded in the views, so each cart line is
- * materialised into products/product_variants the first time it is ordered
- * (slug "catalog-{id}") to keep every foreign key valid.
+ * Cart lines must resolve to real, approved product variants and public sellers.
+ * Prices and stock are taken from the database; legacy sample items are rejected.
  */
 class OrderPlacement
 {
@@ -55,11 +52,6 @@ class OrderPlacement
                 throw new RuntimeException('The marketplace is not ready to take orders yet (no courier configured).');
             }
 
-            $category = Category::firstOrCreate(
-                ['slug' => 'general'],
-                ['name' => 'General', 'position' => 0, 'is_active' => true]
-            );
-
             $lines = [];
             $subtotalMinor = 0;
 
@@ -73,7 +65,7 @@ class OrderPlacement
                         throw new RuntimeException($product->name.' is not currently available for purchase.');
                     }
                     $seller = $product->seller;
-                    if (!$seller || !$seller->isApproved() || $seller->user?->status !== 'active' || $seller->user?->is_suspended) {
+                    if (!$seller || !\App\Models\Seller::publiclyVisible()->whereKey($seller->id)->exists()) {
                         throw new RuntimeException($product->name.' is not from a verified store.');
                     }
                     $qty = max(1, (int) ($item['quantity'] ?? 1));
@@ -84,43 +76,7 @@ class OrderPlacement
                     $subtotalMinor += $priceMinor * $qty;
                     continue;
                 }
-                $seller = app(CatalogStores::class)->storeFor((string) $item['id']);
-                $variation = $item['variation'] ?? 'Standard';
-                $priceMinor = (int) round(((float) $item['price']) * 100);
-                $qty = max(1, (int) ($item['quantity'] ?? 1));
-
-                $product = Product::firstOrCreate(
-                    ['slug' => 'catalog-' . $item['id']],
-                    [
-                        'seller_id'   => $seller->id,
-                        'category_id' => $category->id,
-                        'name'        => $item['name'],
-                        'is_active'   => true,
-                    ]
-                );
-
-                // Correct catalog products previously attached to the first registered seller.
-                if ($product->seller_id !== $seller->id) {
-                    $product->update(['seller_id' => $seller->id]);
-                }
-
-                if (!empty($item['image']) && !$product->images()->exists()) {
-                    ProductImage::forceCreate(['product_id' => $product->id, 'path' => $item['image'], 'position' => 0]);
-                }
-
-                $variant = ProductVariant::firstOrCreate(
-                    ['sku' => 'CAT-' . $item['id'] . '-' . substr(md5($variation), 0, 6)],
-                    [
-                        'product_id'  => $product->id,
-                        'name'        => $variation,
-                        'price_minor' => $priceMinor,
-                        'stock'       => 999,
-                        'is_active'   => true,
-                    ]
-                );
-
-                $lines[] = compact('product', 'variant', 'priceMinor', 'qty', 'seller');
-                $subtotalMinor += $priceMinor * $qty;
+                throw new RuntimeException('This product is no longer available. Select a product from a verified store.');
             }
 
             $vouchers = app(VoucherService::class);

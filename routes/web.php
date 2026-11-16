@@ -422,7 +422,7 @@ Route::middleware(['logistics.demo', 'auth', 'role:logistics'])->prefix('logisti
     Route::get('/monitoring', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'monitoring'])->name('monitoring');
 
     // 8. Generation of Reports
-    Route::get('/reports', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'reports'])->name('reports');
+    Route::get('/reports', [\App\Http\Controllers\Logistics\ReportController::class, 'index'])->name('reports');
 
     // 9. Chat / Messaging
     Route::get('/chat', [\App\Http\Controllers\Logistics\LogisticsPortalController::class, 'chat'])->name('chat');

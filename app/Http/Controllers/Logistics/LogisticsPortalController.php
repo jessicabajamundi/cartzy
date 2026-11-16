@@ -629,9 +629,9 @@ class LogisticsPortalController extends Controller
             'dispatchable' => (clone $base)->whereNull('rider_id')->whereIn('status', ['pending', 'confirmed'])->count(),
         ];
 
-        // First-mile couriers collect from sellers, so only they are offered for pickups.
+        // Riders collect parcels from sellers and deliver to buyers; Couriers handle Hub-to-Hub only.
         $allRiders = Rider::where('logistics_provider_id', $provider->id)
-            ->firstMile()
+            ->lastMile()
             ->where('status', 'approved')
             ->with('user')
             ->orderByDesc('is_active')
@@ -742,7 +742,7 @@ class LogisticsPortalController extends Controller
 
         if ($request->filled('rider_id')) {
             $rider = Rider::where('logistics_provider_id', $provider->id)
-                ->firstMile()
+                ->lastMile()
                 ->where('status', 'approved')
                 ->find($request->input('rider_id'));
             if ($rider) {
@@ -785,8 +785,8 @@ class LogisticsPortalController extends Controller
             ->where('status', 'approved')
             ->with('user')
             ->findOrFail($data['rider_id']);
-        if (!$rider->isFirstMile()) {
-            return back()->with('error', ($rider->user->name ?? 'This rider').' is a Last Mile courier. Choose a First Mile courier to collect from the seller.');
+        if (!$rider->isLastMile()) {
+            return back()->with('error', ($rider->user->name ?? 'This courier').' only handles Hub-to-Hub transfers. Choose a Rider to collect from the seller.');
         }
 
         $pickup->rider_id     = $rider->id;
@@ -841,30 +841,30 @@ class LogisticsPortalController extends Controller
         $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with(['seller.user', 'seller.pickupAddress'])->findOrFail($id);
 
         $riders = Rider::where('logistics_provider_id', $provider->id)
-            ->firstMile()
+            ->lastMile()
             ->where('status', 'approved')
             ->where('is_active', true)
             ->with('user')
             ->get();
 
         if ($riders->isEmpty()) {
-            return back()->with('error', self::NO_FIRST_MILE);
+            return back()->with('error', 'No active Riders available for seller pickup.');
         }
 
         $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''), self::pickupPlace($pickup));
         $best   = $ranked->first()['rider'];
         $this->dispatchPickup($pickup, $best);
 
-        return back()->with('success', "⚡ Nearest First Mile courier {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
+        return back()->with('success', "⚡ Nearest Rider {$best->user->name} ({$best->area}) auto-dispatched for pickup!");
     }
 
     /** Dispatch the nearest active rider to every pickup that doesn't have one yet. */
     public function dispatchAllPickups(Request $request)
     {
         $provider = $this->provider();
-        $riders = Rider::where('logistics_provider_id', $provider->id)->firstMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        $riders = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
         if ($riders->isEmpty()) {
-            return back()->with('error', self::NO_FIRST_MILE);
+            return back()->with('error', 'No active Riders available for seller pickup.');
         }
         $waiting = PickupRequest::where('logistics_provider_id', $provider->id)->whereNull('rider_id')
             ->whereIn('status', ['pending', 'confirmed'])->with(['seller.user', 'seller.pickupAddress'])->get();
@@ -1693,14 +1693,19 @@ class LogisticsPortalController extends Controller
             ->get();
 
         $service = app(HubToHubService::class);
+        $batches = [];
         $count = 0;
-        foreach ($waiting as $shipment) {
-            $service->dispatchToDestinationHub($shipment, $courierId, null, Auth::id());
-            $count++;
+        foreach ($waiting->groupBy('destination_hub_id') as $destHubId => $group) {
+            $result = $service->dispatchBatchToDestinationHub($provider->id, (int) $destHubId, $courierId, Auth::id());
+            if ($result['count'] > 0) {
+                $batches[] = $result['batch_code'];
+                $count += $result['count'];
+            }
         }
 
+        $batchList = implode(', ', $batches);
         return back()->with('success', $count > 0
-            ? "Dispatched {$count} parcel(s) for Hub-to-Hub transit."
+            ? "Dispatched {$count} parcel(s) in Hub-to-Hub batch ({$batchList})."
             : 'No parcels waiting for Hub-to-Hub dispatch.');
     }
 
@@ -1989,115 +1994,8 @@ class LogisticsPortalController extends Controller
      */
     public function reports(Request $request)
     {
-        $hub      = Auth::user();
-        $provider = $this->provider();
-        $dateFrom = $request->query('from', now()->startOfMonth()->format('Y-m-d'));
-        $dateTo   = $request->query('to', now()->format('Y-m-d'));
-
-        $totalHandled = Shipment::where('logistics_provider_id', $provider->id)
-            ->whereDate('created_at', '>=', $dateFrom)
-            ->whereDate('created_at', '<=', $dateTo)
-            ->count();
-
-        $delivered = Shipment::where('logistics_provider_id', $provider->id)
-            ->where('status', 'delivered')
-            ->whereDate('updated_at', '>=', $dateFrom)
-            ->whereDate('updated_at', '<=', $dateTo)
-            ->count();
-
-        $failed = Shipment::where('logistics_provider_id', $provider->id)
-            ->where('status', 'failed')
-            ->whereDate('updated_at', '>=', $dateFrom)
-            ->whereDate('updated_at', '<=', $dateTo)
-            ->count();
-
-        $returned = Shipment::where('logistics_provider_id', $provider->id)
-            ->where('status', 'returned')
-            ->count();
-
-        $successRate = ($delivered + $failed) > 0
-            ? round(($delivered / ($delivered + $failed)) * 100, 1)
-            : 0.0;
-
-        // Top Riders from database
-        $riders = Rider::where('logistics_provider_id', $provider->id)
-            ->where('status', 'approved')
-            ->with('user')
-            ->get();
-
-        $topRiders = $riders->map(function ($r) use ($dateFrom, $dateTo) {
-            $deliveries = Shipment::where('rider_id', $r->id)
-                ->where('status', 'delivered')
-                ->whereDate('updated_at', '>=', $dateFrom)
-                ->whereDate('updated_at', '<=', $dateTo)
-                ->count();
-            $failedCount = Shipment::where('rider_id', $r->id)
-                ->where('status', 'failed')
-                ->whereDate('updated_at', '>=', $dateFrom)
-                ->whereDate('updated_at', '<=', $dateTo)
-                ->count();
-            $rate = ($deliveries + $failedCount) > 0
-                ? round(($deliveries / ($deliveries + $failedCount)) * 100, 1)
-                : 0.0;
-
-            return [
-                'name'         => $r->user->name ?? 'Rider',
-                'deliveries'   => $deliveries,
-                'success_rate' => $rate,
-            ];
-        })->sortByDesc('deliveries')->values()->take(5)->toArray();
-
-        // Area breakdown from shipments
-        $areaBreakdown = Shipment::where('logistics_provider_id', $provider->id)
-            ->whereNotNull('delivery_area')
-            ->whereDate('created_at', '>=', $dateFrom)
-            ->whereDate('created_at', '<=', $dateTo)
-            ->selectRaw('delivery_area, count(*) as count')
-            ->groupBy('delivery_area')
-            ->pluck('count', 'delivery_area')
-            ->map(fn($count, $area) => ['area' => $area, 'parcels' => $count])
-            ->values()
-            ->toArray();
-
-        $chartLabels = [];
-        $chartReceived = [];
-        $chartDelivered = [];
-        $start = Carbon::parse($dateFrom)->startOfDay();
-        for ($w = 0; $w < 4; $w++) {
-            $wStart = $start->copy()->addWeeks($w);
-            $wEnd = $wStart->copy()->addDays(6)->endOfDay();
-            $chartLabels[] = 'Week ' . ($w + 1);
-            $chartReceived[] = Shipment::where('logistics_provider_id', $provider->id)
-                ->whereBetween('created_at', [$wStart, $wEnd])
-                ->count();
-            $chartDelivered[] = Shipment::where('logistics_provider_id', $provider->id)
-                ->where('status', 'delivered')
-                ->whereBetween('updated_at', [$wStart, $wEnd])
-                ->count();
-        }
-
-        $reportData = [
-            'total_parcels_handled' => $totalHandled,
-            'delivered_on_time'     => $delivered,
-            'failed_deliveries'     => $failed,
-            'returned_to_hub'       => $returned,
-            'success_rate'          => $successRate,
-            'avg_delivery_days'     => 0,
-            'top_riders'            => $topRiders,
-            'area_breakdown'        => $areaBreakdown,
-            'chart'                 => [
-                'labels'    => $chartLabels,
-                'received'  => $chartReceived,
-                'delivered' => $chartDelivered,
-            ],
-        ];
-
-        return view('logistics.reports', compact('hub', 'reportData', 'dateFrom', 'dateTo'));
+        return app(ReportController::class)->index($request, app(\App\Services\LogisticsReports::class));
     }
-
-    /**
-     * 9. Chat / Messaging
-     */
     public function getContactsList($provider)
     {
         $riders = Rider::where('logistics_provider_id', $provider->id)->with('user')->get();
@@ -2123,8 +2021,8 @@ class LogisticsPortalController extends Controller
                     'role'         => 'Rider',
                     'avatar'       => '🛵',
                     'status'       => $rider->is_active ? 'online' : 'offline',
-                    'last_message' => $lastMsg ? $lastMsg->message : 'Ready for assignment.',
-                    'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : 'Today',
+                    'last_message' => $lastMsg ? $lastMsg->message : '',
+                    'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : '',
                     'unread'       => $unread,
                     'last_msg_id'  => $lastMsg?->id ?? 0,
                 ];
@@ -2160,8 +2058,8 @@ class LogisticsPortalController extends Controller
                 'role'         => 'Seller',
                 'avatar'       => '🏬',
                 'status'       => 'online',
-                'last_message' => $lastMsg ? $lastMsg->message : 'Inquiring regarding parcel pickup.',
-                'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : 'Today',
+                'last_message' => $lastMsg ? $lastMsg->message : '',
+                'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : '',
                 'unread'       => $unread,
                 'last_msg_id'  => $lastMsg?->id ?? 0,
             ];
@@ -2182,27 +2080,10 @@ class LogisticsPortalController extends Controller
                 'role'         => 'Admin',
                 'avatar'       => '⚙️',
                 'status'       => 'online',
-                'last_message' => $lastMsg ? $lastMsg->message : 'Please ensure sorting compliance.',
-                'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : 'Today',
+                'last_message' => $lastMsg ? $lastMsg->message : '',
+                'time'         => $lastMsg ? $lastMsg->created_at->format('h:i A') : '',
                 'unread'       => 0,
                 'last_msg_id'  => $lastMsg?->id ?? 0,
-            ];
-        }
-
-        if (empty($contacts)) {
-            $contacts = [
-                [
-                    'id'           => 1,
-                    'name'         => 'Maria Santos (TechZone Store)',
-                    'store_name'   => 'TechZone Store',
-                    'role'         => 'Seller',
-                    'avatar'       => '🏬',
-                    'status'       => 'online',
-                    'last_message' => 'When will the rider pick up our parcels?',
-                    'time'         => '10:42 AM',
-                    'unread'       => 1,
-                    'last_msg_id'  => 0,
-                ],
             ];
         }
 
@@ -2223,7 +2104,7 @@ class LogisticsPortalController extends Controller
         $activeContactId = (int) $request->query('contact', 0);
         $contacts        = $this->getContactsList($provider);
 
-        $currentContact = collect($contacts)->firstWhere('id', $activeContactId) ?? $contacts[0];
+        $currentContact = collect($contacts)->firstWhere('id', $activeContactId) ?? ($contacts[0] ?? ['id' => 0, 'name' => 'No conversations yet', 'store_name' => '', 'role' => '', 'avatar' => '', 'status' => 'offline', 'last_message' => '', 'time' => '', 'unread' => 0]);
 
         // Fetch messages from database
         $dbMessages = LogisticsMessage::where('logistics_provider_id', $provider->id)
@@ -2238,29 +2119,10 @@ class LogisticsPortalController extends Controller
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
-        if ($dbMessages->count() > 0) {
-            $messages = $dbMessages->map(function ($m) {
-                return [
-                    'sender' => $m->sender_type,
-                    'text'   => $m->message,
-                    'time'   => $m->created_at->format('h:i A'),
-                ];
-            })->toArray();
-        } else {
-            $messages = [
-                [
-                    'sender' => 'contact',
-                    'text'   => $currentContact['last_message'],
-                    'time'   => $currentContact['time'],
-                ],
-                [
-                    'sender' => 'hub',
-                    'text'   => 'Thank you for reaching out! Our team is processing this now.',
-                    'time'   => 'Just now',
-                ],
-            ];
-        }
-
+        $messages = $dbMessages->map(fn ($m) => [
+            'sender' => $m->sender_type, 'text' => $m->message,
+            'time' => $m->created_at->format('h:i A'),
+        ])->toArray();
         return view('logistics.chat', compact('hub', 'contacts', 'currentContact', 'messages'));
     }
 

@@ -91,7 +91,7 @@ class RiderParcelScanTest extends TestCase
 
     public function test_scanning_only_shows_the_parcel_and_changes_nothing(): void
     {
-        $rider = $this->courier(Rider::FIRST_MILE);
+        $rider = $this->courier(Rider::LAST_MILE);
         $parcel = $this->parcel();
 
         $this->scan($rider, $parcel->tracking_code)
@@ -109,7 +109,7 @@ class RiderParcelScanTest extends TestCase
 
     public function test_first_mile_accept_picks_up_the_parcel_and_notifies_seller_buyer_and_hub(): void
     {
-        $rider = $this->courier(Rider::FIRST_MILE);
+        $rider = $this->courier(Rider::LAST_MILE);
         $parcel = $this->parcel();
 
         $this->accept($rider, $parcel->tracking_code)
@@ -144,7 +144,7 @@ class RiderParcelScanTest extends TestCase
 
     public function test_qr_code_links_and_lowercase_codes_work_and_accepting_twice_does_not_notify_twice(): void
     {
-        $rider = $this->courier(Rider::FIRST_MILE);
+        $rider = $this->courier(Rider::LAST_MILE);
         $parcel = $this->parcel();
 
         $this->accept($rider, 'https://cartzy.shop/track/'.strtolower($parcel->tracking_code))->assertOk()->assertJsonPath('already', false);
@@ -157,7 +157,7 @@ class RiderParcelScanTest extends TestCase
 
     public function test_order_reference_works_for_a_single_store_order(): void
     {
-        $rider = $this->courier(Rider::FIRST_MILE);
+        $rider = $this->courier(Rider::LAST_MILE);
         $parcel = $this->parcel();
 
         $this->accept($rider, $parcel->sellerOrder->order->reference)->assertOk()->assertJsonPath('parcel.tracking_code', $parcel->tracking_code);
@@ -175,7 +175,7 @@ class RiderParcelScanTest extends TestCase
         $atHub = $this->parcel(['received_at' => now(), 'status' => 'assigned', 'rider_id' => $lastMile->id]);
         $delivered = $this->parcel(['received_at' => now(), 'status' => 'delivered', 'rider_id' => $lastMile->id]);
 
-        $this->accept($lastMile, $atSeller->tracking_code)->assertStatus(422)->assertJsonPath('message', "Parcel {$atSeller->tracking_code} hasn't reached the hub yet. A First Mile courier picks it up from the seller first.");
+        $this->accept($firstMile, $atSeller->tracking_code)->assertStatus(422)->assertJsonPath('message', "Couriers only handle Hub-to-Hub transfers. A Rider picks up parcel {$atSeller->tracking_code} from the seller first.");
         $this->scan($firstMile, $atHub->tracking_code)->assertStatus(422);
         $this->scan($otherLastMile, $atHub->tracking_code)->assertStatus(422)->assertJsonPath('message', "Parcel {$atHub->tracking_code} is assigned to another rider.");
         $this->scan($otherHubRider, $atSeller->tracking_code)->assertStatus(422)->assertJsonPath('message', 'This parcel belongs to another logistics partner.');
@@ -188,7 +188,7 @@ class RiderParcelScanTest extends TestCase
 
     public function test_declining_a_parcel_at_the_seller_changes_nothing_and_tells_no_one(): void
     {
-        $rider = $this->courier(Rider::FIRST_MILE);
+        $rider = $this->courier(Rider::LAST_MILE);
         $parcel = $this->parcel();
 
         $this->decline($rider, $parcel->tracking_code)
@@ -221,7 +221,7 @@ class RiderParcelScanTest extends TestCase
 
     public function test_a_parcel_already_accepted_cannot_be_declined(): void
     {
-        $rider = $this->courier(Rider::FIRST_MILE);
+        $rider = $this->courier(Rider::LAST_MILE);
         $parcel = $this->parcel();
         $this->accept($rider, $parcel->tracking_code)->assertOk();
 

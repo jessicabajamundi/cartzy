@@ -26,8 +26,8 @@ class ProductPricing
                     ?: (clone $query)->where('product_id', (int) $item['id'])->where('is_active', true)->first();
             }
         }
-        if ($variant && (!$variant->is_active || !$variant->product?->is_active || !$variant->product->seller?->isApproved()
-            || $variant->product->seller->user?->status !== 'active')) {
+        if ($variant && (!$variant->is_active || !$variant->product?->is_active || !$variant->product->isApproved()
+            || !\App\Models\Seller::publiclyVisible()->whereKey($variant->product->seller_id)->exists())) {
             throw new RuntimeException('This product is no longer available. Please remove it from your cart.');
         }
         return $variant;

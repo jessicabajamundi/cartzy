@@ -82,8 +82,8 @@ class VoucherService
     }
 
     /**
-     * The store a cart line ships from, matching how OrderPlacement assigns it: the saved product's
-     * seller, otherwise the catalog store for that item. Null when the item can't be ordered anymore.
+     * The verified store for a saved product variant. Missing or unavailable
+     * products return null and never create a catalog account.
      */
     public function sellerIdFor(array $item): ?int
     {
@@ -93,7 +93,7 @@ class VoucherService
                 return $variant->product?->seller_id;
             }
 
-            return app(CatalogStores::class)->storeFor((string) ($item['id'] ?? ''))->id;
+            return null;
         } catch (RuntimeException) {
             return null;
         }

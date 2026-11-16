@@ -79,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['api.role:courier', 'throttle:60,1'])->prefix('courier/linehaul')->group(function () {
         Route::post('/{id}/dispatch', [\App\Http\Controllers\Api\CourierDashboardController::class, 'dispatchLinehaul'])->whereNumber('id');
         Route::post('/{id}/arrive', [\App\Http\Controllers\Api\CourierDashboardController::class, 'arriveLinehaul'])->whereNumber('id');
+        Route::post('/batch/{code}/arrive', [\App\Http\Controllers\Api\CourierDashboardController::class, 'arriveLinehaulBatch']);
     });
 
     // Rider scans a waybill barcode or QR code (shows the parcel, changes nothing), then accepts or
@@ -94,6 +95,11 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware(['api.role:courier', 'throttle:20,1']);
 
     // Last Mile rider's delivery queue: list, delivered, not delivered. Saved on the server.
+    Route::middleware('api.role:courier')->group(function () {
+        Route::get('/rider/completed-records', [\App\Http\Controllers\Api\RiderRecordsController::class, 'completed']);
+        Route::get('/rider/dispatch/messages', [\App\Http\Controllers\Api\RiderRecordsController::class, 'messages']);
+        Route::post('/rider/dispatch/messages', [\App\Http\Controllers\Api\RiderRecordsController::class, 'send'])->middleware('throttle:60,1');
+    });
     Route::middleware(['api.role:courier', 'throttle:60,1'])->prefix('rider/deliveries')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\RiderDeliveryController::class, 'index']);
         Route::post('/{id}/deliver', [\App\Http\Controllers\Api\RiderDeliveryController::class, 'deliver'])->whereNumber('id');
