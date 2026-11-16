@@ -253,7 +253,7 @@ class HomeController extends Controller
         $discoveryProducts = \App\Models\Product::query()
             ->where('is_active', true)
             ->where('approval_status', \App\Models\Product::APPROVAL_APPROVED)
-            ->whereHas('seller', fn ($query) => $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
+            ->whereHas('seller', fn ($query) => $query->publiclyVisible())
             ->whereHas('variants', fn ($query) => $query->where('is_active', true))
             ->with([
                 'seller.pickupAddress',
@@ -293,7 +293,7 @@ class HomeController extends Controller
             ->whereIn('discount_type', ['percentage', 'fixed'])->where('discount_value', '>', 0)
             ->where(fn ($query) => $query->whereNull('discount_starts_at')->orWhere('discount_starts_at', '<=', $now))
             ->where(fn ($query) => $query->whereNull('discount_ends_at')->orWhere('discount_ends_at', '>', $now))
-            ->whereHas('seller', fn ($query) => $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
+            ->whereHas('seller', fn ($query) => $query->publiclyVisible())
             ->whereHas('variants', $available)
             ->with(['seller', 'coverImage', 'variants' => $available])
             ->withAvg('reviews', 'rating')

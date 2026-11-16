@@ -10,8 +10,7 @@ class ProductController extends Controller
     private function availableProduct(string|int $id): Product
     {
         $query = Product::where('is_active', true)
-            ->whereHas('seller', fn ($q) => $q->where('status', 'approved')
-                ->whereHas('user', fn ($user) => $user->where('status', 'active')))
+            ->whereHas('seller', fn ($q) => $q->publiclyVisible())
             ->with(['seller', 'category', 'images', 'coverImage', 'variants' => fn ($q) => $q->where('is_active', true)])
             ->where(function ($q) use ($id) {
                 if (is_numeric($id)) {

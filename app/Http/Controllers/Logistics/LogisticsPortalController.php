@@ -251,58 +251,17 @@ class LogisticsPortalController extends Controller
 
         // Notifications
         $dbNotifs = AppNotification::where('user_id', $hub->id)->whereNull('archived_at')->latest()->take(4)->get();
-        if ($dbNotifs->count() > 0) {
-            $notifications = $dbNotifs->map(function ($n) {
-                return [
-                    'id'      => $n->id,
-                    'title'   => $n->title,
-                    'message' => $n->message,
-                    'time'    => $n->created_at->diffForHumans(),
-                    'type'    => $n->type,
-                    'unread'  => !$n->is_read,
-                    'link'    => $n->link ?: route('logistics.dashboard'),
-                ];
-            })->toArray();
-        } else {
-            $notifications = [
-                [
-                    'id'      => 1,
-                    'title'   => 'New Pickup Request',
-                    'message' => 'TechZone Official Mall scheduled pickup for today.',
-                    'time'    => '10 mins ago',
-                    'type'    => 'pickup',
-                    'unread'  => true,
-                    'link'    => route('logistics.pickups'),
-                ],
-                [
-                    'id'      => 2,
-                    'title'   => 'Rider Application',
-                    'message' => 'Jose Mabuhay applied as a new rider. Requires approval.',
-                    'time'    => '1 hour ago',
-                    'type'    => 'rider',
-                    'unread'  => true,
-                    'link'    => route('logistics.riders'),
-                ],
-                [
-                    'id'      => 3,
-                    'title'   => 'Failed Delivery Alert',
-                    'message' => 'Rider Carlo Santos reported a delivery failure. Parcel returned to hub.',
-                    'time'    => '2 hours ago',
-                    'type'    => 'delivery',
-                    'unread'  => false,
-                    'link'    => route('logistics.monitoring'),
-                ],
-                [
-                    'id'      => 4,
-                    'title'   => 'Sorting Complete',
-                    'message' => 'All pending parcels sorted and assigned to riders for route.',
-                    'time'    => 'This morning',
-                    'type'    => 'sorting',
-                    'unread'  => false,
-                    'link'    => route('logistics.sorting'),
-                ],
+        $notifications = $dbNotifs->map(function ($n) {
+            return [
+                'id'      => $n->id,
+                'title'   => $n->title,
+                'message' => $n->message,
+                'time'    => $n->created_at->diffForHumans(),
+                'type'    => $n->type,
+                'unread'  => !$n->is_read,
+                'link'    => $n->link ?: route('logistics.dashboard'),
             ];
-        }
+        })->toArray();
 
         $coverage = $this->hubCoverage($provider);
 
@@ -2058,7 +2017,7 @@ class LogisticsPortalController extends Controller
 
         $successRate = ($delivered + $failed) > 0
             ? round(($delivered / ($delivered + $failed)) * 100, 1)
-            : 92.5;
+            : 0.0;
 
         // Top Riders from database
         $riders = Rider::where('logistics_provider_id', $provider->id)
@@ -2066,18 +2025,33 @@ class LogisticsPortalController extends Controller
             ->with('user')
             ->get();
 
-        $topRiders = $riders->map(function ($r) {
-            $deliveries = Shipment::where('rider_id', $r->id)->where('status', 'delivered')->count();
+        $topRiders = $riders->map(function ($r) use ($dateFrom, $dateTo) {
+            $deliveries = Shipment::where('rider_id', $r->id)
+                ->where('status', 'delivered')
+                ->whereDate('updated_at', '>=', $dateFrom)
+                ->whereDate('updated_at', '<=', $dateTo)
+                ->count();
+            $failedCount = Shipment::where('rider_id', $r->id)
+                ->where('status', 'failed')
+                ->whereDate('updated_at', '>=', $dateFrom)
+                ->whereDate('updated_at', '<=', $dateTo)
+                ->count();
+            $rate = ($deliveries + $failedCount) > 0
+                ? round(($deliveries / ($deliveries + $failedCount)) * 100, 1)
+                : 0.0;
+
             return [
                 'name'         => $r->user->name ?? 'Rider',
-                'deliveries'   => $deliveries ?: ($r->deliveries_today * 8 ?: 45),
-                'success_rate' => $r->rating ? round(($r->rating / 5.0) * 100, 1) : 95.0,
+                'deliveries'   => $deliveries,
+                'success_rate' => $rate,
             ];
         })->sortByDesc('deliveries')->values()->take(5)->toArray();
 
         // Area breakdown from shipments
         $areaBreakdown = Shipment::where('logistics_provider_id', $provider->id)
             ->whereNotNull('delivery_area')
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateTo)
             ->selectRaw('delivery_area, count(*) as count')
             ->groupBy('delivery_area')
             ->pluck('count', 'delivery_area')
@@ -2085,33 +2059,36 @@ class LogisticsPortalController extends Controller
             ->values()
             ->toArray();
 
-        if (empty($areaBreakdown)) {
-            $areaBreakdown = [
-                ['area' => 'Laguna - Santa Cruz', 'parcels' => 312],
-                ['area' => 'Laguna - San Pablo',  'parcels' => 278],
-                ['area' => 'Laguna - Calamba',    'parcels' => 264],
-                ['area' => 'Batangas - Lipa',     'parcels' => 198],
-                ['area' => 'Quezon - Lucena',     'parcels' => 156],
-            ];
+        $chartLabels = [];
+        $chartReceived = [];
+        $chartDelivered = [];
+        $start = Carbon::parse($dateFrom)->startOfDay();
+        for ($w = 0; $w < 4; $w++) {
+            $wStart = $start->copy()->addWeeks($w);
+            $wEnd = $wStart->copy()->addDays(6)->endOfDay();
+            $chartLabels[] = 'Week ' . ($w + 1);
+            $chartReceived[] = Shipment::where('logistics_provider_id', $provider->id)
+                ->whereBetween('created_at', [$wStart, $wEnd])
+                ->count();
+            $chartDelivered[] = Shipment::where('logistics_provider_id', $provider->id)
+                ->where('status', 'delivered')
+                ->whereBetween('updated_at', [$wStart, $wEnd])
+                ->count();
         }
 
         $reportData = [
-            'total_parcels_handled' => $totalHandled ?: 1842,
-            'delivered_on_time'     => $delivered ?: 1654,
-            'failed_deliveries'     => $failed ?: 97,
-            'returned_to_hub'       => $returned ?: 91,
+            'total_parcels_handled' => $totalHandled,
+            'delivered_on_time'     => $delivered,
+            'failed_deliveries'     => $failed,
+            'returned_to_hub'       => $returned,
             'success_rate'          => $successRate,
-            'avg_delivery_days'     => 1.4,
-            'top_riders'            => !empty($topRiders) ? $topRiders : [
-                ['name' => 'Arnel Gomez',   'deliveries' => 142, 'success_rate' => 96.5],
-                ['name' => 'Carlo Santos',  'deliveries' => 128, 'success_rate' => 94.2],
-                ['name' => 'Rex Villanueva','deliveries' => 115, 'success_rate' => 91.8],
-            ],
+            'avg_delivery_days'     => 0,
+            'top_riders'            => $topRiders,
             'area_breakdown'        => $areaBreakdown,
             'chart'                 => [
-                'labels'    => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                'received'  => [420, 395, 480, 547],
-                'delivered' => [378, 360, 430, 486],
+                'labels'    => $chartLabels,
+                'received'  => $chartReceived,
+                'delivered' => $chartDelivered,
             ],
         ];
 

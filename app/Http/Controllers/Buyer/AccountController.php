@@ -13,16 +13,11 @@ use Illuminate\Validation\Rules\Password;
 
 class AccountController extends Controller
 {
-    /**
-     * Get currently active user with fallback
-     */
     private function getUser()
     {
-        return Auth::user() ?? new User([
-            'name'   => 'Guest Buyer',
-            'role'   => 'buyer',
-            'status' => 'active',
-        ]);
+        abort_unless(Auth::check(), 401, 'Please sign in to continue.');
+
+        return Auth::user();
     }
 
     /**
@@ -367,115 +362,6 @@ class AccountController extends Controller
         return back()->with('success', 'Delivery address updated successfully!');
     }
 
-    // ==========================================
-    // MOCK DATA GENERATORS (FOR CLEAN DEMOS)
-    // ==========================================
-
-    private function getPurchasesData()
-    {
-        return [
-            [
-                'order_id'       => 'ORD-2026-9081',
-                'store_name'     => 'TechZone Gadgets PH',
-                'store_badge'    => 'Official Mall',
-                'status'         => 'to_receive',
-                'status_label'   => 'To Receive (Out for Delivery)',
-                'status_color'   => 'amber',
-                'tracking_no'    => 'EXP-PH-994120',
-                'courier_name'   => 'Cartzy Express Rider (Arnel Gomez)',
-                'date'           => 'Mar 05, 2026',
-                'items'          => [
-                    [
-                        'name'       => 'Wireless Noise-Canceling Bluetooth Headphones Pro',
-                        'variation'  => 'Matte Black · Standard Edition',
-                        'quantity'   => 1,
-                        'price'      => 2499.00,
-                        'image'      => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=120&h=120&fit=crop&q=80',
-                    ],
-                ],
-                'shipping_fee'   => 0.00,
-                'voucher_discount' => 150.00,
-                'total_amount'   => 2349.00,
-            ],
-            [
-                'order_id'       => 'ORD-2026-8842',
-                'store_name'     => 'GlowBeauty Cosmetics Manila',
-                'store_badge'    => 'Preferred Seller',
-                'status'         => 'completed',
-                'status_label'   => 'Completed · Received',
-                'status_color'   => 'emerald',
-                'tracking_no'    => 'EXP-PH-771829',
-                'courier_name'   => 'Flash Express Courier',
-                'date'           => 'Feb 28, 2026',
-                'items'          => [
-                    [
-                        'name'       => 'Hydrating Rose Water Face Mist & Serum Glow Set',
-                        'variation'  => '100ml Duo Bottle Bundle',
-                        'quantity'   => 2,
-                        'price'      => 450.00,
-                        'image'      => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=120&h=120&fit=crop&q=80',
-                    ],
-                ],
-                'shipping_fee'   => 45.00,
-                'voucher_discount' => 45.00,
-                'total_amount'   => 900.00,
-            ],
-            [
-                'order_id'       => 'ORD-2026-8104',
-                'store_name'     => 'ShoeHaven Lifestyle Store',
-                'store_badge'    => 'Preferred',
-                'status'         => 'completed',
-                'status_label'   => 'Completed',
-                'status_color'   => 'emerald',
-                'tracking_no'    => 'EXP-PH-554102',
-                'courier_name'   => 'J&T Express PH',
-                'date'           => 'Feb 15, 2026',
-                'items'          => [
-                    [
-                        'name'       => 'Comfort Running Sneakers Lightweight Casual Shoes',
-                        'variation'  => 'White / Cloud Grey · Size EU 38',
-                        'quantity'   => 1,
-                        'price'      => 1299.00,
-                        'image'      => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=120&h=120&fit=crop&q=80',
-                    ],
-                ],
-                'shipping_fee'   => 0.00,
-                'voucher_discount' => 100.00,
-                'total_amount'   => 1199.00,
-            ],
-        ];
-    }
-
-    private function getCardsData()
-    {
-        return [
-            [
-                'id'         => 1,
-                'type'       => 'GCash',
-                'icon'       => '📱',
-                'account'    => '0977 •••• 409',
-                'name'       => 'Jess Pambago',
-                'is_default' => true,
-            ],
-            [
-                'id'         => 2,
-                'type'       => 'Maya E-Wallet',
-                'icon'       => '💳',
-                'account'    => '0977 •••• 409',
-                'name'       => 'Jess Pambago',
-                'is_default' => false,
-            ],
-            [
-                'id'         => 3,
-                'type'       => 'Mastercard',
-                'icon'       => '💳',
-                'account'    => '•••• •••• •••• 4812',
-                'name'       => 'JESS PAMBAGO',
-                'is_default' => false,
-            ],
-        ];
-    }
-
     private function getAddressesData($user)
     {
         // 1. Check if user has an address saved on their profile
@@ -542,83 +428,5 @@ class AccountController extends Controller
 
         // 3. New user without address: return empty list
         return [];
-    }
-
-    private function getVouchersData()
-    {
-        return [
-            [
-                'id'         => 'FS-MARCH',
-                'title'      => 'Free Shipping ₱0 Min. Spend',
-                'discount'   => '100% OFF Shipping',
-                'min_spend'  => '₱0 Minimum Spend',
-                'valid_until'=> 'Mar 31, 2026',
-                'category'   => 'Shipping',
-                'badge'      => 'Sitewide',
-            ],
-            [
-                'id'         => 'CARTZY10',
-                'title'      => '10% OFF Electronics & Tech',
-                'discount'   => '₱200 Cap',
-                'min_spend'  => '₱1,000 Minimum Spend',
-                'valid_until'=> 'Mar 15, 2026',
-                'category'   => 'Discount',
-                'badge'      => 'TechZone Mall',
-            ],
-            [
-                'id'         => 'NEWBUYER50',
-                'title'      => 'Welcome New Buyer Voucher',
-                'discount'   => '₱50 OFF',
-                'min_spend'  => '₱300 Minimum Spend',
-                'valid_until'=> 'Dec 31, 2026',
-                'category'   => 'Discount',
-                'badge'      => 'New User',
-            ],
-        ];
-    }
-
-    private function getCoinsData()
-    {
-        return [
-            'balance'         => 145,
-            'peso_equivalent' => '₱1.45',
-            'expiring_soon'   => '25 coins expiring on Mar 31, 2026',
-            'history'         => [
-                ['title' => 'Daily Login Reward', 'amount' => '+1 Coin', 'date' => 'Today 08:30 AM'],
-                ['title' => 'Order #ORD-2026-8842 Coin Cashback', 'amount' => '+20 Coins', 'date' => 'Feb 28, 2026'],
-                ['title' => 'Redeemed on Order #ORD-2026-9081', 'amount' => '-15 Coins', 'date' => 'Mar 05, 2026'],
-                ['title' => 'Account Registration Bonus', 'amount' => '+100 Coins', 'date' => 'Feb 15, 2026'],
-            ],
-        ];
-    }
-
-    private function getNotificationsData()
-    {
-        return [
-            [
-                'id'      => 1,
-                'icon'    => '🚚',
-                'title'   => 'Parcel Out for Delivery!',
-                'message' => 'Your order #ORD-2026-9081 is out for delivery with Cartzy Rider Arnel Gomez.',
-                'time'    => '20 minutes ago',
-                'unread'  => true,
-            ],
-            [
-                'id'      => 2,
-                'icon'    => '🎟️',
-                'title'   => 'New Free Shipping Voucher Added',
-                'message' => 'A special March Payday Free Shipping voucher has been credited to your wallet.',
-                'time'    => '3 hours ago',
-                'unread'  => false,
-            ],
-            [
-                'id'      => 3,
-                'icon'    => '⚡',
-                'title'   => 'Mega Tech Flash Sale is Live',
-                'message' => 'Up to 50% off on top electronics and wireless audio accessories.',
-                'time'    => 'Yesterday',
-                'unread'  => false,
-            ],
-        ];
     }
 }

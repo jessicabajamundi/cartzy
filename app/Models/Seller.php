@@ -99,7 +99,10 @@ class Seller extends Model
     /** Only approved sellers with an active account have a public store. */
     public function scopePubliclyVisible($query)
     {
-        return $query->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active'));
+        return $query->where('status', 'approved')
+            ->whereHas('user', fn ($user) => $user->where('status', 'active')
+                ->where('is_suspended', false)
+                ->where('email', 'not like', '%@catalog.cartzy.invalid'));
     }
 
     public function isApproved(): bool

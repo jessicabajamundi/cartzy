@@ -73,6 +73,9 @@ class OrderPlacement
                         throw new RuntimeException($product->name.' is not currently available for purchase.');
                     }
                     $seller = $product->seller;
+                    if (!$seller || !$seller->isApproved() || $seller->user?->status !== 'active' || $seller->user?->is_suspended) {
+                        throw new RuntimeException($product->name.' is not from a verified store.');
+                    }
                     $qty = max(1, (int) ($item['quantity'] ?? 1));
                     if ($variant->stock < $qty) throw new RuntimeException('There is not enough stock for '.$product->name.'.');
                     $priceMinor = $variant->sale_price_minor;
