@@ -13,6 +13,7 @@ import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/theme_controller.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
+import 'package:cartzy/widgets/theme_toggle_tile.dart';
 
 const _ink = Color(0xFF261E30);
 const _muted = Color(0xFF8A7780);
@@ -469,6 +470,7 @@ class _CourierDashboardState extends State<CourierDashboard> {
             item(Icons.badge_outlined, 'Attendance (Time in / out)', _openAttendance),
             item(Icons.notifications_none_rounded, 'Notifications', _openNotifications),
             item(Icons.auto_awesome_outlined, "What's new", _showPatchNotes),
+            const ThemeToggleTile(),
             const Spacer(),
             const Divider(height: 1, color: _line),
             item(Icons.logout_rounded, 'Log out', widget.onLogout, color: const Color(0xFFD32F2F)),

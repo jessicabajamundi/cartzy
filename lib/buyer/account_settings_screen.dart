@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/profile_photo_editor_screen.dart';
+import 'package:cartzy/widgets/theme_toggle_tile.dart';
 import 'package:cartzy/buyer/messages_screen.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:cartzy/services/notification_service.dart';
@@ -1628,8 +1629,17 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               const SizedBox(height: 24),
 
               // ==========================================
-              // 6. SIGN OUT BUTTON
+              // 6. APPEARANCE & SIGN OUT
               // ==========================================
+              Container(
+                decoration: BoxDecoration(
+                  color: CartzyColors.surfaceOf(context),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: CartzyColors.borderOf(context)),
+                ),
+                child: const ThemeToggleTile(),
+              ),
+              const SizedBox(height: 16),
               if (widget.isLoggedIn)
                 SizedBox(
                   width: double.infinity,

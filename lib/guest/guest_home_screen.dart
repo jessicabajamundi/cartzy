@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cartzy/services/catalog_service.dart';
 import 'package:cartzy/widgets/banner_action_icon.dart';
+import 'package:cartzy/widgets/theme_toggle_button.dart';
 import 'package:cartzy/guest/guest_wishlist_screen.dart';
 import 'package:cartzy/guest/guest_cart_screen.dart';
 import 'package:cartzy/guest/guest_account_screen.dart';
@@ -295,6 +296,8 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                                     ),
                                   ),
                                   const SizedBox(width: 2),
+
+                                  const ThemeToggleButton(),
 
                                   // WISHLIST BUTTON
                                   IconButton(

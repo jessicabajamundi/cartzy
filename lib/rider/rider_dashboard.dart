@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/rider/rider_parcel_scan.dart';
 import 'package:cartzy/widgets/cartzy_logo.dart';
+import 'package:cartzy/widgets/theme_toggle_tile.dart';
 import 'package:cartzy/services/mock_data.dart';
 import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
@@ -563,6 +564,7 @@ class _RiderDashboardState extends State<RiderDashboard> {
                   isSelected: _selectedNav == 'Account Management',
                   onTap: () => _selectTab(3),
                 ),
+                const ThemeToggleTile(),
               ],
             ),
           ),

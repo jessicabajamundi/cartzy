@@ -8,6 +8,7 @@ import 'package:cartzy/products/product_list_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
 import 'package:cartzy/buddy/buddy_chat_screen.dart';
 import 'package:cartzy/widgets/buddy_bear.dart';
+import 'package:cartzy/widgets/theme_toggle_button.dart';
 
 class GuestAccountScreen extends StatefulWidget {
   final VoidCallback onLogin;
@@ -108,6 +109,7 @@ class _GuestAccountScreenState extends State<GuestAccountScreen> {
       extendBody: true,
       backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.rose50Warm),
       appBar: AppBar(
+        actions: const [ThemeToggleButton()],
         centerTitle: true,
         toolbarHeight: 76,
         backgroundColor: CartzyColors.elevatedOf(context, light: CartzyColors.brand50Lavender),
