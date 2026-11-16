@@ -205,6 +205,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                 children: [
                   _buildProfileHeaderCard(),
                   const SizedBox(height: 14),
+                  _buildDarkModeCard(),
+                  const SizedBox(height: 14),
                   _buildQuickStatsStrip(),
                   const SizedBox(height: 14),
                   _buildTwoColumnDetails(),
@@ -212,8 +214,6 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   _buildHomeAddressCard(),
                   const SizedBox(height: 14),
                   _buildPatchNotesCard(),
-                  const SizedBox(height: 14),
-                  _buildDarkModeCard(),
                   const SizedBox(height: 14),
                   _buildSignOutCard(),
                 ],

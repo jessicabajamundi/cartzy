@@ -365,6 +365,33 @@ class _CourierDashboardState extends State<CourierDashboard> {
 
     return [
       const _PageTitle('Profile', 'Your courier details on file with your hub.'),
+      ValueListenableBuilder<ThemeMode>(
+        valueListenable: ThemeController.mode,
+        builder: (context, _, __) {
+          final isDark = ThemeController.isDark(context);
+          return _Card(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: isDark,
+              onChanged: (v) => ThemeController.setDark(v),
+              secondary: Icon(
+                isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                color: isDark ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: _ink),
+              ),
+              title: Text(
+                'Dark Mode',
+                style: GoogleFonts.dmSans(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: CartzyColors.textOf(context),
+                ),
+              ),
+              activeThumbColor: CartzyColors.darkAccent,
+            ),
+          );
+        },
+      ),
+      const SizedBox(height: 14),
       _Card(
         child: Column(
           children: [
@@ -419,33 +446,6 @@ class _CourierDashboardState extends State<CourierDashboard> {
             ),
           ],
         ),
-      ),
-      const SizedBox(height: 10),
-      ValueListenableBuilder<ThemeMode>(
-        valueListenable: ThemeController.mode,
-        builder: (context, _, __) {
-          final isDark = ThemeController.isDark(context);
-          return _Card(
-            child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: isDark,
-              onChanged: (v) => ThemeController.setDark(v),
-              secondary: Icon(
-                isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                color: isDark ? CartzyColors.mutedOf(context, light: CartzyColors.darkAccent) : CartzyColors.textOf(context, light: _ink),
-              ),
-              title: Text(
-                'Dark Mode',
-                style: GoogleFonts.dmSans(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: CartzyColors.textOf(context),
-                ),
-              ),
-              activeThumbColor: CartzyColors.darkAccent,
-            ),
-          );
-        },
       ),
       const SizedBox(height: 14),
       OutlinedButton.icon(

@@ -1237,6 +1237,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                 ),
                 child: Column(
                   children: [
+                    const ThemeToggleTile(),
+                    _profileDivider(),
                     // Messages
                     _buildMenuTile(
                       icon: Icons.chat_bubble_outline_rounded,
@@ -1274,11 +1276,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         );
                       },
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // Notifications (with real database badge & tap navigation)
                     ValueListenableBuilder<int>(
@@ -1320,11 +1318,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         );
                       },
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // ID verification (with green checkmark)
                     _buildMenuTile(
@@ -1336,11 +1330,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                           : null,
                       onTap: _openIdVerificationModal,
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // Saved addresses
                     _buildMenuTile(
@@ -1348,11 +1338,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       label: 'Saved addresses',
                       onTap: _openAddressesScreen,
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // Profile settings
                     _buildMenuTile(
@@ -1360,11 +1346,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       label: 'Profile settings',
                       onTap: _openProfileSettingsModal,
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // Change password
                     _buildMenuTile(
@@ -1374,11 +1356,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
                       ),
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // Account activity
                     _buildMenuTile(
@@ -1388,11 +1366,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                         MaterialPageRoute(builder: (_) => const AccountActivityScreen()),
                       ),
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
 
                     // Terms & policies
                     _buildMenuTile(
@@ -1580,21 +1554,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
                       label: 'Help & support',
                       onTap: _openHelpModal,
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
                     _buildMenuTile(
                       icon: Icons.error_outline_rounded,
                       label: 'Complaints',
                       onTap: _openComplaintsModal,
                     ),
-                    const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: CartzyColors.creamSection,
-                        indent: 68),
+                    _profileDivider(),
                     _buildMenuTile(
                       icon: Icons.auto_awesome_rounded,
                       label: 'Patch notes',
@@ -1629,17 +1595,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               const SizedBox(height: 24),
 
               // ==========================================
-              // 6. APPEARANCE & SIGN OUT
+              // 6. SIGN OUT
               // ==========================================
-              Container(
-                decoration: BoxDecoration(
-                  color: CartzyColors.surfaceOf(context),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: CartzyColors.borderOf(context)),
-                ),
-                child: const ThemeToggleTile(),
-              ),
-              const SizedBox(height: 16),
               if (widget.isLoggedIn)
                 SizedBox(
                   width: double.infinity,
@@ -1919,6 +1876,14 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   // ==========================================
   // MENU TILE ITEM
   // ==========================================
+  Widget _profileDivider() => Divider(
+        height: 1,
+        thickness: 1,
+        indent: 0,
+        endIndent: 0,
+        color: CartzyColors.borderOf(context, light: CartzyColors.pinkBorder),
+      );
+
   Widget _buildMenuTile({
     required IconData icon,
     required String label,
