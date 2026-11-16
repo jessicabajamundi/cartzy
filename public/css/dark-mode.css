@@ -160,6 +160,33 @@ html[data-theme="dark"] .product-card:hover {
 }
 
 /* Form controls & modals */
+/* Auth defines palette tokens on body, so override them at the same scope. */
+html[data-theme="dark"] body.auth-split-page {
+    --dm-ink: #FFFFFF;
+    --dm-muted: #E7DFE9;
+    --brand-darkest: #FFFFFF;
+}
+
+html[data-theme="dark"] .auth-split-page .auth-input,
+html[data-theme="dark"] .auth-split-page .otp-input {
+    color: #FFFFFF !important;
+    caret-color: #FFFFFF;
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] .auth-split-page select.auth-input option {
+    color: #FFFFFF;
+    background-color: var(--dm-surface);
+}
+
+html[data-theme="dark"] .auth-split-page input:-webkit-autofill,
+html[data-theme="dark"] .auth-split-page input:-webkit-autofill:hover,
+html[data-theme="dark"] .auth-split-page input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #FFFFFF !important;
+    box-shadow: 0 0 0 1000px var(--dm-surface) inset !important;
+    caret-color: #FFFFFF;
+}
+
 html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html[data-theme="dark"] select,
 html[data-theme="dark"] textarea {

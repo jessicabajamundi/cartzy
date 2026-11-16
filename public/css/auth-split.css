@@ -7,7 +7,7 @@ body.auth-split-page {
     /* ── Palette Tokens ── */
     --brand-lavender: #6F6382;
     --brand-dark: #564B68;
-    --brand-darkest: #282133;
+    --brand-darkest: var(--dm-ink, #282133);
     --brand-soft: var(--dm-surface, #FAF9FB);
     --brand-border: var(--dm-border, #E1DDE7);
 
