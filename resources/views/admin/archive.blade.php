@@ -287,15 +287,6 @@
                                         @include('admin.partials.icon', ['name' => 'refresh']) Reactivate
                                     </button>
                                 </form>
-                                @if($user->status !== 'removed')
-                                    <button type="button" class="button" style="min-height: 32px; padding: 5px 12px; font-size: 11px; background: #b42332; border-color: #b42332; color: #fff;"
-                                        data-trigger-remove-user
-                                        data-user-id="{{ $user->id }}"
-                                        data-user-name="{{ $user->name }}"
-                                        data-action-url="{{ route('admin.archive.users.remove', $user->id) }}">
-                                        @include('admin.partials.icon', ['name' => 'trash']) Remove
-                                    </button>
-                                @endif
                                 <form method="POST" action="{{ route('admin.archive.users.force', $user->id) }}" data-archive-action="delete" data-archive-type="account" data-item-name="{{ $user->name }}" data-confirm="Permanently delete user account '{{ $user->name }}' from the database? This cannot be undone.">
                                     @csrf
                                     @method('DELETE')
