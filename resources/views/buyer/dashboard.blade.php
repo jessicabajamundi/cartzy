@@ -56,27 +56,8 @@
                         <div id="order-tracking" class="order-tracking-panel">
                             <div class="order-tracking-heading"><div><p class="commerce-eyebrow">DELIVERY UPDATES</p><h3>Tracking {{ $tracking['order'] ?? $tracking['query'] ?? '' }}</h3></div><a href="{{ route('buyer.dashboard', ['tab' => 'orders']) }}" class="order-tracking-close">✕ Close tracking</a></div>
                         @if($tracking && !($tracking['not_found'] ?? false))
-                            <div class="commerce-tracking-card">
-                                <div class="commerce-tracking-summary">
-                                    <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Order</p><p class="font-extrabold">{{ $tracking['order'] }}</p></div>
-                                    <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Tracking no.</p><p class="font-extrabold">{{ $tracking['tracking_no'] }}</p></div>
-                                    <div><p class="text-[11px] font-bold uppercase tracking-wider text-white/60">Estimated arrival</p><p class="font-extrabold text-[#E8C9C0]">{{ $tracking['eta'] }}</p></div>
-                                </div>
-                                <p class="mt-4 text-sm text-gray-500">Logistics provider: <span class="font-bold text-gray-800">{{ $tracking['courier'] }}</span></p>
-                                <div class="tracking-status-panel">
-                                    <div><span class="tracking-caption">Latest confirmed stage</span><strong>{{ $tracking['current_status'] }}</strong></div>
-                                    <div><span class="tracking-caption">Last recorded update · Philippine time</span><strong>{{ $tracking['last_update'] }}</strong></div>
-                                </div>
-                                <dl class="tracking-details">
-                                    <div><dt>Pickup rider</dt><dd>{{ $tracking['pickup_rider'] ?? 'Not assigned yet' }}</dd></div>
-                                    <div><dt>Hub-to-Hub courier</dt><dd>{{ $tracking['hub_to_hub_courier'] ?? 'Not assigned yet' }}</dd></div>
-                                    <div><dt>Delivery rider</dt><dd>{{ $tracking['rider'] }}</dd></div>
-                                    <div><dt>Delivery area</dt><dd>{{ $tracking['area'] }}</dd></div>
-                                    <div><dt>Delivery attempts</dt><dd>{{ $tracking['attempts'] ?: 'No attempt recorded' }}</dd></div>
-                                </dl>
-                                @if($tracking['attention'])
-                                    <p class="tracking-attention" role="status">{{ $tracking['attention'] }}</p>
-                                @endif
+                            <div class="commerce-tracking-card" data-tracking-url="{{ route('buyer.tracking.live', ['id' => $tracking['seller_order_id']]) }}">
+                                <div data-tracking-fragment="summary">@include('buyer.partials.tracking-summary')</div>
 
                                 {{-- Realtime OpenStreetMap Live Tracking Container --}}
                                 @if(!empty($tracking['map']))
@@ -112,34 +93,9 @@
                                     </div>
                                 @endif
 
-                                <p class="tracking-explainer mt-4">Realtime OpenStreetMap GPS tracking active. Courier location updates continuously along the delivery route.</p>
+                                <p class="tracking-explainer mt-4">Delivery updates refresh automatically while this page is open.</p>
                                 <a class="tracking-refresh" href="{{ request()->fullUrl() }}">Refresh tracking ↻</a>
-                                <h3 class="commerce-timeline-title">Delivery timeline</h3><ol class="mt-6 space-y-0">
-                                    @foreach($tracking['steps'] as $step)
-                                        <li class="relative flex gap-4 pb-7 last:pb-0">
-                                            @if(!$loop->last)<span class="absolute left-[15px] top-8 h-[calc(100%-1.5rem)] w-0.5 {{ $step['done'] && !($step['current'] ?? false) ? 'bg-[#C08B7F]' : 'bg-gray-200' }}"></span>@endif
-                                            <span class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold {{ ($step['current'] ?? false) ? 'bg-[#C08B7F] text-white ring-4 ring-[#C08B7F]/25' : ($step['done'] ? 'bg-[#564B68] text-white' : 'bg-gray-200 text-gray-400') }}">{{ $step['done'] ? '✓' : '•' }}</span>
-                                            <div>
-                                                <p class="text-sm font-bold {{ $step['done'] ? 'text-gray-900' : 'text-gray-500' }}">{{ $step['label'] }} @if($step['current'] ?? false)<span class="tracking-current">Latest confirmed</span>@endif</p>
-                                                <p class="text-xs text-gray-500">{{ $step['detail'] }}</p>
-                                                <p class="mt-0.5 text-[11px] font-semibold text-[#8C5A50]">{{ $step['time'] }}</p>
-                                            </div>
-                                        </li>
-                                    @endforeach
-                                </ol>
-                                <details class="tracking-history">
-                                    <summary>Detailed activity · {{ count($tracking['history']) }} recorded updates</summary>
-                                    <p class="tracking-explainer">Newest first. Repeated scans and delivery attempts are shown separately. All times are Philippine time.</p>
-                                    @forelse($tracking['history'] as $event)
-                                        <article>
-                                            <strong>{{ $event['label'] }}</strong>
-                                            <p>{{ $event['time'] }}@if($event['attempt'] > 1) · Attempt {{ $event['attempt'] }}@endif</p>
-                                            @if($event['note'])<p>{{ $event['note'] }}</p>@endif
-                                        </article>
-                                    @empty
-                                        <p class="tracking-explainer">No courier scans recorded yet.</p>
-                                    @endforelse
-                                </details>
+                                <div data-tracking-fragment="timeline" aria-live="polite" aria-atomic="true">@include('buyer.partials.tracking-timeline')</div>
                             </div>
                         @elseif($tracking && ($tracking['not_found'] ?? false))
                             <div class="rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-sm">
@@ -375,6 +331,7 @@
     .star.is-on { color: #fbbf24; }
 </style>
 
+<script src="{{ asset('js/buyer/live-tracking.js') }}" defer></script>
 <script>
 (function () {
     const panels = document.querySelectorAll('[data-panel]');

@@ -17,7 +17,7 @@ class BuyerTrackingTest extends TestCase
             'code' => 'Ok', 'routes' => [['geometry' => ['coordinates' => [[121.03, 14.65], [121.02, 14.55]]],
                 'distance' => 12000, 'duration' => 1800]],
         ])]);
-        $buyer = User::factory()->create(['role' => 'buyer']);
+        $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active']);
         $seller = Seller::create(['user_id' => User::factory()->create(['role' => 'seller'])->id, 'name' => 'Test Shop', 'slug' => 'test-shop', 'status' => 'approved']);
         $hub = LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Test Courier', 'slug' => 'courier', 'status' => 'approved']);
         $order = Order::create(['buyer_id' => $buyer->id, 'reference' => 'ORD-TRACK-1', 'total_minor' => 28000,
@@ -66,8 +66,9 @@ class BuyerTrackingTest extends TestCase
         $steps = collect($tracking['steps']);
         $this->assertSame('Time not recorded', $steps->firstWhere('label', 'Packed by seller')['time']);
         $this->assertSame('Time not recorded', $steps->firstWhere('label', 'In transit')['time']);
-        $this->assertFalse($steps->firstWhere('label', 'Picked up by rider')['done']);
-        $this->assertSame('Awaiting update', $steps->firstWhere('label', 'Delivered')['time']);
+        $this->assertNull($steps->firstWhere('label', 'Picked up by rider'));
+        $this->assertNull($steps->firstWhere('label', 'Delivered'));
+        $this->assertSame(['Assigned to delivery rider'], $steps->where('done', false)->pluck('label')->values()->all());
     }
 
     public function test_failed_and_returned_parcels_show_attention_instead_of_a_normal_delivery_promise(): void
@@ -130,7 +131,8 @@ class BuyerTrackingTest extends TestCase
             'status' => 'confirmed', 'confirmed_at' => now()]);
         $tracking = app(OrderTracking::class)->build($order->fresh());
         $this->assertSame('Pickup schedule confirmed', $tracking['current_status']);
-        $this->assertFalse(collect($tracking['steps'])->firstWhere('label', 'Picked up by rider')['done']);
+        $this->assertNull(collect($tracking['steps'])->firstWhere('label', 'Picked up by rider'));
+        $this->assertFalse(collect($tracking['steps'])->firstWhere('label', 'Pickup rider assigned')['done']);
     }
 
     public function test_hub_transfer_precedes_final_rider_assignment_and_uses_saved_timestamps(): void
@@ -144,10 +146,101 @@ class BuyerTrackingTest extends TestCase
         $tracking = app(OrderTracking::class)->build($order->fresh());
         $labels = array_column($tracking['steps'], 'label');
         $this->assertSame('In Hub-to-Hub transit', $tracking['current_status']);
-        $this->assertLessThan(array_search('Assigned to delivery rider', $labels), array_search('Arrived at destination hub', $labels));
+        $this->assertContains('Arrived at destination hub', $labels);
+        $this->assertNotContains('Assigned to delivery rider', $labels);
         $order->shipment->update(['arrived_at_destination_hub_at' => '2026-11-16 10:00:00']);
         $tracking = app(OrderTracking::class)->build($order->fresh());
         $this->assertSame('Arrived at destination hub', $tracking['current_status']);
         $this->assertFalse(collect($tracking['steps'])->firstWhere('label', 'Assigned to delivery rider')['done']);
+    }
+
+    public function test_pending_order_shows_only_placement_and_seller_confirmation(): void
+    {
+        $order = $this->order();
+        $tracking = app(OrderTracking::class)->build($order->fresh());
+        $this->assertSame(['Order placed', 'Awaiting seller confirmation'], array_column($tracking['steps'], 'label'));
+        $this->assertTrue($tracking['steps'][0]['done']);
+        $this->assertFalse($tracking['steps'][1]['done']);
+        $this->assertTrue($tracking['steps'][1]['current']);
+        $this->get('/dashboard?tab=orders&track='.$order->order->reference)
+            ->assertOk()->assertSee('Awaiting seller confirmation')->assertDontSee('Packed by seller');
+    }
+
+    public function test_live_web_tracking_replaces_confirmation_and_stops_on_seller_rejection(): void
+    {
+        $order = $this->order();
+        $endpoint = route('buyer.tracking.live', $order->id);
+        $this->getJson($endpoint)->assertOk()->assertSee('Awaiting seller confirmation');
+        $order->update(['status' => 'accepted']);
+        $this->event($order, 'order_accepted', '2026-11-17 08:00:00');
+        $response = $this->getJson($endpoint)->assertOk();
+        $this->assertStringContainsString('Order confirmed', $response->json('timeline'));
+        $this->assertStringContainsString('Preparing your order', $response->json('timeline'));
+        $this->assertStringNotContainsString('Awaiting seller confirmation', $response->json('timeline'));
+        $this->assertStringNotContainsString('Pickup requested', $response->json('timeline'));
+
+        // A separate, still-pending order is rejected before acceptance.
+        $order->shipment->deliveryEvents()->delete();
+        $order->update(['status' => 'cancelled', 'note' => 'Out of stock']);
+        $order->order->update(['payment_status' => 'paid']);
+        $order->shipment->deliveryEvents()->create(['status' => 'cancelled', 'attempt' => 1,
+            'user_id' => auth()->id(), 'occurred_at' => now(), 'note' => 'Order rejected by Test Shop: Out of stock']);
+        $tracking = app(OrderTracking::class)->build($order->fresh());
+        $this->assertSame(['Order placed', 'Order rejected by seller'], array_column($tracking['steps'], 'label'));
+        $this->assertTrue($tracking['steps'][1]['error']);
+        $this->assertTrue($tracking['steps'][1]['rejected']);
+        $this->getJson($endpoint)->assertOk()->assertSee('Out of stock')->assertSee('Refund required');
+    }
+
+    public function test_live_tracking_is_scoped_to_the_authenticated_buyer(): void
+    {
+        $order = $this->order();
+        $this->actingAs(User::factory()->create(['role' => 'buyer']))
+            ->getJson(route('buyer.tracking.live', $order->id))->assertNotFound();
+    }
+
+    public function test_approved_buyer_cancellation_is_not_labelled_seller_rejection(): void
+    {
+        $order = $this->order();
+        $order->update(['status' => 'cancelled', 'cancellation_status' => 'approved',
+            'cancellation_reviewed_at' => now(), 'note' => 'Buyer changed their mind']);
+        $tracking = app(OrderTracking::class)->build($order->fresh());
+        $this->assertCount(2, $tracking['steps']);
+        $this->assertSame('Order cancelled', $tracking['steps'][1]['label']);
+        $this->assertFalse($tracking['steps'][1]['rejected']);
+    }
+
+    public function test_mobile_api_progresses_from_pending_to_confirmed_without_future_steps(): void
+    {
+        $order = $this->order();
+        \Laravel\Sanctum\Sanctum::actingAs(auth()->user());
+        $endpoint = '/api/orders/'.$order->id.'/tracking';
+        $this->getJson($endpoint)->assertOk()->assertJsonCount(2, 'tracking.steps')
+            ->assertJsonPath('tracking.steps.0.done', true)
+            ->assertJsonPath('tracking.steps.1.label', 'Awaiting seller confirmation')
+            ->assertJsonPath('tracking.steps.1.done', false);
+        $order->update(['status' => 'accepted']);
+        $this->event($order, 'order_accepted', '2026-11-17 08:00:00');
+        $this->getJson($endpoint)->assertOk()->assertJsonCount(3, 'tracking.steps')
+            ->assertJsonPath('tracking.steps.1.label', 'Order confirmed')
+            ->assertJsonPath('tracking.steps.1.done', true)
+            ->assertJsonPath('tracking.steps.2.label', 'Preparing your order')
+            ->assertJsonPath('tracking.steps.2.done', false);
+    }
+
+    public function test_dropoff_and_delivered_orders_reveal_only_relevant_steps(): void
+    {
+        $order = $this->order();
+        $order->update(['status' => 'packed']);
+        $order->shipment->update(['handover_method' => 'dropoff']);
+        $tracking = app(OrderTracking::class)->build($order->fresh());
+        $this->assertSame(['Order placed', 'Order confirmed', 'Packed by seller', 'Dropped off by seller'],
+            array_column($tracking['steps'], 'label'));
+        $this->assertFalse($tracking['steps'][3]['done']);
+        $order->update(['status' => 'delivered', 'delivered_at' => now()]);
+        $order->shipment->update(['status' => 'delivered']);
+        $tracking = app(OrderTracking::class)->build($order->fresh());
+        $this->assertTrue(collect($tracking['steps'])->every(fn ($step) => $step['done']));
+        $this->assertSame('Delivered', $tracking['current_status']);
     }
 }

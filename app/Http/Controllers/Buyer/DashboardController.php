@@ -16,6 +16,18 @@ use Illuminate\Validation\ValidationException;
 
 class DashboardController extends Controller
 {
+    public function liveTracking(Request $request, int $id)
+    {
+        $order = SellerOrder::whereHas('order', fn ($query) => $query->where('buyer_id', $request->user()->id))
+            ->findOrFail($id);
+        $tracking = app(\App\Services\OrderTracking::class)->build($order);
+
+        return response()->json([
+            'summary' => view('buyer.partials.tracking-summary', compact('tracking'))->render(),
+            'timeline' => view('buyer.partials.tracking-timeline', compact('tracking'))->render(),
+        ])->header('Cache-Control', 'no-store, private');
+    }
+
     /**
      * Buyer Dashboard — orders, cart, wishlist, tracking, notifications,
      * reviews, profile, addresses and settings, all backed by the database.

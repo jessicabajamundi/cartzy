@@ -64,6 +64,9 @@
 .commerce-tracking-summary > div:last-child p:last-child { color:var(--dm-muted, #95695F); }
 .commerce-timeline-title { margin:24px 0 0; padding-top:22px; border-top:1px solid var(--dm-border, #EEE7F2); font:700 15px 'Inter',sans-serif; color:var(--dm-ink, #564B68); }
 .commerce-tracking-card ol { margin-left:8px; }
+.tracking-pending-spinner { width:13px; height:13px; border:2px solid rgba(255,255,255,.4); border-top-color:white; border-radius:50%; animation:tracking-spin 1s linear infinite; }
+@keyframes tracking-spin { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .tracking-pending-spinner { animation:none; } }
 .commerce-tracking-card li > div { padding:2px 0 10px; }
 .notification-read-all { display:inline-flex; align-items:center; gap:8px; padding:11px 16px; border:1px solid var(--dm-border, #E1D6E8); border-radius:10px; background:var(--dm-surface, white); color:var(--dm-muted, #655274); font-size:12px; font-weight:700; cursor:pointer; }
 .notification-read-all svg { width:18px; height:18px; }

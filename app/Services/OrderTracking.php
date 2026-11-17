@@ -57,7 +57,7 @@ class OrderTracking
                 'delivered' => ['Delivered', 'Delivery is confirmed by the rider.'],
             ];
         }
-        $labels = array_map(fn ($definition) => $definition[0], $definitions) + [
+        $labels = ['order_accepted' => 'Order confirmed'] + array_map(fn ($definition) => $definition[0], $definitions) + [
             'order_accepted' => 'Accepted by seller',
             'arrived_at_destination_hub' => 'Arrived at destination hub',
             'dropoff' => 'Dropped off by seller',
@@ -125,7 +125,7 @@ class OrderTracking
                 $isRejected = $order->status === 'cancelled' && !$isAccepted;
 
                 $steps[] = [
-                    'label' => $isAccepted ? 'Accepted by seller' : ($isRejected ? 'Order rejected by seller' : 'Awaiting seller confirmation'),
+                    'label' => $isAccepted ? 'Order confirmed' : ($isRejected ? 'Order rejected by seller' : 'Awaiting seller confirmation'),
                     'detail' => $isAccepted
                         ? 'The seller accepted your order and is preparing it.'
                         : ($isRejected ? ($order->note ?: 'The seller rejected this order.') : 'Waiting for the seller to accept or reject your order.'),
@@ -142,7 +142,8 @@ class OrderTracking
                 || ($status === $shipment?->status)
                 || ($status === 'delivered' && in_array($order->status, ['delivered', 'completed'], true));
             $steps[] = [
-                'label' => $label, 'detail' => $detail,
+                'label' => $status === 'packed' && !$confirmed ? 'Preparing your order' : $label,
+                'detail' => $status === 'packed' && !$confirmed ? 'The seller is preparing your items.' : $detail,
                 'time' => $format($time) ?? ($confirmed ? 'Time not recorded' : 'Awaiting update'),
                 'done' => $confirmed,
             ];
@@ -171,31 +172,57 @@ class OrderTracking
             }
         }
 
-        // Set current active stage indicator
+        // Keep confirmed milestones and only the next pending milestone. Missing
+        // earlier scans are omitted rather than presented as completed events.
+        $visibleSteps = [];
+        foreach ($steps as $index => $step) {
+            if ($step['done'] || (!$delivered && $index === $latestDoneIndex + 1)) {
+                $visibleSteps[] = $step;
+            }
+        }
+        $steps = $visibleSteps;
+        $latestDoneIndex = count(array_filter($steps, fn ($step) => $step['done'])) - 1;
+
+        // The summary retains the latest confirmed stage; the pending row is
+        // highlighted separately so waiting never implies completion.
         $current = $steps[0]['label'];
         for ($i = 0; $i < count($steps); $i++) {
-            $steps[$i]['current'] = ($i === $latestDoneIndex);
-            if ($steps[$i]['current']) {
+            $steps[$i]['current'] = !$steps[$i]['done'] || ($delivered && $i === $latestDoneIndex);
+            if ($i === $latestDoneIndex) {
                 $current = $steps[$i]['label'];
             }
         }
 
         if (in_array($terminal, ['cancelled', 'returned', 'failed'], true)) {
+            $rejected = $terminal === 'cancelled'
+                && $order->cancellation_status !== 'approved'
+                && (str_starts_with($byStatus->get('cancelled')?->note ?? '', 'Order rejected by ')
+                    || $order->note === 'Order rejected by seller.');
+            $terminalLabel = $rejected ? 'Order rejected by seller' : ($labels[$terminal] ?? ucfirst($terminal));
             $steps = array_values(array_filter($steps, fn ($step) => $step['done']));
             foreach ($steps as &$step) {
                 $step['current'] = false;
             }
             unset($step);
             $steps[] = [
-                'label' => $labels[$terminal] ?? ucfirst($terminal),
+                'label' => $terminalLabel,
                 'detail' => $attention,
                 'time' => $format($byStatus->get($terminal)?->occurred_at
                     ?? ($terminal === 'cancelled' ? $order->cancellation_reviewed_at : null)) ?? 'Time not recorded',
                 'done' => true,
                 'current' => true,
+                'rejected' => $rejected,
+                'error' => true,
             ];
-            $current = $labels[$terminal] ?? ucfirst($terminal);
+            $current = $terminalLabel;
         }
+
+        $refundStatus = $terminal === 'cancelled' ? match ($order->order->payment_status) {
+            'refunded' => 'Refund completed',
+            'partially_refunded' => 'Partially refunded. Contact the seller about the remaining amount.',
+            'paid' => 'Refund required. Contact the seller to arrange your refund.',
+            default => null,
+        } : null;
 
         $history = $events->map(fn ($event) => [
             'label' => $labels[$event->status] ?? ucfirst(str_replace('_', ' ', $event->status)),
@@ -226,6 +253,7 @@ class OrderTracking
                         : 'Not confirmed by courier')));
 
         return [
+            'seller_order_id' => $order->id,
             'order' => $order->order->reference,
             'tracking_no' => $shipment?->tracking_code ?? 'Not assigned yet',
             'courier' => $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Not assigned yet',
@@ -242,6 +270,7 @@ class OrderTracking
             'current_status' => $current,
             'last_update' => $format($lastRecorded) ?? 'No recorded update',
             'attention' => $attention,
+            'refund_status' => $refundStatus,
             'steps' => $steps,
             'history' => $history,
             'map' => $realtimeMap,

@@ -194,6 +194,7 @@ Route::middleware('auth')->group(function () {
     
     // Buyer Dashboard
     Route::get('/dashboard', [BuyerDashboardController::class, 'index'])->name('buyer.dashboard');
+    Route::get('/buyer/tracking/{id}', [BuyerDashboardController::class, 'liveTracking'])->whereNumber('id')->name('buyer.tracking.live');
     Route::post('/wishlist/toggle', [BuyerDashboardController::class, 'toggleWishlist'])->name('wishlist.toggle');
     Route::post('/wishlist/remove', [BuyerDashboardController::class, 'removeWishlist'])->name('wishlist.remove');
     Route::post('/reviews', [BuyerDashboardController::class, 'submitReview'])->name('reviews.store');
