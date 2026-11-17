@@ -50,12 +50,17 @@
     };
     $hub = $shipment?->logisticsProvider;
     $hubWhere = $hub ? \App\Services\HubRecommender::location($hub) : null;
-    $selectedId = old('logistics_provider_id', $order->logistics_provider_id ?? $recommended['provider']->id ?? null);
+    $handoverArranged = $order->pickup_requests_exists
+        || $shipment?->deliveryEvents->contains(fn ($event) => in_array($event->status, ['pickup_requested', 'dropoff_requested'], true))
+        || $shipment?->pickup_rider_id || $shipment?->received_at || ($shipment && $shipment->status !== 'unassigned');
+    $defaultId = $handoverArranged ? $order->logistics_provider_id
+        : ($recommended['provider']->id ?? $order->logistics_provider_id);
+    $selectedId = old('logistics_provider_id', $defaultId);
     $selectedMethod = old('handover_method', $shipment?->handover_method ?? 'pickup');
 @endphp
 <section class="panel shipping-card">
     <div class="page-heading"><div><h2>{{ $order->order->reference }}</h2><p class="subtitle">{{ $order->order->buyer?->name }} · {{ $shipment?->tracking_code ?? 'Tracking not assigned' }}</p></div><span class="badge">{{ $statusLabel }}</span></div>
-    <p class="muted">{{ $hub?->name ?? 'Choose a logistics hub' }}@if($shipment?->pickupRider?->user) · Pickup courier: {{ $shipment->pickupRider->user->name }}@endif @if($shipment?->rider?->user) · Rider: {{ $shipment->rider->user->name }}@endif</p>
+    <p class="muted">@if(!$handoverArranged && $recommended)Suggested pickup hub: {{ $recommended['provider']->name }}@else{{ $hub?->name ?? 'Choose a logistics hub' }}@endif @if($shipment?->pickupRider?->user) · Pickup courier: {{ $shipment->pickupRider->user->name }}@endif @if($shipment?->rider?->user) · Rider: {{ $shipment->rider->user->name }}@endif</p>
     @if($isDropoff && $hub)
         <div class="dropoff-where"><strong>Bring this parcel to {{ $hub->name }}</strong><br>{{ $hubWhere ?? 'The hub has not added its office address yet. Message the hub for directions.' }}</div>
     @endif

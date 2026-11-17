@@ -96,6 +96,87 @@ class HubAndRiderMatchingTest extends TestCase
             ->assertSee('123, Bubukal, Santa Cruz, Laguna');
     }
 
+    public function test_new_order_uses_the_seller_location_instead_of_the_first_database_hub(): void
+    {
+        $far = $this->hub('Metro South Sorting & Fulfillment Hub', ['city' => 'Taguig', 'province' => 'Metro Manila']);
+        $near = $this->hub('Laguna Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        // A stale, explicitly assigned store hub must not defeat the closer match.
+        $seller->setAttribute('logistics_provider_id', $far->id);
+        $this->assertSame($near->id, app(\App\Services\HubRecommender::class)->originHub($seller, collect([$far, $near]))->id);
+        $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active', 'city' => 'Taguig', 'province' => 'Metro Manila']);
+        $category = \App\Models\Category::create(['name' => 'Test', 'slug' => 'test', 'is_active' => true]);
+        $product = \App\Models\Product::create(['seller_id' => $seller->id, 'category_id' => $category->id,
+            'name' => 'Test item', 'slug' => 'test-item', 'is_active' => true, 'approval_status' => 'approved']);
+        $variant = \App\Models\ProductVariant::create(['product_id' => $product->id, 'sku' => 'LOCAL-HUB',
+            'name' => 'Standard', 'price_minor' => 10000, 'stock' => 2, 'is_active' => true]);
+        $order = app(\App\Services\OrderPlacement::class)->place($buyer,
+            [['variant_id' => $variant->id, 'quantity' => 1]], 'COD', 'Taguig, Metro Manila');
+        $parcel = $order->sellerOrders()->firstOrFail();
+        $this->assertSame($near->id, $parcel->logistics_provider_id);
+        $this->assertSame($near->id, $parcel->shipment->origin_hub_id);
+        $this->assertSame($near->id, $parcel->shipment->current_hub_id);
+        $this->assertSame($far->id, $parcel->shipment->destination_hub_id);
+    }
+
+    public function test_existing_unscheduled_order_preselects_recommended_hub_over_old_default(): void
+    {
+        $far = $this->hub('Metro South Hub', ['city' => 'Taguig', 'province' => 'Metro Manila']);
+        $near = $this->hub('Laguna Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $parcel = $this->packedOrder($seller);
+        $parcel->update(['logistics_provider_id' => $far->id]);
+        Shipment::create(['seller_order_id' => $parcel->id, 'logistics_provider_id' => $far->id,
+            'tracking_code' => 'OLD-DEFAULT', 'status' => 'unassigned']);
+        $html = $this->actingAs($seller->user)->get(route('seller.courier'))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<option value="'.$near->id.'"[^>]*\sselected/', $html);
+        $this->assertDoesNotMatchRegularExpression('/<option value="'.$far->id.'"[^>]*\sselected/', $html);
+        $this->assertStringContainsString('Suggested pickup hub: Laguna Hub', $html);
+    }
+
+    public function test_seller_selected_pickup_or_dropoff_hub_is_not_reset_to_the_recommendation(): void
+    {
+        $chosen = $this->hub('Chosen Hub', ['city' => 'Taguig', 'province' => 'Metro Manila']);
+        $near = $this->hub('Laguna Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        foreach (['pickup', 'dropoff'] as $method) {
+            $parcel = $this->packedOrder($seller);
+            $this->actingAs($seller->user)->post(route('seller.courier.schedule', $parcel), [
+                'logistics_provider_id' => $chosen->id, 'handover_method' => $method,
+                'pickup_date' => now()->toDateString(),
+            ])->assertSessionHasNoErrors();
+            $html = $this->get(route('seller.courier', ['order' => $parcel->id]))->assertOk()->getContent();
+            $this->assertMatchesRegularExpression('/<option value="'.$chosen->id.'"[^>]*\sselected/', $html);
+            $this->assertDoesNotMatchRegularExpression('/<option value="'.$near->id.'"[^>]*\sselected/', $html);
+            $this->assertSame($chosen->id, $parcel->fresh()->shipment->origin_hub_id);
+        }
+    }
+
+    public function test_hub_matching_uses_saved_address_and_account_address_fallbacks(): void
+    {
+        $near = $this->hub('Laguna Hub', ['city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $far = $this->hub('Manila Hub', ['city' => 'Taguig', 'province' => 'Metro Manila']);
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $seller->update(['pickup_address_id' => null]);
+        $matcher = app(\App\Services\HubRecommender::class);
+        $this->assertSame($near->id, $matcher->originHub($seller->fresh(), collect([$far, $near]))->id);
+        Address::where('user_id', $seller->user_id)->delete();
+        $seller->user->update(['city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $this->assertSame($near->id, $matcher->originHub($seller->fresh(), collect([$far, $near]))->id);
+    }
+
+    public function test_packing_a_legacy_order_without_shipment_also_uses_location_matching(): void
+    {
+        $this->hub('Metro South Hub', ['city' => 'Taguig', 'province' => 'Metro Manila']);
+        $near = $this->hub('Laguna Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $seller = $this->sellerAt(['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);
+        $order = $this->packedOrder($seller);
+        $order->update(['status' => 'accepted']);
+        $this->actingAs($seller->user)->post('/seller/orders/'.$order->id.'/pack')->assertSessionHasNoErrors();
+        $this->assertSame($near->id, $order->fresh()->logistics_provider_id);
+        $this->assertSame($near->id, $order->fresh()->shipment->origin_hub_id);
+    }
+
     public function test_pick_up_creates_a_pickup_request_for_the_hub(): void
     {
         $hub = $this->hub('Sta Cruz Hub', ['barangay' => 'Bubukal', 'city' => 'Santa Cruz', 'province' => 'Laguna']);

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Address;
 use App\Models\LogisticsProvider;
+use App\Models\Seller;
 use App\Models\User;
 use App\Support\PlaceMatcher;
 use Illuminate\Support\Collection;
@@ -15,6 +16,24 @@ use Illuminate\Support\Collection;
  */
 class HubRecommender
 {
+    public function pickupLocation(?Seller $seller): Address|User|null
+    {
+        if (!$seller) return null;
+        if ($seller->pickupAddress) return $seller->pickupAddress;
+        $saved = Address::where('user_id', $seller->user_id)->orderByDesc('is_default')->orderBy('id')->first();
+        if ($saved) return $saved;
+        $owner = $seller->user;
+        return $owner && PlaceMatcher::known(PlaceMatcher::placeOf($owner)) ? $owner : null;
+    }
+
+    /** Prefer an address match over a legacy store assignment or database default. */
+    public function originHub(Seller $seller, Collection $approvedProviders): ?LogisticsProvider
+    {
+        $recommended = $this->rank($approvedProviders, $this->pickupLocation($seller))->firstWhere('recommended', true);
+        return $recommended['provider'] ?? $approvedProviders->firstWhere('id', $seller->logistics_provider_id)
+            ?? $approvedProviders->first();
+    }
+
     /** A hub that lists the seller's region as a service area, when nothing closer matches. */
     private const SERVES_REGION_SCORE = 15;
 

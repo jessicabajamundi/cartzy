@@ -448,9 +448,14 @@ class SellerPortalController extends Controller
 
             $shipment = $order->shipment;
             if (!$shipment) {
-                $defaultProvider = LogisticsProvider::where('status', 'approved')->first() ?? LogisticsProvider::first();
+                $defaultProvider = app(\App\Services\HubRecommender::class)->originHub($order->seller,
+                    LogisticsProvider::where('status', 'approved')->with('user')->orderBy('id')->get());
+                abort_unless($defaultProvider, 422, 'No approved logistics hub is available.');
+                $order->update(['logistics_provider_id' => $defaultProvider->id]);
                 $shipment = $order->shipment()->create([
-                    'logistics_provider_id' => $order->logistics_provider_id ?? $defaultProvider?->id ?? 1,
+                    'logistics_provider_id' => $defaultProvider->id,
+                    'origin_hub_id' => $defaultProvider->id,
+                    'current_hub_id' => $defaultProvider->id,
                     'tracking_code' => 'CTZ-'.Str::upper(Str::random(12)),
                     'status' => 'unassigned',
                     'fee_minor' => $order->courierFeeMinor(),
@@ -492,9 +497,14 @@ class SellerPortalController extends Controller
         ])->findOrFail($id);
 
         if (!$order->shipment) {
-            $defaultProvider = LogisticsProvider::where('status', 'approved')->first() ?? LogisticsProvider::first();
+            $defaultProvider = app(\App\Services\HubRecommender::class)->originHub($order->seller,
+                LogisticsProvider::where('status', 'approved')->with('user')->orderBy('id')->get());
+            abort_unless($defaultProvider, 422, 'No approved logistics hub is available.');
+            $order->update(['logistics_provider_id' => $defaultProvider->id]);
             $order->shipment()->create([
-                'logistics_provider_id' => $order->logistics_provider_id ?? $defaultProvider?->id ?? 1,
+                'logistics_provider_id' => $defaultProvider->id,
+                'origin_hub_id' => $defaultProvider->id,
+                'current_hub_id' => $defaultProvider->id,
                 'tracking_code' => 'CTZ-'.Str::upper(Str::random(12)),
                 'status' => 'unassigned',
                 'fee_minor' => $order->courierFeeMinor(),
@@ -564,7 +574,8 @@ class SellerPortalController extends Controller
             'orders' => $this->ordersQuery()->whereIn('status', ['ready_to_ship', 'shipped'])
                 ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
                 ->when($request->filled('order'), fn ($q) => $q->whereKey($request->integer('order')))
-                ->with(['order.buyer', 'shipment.logisticsProvider.user', 'shipment.rider.user', 'shipment.pickupRider.user'])->latest()->paginate(15)->withQueryString(),
+                ->with(['order.buyer', 'shipment.logisticsProvider.user', 'shipment.rider.user', 'shipment.pickupRider.user', 'shipment.deliveryEvents'])
+                ->withExists('pickupRequests')->latest()->paginate(15)->withQueryString(),
             'providers' => $providers,
             // Closest hub first, by the seller's pickup address.
             'rankedProviders' => $hubs->rank($providers, $pickupAddress),
@@ -675,19 +686,7 @@ class SellerPortalController extends Controller
      */
     private function pickupLocation(?Seller $shop): \App\Models\Address|\App\Models\User|null
     {
-        if (!$shop) {
-            return null;
-        }
-        if ($shop->pickupAddress) {
-            return $shop->pickupAddress;
-        }
-        $saved = \App\Models\Address::where('user_id', $shop->user_id)->orderByDesc('is_default')->orderBy('id')->first();
-        if ($saved) {
-            return $saved;
-        }
-        $user = $shop->user;
-
-        return $user && (trim((string) $user->city) !== '' || trim((string) $user->province) !== '') ? $user : null;
+        return app(\App\Services\HubRecommender::class)->pickupLocation($shop);
     }
 
     public function deliveries()

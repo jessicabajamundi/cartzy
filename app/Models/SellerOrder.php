@@ -189,6 +189,11 @@ class SellerOrder extends Model
         return $this->hasOne(Shipment::class);
     }
 
+    public function pickupRequests()
+    {
+        return $this->hasMany(PickupRequest::class);
+    }
+
     public function getSubtotalAttribute(): float
     {
         return $this->subtotal_minor / 100;

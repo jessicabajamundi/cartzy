@@ -51,9 +51,9 @@ class OrderPlacement
             }
             $defaultAddress = $address ?? \App\Models\Address::where('user_id', $buyer->id)->where('is_default', true)->first();
             $useDefaultContact = $defaultAddress && ($address !== null || $defaultAddress->formatted_address === $deliveryAddress);
-            $provider = LogisticsProvider::query()->orderBy('id')->first();
+            $providers = LogisticsProvider::where('status', 'approved')->with('user')->orderBy('id')->get();
 
-            if (!$provider) {
+            if ($providers->isEmpty()) {
                 throw new RuntimeException('The marketplace is not ready to take orders yet (no courier configured).');
             }
 
@@ -158,7 +158,7 @@ class OrderPlacement
                 $groupShopShippingDiscount = $shopShippingSelection[$seller->id]['discount_minor'] ?? 0;
                 $groupShippingDiscount = $shippingShares[$seller->id];
                 $groupVoucherDiscount = $itemShares[$seller->id];
-                $originHubId = (int) ($seller->logistics_provider_id ?: $provider->id);
+                $originHubId = (int) app(HubRecommender::class)->originHub($seller, $providers)->id;
                 $destinationHubId = app(HubToHubService::class)->resolveDestinationHub($destination ?? $buyer, $originHubId);
 
                 $sellerOrder = SellerOrder::create([
