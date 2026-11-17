@@ -113,6 +113,9 @@ class _CartzyHomeState extends State<CartzyHome> with WidgetsBindingObserver {
   }
 
   Future<void> _initSession() async {
+    AuthService.onAccountDeleted = () {
+      if (mounted) logout();
+    };
     final restored = await AuthService.restoreSession();
     if (restored && AuthService.isAuthenticated && mounted) {
       setState(() {

@@ -3,6 +3,7 @@ import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/theme_controller.dart';
+import 'package:cartzy/widgets/delete_account_section.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -216,6 +217,8 @@ class _RiderAccountScreenState extends State<RiderAccountScreen> {
                   _buildPatchNotesCard(),
                   const SizedBox(height: 14),
                   _buildSignOutCard(),
+                  const SizedBox(height: 16),
+                  const DeleteAccountSection(),
                 ],
               ),
             ),

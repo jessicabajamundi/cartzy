@@ -7,6 +7,7 @@ import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/utils/input_rules.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
+import 'package:cartzy/widgets/delete_account_section.dart';
 import 'package:cartzy/widgets/profile_photo_editor_screen.dart';
 
 // ============================================================
@@ -814,6 +815,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   ),
                 ),
               ),
+
+              const SizedBox(height: 24),
+              const DeleteAccountSection(),
             ],
           ),
         ),

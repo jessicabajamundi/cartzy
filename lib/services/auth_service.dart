@@ -1,6 +1,7 @@
 import 'api_service.dart';
 import 'smtp_email_service.dart';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'wishlist_service.dart';
 import 'cart_service.dart';
@@ -322,5 +323,21 @@ class AuthService {
       }
     } catch (_) {}
     clearSession();
+  }
+
+  /// Optional hook registered by the root app shell to reset navigation state
+  /// when the user permanently deletes their account from any nested screen.
+  static VoidCallback? onAccountDeleted;
+
+  /// Permanently deletes the signed-in non-admin user's account on the server
+  /// and clears the local session.
+  static Future<void> deleteAccount(String password) async {
+    await ApiService.post(
+      '/account/delete',
+      {'password': password},
+      token: _token,
+    );
+    clearSession();
+    onAccountDeleted?.call();
   }
 }

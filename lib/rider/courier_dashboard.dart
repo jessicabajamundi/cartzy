@@ -12,6 +12,7 @@ import 'package:cartzy/services/courier_service.dart';
 import 'package:cartzy/services/notification_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/theme/theme_controller.dart';
+import 'package:cartzy/widgets/delete_account_section.dart';
 import 'package:cartzy/widgets/patch_notes_dialog.dart';
 import 'package:cartzy/widgets/theme_toggle_tile.dart';
 
@@ -532,6 +533,8 @@ class _CourierDashboardState extends State<CourierDashboard> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
+      const SizedBox(height: 16),
+      const DeleteAccountSection(),
     ];
   }
 
