@@ -208,6 +208,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/{id}/archive', [BuyerDashboardController::class, 'archiveNotification'])->whereNumber('id')->name('notifications.archive');
     Route::post('/notifications/{id}/restore', [BuyerDashboardController::class, 'restoreNotification'])->whereNumber('id')->name('notifications.restore');
 
+    Route::delete('/account/delete', [\App\Http\Controllers\AccountDeletionController::class, 'destroy'])->name('account.delete');
+
     // Buyer / User Account Portal
     Route::prefix('user')->name('account.')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('index');

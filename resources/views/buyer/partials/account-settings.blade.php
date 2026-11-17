@@ -401,6 +401,8 @@
             @endif
         </section>
 
+        @include('partials.delete-account')
+
     </div>
 </div>
 

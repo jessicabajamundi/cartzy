@@ -212,5 +212,7 @@
         </form>
     </div>
 
+    @include('partials.delete-account')
+
 </div>
 @endsection

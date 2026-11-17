@@ -181,6 +181,8 @@
             <button type="submit" class="button danger">Log out</button>
         </form>
     </section>
+
+    @include('partials.delete-account')
 </div>
 @endsection
 @push('styles')

@@ -483,6 +483,8 @@
     @endif
 </section>
 
+@include('partials.delete-account')
+
 <script>
 function calculateSellerAge(dateStr) {
     const input = document.getElementById('owner_birthday');

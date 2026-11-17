@@ -720,4 +720,25 @@ class AuthController extends Controller
             'user' => self::userJson($user->fresh()),
         ]);
     }
+
+    /**
+     * Permanently delete the authenticated non-admin user's account.
+     */
+    public function deleteAccount(Request $request, \App\Services\AccountDeletionService $accountDeletion)
+    {
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $data = $request->validate([
+            'password' => ['required', 'string'],
+        ]);
+
+        $accountDeletion->deleteAccount($user, $data['password']);
+
+        return response()->json([
+            'message' => 'Your account has been permanently deleted.',
+        ]);
+    }
 }

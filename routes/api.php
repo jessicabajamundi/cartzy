@@ -45,6 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
     Route::post('/account/password', [AuthController::class, 'changePassword']);
     Route::match(['put', 'post'], '/account/profile', [AuthController::class, 'updateProfile']);
+    Route::delete('/account', [AuthController::class, 'deleteAccount']);
+    Route::post('/account/delete', [AuthController::class, 'deleteAccount']);
     Route::get('/account/activity', [ActivityController::class, 'index']);
 
     // Rider time in / time out: scan the QR code shown on the hub's Time in / time out page.
