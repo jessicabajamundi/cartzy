@@ -30,8 +30,8 @@ class GoogleSignInService {
 
   /// Triggers native Google Sign-In and authenticates with the Cartzy Laravel API.
   /// Clears any cached session first so the user is always prompted with the account picker.
-  /// Uses direct native authentication first (bypasses serverClientId cross-project issues).
-  static Future<Map<String, dynamic>?> signIn() async {
+  /// Requests an ID token for server verification, keeping login and registration separate.
+  static Future<Map<String, dynamic>?> signIn({String intent = 'login'}) async {
     try {
       try {
         await _googleSignInDirect.signOut();
@@ -42,11 +42,10 @@ class GoogleSignInService {
 
       GoogleSignInAccount? account;
       try {
-        // Try direct native authentication first (bypasses serverClientId cross-project issues)
-        account = await _googleSignInDirect.signIn();
+        account = await _googleSignInWithServer.signIn();
       } on PlatformException catch (e) {
         final str = e.toString().toLowerCase();
-        // If direct failed, attempt with serverClientId as fallback
+        // A native fallback still needs a verifiable ID token.
         if (str.contains('12500') ||
             str.contains('sign_in_failed') ||
             str.contains('developer_error') ||
@@ -56,7 +55,7 @@ class GoogleSignInService {
             await _googleSignInWithServer.signOut();
           } catch (_) {}
           try {
-            account = await _googleSignInWithServer.signIn();
+            account = await _googleSignInDirect.signIn();
           } catch (_) {
             rethrow;
           }
@@ -70,7 +69,14 @@ class GoogleSignInService {
         return null;
       }
 
+      final authentication = await account.authentication;
+      final idToken = authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Google could not provide account verification. Please select your account again.');
+      }
       return await AuthService.loginWithGoogle(
+        idToken: idToken,
+        intent: intent,
         email: account.email,
         name: account.displayName,
         googleId: account.id,

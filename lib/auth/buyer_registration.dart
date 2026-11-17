@@ -2345,7 +2345,7 @@ class _CartzyRegisterHeaderState extends State<CartzyRegisterHeader> {
           onTap: _isSigningIn ? null : () async {
             setState(() => _isSigningIn = true);
             try {
-              final response = await GoogleSignInService.signIn();
+              final response = await GoogleSignInService.signIn(intent: 'register');
               if (!mounted) return;
               setState(() => _isSigningIn = false);
 

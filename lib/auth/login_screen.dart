@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoggingIn = true);
     try {
-      final response = await GoogleSignInService.signIn();
+      final response = await GoogleSignInService.signIn(intent: 'login');
       if (!mounted) return;
       setState(() => _isLoggingIn = false);
       if (response == null) {
