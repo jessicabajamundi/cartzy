@@ -656,6 +656,8 @@ class AuthController extends Controller
             'email_verification_otp' => ['required', 'string', 'min:6', 'max:6'],
             ...$sellerRules,
             ...$courierRules,
+            ...($request->input('role') === User::ROLE_COURIER && $request->input('courier_type') !== \App\Models\Rider::LAST_MILE
+                ? ['terms_agreed' => ['accepted']] : []),
             ...$logisticsRules,
         ], [
             'business_name.required' => 'Please enter your company name.',
@@ -678,7 +680,7 @@ class AuthController extends Controller
             'business_permit.required' => "Please upload your Mayor's / Business Permit.",
             'business_permit.mimes' => 'Business permit must be a JPG, PNG, or PDF file.',
             'business_permit.max' => 'Business permit must not exceed 5MB.',
-            'terms_agreed.accepted' => 'You must agree to the Cartzy Logistics Terms & Conditions and Privacy Policy to proceed.',
+            'terms_agreed.accepted' => 'You must agree to the Cartzy '.($request->input('role') === User::ROLE_COURIER ? 'Courier' : 'Logistics').' Terms & Conditions and Privacy Policy to proceed.',
             'name.required'        => 'Please enter your full name.',
             'first_name.required'  => 'Please enter your first name.',
             'last_name.required'   => 'Please enter your last name.',

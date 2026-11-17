@@ -295,12 +295,11 @@
                 <div><strong>Email verification</strong><span>{{ $user->email }}</span></div>
                 <span class="acct-badge {{ $user->email_verified_at ? 'acct-badge-verified' : 'acct-badge-unverified' }}">{{ $user->email_verified_at ? 'Verified' : 'Not verified' }}</span>
             </div>
-            @php($needsInitialPassword = $user->needsInitialPassword())
+            @php($needsInitialPassword = $user->google_id && !($user->has_custom_password ?? true))
             @if($needsInitialPassword)
                 <p class="acct-lead">You signed in with Google and haven't set a Cartzy password yet. Set one below (no current password needed) so you can also sign in with email or confirm account deletion.</p>
             @elseif($user->google_id)
-                <p class="acct-lead">Your account is linked with Google. Use your Cartzy password here, not your Google password. If you have never set one, verify your email to set a Cartzy password.</p>
-                <a class="acct-btn" href="{{ route('password.forgot', ['email' => $user->email, 'context' => 'account-deletion']) }}">Set or reset Cartzy password</a>
+                <p class="acct-lead">Your account is linked with Google and also has a Cartzy password set.</p>
             @endif
             <div class="acct-divider"></div>
             <h3 class="acct-subhead">{{ $needsInitialPassword ? 'Set Cartzy password' : 'Change password' }}</h3>

@@ -183,7 +183,7 @@
                     <fieldset class="checkout-payments"><legend class="checkout-sr-only">Choose your payment method</legend>
                         <label class="checkout-payment is-selected" id="payment-label-cod">
                             <span class="checkout-payment-icon" aria-hidden="true">&#8369;</span>
-                            <span class="checkout-payment-copy"><strong>Cash on Delivery (COD)</strong><small>Pay the rider in cash when your order arrives.</small></span>
+                            <span class="checkout-payment-copy"><strong>Cash on Delivery (COD)</strong><small>Pay the rider in cash when your order arrives (max &#8369;50,000.00 per order).</small></span>
                             <input type="radio" name="payment_method" value="COD" checked required>
                         </label>
                         <label class="checkout-payment" id="payment-label-gcash">

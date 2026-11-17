@@ -25,6 +25,8 @@ use RuntimeException;
  */
 class OrderPlacement
 {
+    public const COD_MAX_MINOR = 5_000_000; // ₱50,000.00 max Cash on Delivery per order
+
     /**
      * @param  array{items?: ?int, shipping?: ?int, shops?: array<int, ?int>, shop_shipping?: array<int, ?int>}|null  $voucherIds
      *         Chosen voucher ids (shops / shop_shipping: seller id => shop voucher id); null applies the best vouchers automatically.
@@ -119,6 +121,10 @@ class OrderPlacement
                 throw new RuntimeException('Review your wallet payment. The amount must match the current order total for wallet-only checkout.');
             }
             $externalAmount = $totalMinor - $walletAmount;
+            if ($isCod && $externalAmount > self::COD_MAX_MINOR) {
+                $limit = number_format(self::COD_MAX_MINOR / 100, 2);
+                throw new RuntimeException("Cash on Delivery is limited to ₱{$limit} per order to protect sellers. Please use GCash or Cartzy Wallet for larger orders.");
+            }
             if (!$isCod && $externalAmount > 0 && $groups->count() !== 1) {
                 throw new RuntimeException('For direct GCash payments, check out one store at a time so each seller receives and verifies the correct payment.');
             }

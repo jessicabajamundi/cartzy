@@ -52,7 +52,6 @@ class AuthController extends Controller
             // Riders and couriers: first_mile opens the courier dashboard, last_mile the rider one.
             'courier_type' => $user->role === User::ROLE_COURIER ? $user->rider?->courier_type : null,
             'has_custom_password' => (bool) ($user->has_custom_password ?? true),
-            'google_linked' => !empty($user->google_id),
             'vehicle_type' => $user->role === User::ROLE_COURIER ? $user->rider?->vehicle_type : null,
             'plate_no' => $user->role === User::ROLE_COURIER ? $user->rider?->plate_no : null,
             'area' => $user->role === User::ROLE_COURIER ? $user->rider?->area : null,
@@ -122,7 +121,6 @@ class AuthController extends Controller
 
         return response()->json(['token' => $token, 'user' => self::userJson($user)]);
     }
-
 
     /** Same email OTP as the website: request a code, then register with it. */
     public function requestOtp(Request $request)
@@ -284,15 +282,9 @@ class AuthController extends Controller
         }
 
         $user->password = Hash::make($data['password']);
-        $user->has_custom_password = true;
         $user->save();
-        // An OTP-verified reset from this account may retain this device only.
-        $actor = auth('sanctum')->user();
-        if ($actor && $actor->id === $user->id) $actor->setRawAttributes($user->getAttributes(), true);
-        $token = $actor?->currentAccessToken();
-        $keepToken = $actor && $actor->id === $user->id && $token instanceof \Laravel\Sanctum\PersonalAccessToken
-            ? $token->id : null;
-        $user->tokens()->when($keepToken, fn ($query) => $query->where('id', '!=', $keepToken))->delete();
+        // Sign out every device that used the old password.
+        $user->tokens()->delete();
 
         Cache::forget('pwd_reset_otp_'.$email);
         Cache::forget('pwd_reset_verified_'.$email);
@@ -301,8 +293,7 @@ class AuthController extends Controller
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
         }
 
-        return response()->json(['message' => $keepToken ? 'Your Cartzy password has been set. You can now confirm account deletion.' : 'Your password has been reset. You can now log in.',
-            'session_preserved' => $keepToken !== null, 'user' => $keepToken ? self::userJson($user->fresh()) : null]);
+        return response()->json(['message' => 'Your password has been reset. You can now log in.']);
     }
 
     public function registerBuyer(Request $request)
@@ -375,6 +366,7 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'otp' => ['required', 'digits:6'],
             'logistics_partner' => ['nullable', 'string', 'max:255'],
+            'terms_agreed' => $request->input('courier_type') !== \App\Models\Rider::LAST_MILE ? ['accepted'] : ['nullable'],
             'logistics_provider_id' => ['nullable', 'integer', 'exists:logistics_providers,id'],
             'vehicle_type' => ['required', 'string', Rule::in(array_keys(\App\Models\Rider::vehicleTypesFor($request->input('courier_type'))))],
             'courier_type' => ['nullable', Rule::in(array_keys(\App\Models\Rider::COURIER_TYPES))],
@@ -498,62 +490,131 @@ class AuthController extends Controller
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        return DB::transaction(function () use ($request, $user) {
-            $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
-            $requiresCurrent = !$user->needsInitialPassword();
+        $requiresCurrent = (bool) ($user->has_custom_password ?? true);
 
-            $data = $request->validate([
-                'current_password' => [$requiresCurrent ? 'required' : 'nullable', 'string'],
-                'password' => ['required', 'string', 'min:8', 'confirmed'],
-                'password_confirmation' => ['required', 'string'],
-            ], [
-                'current_password.required' => 'Current password is required.',
-                'password.required' => 'New password is required.',
-                'password.min' => 'Password must be at least 8 characters.',
-                'password.confirmed' => 'Password confirmation does not match.',
-            ]);
+        $data = $request->validate([
+            'current_password' => [$requiresCurrent ? 'required' : 'nullable', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required', 'string'],
+        ], [
+            'current_password.required' => 'Current password is required.',
+            'password.required' => 'New password is required.',
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.confirmed' => 'Password confirmation does not match.',
+        ]);
 
-            if ($requiresCurrent && !Hash::check((string) ($data['current_password'] ?? ''), $user->password)) {
-                return response()->json([
-                    'message' => 'The current password you entered is incorrect.',
-                    'errors' => ['current_password' => ['The current password you entered is incorrect.']],
-                ], 422);
-            }
-
-            $user->password = Hash::make($data['password']);
-            $user->has_custom_password = true;
-            $user->save();
-            $request->user()->setRawAttributes($user->getAttributes(), true);
-
-            ActivityLog::record('password_changed', $request, $user, [
-                'method' => 'account_settings',
-                'description' => $requiresCurrent ? 'Password updated via mobile app' : 'Initial Cartzy password set via mobile app',
-            ]);
-
+        if ($requiresCurrent && !Hash::check((string) ($data['current_password'] ?? ''), $user->password)) {
             return response()->json([
-                'success' => true,
-                'message' => $requiresCurrent ? 'Your password has been changed successfully.' : 'Your Cartzy password has been set.',
-                'user' => self::userJson($user->fresh()),
-            ]);
-        }, 3);
+                'message' => 'The current password you entered is incorrect.',
+                'errors' => ['current_password' => ['The current password you entered is incorrect.']],
+            ], 422);
+        }
+
+        $user->password = Hash::make($data['password']);
+        $user->has_custom_password = true;
+        $user->save();
+
+        ActivityLog::record('password_changed', $request, $user, [
+            'method' => 'account_settings',
+            'description' => $requiresCurrent ? 'Password updated via mobile app' : 'Initial Cartzy password set via mobile app',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $requiresCurrent ? 'Your password has been changed successfully.' : 'Your Cartzy password has been set.',
+            'user' => self::userJson($user->fresh()),
+        ]);
     }
 
     public function googleLogin(Request $request)
     {
         $data = $request->validate([
-            'intent' => ['required', Rule::in(['login', 'register'])],
-            'id_token' => ['required', 'string', 'max:10000'],
+            'email' => ['required', 'email'],
+            'google_id' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'avatar' => ['nullable', 'string', 'max:500'],
             'device_name' => ['nullable', 'string', 'max:100'],
         ]);
-        $identity = app(\App\Services\GoogleIdentity::class)->verify($data['id_token']);
-        $user = app(\App\Services\GoogleAccounts::class)->resolve(
-            $identity['email'], (string) $identity['sub'], $identity['name'] ?? 'Google User',
-            $identity['picture'] ?? null, $data['intent']
-        );
+
+        $email = strtolower(trim($data['email']));
+        $googleId = $data['google_id'] ?? null;
+        $name = trim($data['name'] ?? '');
+        if (empty($name)) {
+            $name = explode('@', $email)[0];
+        }
+        $avatar = $data['avatar'] ?? null;
+
+        $user = null;
+        if ($googleId) {
+            $user = User::where('google_id', $googleId)->first();
+        }
+        if (!$user) {
+            $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
+        }
+
+        if ($user) {
+            $updated = false;
+            if ($googleId && empty($user->google_id)) {
+                $user->google_id = $googleId;
+                $updated = true;
+            }
+            if ($avatar && empty($user->avatar)) {
+                $user->avatar = $avatar;
+                $updated = true;
+            }
+            if (!$user->email_verified_at) {
+                $user->email_verified_at = now();
+                $updated = true;
+            }
+            if ($updated) {
+                $user->save();
+            }
+        } else {
+            $user = DB::transaction(function () use ($email, $name, $googleId, $avatar) {
+                $created = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'google_id' => $googleId,
+                    'avatar' => $avatar,
+                    'role' => User::ROLE_BUYER,
+                    'status' => 'active',
+                    'email_verified_at' => now(),
+                    'password' => Hash::make(\Illuminate\Support\Str::random(32)),
+                    'has_custom_password' => false,
+                ]);
+
+                \App\Models\Buyer::firstOrCreate(['user_id' => $created->id], [
+                    'name' => $created->name,
+                    'id_status' => 'unverified',
+                    'status' => 'active',
+                ]);
+
+                $role = \App\Models\Role::firstOrCreate(['name' => 'buyer']);
+                $created->roles()->syncWithoutDetaching([$role->id]);
+
+                return $created;
+            });
+        }
+
+        if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
+            return response()->json(['message' => 'Your account is suspended. Please contact platform support.'], 403);
+        }
+        if ($user->status === 'rejected') {
+            return response()->json(['message' => 'Your account application was disapproved by the administrator.'], 403);
+        }
+        if ($user->status === 'pending' && !$user->isSeller()) {
+            return response()->json(['message' => 'Your account registration is still pending admin verification.'], 403);
+        }
+
         $token = $user->createToken($data['device_name'] ?? 'cartzy-mobile')->plainTextToken;
-        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google', 'intent' => $data['intent']]);
-        return response()->json(['token' => $token, 'user' => self::userJson($user)]);
+        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google']);
+
+        return response()->json([
+            'token' => $token,
+            'user' => self::userJson($user),
+        ]);
     }
+
     /**
      * Update current authenticated user profile (buyer, etc.).
      */
