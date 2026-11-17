@@ -537,7 +537,8 @@ class CartService extends ChangeNotifier {
       if (stock != null) existing.stock = stock;
       if (added > 0) existing.selected = true;
     } else if (added > 0) {
-      _items.add(
+      _items.insert(
+        0,
         CartItem(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           name: name,
