@@ -10,6 +10,7 @@ class CheckoutQuote
     public function build(User $buyer, array $items, Address $address): array
     {
         $stores = [];
+        $storeItems = [];
         foreach ($items as $item) {
             $item['id'] = $item['product_id'] ?? null;
             $variant = app(ProductPricing::class)->variant($item);
@@ -21,8 +22,12 @@ class CheckoutQuote
             if ($qty > $variant->stock) throw new RuntimeException('The available stock changed. Refresh your cart.');
             $id = $variant->product->seller_id;
             $stores[$id] = ($stores[$id] ?? 0) + $variant->sale_price_minor * $qty;
+            $storeItems[$id][] = $item;
         }
-        $shipping = collect(ShippingCalculator::forStores(array_keys($stores), $address))->map(fn ($q) => $q['fee_minor'])->all();
+        $delivery = app(ParcelDelivery::class)->quotes($storeItems, $address);
+        foreach ($delivery as $quote) if (!$quote['available']) throw new RuntimeException($quote['message']);
+        $shipping = array_column($delivery, 'fee_minor');
+        $shipping = array_combine(array_keys($delivery), $shipping);
         $vouchers = app(VoucherService::class);
         $shopOptions = $vouchers->shopVouchersFor($buyer, array_keys($stores));
         $shop = $vouchers->lockShopSelection($buyer, null, $stores, $shipping, 'items', $shopOptions);
@@ -32,7 +37,7 @@ class CheckoutQuote
         $options = $vouchers->options($buyer, array_sum($stores) - $shopDiscount, array_sum($shipping) - $shopShippingDiscount);
         $discount = ($vouchers->best($options, 'items')['discount_minor'] ?? 0)
             + ($vouchers->best($options, 'shipping')['discount_minor'] ?? 0) + $shopDiscount + $shopShippingDiscount;
-        return ['subtotal_minor' => array_sum($stores), 'shipping_minor' => array_sum($shipping),
+        return ['delivery_services' => array_values($delivery), 'subtotal_minor' => array_sum($stores), 'shipping_minor' => array_sum($shipping),
             'discount_minor' => $discount, 'total_minor' => max(0, array_sum($stores) + array_sum($shipping) - $discount),
             'wallet_balance_minor' => app(BuyerWallet::class)->balance($buyer->id)];
     }

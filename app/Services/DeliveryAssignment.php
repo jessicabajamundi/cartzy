@@ -19,9 +19,15 @@ class DeliveryAssignment
         $shipping['barangay'] = $shipping['barangay'] ?? $shipping['brgy'] ?? '';
         $destination = PlaceMatcher::placeOf($shipping);
 
-        return Rider::where('logistics_provider_id', $shipment->logistics_provider_id)->availableForDelivery()
+        $bulky = (bool) ($shipment->package_profile['bulky'] ?? false);
+        if ($bulky && !$shipment->logisticsProvider?->bulky_enabled) return collect();
+        return Rider::where('logistics_provider_id', $shipment->logistics_provider_id)
+            ->when(!$bulky, fn ($q) => $q->lastMile())
+            ->where('status', 'approved')->where('is_active', true)->where('online_until', '>', now())
+            ->whereHas('user', fn ($q) => $q->where('role', 'courier')->where('status', 'active')->where('is_suspended', false))
             ->with('user')->withCount(['shipments as active_load' => fn ($q) => $q
                 ->whereIn('status', ['assigned', 'out_for_delivery', 'in_transit'])])->get()
+            ->filter(fn ($rider) => app(ParcelDelivery::class)->canLoad($shipment, $rider))
             ->map(function ($rider) use ($destination, $shipping) {
                 $matches = collect([$rider->designated_place, $rider->user])->filter()->map(function ($place) use ($destination, $shipping) {
                     $place = PlaceMatcher::placeOf($place);
@@ -58,8 +64,10 @@ class DeliveryAssignment
             foreach ($candidates as $candidate) {
                 if ($riderId !== null && $candidate['rider']->id !== $riderId) continue;
                 // Recheck availability under a lock: a recommendation is not a reservation.
-                $rider = Rider::whereKey($candidate['rider']->id)->availableForDelivery()->lockForUpdate()->first();
+                $rider = Rider::whereKey($candidate['rider']->id)->where('status', 'approved')->where('is_active', true)
+                    ->where('online_until', '>', now())->lockForUpdate()->first();
                 if (!$rider) continue;
+                if (!app(ParcelDelivery::class)->canLoad($parcel, $rider)) continue;
                 if ($parcel->rider_id === $rider->id) return $parcel;
                 $previous = $parcel->rider_id;
                 $method = $riderId !== null ? 'manual' : $candidate['method'];
@@ -73,7 +81,7 @@ class DeliveryAssignment
                 return $parcel;
             }
             if ($riderId !== null) {
-                throw ValidationException::withMessages(['rider_id' => 'Choose an online, active, approved Last Mile rider from this hub.']);
+                throw ValidationException::withMessages(['rider_id' => 'Choose an online, active, approved driver with a compatible vehicle and available capacity from this hub.']);
             }
             return null; // Keep waiting when every rider is offline; never assign an unavailable rider.
         }, 3);

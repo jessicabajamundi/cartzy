@@ -113,7 +113,7 @@ class RiderParcelScan
                 throw new RiderParcelScanException("Parcel {$shipment->tracking_code} is already with you, so it can't be declined here. Contact your hub.");
             }
 
-            $assignedToMe = $rider->isLastMile() && $shipment->rider_id === $rider->id;
+            $assignedToMe = self::isDeliveryLeg($rider, $shipment) && $shipment->rider_id === $rider->id;
             if ($assignedToMe) {
                 $shipment->update([
                     'rider_id' => null,
@@ -140,7 +140,7 @@ class RiderParcelScan
 
     private static function stageFor(Rider $rider, Shipment $shipment): string
     {
-        if ($rider->isLastMile()) {
+        if (self::isDeliveryLeg($rider, $shipment)) {
             return $shipment->received_at === null ? 'picked_up' : 'out_for_delivery';
         }
 
@@ -194,6 +194,9 @@ class RiderParcelScan
 
     private function guard(Rider $rider, Shipment $shipment): void
     {
+        if (!app(ParcelDelivery::class)->canLoad($shipment, $rider)) {
+            throw new RiderParcelScanException('This vehicle cannot carry the parcel weight or dimensions. Use a compatible vehicle.');
+        }
         $isIncomingLinehaul = $rider->canCarryLinehaul() && $shipment->isInHubToHubTransit() && $rider->logistics_provider_id === $shipment->destination_hub_id;
         if (!$isIncomingLinehaul && $shipment->logistics_provider_id && $rider->logistics_provider_id && $shipment->logistics_provider_id !== $rider->logistics_provider_id) {
             throw new RiderParcelScanException('This parcel belongs to another logistics partner.');
@@ -206,7 +209,7 @@ class RiderParcelScan
         }
 
         $atHub = $shipment->received_at !== null;
-        if ($rider->isLastMile()) {
+        if (self::isDeliveryLeg($rider, $shipment)) {
             if (!$atHub) {
                 if ($shipment->isDropoff()) {
                     throw new RiderParcelScanException("The seller is dropping off parcel {$shipment->tracking_code} at the hub, so no pickup is needed.");
@@ -240,12 +243,19 @@ class RiderParcelScan
 
     private function alreadyWithRider(Rider $rider, Shipment $shipment): bool
     {
-        if ($rider->isLastMile()) {
+        if (self::isDeliveryLeg($rider, $shipment)) {
             return ($shipment->received_at === null && $shipment->status === 'picked_up' && $shipment->pickup_rider_id === $rider->id)
                 || ($shipment->received_at !== null && $shipment->status === 'out_for_delivery' && $shipment->rider_id === $rider->id);
         }
 
         return $shipment->isInHubToHubTransit() && $shipment->linehaul_courier_id === $rider->id && $rider->logistics_provider_id === $shipment->origin_hub_id;
+    }
+
+    private static function isDeliveryLeg(Rider $driver, Shipment $shipment): bool
+    {
+        return $driver->isLastMile() || (($shipment->package_profile['bulky'] ?? false)
+            && (($shipment->received_at === null && $shipment->pickup_rider_id === $driver->id)
+                || ($shipment->rider_id === $driver->id && $shipment->hasArrivedAtDestinationHub())));
     }
 
     private function notifyEveryone(Shipment $shipment, string $stage, string $riderName): void

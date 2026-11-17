@@ -53,7 +53,7 @@
     $handoverArranged = $order->pickup_requests_exists
         || $shipment?->deliveryEvents->contains(fn ($event) => in_array($event->status, ['pickup_requested', 'dropoff_requested'], true))
         || $shipment?->pickup_rider_id || $shipment?->received_at || ($shipment && $shipment->status !== 'unassigned');
-    $defaultId = $handoverArranged ? $order->logistics_provider_id
+    $defaultId = ($handoverArranged || ($shipment?->package_profile['bulky'] ?? false)) ? $order->logistics_provider_id
         : ($recommended['provider']->id ?? $order->logistics_provider_id);
     $selectedId = old('logistics_provider_id', $defaultId);
     $selectedMethod = old('handover_method', $shipment?->handover_method ?? 'pickup');
@@ -80,6 +80,7 @@
                     <select name="logistics_provider_id" required data-hub-select>
                         @foreach($rankedProviders as $ranked)
                             @php $p = $ranked['provider']; @endphp
+                            @if(($shipment?->package_profile['bulky'] ?? false) && $p->id !== $shipment->origin_hub_id) @continue @endif
                             <option value="{{ $p->id }}" data-where="{{ $ranked['location'] }}" @selected((int) $selectedId === $p->id)>{{ $ranked['recommended'] ? '★ ' : '' }}{{ $p->name }}{{ $ranked['reason'] ? ' · '.$ranked['reason'] : '' }}{{ $ranked['recommended'] ? ' (Recommended)' : '' }}</option>
                         @endforeach
                     </select>

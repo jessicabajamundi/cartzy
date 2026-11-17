@@ -123,6 +123,10 @@ class ReturnWorkflow
                         ->whereHas('user', fn ($q) => $q->where('role', 'courier')->where('status', 'active')->where('is_suspended', false))
                         ->lockForUpdate()->first();
                     if (!$rider) throw ValidationException::withMessages(['rider_id' => 'Choose an online, active rider from the return hub.']);
+                    $originalShipment = $report->sellerOrder?->shipment;
+                    if ($originalShipment && !app(ParcelDelivery::class)->canCarry($originalShipment, $rider)) {
+                        throw ValidationException::withMessages(['rider_id' => 'This return requires a vehicle that can carry the original package weight and dimensions.']);
+                    }
                     $case->update(['rider_id' => $rider->id]);
                     break;
                 case 'collect':

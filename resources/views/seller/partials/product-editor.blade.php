@@ -38,6 +38,10 @@
           data-max-files="{{ (int) ini_get('max_file_uploads') }}" data-max-upload-bytes="{{ $toBytes(ini_get('post_max_size')) }}">
         @csrf
         <input type="hidden" name="primary_variant" value="1">
+        @include('seller.partials.package-fields')
+        <label class="pe-field">Packaged weight per unit (grams) *
+            <input type="number" name="weight_grams" required min="1" max="10000000" value="{{ old('weight_grams') }}">
+        </label>
 
         @if($errors->any())
             <div class="notice error pe-form-error-banner" role="alert" style="margin-bottom: 20px;">

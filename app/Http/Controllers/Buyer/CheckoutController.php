@@ -63,7 +63,9 @@ class CheckoutController extends Controller
         }
         $storeSubtotals = collect($storeItems)->except(0)
             ->map(fn ($items) => array_sum(array_map(fn ($item) => (int) round(($item['price'] ?? 0) * 100) * (int) ($item['quantity'] ?? 1), $items)))->all();
-        $shippingQuotes = \App\Services\ShippingCalculator::forStores(array_keys($storeSubtotals), $destination);
+        $shippingQuotes = app(\App\Services\ParcelDelivery::class)->quotes(array_intersect_key($storeItems, $storeSubtotals), $destination, $user);
+        $deliveryErrors = array_values(array_map(fn ($quote) => $quote['message'], array_filter($shippingQuotes, fn ($quote) => !$quote['available'])));
+        $hasUnavailableItems = $hasUnavailableItems || count($deliveryErrors) > 0;
         if (isset($storeItems[0])) {
             $origin = config('shipping.default_origin');
             $shippingQuotes[0] = \App\Services\ShippingCalculator::quote($origin, $destination?->province) + ['from' => $origin];
@@ -111,7 +113,7 @@ class CheckoutController extends Controller
             }
         }
 
-        return view('buyer.checkout', compact('user', 'checkoutItems', 'selectedKeys', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress', 'destination',
+        return view('buyer.checkout', compact('deliveryErrors', 'user', 'checkoutItems', 'selectedKeys', 'subtotal', 'shippingFee', 'discount', 'total', 'deliveryAddress', 'checkoutAddress', 'destination',
             'totalQuantity', 'originalSubtotal', 'productDiscount', 'totalSavings', 'hasUnavailableItems', 'itemVoucherOptions', 'shippingVoucherOptions', 'selectedItemVoucher',
             'selectedShippingVoucher', 'voucherDiscount', 'storeItems', 'shippingQuotes', 'shopNames', 'shopDiscountGroups', 'shopShippingGroups', 'shopVoucherDiscount', 'shopShippingDiscount', 'primarySeller'));
     }

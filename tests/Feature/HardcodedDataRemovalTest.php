@@ -25,9 +25,9 @@ class HardcodedDataRemovalTest extends TestCase
         if ($catalog) $user->update(['email' => 'ghost-'.$user->id.'@catalog.cartzy.invalid']);
         $seller = Seller::create(['user_id' => $user->id, 'name' => 'Store '.$user->id, 'slug' => 'store-'.$user->id, 'status' => 'approved']);
         $category = Category::firstOrCreate(['slug' => 'general'], ['name' => 'General']);
-        $product = Product::create(['seller_id' => $seller->id, 'category_id' => $category->id, 'name' => 'Product '.$user->id,
+        $product = Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'seller_id' => $seller->id, 'category_id' => $category->id, 'name' => 'Product '.$user->id,
             'slug' => 'product-'.$user->id, 'is_active' => true, 'approval_status' => 'approved']);
-        return ProductVariant::create(['product_id' => $product->id, 'name' => 'Standard', 'sku' => 'SKU-'.$user->id,
+        return ProductVariant::create(['weight_grams' => 500, 'product_id' => $product->id, 'name' => 'Standard', 'sku' => 'SKU-'.$user->id,
             'stock' => 10, 'price_minor' => 10000, 'is_active' => true]);
     }
 

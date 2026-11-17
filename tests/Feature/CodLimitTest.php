@@ -35,7 +35,7 @@ class CodLimitTest extends TestCase
             'status' => 'approved',
         ]);
         $category = Category::create(['name' => 'Watches', 'slug' => 'watches']);
-        $product = Product::create([
+        $product = Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10,
             'seller_id' => $seller->id,
             'category_id' => $category->id,
             'name' => 'Luxury Watch',
@@ -44,7 +44,7 @@ class CodLimitTest extends TestCase
             'stock' => 5,
             'status' => 'active',
         ]);
-        $variant = ProductVariant::create([
+        $variant = ProductVariant::create(['weight_grams' => 500,
             'product_id' => $product->id,
             'name' => 'Gold',
             'sku' => 'WATCH-GLD',

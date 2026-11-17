@@ -34,9 +34,9 @@ class BuyerWalletTest extends TestCase
         $seller = Seller::create(['user_id' => User::factory()->create(['role' => 'seller', 'status' => 'active'])->id,
             'name' => $slug, 'slug' => $slug, 'status' => 'approved']);
         $category = Category::firstOrCreate(['slug' => 'test'], ['name' => 'Test', 'position' => 0, 'is_active' => true]);
-        $product = Product::create(['seller_id' => $seller->id, 'category_id' => $category->id, 'name' => $slug, 'slug' => $slug,
+        $product = Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'seller_id' => $seller->id, 'category_id' => $category->id, 'name' => $slug, 'slug' => $slug,
             'is_active' => true, 'approval_status' => Product::APPROVAL_APPROVED]);
-        return ProductVariant::create(['product_id' => $product->id, 'sku' => $slug, 'name' => 'Standard',
+        return ProductVariant::create(['weight_grams' => 500, 'product_id' => $product->id, 'sku' => $slug, 'name' => 'Standard',
             'price_minor' => 10000, 'stock' => 10, 'is_active' => true]);
     }
 

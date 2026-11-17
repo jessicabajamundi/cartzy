@@ -57,6 +57,8 @@
                             $parcelDue = $parcelFee - ($shopShipping['discount_minor'] ?? 0);
                         @endphp
                         <div class="checkout-store">
+                            @if(!empty($quote['service_label']))<p class="checkout-help">{{ $quote['service_label'] }}</p>@endif
+                            @if(isset($quote['available']) && !$quote['available'])<p class="checkout-item-error" role="alert">{{ $quote['message'] }}</p>@endif
                             <header class="checkout-store-head">
                                 <span class="checkout-store-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9M3 9h18M3 9v11h18V9M9 20v-6h6v6"/></svg></span>
                                 <strong>{{ $sellerId ? ($shopNames[$sellerId] ?? 'Store') : 'cartzy' }}</strong>
@@ -129,7 +131,7 @@
 
                 <section class="checkout-card" aria-labelledby="shipping-title">
                     <div class="checkout-card-heading"><div class="checkout-section-title"><span class="checkout-step">03</span><h2 id="shipping-title">Shipping &amp; vouchers</h2></div><a href="{{ route('buyer.dashboard', ['tab' => 'vouchers']) }}">My vouchers</a></div>
-                    <div class="checkout-shipping"><div><strong>Standard delivery &middot; {{ count($shippingQuotes) }} {{ \Illuminate\Support\Str::plural('parcel', count($shippingQuotes)) }}</strong><p>Each store ships separately. The fee depends on where the store ships from and your address.</p></div><strong>&#8369;{{ number_format($shippingFee, 2) }}</strong></div>
+                    <div class="checkout-shipping"><div><strong>Delivery &middot; {{ count($shippingQuotes) }} {{ \Illuminate\Support\Str::plural('parcel', count($shippingQuotes)) }}</strong><p>Each store ships separately. The fee depends on where the store ships from and your address.</p></div><strong>&#8369;{{ number_format($shippingFee, 2) }}</strong></div>
                     <p class="checkout-help">Delivery timing will be confirmed when your order is dispatched. You can track updates in My Orders.</p>
 
                     @php $anyVoucherApplied = $selectedItemVoucher || $selectedShippingVoucher || $shopDiscountGroups->contains(fn ($g) => $g['selected']) || $shopShippingGroups->contains(fn ($g) => $g['selected']); @endphp
@@ -260,7 +262,7 @@
                     <div class="checkout-total-savings" data-savings @if($totalSavings <= 0) hidden @endif>You're saving <strong>&#8369;{{ number_format($totalSavings, 2) }}</strong> on this order</div>
                     <div class="checkout-review"><span>Payment method</span><strong>Cash on Delivery</strong></div>
                     <button type="submit" class="checkout-submit btn-blend" @disabled(empty($checkoutAddress) || $hasUnavailableItems)><span>Place order</span><span data-total-button>&#8369;{{ number_format($total, 2) }} &rarr;</span></button>
-                    @if(empty($checkoutAddress))<p class="checkout-item-error">Add your delivery address to continue.</p>@elseif($hasUnavailableItems)<p class="checkout-item-error">Remove unavailable items from your cart to continue.</p>@endif
+                    @if(empty($checkoutAddress))<p class="checkout-item-error">Add your delivery address to continue.</p>@elseif(!empty($deliveryErrors))<p class="checkout-item-error">Delivery is unavailable. Review the delivery notice for each store.</p>@elseif($hasUnavailableItems)<p class="checkout-item-error">Remove unavailable items from your cart to continue.</p>@endif
                     <p class="checkout-submit-help" id="checkout-submit-status" aria-live="polite">Review your details before confirming. Your order will appear in My Orders after it is placed.</p>
                     <a class="checkout-summary-edit" href="{{ route('cart.index') }}">Need to change something? Edit your cart</a>
                 </div>

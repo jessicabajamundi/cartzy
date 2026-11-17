@@ -106,9 +106,9 @@ class HubAndRiderMatchingTest extends TestCase
         $this->assertSame($near->id, app(\App\Services\HubRecommender::class)->originHub($seller, collect([$far, $near]))->id);
         $buyer = User::factory()->create(['role' => 'buyer', 'status' => 'active', 'city' => 'Taguig', 'province' => 'Metro Manila']);
         $category = \App\Models\Category::create(['name' => 'Test', 'slug' => 'test', 'is_active' => true]);
-        $product = \App\Models\Product::create(['seller_id' => $seller->id, 'category_id' => $category->id,
+        $product = \App\Models\Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'seller_id' => $seller->id, 'category_id' => $category->id,
             'name' => 'Test item', 'slug' => 'test-item', 'is_active' => true, 'approval_status' => 'approved']);
-        $variant = \App\Models\ProductVariant::create(['product_id' => $product->id, 'sku' => 'LOCAL-HUB',
+        $variant = \App\Models\ProductVariant::create(['weight_grams' => 500, 'product_id' => $product->id, 'sku' => 'LOCAL-HUB',
             'name' => 'Standard', 'price_minor' => 10000, 'stock' => 2, 'is_active' => true]);
         $order = app(\App\Services\OrderPlacement::class)->place($buyer,
             [['variant_id' => $variant->id, 'quantity' => 1]], 'COD', 'Taguig, Metro Manila');

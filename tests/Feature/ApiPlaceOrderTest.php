@@ -30,11 +30,11 @@ class ApiPlaceOrderTest extends TestCase
         $seller = Seller::create(['user_id' => $sellerUser->id, 'name' => 'Mug Shop', 'slug' => 'mug-shop', 'status' => 'approved']);
         LogisticsProvider::create(['user_id' => User::factory()->create()->id, 'name' => 'Courier', 'slug' => 'courier', 'status' => 'approved']);
         $category = Category::create(['name' => 'Home', 'slug' => 'home', 'position' => 0, 'is_active' => true]);
-        $product = Product::create([
+        $product = Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10,
             'seller_id' => $seller->id, 'category_id' => $category->id, 'name' => 'Coffee mug', 'slug' => 'coffee-mug',
             'is_active' => true, 'approval_status' => Product::APPROVAL_APPROVED,
         ]);
-        $this->variant = ProductVariant::create([
+        $this->variant = ProductVariant::create(['weight_grams' => 500,
             'product_id' => $product->id, 'sku' => 'MUG-RED', 'name' => 'Red', 'price_minor' => 28000, 'stock' => 3, 'is_active' => true,
         ]);
 

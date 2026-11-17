@@ -16,6 +16,7 @@ class Shipment extends Model
     public const DROPOFF = 'dropoff';
 
     protected $fillable = [
+        'package_profile',
         'seller_order_id',
         'logistics_provider_id',
         'origin_hub_id',
@@ -54,6 +55,7 @@ class Shipment extends Model
     ];
 
     protected $casts = [
+        'package_profile' => 'array',
         'fee_minor'        => 'integer',
         'cod_amount_minor' => 'integer',
         'cod_collected'    => 'boolean',

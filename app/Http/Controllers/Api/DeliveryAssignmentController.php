@@ -27,9 +27,11 @@ class DeliveryAssignmentController extends Controller
         $parcel = $this->parcel($request, $id);
         $rows = $this->assignment->candidates($parcel)->map(fn ($row) => [
             'id' => $row['rider']->id, 'name' => $row['rider']->user->name,
+            'vehicle_type' => $row['rider']->vehicle_type,
             'match' => $row['method'], 'active_load' => $row['rider']->active_load,
         ]);
         return response()->json(['shipment_id' => $parcel->id, 'assigned_rider_id' => $parcel->rider_id,
+            'package_profile' => $parcel->package_profile,
             'recommended_rider_id' => $rows->first()['id'] ?? null, 'riders' => $rows]);
     }
 

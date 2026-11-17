@@ -39,8 +39,8 @@ class SellerPortalTest extends TestCase
     private function product(Seller $shop): Product
     {
         $category = Category::firstOrCreate(['slug' => 'real-category'], ['name' => 'Real category', 'is_active' => true]);
-        $product = $shop->products()->create(['name' => 'Saved product '.$shop->id, 'slug' => 'product-'.$shop->id, 'category_id' => $category->id, 'is_active' => true]);
-        $product->variants()->create(['sku' => 'SKU-'.$shop->id, 'name' => 'Small', 'price_minor' => 10000, 'stock' => 4, 'is_active' => true]);
+        $product = $shop->products()->create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'name' => 'Saved product '.$shop->id, 'slug' => 'product-'.$shop->id, 'category_id' => $category->id, 'is_active' => true]);
+        $product->variants()->create(['weight_grams' => 500, 'sku' => 'SKU-'.$shop->id, 'name' => 'Small', 'price_minor' => 10000, 'stock' => 4, 'is_active' => true]);
 
         return $product;
     }
@@ -211,7 +211,7 @@ class SellerPortalTest extends TestCase
         $this->get(route('seller.products'))->assertOk()->assertSee(route('seller.products.sale', $product))->assertDontSee('name="discount_type"', false);
         $this->get(route('seller.products.sale', $product))->assertOk()->assertSee('Save sale settings')->assertSee('Current saved prices');
 
-        $data = ['name' => $product->name, 'variants' => [['id' => $variant->id, 'price' => '100.00']], 'discount_type' => 'percentage', 'discount_value' => '12.50'];
+        $data = ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => $product->name, 'variants' => [['id' => $variant->id, 'price' => '100.00']], 'discount_type' => 'percentage', 'discount_value' => '12.50'];
         $this->post(route('seller.products.sale.save', $product), $data)->assertSessionHasNoErrors();
         $this->assertSame(8750, $variant->fresh()->sale_price_minor);
         $this->assertSame(10000, $variant->fresh()->price_minor);
@@ -234,7 +234,7 @@ class SellerPortalTest extends TestCase
         unset($data['discount_value']);
         $this->post(route('seller.products.sale.save', $product), $data)->assertSessionHasNoErrors();
         $this->assertSame(10000, $variant->fresh()->sale_price_minor);
-        $this->post(route('seller.products.add'), ['name' => 'Promo item', 'category_id' => $product->category_id, 'sku' => 'PROMO-NEW', 'price' => 200, 'stock' => 10, 'discount_type' => 'fixed', 'discount_value' => 50])->assertSessionHasNoErrors();
+        $this->post(route('seller.products.add'), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'Promo item', 'category_id' => $product->category_id, 'sku' => 'PROMO-NEW', 'price' => 200, 'stock' => 10, 'discount_type' => 'fixed', 'discount_value' => 50])->assertSessionHasNoErrors();
         $this->assertSame(20000, \App\Models\ProductVariant::where('sku', 'PROMO-NEW')->firstOrFail()->sale_price_minor);
         $this->actingAs($this->shop()->user)->post(route('seller.products.sale.save', $product), $data)->assertNotFound();
     }
@@ -433,7 +433,7 @@ class SellerPortalTest extends TestCase
         $this->get(route('seller.notifications', ['page' => 999]))->assertOk()
             ->assertViewHas('notificationPaginator', fn ($p) => $p->currentPage() === 2);
         for ($i = 1; $i <= 22; $i++) {
-            $product->variants()->create(['name' => 'Stock '.$i, 'sku' => 'PAGINATION-'.$i, 'price_minor' => 100, 'stock' => 0, 'is_active' => true]);
+            $product->variants()->create(['weight_grams' => 500, 'name' => 'Stock '.$i, 'sku' => 'PAGINATION-'.$i, 'price_minor' => 100, 'stock' => 0, 'is_active' => true]);
         }
         $this->get(route('seller.notifications', ['filter' => 'stock', 'page' => 2]))->assertOk()
             ->assertViewHas('notificationPaginator', fn ($p) => $p->total() === 23 && $p->count() === 3);
@@ -520,7 +520,7 @@ class SellerPortalTest extends TestCase
             ->assertSee('id="add-product-form"', false)->assertSee('id="product-pricing"', false)
             ->assertDontSee('Edit product details')->assertDontSee('<dialog', false);
 
-        $data = ['name' => 'New editor listing', 'category_id' => $product->category_id, 'sku' => 'EDITOR-001', 'price' => '-1', 'stock' => 5];
+        $data = ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'New editor listing', 'category_id' => $product->category_id, 'sku' => 'EDITOR-001', 'price' => '-1', 'stock' => 5];
         $this->from(route('seller.products', ['create' => 1]))->post(route('seller.products.add'), $data)
             ->assertRedirect(route('seller.products', ['create' => 1]))->assertSessionHasErrors('price');
         $this->get(route('seller.products', ['create' => 1]))->assertOk()
@@ -539,7 +539,7 @@ class SellerPortalTest extends TestCase
 
         foreach ([false, true] as $additional) {
             $sku = $additional ? 'FIRST-WITH-EXTRAS' : 'FIRST-ONLY';
-            $data = [
+            $data = ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
                 'name' => $sku, 'category_id' => $category, 'primary_variant' => 1,
                 'primary_color' => 'Black', 'primary_size' => 'Medium',
                 'sku' => $sku, 'price' => '249.50', 'stock' => 7,
@@ -564,7 +564,7 @@ class SellerPortalTest extends TestCase
         $shop = $this->shop();
         $category = $this->product($shop)->category_id;
         $this->actingAs($shop->user);
-        $data = [
+        $data = ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Five size shoes', 'category_id' => $category, 'primary_variant' => 1,
             'primary_color' => 'Black', 'primary_size' => '35, 36, 37, 38, 39, 35',
             'sku' => 'FIVE-SIZES', 'price' => '499.50',
@@ -599,7 +599,7 @@ class SellerPortalTest extends TestCase
         $shop = $this->shop();
         $category = $this->product($shop)->category_id;
         $this->actingAs($shop->user);
-        $data = [
+        $data = ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Independent size pricing', 'category_id' => $category,
             'primary_variant' => 1, 'primary_color' => 'Branch / Silver Pebble / Branch',
             'primary_size' => 'US 7, US 8', 'sku' => 'SIZE-PRICES',
@@ -630,7 +630,7 @@ class SellerPortalTest extends TestCase
         $shop = $this->shop();
         $category = $this->product($shop)->category_id;
         $this->actingAs($shop->user);
-        $data = [
+        $data = ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Extra option checks', 'category_id' => $category, 'primary_variant' => 1,
             'primary_color' => 'Black', 'primary_size' => '35, 36',
             'sku' => 'OPTION-CHECK', 'price' => '499', 'stock' => 2, 'has_variants' => 1,
@@ -657,16 +657,16 @@ class SellerPortalTest extends TestCase
     {
         $shop = $this->shop();
         $product = $this->product($shop);
-        $second = $product->variants()->create(['sku' => 'SECOND', 'name' => 'Large', 'price_minor' => 15000, 'stock' => 10, 'is_active' => true]);
+        $second = $product->variants()->create(['weight_grams' => 500, 'sku' => 'SECOND', 'name' => 'Large', 'price_minor' => 15000, 'stock' => 10, 'is_active' => true]);
         $this->actingAs($shop->user)->get('/seller/inventory?tab=low_stock')->assertOk()->assertSee($product->name);
-        $this->post('/seller/inventory/add', ['name' => 'New saved item', 'category_id' => $product->category_id, 'sku' => 'NEW-SKU', 'price' => '12.34', 'stock' => 6])->assertSessionHasNoErrors();
+        $this->post('/seller/inventory/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'New saved item', 'category_id' => $product->category_id, 'sku' => 'NEW-SKU', 'price' => '12.34', 'stock' => 6])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('product_variants', ['sku' => 'NEW-SKU', 'price_minor' => 1234, 'stock' => 6]);
         $this->post('/seller/inventory/'.$product->id.'/update', ['name' => 'Updated item', 'variants' => [['id' => $second->id, 'price' => '25.45', 'stock' => 20]]])->assertSessionHasNoErrors();
         $this->assertDatabaseHas('product_variants', ['id' => $second->id, 'price_minor' => 2545, 'stock' => 20]);
         $this->assertDatabaseHas('product_variants', ['sku' => 'SKU-'.$shop->id, 'price_minor' => 10000, 'stock' => 4]);
         $this->post('/seller/inventory/'.$product->id.'/archive')->assertSessionHasNoErrors();
         $this->assertFalse($product->fresh()->is_active);
-        $this->post('/seller/inventory/add', ['name' => 'Invalid', 'category_id' => $product->category_id, 'sku' => 'BAD', 'price' => -1, 'stock' => -2])->assertSessionHasErrors(['price', 'stock']);
+        $this->post('/seller/inventory/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'Invalid', 'category_id' => $product->category_id, 'sku' => 'BAD', 'price' => -1, 'stock' => -2])->assertSessionHasErrors(['price', 'stock']);
         $this->get('/seller/products?search=does-not-exist')->assertOk()
             ->assertSee('class="product-editor"', false)->assertSee('value="Invalid"', false);
     }
@@ -804,7 +804,7 @@ class SellerPortalTest extends TestCase
         $product = $this->product($shop);
         $other = $this->product($this->shop());
         $photo = UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1S8AAAAASUVORK5CYII='));
-        $this->actingAs($shop->user)->post('/seller/inventory/add', ['name' => 'Photo item', 'category_id' => $product->category_id, 'sku' => 'PHOTO', 'price' => 50, 'stock' => 3, 'image' => $photo])->assertSessionHasNoErrors();
+        $this->actingAs($shop->user)->post('/seller/inventory/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'Photo item', 'category_id' => $product->category_id, 'sku' => 'PHOTO', 'price' => 50, 'stock' => 3, 'image' => $photo])->assertSessionHasNoErrors();
         $created = Product::where('name', 'Photo item')->firstOrFail();
         Storage::disk('public')->assertExists($created->coverImage->path);
         $this->get('/seller/products')->assertOk()->assertSee(asset('storage/'.$created->coverImage->path));
@@ -830,7 +830,7 @@ class SellerPortalTest extends TestCase
         $base = $this->product($shop);
         $shadePhoto1 = UploadedFile::fake()->createWithContent('shade1.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1S8AAAAASUVORK5CYII='));
 
-        $this->actingAs($shop->user)->post('/seller/inventory/add', [
+        $this->actingAs($shop->user)->post('/seller/inventory/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Matte Lip Stain',
             'category_id' => $base->category_id,
             'has_variants' => '1',
@@ -883,7 +883,7 @@ class SellerPortalTest extends TestCase
         $shop = $this->shop();
         $base = $this->product($shop);
         $photo = UploadedFile::fake()->createWithContent('brown.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1S8AAAAASUVORK5CYII='));
-        $this->actingAs($shop->user)->post(route('seller.products.add'), [
+        $this->actingAs($shop->user)->post(route('seller.products.add'), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Color photo shoes', 'category_id' => $base->category_id,
             'primary_variant' => 1, 'primary_color' => 'Black', 'primary_size' => '35',
             'price' => '499', 'stock' => 3, 'has_variants' => 1,
@@ -910,7 +910,7 @@ class SellerPortalTest extends TestCase
             $photos[] = UploadedFile::fake()->createWithContent("photo_{$i}.png", base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1S8AAAAASUVORK5CYII='));
         }
 
-        $this->actingAs($shop->user)->post('/seller/inventory/add', [
+        $this->actingAs($shop->user)->post('/seller/inventory/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Multi Photo Item',
             'category_id' => $base->category_id,
             'sku' => 'MULTI-PHOTO',
@@ -1027,14 +1027,14 @@ class SellerPortalTest extends TestCase
         $shop = $this->shop();
         $this->actingAs($shop->user);
 
-        $product = $shop->products()->create([
+        $product = $shop->products()->create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10,
             'name' => 'Nike Tatum 5 PF',
             'category_id' => $this->product($shop)->category_id,
             'slug' => 'nike-tatum-5-pf-test',
             'is_active' => true,
         ]);
 
-        $initialVariant = $product->variants()->create([
+        $initialVariant = $product->variants()->create(['weight_grams' => 500,
             'sku' => 'TATM-001',
             'name' => 'Black/Clementine/Amarillo/Infrared 23',
             'price_minor' => 799500,
@@ -1105,7 +1105,7 @@ class SellerPortalTest extends TestCase
             $photos[$i] = UploadedFile::fake()->createWithContent("slot_{$i}.png", base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1S8AAAAASUVORK5CYII='));
         }
 
-        $response = $this->actingAs($shop->user)->post(route('seller.products.details', $product->id), [
+        $response = $this->actingAs($shop->user)->post(route('seller.products.details', $product->id), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => $product->name,
             'category_id' => $product->category_id,
             'price' => '1999.00',
@@ -1131,7 +1131,7 @@ class SellerPortalTest extends TestCase
         $toRemove = $freshImages->last();
         $replacementPhoto = UploadedFile::fake()->createWithContent('new_cover.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1S8AAAAASUVORK5CYII='));
 
-        $this->actingAs($shop->user)->post(route('seller.products.details', $product->id), [
+        $this->actingAs($shop->user)->post(route('seller.products.details', $product->id), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => $product->name,
             'category_id' => $product->category_id,
             'price' => '1999.00',

@@ -55,6 +55,17 @@
 
     <form id="logistics-account-form" data-errors="{{ $errors->toJson() }}" method="POST" action="{{ route('logistics.account.update') }}" enctype="multipart/form-data" class="psgc-address-form">
         @csrf
+        <section class="panel">
+            <header class="panel-header"><div><h3>Bulky delivery service</h3><p>Enable only when this hub can receive, store and load bulky items and has van/truck drivers and handling crew. Registered vehicle limits apply to every delivery leg.</p></div></header>
+            <div class="form-stack padded">
+                <input type="hidden" name="bulky_enabled" value="0">
+                <label><input type="checkbox" name="bulky_enabled" value="1" @checked(old('bulky_enabled', $hub->logisticsProvider?->bulky_enabled))> This hub supports bulky handling, suitable vehicles and loading crew.</label>
+                <label>Bulky handling surcharge per parcel (PHP)
+                    <input type="number" name="bulky_surcharge" min="0" max="100000" step="0.01" required value="{{ old('bulky_surcharge', ($hub->logisticsProvider?->bulky_surcharge_minor ?? 0) / 100) }}">
+                </label>
+                <small>Added to the route shipping rate. For hub transfers, both hubs' surcharges apply. Buyers see the full fee before checkout.</small>
+            </div>
+        </section>
         <div class="two-columns">
             <div>
                 <section id="account-personal" class="panel" aria-labelledby="account-personal-title">

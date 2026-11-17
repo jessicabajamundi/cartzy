@@ -259,6 +259,8 @@ class OrderTracking
 
         return [
             'seller_order_id' => $order->id,
+            'delivery_service' => ($shipment?->package_profile['bulky'] ?? false) ? 'Bulky delivery · van/truck required' : 'Standard delivery',
+            'package_profile' => $shipment?->package_profile,
             'order' => $order->order->reference,
             'tracking_no' => $shipment?->tracking_code ?? 'Not assigned yet',
             'courier' => $shipment?->logisticsProvider?->name ?? $order->logisticsProvider?->name ?? 'Not assigned yet',

@@ -61,9 +61,9 @@ class OnlinePaymentRecordsTest extends TestCase
     private function product(array $record): \App\Models\ProductVariant
     {
         $category = \App\Models\Category::firstOrCreate(['slug' => 'general'], ['name' => 'General']);
-        $product = \App\Models\Product::create(['seller_id' => $record['seller']->id, 'category_id' => $category->id,
+        $product = \App\Models\Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'seller_id' => $record['seller']->id, 'category_id' => $category->id,
             'name' => 'Test product', 'slug' => 'product-'.Str::uuid(), 'is_active' => true, 'approval_status' => 'approved']);
-        return \App\Models\ProductVariant::create(['product_id' => $product->id, 'name' => 'Standard',
+        return \App\Models\ProductVariant::create(['weight_grams' => 500, 'product_id' => $product->id, 'name' => 'Standard',
             'sku' => 'SKU-'.Str::uuid(), 'price_minor' => 10000, 'stock' => 10, 'is_active' => true]);
     }
 

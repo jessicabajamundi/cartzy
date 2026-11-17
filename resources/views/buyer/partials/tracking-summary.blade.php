@@ -13,7 +13,8 @@
                                 <dl class="tracking-details">
                                     <div><dt>Pickup rider</dt><dd>{{ $tracking['pickup_rider'] ?? 'Not assigned yet' }}</dd></div>
                                     <div><dt>Hub-to-Hub courier</dt><dd>{{ $tracking['hub_to_hub_courier'] ?? 'Not assigned yet' }}</dd></div>
-                                    <div><dt>Delivery rider</dt><dd>{{ $tracking['rider'] }}</dd></div>
+                                    @if(!empty($tracking['delivery_service']))<div><dt>Delivery service</dt><dd>{{ $tracking['delivery_service'] }}</dd></div>@endif
+                                    <div><dt>Delivery driver</dt><dd>{{ $tracking['rider'] }}</dd></div>
                                     <div><dt>Delivery area</dt><dd>{{ $tracking['area'] }}</dd></div>
                                     <div><dt>Delivery attempts</dt><dd>{{ $tracking['attempts'] ?: 'No attempt recorded' }}</dd></div>
                                 </dl>

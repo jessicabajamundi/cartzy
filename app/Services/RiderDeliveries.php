@@ -148,13 +148,16 @@ class RiderDeliveries
 
     private function mine(Rider $rider, int $shipmentId): Shipment
     {
-        if (!$rider->isLastMile()) {
-            throw new RiderParcelScanException('Deliveries to buyers are done by Last Mile riders.', 403);
-        }
         $shipment = Shipment::with(['sellerOrder.order', 'sellerOrder.seller', 'sellerOrder.items', 'logisticsProvider'])
             ->lockForUpdate()->find($shipmentId);
+        if (!$rider->isLastMile() && !($shipment?->package_profile['bulky'] ?? false)) {
+            throw new RiderParcelScanException('Deliveries to buyers are done by Last Mile riders.', 403);
+        }
         if (!$shipment || $shipment->rider_id !== $rider->id) {
             throw new RiderParcelScanException('This parcel is not assigned to you.', 404);
+        }
+        if (!app(ParcelDelivery::class)->canCarry($shipment, $rider)) {
+            throw new RiderParcelScanException('This vehicle is not eligible to deliver this parcel.', 403);
         }
 
         return $shipment;

@@ -25,6 +25,7 @@ class Product extends Model
     public const MEDIA_BUDGET_MB = 30;
 
     protected $fillable = [
+        'package_length_cm', 'package_width_cm', 'package_height_cm',
         'seller_id',
         'category_id',
         'name',

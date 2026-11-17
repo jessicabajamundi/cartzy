@@ -624,9 +624,12 @@ class LogisticsPortalController extends Controller
             'dispatchable' => (clone $base)->whereNull('rider_id')->whereIn('status', ['pending', 'confirmed'])->count(),
         ];
 
-        // Riders collect parcels from sellers and deliver to buyers; Couriers handle Hub-to-Hub only.
+        // Bulky pickups may use a compatible van/truck courier; regular pickups use riders.
+        $hasBulkyPickups = PickupRequest::where('logistics_provider_id', $provider->id)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->whereHas('sellerOrder.shipment', fn ($q) => $q->where('package_profile->bulky', true))->exists();
         $allRiders = Rider::where('logistics_provider_id', $provider->id)
-            ->lastMile()
+            ->when(!$hasBulkyPickups, fn ($q) => $q->lastMile())
             ->where('status', 'approved')
             ->with('user')
             ->orderByDesc('is_active')
@@ -658,7 +661,7 @@ class LogisticsPortalController extends Controller
 
         $pickups = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
             ->orderBy('pickup_date')->orderBy('id')->paginate(15)->withQueryString()->through(function ($p) use ($allRiders) {
-                $rankedRiders = $this->rankRidersForPickup($allRiders, (string) ($p->address ?? ''), self::pickupPlace($p));
+                $rankedRiders = $this->rankRidersForPickup($allRiders->filter(fn ($driver) => $this->pickupCompatible($p, $driver)), (string) ($p->address ?? ''), self::pickupPlace($p));
                 $topNearby    = $rankedRiders->first();
 
                 return [
@@ -737,10 +740,10 @@ class LogisticsPortalController extends Controller
 
         if ($request->filled('rider_id')) {
             $rider = Rider::where('logistics_provider_id', $provider->id)
-                ->lastMile()
                 ->where('status', 'approved')
                 ->find($request->input('rider_id'));
             if ($rider) {
+                abort_unless($this->pickupCompatible($pickup, $rider), 422, 'This vehicle cannot carry this pickup.');
                 $pickup->rider_id    = $rider->id;
                 $pickup->assigned_at = now();
             }
@@ -780,8 +783,8 @@ class LogisticsPortalController extends Controller
             ->where('status', 'approved')
             ->with('user')
             ->findOrFail($data['rider_id']);
-        if (!$rider->isLastMile()) {
-            return back()->with('error', ($rider->user->name ?? 'This courier').' only handles Hub-to-Hub transfers. Choose a Rider to collect from the seller.');
+        if (!$this->pickupCompatible($pickup, $rider)) {
+            return back()->with('error', ($rider->user->name ?? 'This courier').' cannot carry this pickup. Choose a compatible active vehicle.');
         }
 
         $pickup->rider_id     = $rider->id;
@@ -836,7 +839,6 @@ class LogisticsPortalController extends Controller
         $pickup   = PickupRequest::where('logistics_provider_id', $provider->id)->with(['seller.user', 'seller.pickupAddress'])->findOrFail($id);
 
         $riders = Rider::where('logistics_provider_id', $provider->id)
-            ->lastMile()
             ->where('status', 'approved')
             ->where('is_active', true)
             ->with('user')
@@ -846,6 +848,8 @@ class LogisticsPortalController extends Controller
             return back()->with('error', 'No active Riders available for seller pickup.');
         }
 
+        $riders = $riders->filter(fn ($driver) => $this->pickupCompatible($pickup, $driver));
+        if ($riders->isEmpty()) return back()->with('error', 'No compatible active vehicle is available for this parcel.');
         $ranked = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''), self::pickupPlace($pickup));
         $best   = $ranked->first()['rider'];
         $this->dispatchPickup($pickup, $best);
@@ -857,7 +861,7 @@ class LogisticsPortalController extends Controller
     public function dispatchAllPickups(Request $request)
     {
         $provider = $this->provider();
-        $riders = Rider::where('logistics_provider_id', $provider->id)->lastMile()->where('status', 'approved')->where('is_active', true)->with('user')->get();
+        $riders = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->with('user')->get();
         if ($riders->isEmpty()) {
             return back()->with('error', 'No active Riders available for seller pickup.');
         }
@@ -870,7 +874,9 @@ class LogisticsPortalController extends Controller
         $load = [];
         DB::transaction(function () use ($waiting, $riders, &$load) {
             foreach ($waiting as $pickup) {
-                $best = $this->rankRidersForPickup($riders, (string) ($pickup->address ?? ''), self::pickupPlace($pickup))
+                $compatible = $riders->filter(fn ($driver) => $this->pickupCompatible($pickup, $driver));
+                if ($compatible->isEmpty()) continue;
+                $best = $this->rankRidersForPickup($compatible, (string) ($pickup->address ?? ''), self::pickupPlace($pickup))
                     ->map(fn ($r) => $r + ['adjusted' => $r['score'] - 8 * ($load[$r['rider']->id] ?? 0)])
                     ->sortByDesc('adjusted')->first()['rider'];
                 $load[$best->id] = ($load[$best->id] ?? 0) + 1;
@@ -878,12 +884,24 @@ class LogisticsPortalController extends Controller
             }
         });
 
-        return back()->with('success', "⚡ {$waiting->count()} ".Str::plural('pickup', $waiting->count())." dispatched to the nearest First Mile couriers.");
+        $dispatched = array_sum($load);
+        if ($dispatched === 0) return back()->with('error', 'No compatible active Riders or van/truck drivers are available. Pickups remain waiting.');
+        return back()->with('success', "{$dispatched} pickups dispatched to compatible drivers.");
     }
 
     /** Assign a rider to a pickup, log it on the shipment and notify the rider. */
+    private function pickupCompatible(PickupRequest $pickup, Rider $driver): bool
+    {
+        $shipment = $pickup->sellerOrder?->shipment;
+        return $driver->status === 'approved' && $driver->is_active
+            && $driver->user?->status === 'active' && !$driver->user?->is_suspended
+            && ($shipment ? app(\App\Services\ParcelDelivery::class)->canLoad($shipment, $driver)
+                && ($driver->isLastMile() || ($shipment->package_profile['bulky'] ?? false)) : $driver->isLastMile());
+    }
+
     private function dispatchPickup(PickupRequest $pickup, Rider $best): void
     {
+        abort_unless($this->pickupCompatible($pickup, $best), 422, 'This vehicle cannot carry this pickup.');
         $pickup->rider_id     = $best->id;
         $pickup->status       = 'confirmed';
         $pickup->confirmed_at = $pickup->confirmed_at ?? now();
@@ -1139,17 +1157,19 @@ class LogisticsPortalController extends Controller
             'path' => $request->url(), 'query' => $request->query(),
         ]);
 
-        // Last-mile couriers take parcels from the hub to buyers, so only they are offered here.
-        $riderModels = Rider::where('logistics_provider_id', $provider->id)->availableForDelivery()->with('user')->get();
+        // Final delivery may use a van/truck for bulky parcels; filter per parcel below.
+        $riderModels = Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->where('online_until', '>', now())->whereHas('user', fn ($q) => $q->where('status', 'active')->where('is_suspended', false))->with('user')->get();
         // Grouped by home barangay in the picker; riders without a home address come last.
         $riders = $riderModels->map(fn ($r) => ['id' => $r->id, 'name' => $r->user->name ?? 'Rider', 'area' => $r->area ?: 'General Area',
             'home' => \App\Support\PlaceMatcher::describe($r->user)])
             ->sortBy(fn ($r) => [$r['home'] === null ? 1 : 0, $r['home'] ?? '', $r['name']])->values()->all();
         if ($tab === 'assign' && $riderModels->isNotEmpty()) {
             // Pre-select the best rider so assigning one parcel is a single click.
-            $parcels->setCollection($parcels->getCollection()->map(fn ($p) => $p + [
-                'suggested_rider_id' => app(DeliveryAssignment::class)->candidates(Shipment::findOrFail($p['id']))->first()['rider']->id ?? null,
-            ]));
+            $parcels->setCollection($parcels->getCollection()->map(function ($p) {
+                $candidates = app(DeliveryAssignment::class)->candidates(Shipment::findOrFail($p['id']));
+                return $p + ['suggested_rider_id' => $candidates->first()['rider']->id ?? null,
+                    'compatible_driver_ids' => $candidates->pluck('rider.id')->all()];
+            }));
         }
 
         // What "Process all" would do right now.
@@ -1946,7 +1966,7 @@ class LogisticsPortalController extends Controller
     /** @return array{0:int,1:int}|null [assigned, riders used], or null when there are no active riders. */
     private function runAutoAssign(LogisticsProvider $provider): ?array
     {
-        if (!Rider::where('logistics_provider_id', $provider->id)->availableForDelivery()->exists()) {
+        if (!Rider::where('logistics_provider_id', $provider->id)->where('status', 'approved')->where('is_active', true)->where('online_until', '>', now())->whereHas('user', fn ($q) => $q->where('status', 'active')->where('is_suspended', false))->exists()) {
             return null;
         }
         $assigned = app(DeliveryAssignment::class)->assignWaiting($provider->id);
@@ -2257,6 +2277,7 @@ class LogisticsPortalController extends Controller
 
     public function updateAccount(Request $request)
     {
+        $request->validate(['bulky_enabled' => ['sometimes', 'boolean'], 'bulky_surcharge' => ['sometimes', 'numeric', 'min:0', 'max:100000']]);
         // Store both accepted mobile formats consistently so uniqueness checks cannot be bypassed.
         $phone = $request->input('phone');
         if (is_string($phone) && preg_match('/\A\+639[0-9]{9}\z/', $phone)) {
@@ -2325,13 +2346,16 @@ class LogisticsPortalController extends Controller
                 $data['id_verified_at'] = null;
                 $data['id_rejection_reason'] = null;
             }
-            DB::transaction(function () use ($hub, $data) {
+            $bulkySettings = [];
+            if ($request->has('bulky_enabled')) $bulkySettings['bulky_enabled'] = $request->boolean('bulky_enabled');
+            if ($request->has('bulky_surcharge')) $bulkySettings['bulky_surcharge_minor'] = (int) round($request->input('bulky_surcharge') * 100);
+            DB::transaction(function () use ($hub, $data, $bulkySettings) {
                 $hub->update($data);
                 // Only synchronize the provider owned by this account.
                 $hub->logisticsProvider()->update([
                     'name' => $hub->business_name ?: $hub->name,
                     'contact_phone' => $hub->phone,
-                ]);
+                ] + $bulkySettings);
             });
         } catch (\Throwable $exception) {
             Storage::disk('public')->delete($uploads);
@@ -2395,6 +2419,7 @@ class LogisticsPortalController extends Controller
     /** Receive one shipment at the hub; auto-sorts it when the address names a delivery area. Returns the area or null. */
     private function receiveShipment(Shipment $shipment): ?string
     {
+        abort_if(($shipment->package_profile['bulky'] ?? false) && !$shipment->logisticsProvider?->bulky_enabled, 422, 'This hub has not enabled bulky parcel handling.');
         abort_unless(in_array($shipment->status, DeliveryAssignment::HUB_STATUSES, true), 422, 'This parcel cannot be received at the hub.');
         $shipment->update(['received_at' => now()]);
         DeliveryEvent::create([
@@ -2470,6 +2495,7 @@ class LogisticsPortalController extends Controller
             return [
                 'id'                  => $s->id,
                 'tracking_code'       => $s->tracking_code,
+                'delivery_service' => ($s->package_profile['bulky'] ?? false) ? 'Bulky delivery · van/truck required' : 'Standard delivery',
                 'seller_name'         => $seller?->name ?? ($seller?->user?->name ?? 'Partner Store'),
                 'recipient_name'      => $recipientName,
                 'recipient_address'   => $recipientAddress,

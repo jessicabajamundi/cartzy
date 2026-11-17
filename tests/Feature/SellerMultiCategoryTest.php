@@ -27,7 +27,7 @@ class SellerMultiCategoryTest extends TestCase
         $sports = Category::create(['name' => 'Sports & Outdoors', 'slug' => 'sports-outdoors', 'is_active' => true]);
         $kids = Category::create(['name' => 'Kids', 'slug' => 'kids', 'is_active' => true]);
 
-        $response = $this->actingAs($user)->post(route('seller.products.add'), [
+        $response = $this->actingAs($user)->post(route('seller.products.add'), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Pro Kids Running Shoes',
             'sku' => 'RUN-KIDS-001',
             'price' => 1299.00,
@@ -85,7 +85,7 @@ class SellerMultiCategoryTest extends TestCase
             'is_active' => true,
         ]);
 
-        $response = $this->actingAs($user)->post(route('seller.products.details', $product->id), [
+        $response = $this->actingAs($user)->post(route('seller.products.details', $product->id), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'Classic Beach Sports Tee',
             'sku' => 'TEE-001',
             'price' => 599.00,
@@ -111,7 +111,7 @@ class SellerMultiCategoryTest extends TestCase
             'status' => 'approved',
         ]);
 
-        $response = $this->actingAs($user)->post(route('seller.products.add'), [
+        $response = $this->actingAs($user)->post(route('seller.products.add'), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'No Category Product',
             'sku' => 'NOCAT-001',
             'price' => 100.00,

@@ -19,7 +19,7 @@ use Illuminate\Validation\ValidationException;
  * Flow:
  *  1. Origin Hub receives parcel from First-Mile Rider / Seller dropoff.
  *  2. Origin Hub dispatches parcel via Linehaul Courier to Destination Hub (`in_transit`).
- *  3. Destination Hub (or Linehaul Courier) marks parcel arrived at Destination Hub (`at_hub`),
+ *  3. Destination Hub (or Linehaul Courier) records arrival and leaves the parcel unassigned,
  *     transferring operational ownership (`current_hub_id`, `logistics_provider_id`) so
  *     Destination Hub can sort and assign a local Last-Mile Rider.
  */
@@ -60,6 +60,7 @@ class HubToHubService
                 ->firstOrFail();
 
             if ($destinationHubId !== null && $destinationHubId !== $parcel->destination_hub_id) {
+                if ($parcel->package_profile['bulky'] ?? false) throw ValidationException::withMessages(['destination_hub_id' => 'Use the bulky route priced at checkout.']);
                 $dest = LogisticsProvider::where('status', 'approved')->findOrFail($destinationHubId);
                 $parcel->destination_hub_id = $dest->id;
             }
@@ -83,6 +84,10 @@ class HubToHubService
                 ]);
             }
 
+            if (($parcel->package_profile['bulky'] ?? false) && (!$parcel->originHub?->bulky_enabled || !$parcel->destinationHub?->bulky_enabled)) {
+                throw ValidationException::withMessages(['shipment' => 'Both hubs must support bulky handling and loading crew.']);
+            }
+
             if ($parcel->isInHubToHubTransit() || $parcel->hasArrivedAtDestinationHub()) {
                 throw ValidationException::withMessages([
                     'shipment' => 'This parcel is already in hub-to-hub transit or has arrived at its destination hub.',
@@ -91,12 +96,19 @@ class HubToHubService
 
             $courier = null;
             if ($courierId !== null) {
-                $courier = Rider::whereKey($courierId)->availableForLinehaul()->with('user')->first();
+                $courier = Rider::whereKey($courierId)->where('logistics_provider_id', $parcel->logistics_provider_id)
+                    ->availableForLinehaul()->with('user')->lockForUpdate()->first();
                 if (!$courier) {
                     throw ValidationException::withMessages([
                         'courier_id' => 'Choose an active, approved Hub-to-Hub or First-Mile courier.',
                     ]);
                 }
+                if (!app(ParcelDelivery::class)->canLoad($parcel, $courier)) {
+                    throw ValidationException::withMessages(['courier_id' => 'This vehicle cannot carry the parcel weight or dimensions.']);
+                }
+            }
+            if ($parcel->package_profile && !$courier) {
+                throw ValidationException::withMessages(['courier_id' => 'Select a compatible courier vehicle before dispatch.']);
             }
 
             $parcel->update([
@@ -108,7 +120,7 @@ class HubToHubService
                 'rider_id' => null,
                 'assigned_at' => null,
                 'status' => 'in_transit',
-                'sort_status' => 'linehaul',
+                // Transport is recorded in status/timestamps; keep the actual sorting state.
                 'dispatched_to_hub_at' => now(),
             ]);
 
@@ -218,7 +230,8 @@ class HubToHubService
                 'received_at' => now(),
                 'sorted_at' => null,
                 'sort_status' => 'unsorted',
-                'status' => 'at_hub',
+                // received_at marks it as physically at the hub, awaiting a delivery driver.
+                'status' => 'unassigned',
                 'rider_id' => null,
                 'assigned_at' => null,
             ]);

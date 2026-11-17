@@ -92,7 +92,10 @@ class OrderPlacement
 
             // Every store ships its own parcel, priced by route (store pickup province → buyer province).
             $destination = $useDefaultContact ? $defaultAddress : null;
-            $storeShipping = collect(ShippingCalculator::forStores(array_keys($storeSubtotals), $destination))->map(fn ($quote) => $quote['fee_minor'])->all();
+            $storeItems = $groups->map(fn ($groupLines) => $groupLines->map(fn ($line) => ['variant_id' => $line['variant']->id, 'quantity' => $line['qty']])->all())->all();
+            $deliveryQuotes = app(ParcelDelivery::class)->quotes($storeItems, $destination, $buyer);
+            foreach ($deliveryQuotes as $quote) if (!$quote['available']) throw new RuntimeException($quote['message']);
+            $storeShipping = array_map(fn ($quote) => $quote['fee_minor'], $deliveryQuotes);
             $shippingMinor = array_sum($storeShipping);
 
             // Shop vouchers first, per store: one discount voucher and one free-shipping voucher, each on that store only.
@@ -164,8 +167,9 @@ class OrderPlacement
                 $groupShopShippingDiscount = $shopShippingSelection[$seller->id]['discount_minor'] ?? 0;
                 $groupShippingDiscount = $shippingShares[$seller->id];
                 $groupVoucherDiscount = $itemShares[$seller->id];
-                $originHubId = (int) app(HubRecommender::class)->originHub($seller, $providers)->id;
-                $destinationHubId = app(HubToHubService::class)->resolveDestinationHub($destination ?? $buyer, $originHubId);
+                $deliveryQuote = $deliveryQuotes[$seller->id];
+                $originHubId = $deliveryQuote['origin_hub_id'];
+                $destinationHubId = $deliveryQuote['destination_hub_id'];
 
                 $sellerOrder = SellerOrder::create([
                     'order_id'                => $order->id,
@@ -195,6 +199,8 @@ class OrderPlacement
                 }
 
                 $shipment = Shipment::create([
+                    'package_profile' => $deliveryQuote['package_profile'],
+                    'weight_kg' => $deliveryQuote['package_profile']['weight_kg'],
                     'seller_order_id'       => $sellerOrder->id,
                     'logistics_provider_id' => $originHubId,
                     'origin_hub_id'         => $originHubId,

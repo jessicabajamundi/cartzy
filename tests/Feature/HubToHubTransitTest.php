@@ -14,6 +14,7 @@ use App\Services\DeliveryAssignment;
 use App\Services\HubToHubService;
 use App\Services\OrderTracking;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -23,6 +24,15 @@ class HubToHubTransitTest extends TestCase
 
     public function test_cross_region_parcel_routes_from_origin_hub_via_courier_to_destination_hub_then_last_mile_rider(): void
     {
+        // SQLite does not enforce Laravel enum columns. Reproduce production MySQL restrictions.
+        if (DB::getDriverName() === 'sqlite') {
+            DB::unprepared("CREATE TRIGGER enforce_shipment_sort_status BEFORE UPDATE OF sort_status ON shipments
+                WHEN NEW.sort_status NOT IN ('unsorted', 'sorted', 'assigned')
+                BEGIN SELECT RAISE(ABORT, 'Invalid shipment sort_status'); END");
+            DB::unprepared("CREATE TRIGGER enforce_shipment_status BEFORE UPDATE OF status ON shipments
+                WHEN NEW.status NOT IN ('unassigned', 'assigned', 'picked_up', 'in_transit', 'out_for_delivery', 'delivered', 'failed', 'returned')
+                BEGIN SELECT RAISE(ABORT, 'Invalid shipment status'); END");
+        }
         // 1. Create Visayas Hub & Laguna Hub
         $visayasHubUser = User::factory()->create([
             'role' => 'logistics',
@@ -169,15 +179,17 @@ class HubToHubTransitTest extends TestCase
         $this->assertNull(app(DeliveryAssignment::class)->assign($shipment));
 
         // 5. Visayas Hub dispatches parcel to Linehaul Courier
+        $sortStatusBeforeDispatch = $shipment->sort_status;
         $this->actingAs($visayasHubUser)
             ->post(route('logistics.hub.dispatch', $shipment->id), [
                 'courier_id' => $linehaulCourier->id,
                 'destination_hub_id' => $lagunaHub->id,
             ])
-            ->assertRedirect();
+            ->assertRedirect()->assertSessionHasNoErrors();
 
         $shipment->refresh();
         $this->assertSame('in_transit', $shipment->status);
+        $this->assertSame($sortStatusBeforeDispatch, $shipment->sort_status);
         $this->assertSame($linehaulCourier->id, $shipment->linehaul_courier_id);
         $this->assertTrue($shipment->isInHubToHubTransit());
 
@@ -197,7 +209,8 @@ class HubToHubTransitTest extends TestCase
         $this->assertSame($lagunaHub->id, $shipment->logistics_provider_id);
         $this->assertSame($lagunaHub->id, $sellerOrder->logistics_provider_id);
         $this->assertNotNull($shipment->arrived_at_destination_hub_at);
-        $this->assertSame('at_hub', $shipment->status);
+        $this->assertSame('unassigned', $shipment->status);
+        $this->assertSame('unsorted', $shipment->sort_status);
 
         // 7. OrderTracking includes Hub-to-Hub milestones
         $tracking = app(OrderTracking::class)->build($sellerOrder->fresh(['shipment.deliveryEvents', 'shipment.originHub', 'shipment.destinationHub', 'order']));

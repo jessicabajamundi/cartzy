@@ -32,9 +32,9 @@ class LocationShippingTest extends TestCase
     private function variant(Seller $shop, int $priceMinor): ProductVariant
     {
         $category = Category::firstOrCreate(['slug' => 'general'], ['name' => 'General', 'is_active' => true]);
-        $product = Product::create(['seller_id' => $shop->id, 'category_id' => $category->id, 'name' => $shop->name.' item', 'slug' => 'item-'.$shop->id, 'is_active' => true]);
+        $product = Product::create(['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'seller_id' => $shop->id, 'category_id' => $category->id, 'name' => $shop->name.' item', 'slug' => 'item-'.$shop->id, 'is_active' => true]);
 
-        return $product->variants()->create(['sku' => 'SKU-'.$shop->id, 'name' => 'Standard', 'price_minor' => $priceMinor, 'stock' => 50, 'is_active' => true]);
+        return $product->variants()->create(['weight_grams' => 500, 'sku' => 'SKU-'.$shop->id, 'name' => 'Standard', 'price_minor' => $priceMinor, 'stock' => 50, 'is_active' => true]);
     }
 
     private function line(ProductVariant $variant): array

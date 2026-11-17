@@ -166,6 +166,7 @@
                         <div class="hub-parcel-top">
                             <strong class="hub-code">{{ $parcel['tracking_code'] }}</strong>
                             @if($parcel['payment_method'] === 'COD')<span class="hub-tag cod">COD ₱{{ number_format($parcel['cod_amount'], 2) }}</span>@else<span class="hub-tag">Prepaid</span>@endif
+                            @if(!empty($parcel['delivery_service']))<span class="hub-tag">{{ $parcel['delivery_service'] }}</span>@endif
                             @if($parcel['delivery_area'])<span class="hub-tag area">{{ $parcel['delivery_area'] }}</span>@endif
                             @if(!empty($parcel['barangay']))<span class="hub-tag" style="background:var(--dm-blue-surface, #EEF2FF);color:var(--dm-blue-ink, #4338CA);font-weight:600;">📍 {{ $parcel['barangay'] }}</span>@endif
                             @if(!empty($parcel['is_rescheduled']))
@@ -192,7 +193,7 @@
                                     @endforeach
                                 </select>
                                 <select name="courier_id" aria-label="Linehaul courier for {{ $parcel['tracking_code'] }}">
-                                    <option value="">Any Hub-to-Hub Courier</option>
+                                    <option value="">Choose a compatible courier vehicle</option>
                                     @foreach($linehaulCouriers ?? [] as $lc)
                                         <option value="{{ $lc['id'] }}">{{ $lc['name'] }} ({{ $lc['type'] }} · {{ $lc['vehicle'] }})</option>
                                     @endforeach
@@ -217,8 +218,8 @@
                             <form method="POST" action="{{ route('logistics.assignments.assign', ['id' => $parcel['id']], false) }}" class="hub-inline hub-once">@csrf
                                 <label class="hub-sr" for="rider-{{ $parcel['id'] }}">Rider for {{ $parcel['tracking_code'] }}</label>
                                 <select id="rider-{{ $parcel['id'] }}" name="rider_id" required @disabled(!$riders)>
-                                    <option value="">{{ $riders ? 'Choose an online Last Mile courier' : 'No online Last Mile couriers' }}</option>
-                                    @foreach(collect($riders)->groupBy(fn ($r) => $r['home'] ?? 'No home address yet') as $home => $group)
+                                    <option value="">{{ $riders ? 'Choose an online compatible driver' : 'No online drivers' }}</option>
+                                    @foreach(collect($riders)->filter(fn ($r) => in_array($r['id'], $parcel['compatible_driver_ids'] ?? [], true))->groupBy(fn ($r) => $r['home'] ?? 'No home address yet') as $home => $group)
                                         <optgroup label="🏠 {{ $home }}">
                                             @foreach($group as $rider)<option value="{{ $rider['id'] }}" @selected($rider['id'] === ($parcel['suggested_rider_id'] ?? null))>{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? '★ ' : '' }}{{ $rider['name'] }} — {{ $rider['area'] }}{{ $rider['id'] === ($parcel['suggested_rider_id'] ?? null) ? ' (best)' : '' }}</option>@endforeach
                                         </optgroup>

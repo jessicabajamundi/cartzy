@@ -10,6 +10,7 @@ class LogisticsProvider extends Model
     use HasFactory;
 
     protected $fillable = [
+        'bulky_enabled', 'bulky_surcharge_minor',
         'user_id',
         'name',
         'slug',
@@ -22,6 +23,8 @@ class LogisticsProvider extends Model
     ];
 
     protected $casts = [
+        'bulky_enabled' => 'boolean',
+        'bulky_surcharge_minor' => 'integer',
         'service_regions' => 'array',
     ];
 

@@ -610,6 +610,9 @@ class SellerPortalController extends Controller
             abort_if($shipment && $shipment->status !== 'unassigned', 422, 'This shipment has already been assigned to a courier.');
             abort_if($shipment?->received_at !== null, 422, 'The hub already received this parcel.');
 
+            if ($shipment?->package_profile['bulky'] ?? false) {
+                abort_unless($provider->id === $shipment->origin_hub_id && $provider->bulky_enabled, 422, 'Bulky parcels must use the capable hub selected and priced at checkout.');
+            }
             $isDropoff = $method === Shipment::DROPOFF;
             $hubAddress = \App\Services\HubRecommender::location($provider);
             $dateText = \Illuminate\Support\Carbon::parse($data['pickup_date'])->format('M j, Y');
@@ -844,7 +847,8 @@ class SellerPortalController extends Controller
         $rules['primary_size_stocks.*.price'] = 'required_without:price|nullable|numeric|min:0.01|max:99999999.99';
         $rules['colors'] = 'nullable|string|max:500';
         $rules['low_stock_threshold'] = 'nullable|integer|min:0|max:100000';
-        $rules['weight_grams'] = 'nullable|integer|min:0|max:1000000';
+        $rules['weight_grams'] = 'required|integer|min:1|max:10000000';
+        foreach (['length', 'width', 'height'] as $dimension) $rules['package_'.$dimension.'_cm'] = 'required|numeric|min:0.01|max:10000';
         $data = $request->validate($rules, [
             'option_photos.*.*.max' => 'Each color photo must be 10 MB or smaller. Please choose a smaller photo.',
             'option_photos.*.*.image' => 'Color photos must be JPG, PNG or WebP images.',
@@ -932,6 +936,7 @@ class SellerPortalController extends Controller
                 'approval_status' => Product::APPROVAL_PENDING,
                 'video_path' => $request->file('video')?->store('products/videos', 'public'),
                 'low_stock_threshold' => (int) ($data['low_stock_threshold'] ?? Product::MIN_LOW_STOCK_THRESHOLD),
+                'package_length_cm' => $data['package_length_cm'], 'package_width_cm' => $data['package_width_cm'], 'package_height_cm' => $data['package_height_cm'],
             ]);
 
             $product->categories()->sync($categoryIds->all());
@@ -1135,7 +1140,10 @@ class SellerPortalController extends Controller
             'description' => 'nullable|string|max:5000',
             'price' => $single ? 'required|numeric|min:0.01|max:99999999.99' : 'exclude',
             'low_stock_threshold' => 'required|integer|min:0|max:100000',
-            'weight_grams' => 'nullable|integer|min:0|max:1000000',
+            'weight_grams' => 'required|integer|min:1|max:10000000',
+            'package_length_cm' => 'required|numeric|min:0.01|max:10000',
+            'package_width_cm' => 'required|numeric|min:0.01|max:10000',
+            'package_height_cm' => 'required|numeric|min:0.01|max:10000',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:10240',
             'photos' => 'nullable|array',
             'photos.*' => 'nullable|image|mimes:jpg,jpeg,png,webp,jfif,avif,bmp,gif|max:'.(Product::MEDIA_BUDGET_MB * 1024),
@@ -1201,6 +1209,7 @@ class SellerPortalController extends Controller
                 'badge' => !empty($data['badge']) ? $data['badge'] : null,
                 'description' => $data['description'] ?? null,
                 'low_stock_threshold' => (int) $data['low_stock_threshold'],
+                'package_length_cm' => $data['package_length_cm'], 'package_width_cm' => $data['package_width_cm'], 'package_height_cm' => $data['package_height_cm'],
                 'is_active' => (bool) $data['is_active'],
                 'approval_status' => $resubmitted ? Product::APPROVAL_PENDING : $product->approval_status,
                 'rejection_reason' => $resubmitted ? null : $product->rejection_reason,

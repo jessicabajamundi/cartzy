@@ -122,6 +122,8 @@ class RiderDeliveryController extends Controller
         $items = $sellerOrder->items;
 
         return [
+            'delivery_service' => ($shipment->package_profile['bulky'] ?? false) ? 'Bulky delivery · van/truck required' : 'Standard delivery',
+            'package_profile' => $shipment->package_profile,
             'id' => $shipment->id,
             'tracking_code' => $shipment->tracking_code,
             'order_reference' => $order?->reference,

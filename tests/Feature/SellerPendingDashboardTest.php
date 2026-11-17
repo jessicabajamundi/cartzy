@@ -56,7 +56,7 @@ class SellerPendingDashboardTest extends TestCase
         $productsResponse->assertSee('Add product (Pending approval)');
 
         // 5. Attempting to add a product while pending is blocked
-        $addAttempt = $this->actingAs($user)->post('/seller/products/add', [
+        $addAttempt = $this->actingAs($user)->post('/seller/products/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'New Awesome Product',
             'category_id' => $category->id,
             'price' => 150.00,
@@ -84,7 +84,7 @@ class SellerPendingDashboardTest extends TestCase
         $approvedDash->assertSee('＋ Add product');
 
         // 8. Approved seller can now successfully add a product
-        $addSuccess = $this->actingAs($user->fresh())->post('/seller/products/add', [
+        $addSuccess = $this->actingAs($user->fresh())->post('/seller/products/add', ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500,
             'name' => 'New Awesome Product',
             'sku' => 'SKU-AWESOME-01',
             'category_id' => $category->id,

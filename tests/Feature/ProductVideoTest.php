@@ -38,7 +38,7 @@ class ProductVideoTest extends TestCase
 
     private function add(array $files)
     {
-        return $this->post(route('seller.products.add'), ['name' => 'Promo product', 'category_id' => $this->category->id, 'price' => 100, 'stock' => 1] + $files);
+        return $this->post(route('seller.products.add'), ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'Promo product', 'category_id' => $this->category->id, 'price' => 100, 'stock' => 1] + $files);
     }
 
     /** @return array{0: Product, 1: array} */
@@ -46,7 +46,7 @@ class ProductVideoTest extends TestCase
     {
         $product = $this->shop->products()->create(['name' => 'Saved', 'slug' => 'saved', 'category_id' => $this->category->id, 'is_active' => true, 'approval_status' => Product::APPROVAL_APPROVED, 'video_path' => $videoPath]);
 
-        return [$product, ['name' => 'Saved', 'category_id' => $this->category->id, 'low_stock_threshold' => 5, 'is_active' => 1]];
+        return [$product, ['package_length_cm' => 20, 'package_width_cm' => 15, 'package_height_cm' => 10, 'weight_grams' => 500, 'name' => 'Saved', 'category_id' => $this->category->id, 'low_stock_threshold' => 5, 'is_active' => 1]];
     }
 
     public function test_a_new_product_saves_its_video_with_photos_at_exactly_thirty_mb(): void

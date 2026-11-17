@@ -38,7 +38,7 @@ class RiderParcelScanTest extends TestCase
         $user = User::factory()->create(['role' => 'courier', 'status' => 'active', 'name' => $name]);
 
         return Rider::create(['user_id' => $user->id, 'logistics_provider_id' => ($hub ?? $this->hub)->id, 'courier_type' => $type,
-            'vehicle_type' => 'Motorcycle', 'status' => 'approved', 'is_active' => true, 'area' => 'Laguna']);
+            'vehicle_type' => $type === Rider::LAST_MILE ? 'Motorcycle' : 'Van', 'status' => 'approved', 'is_active' => true, 'area' => 'Laguna']);
     }
 
     private function parcel(array $shipment = []): Shipment

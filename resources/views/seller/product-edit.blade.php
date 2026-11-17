@@ -247,11 +247,12 @@
                         <input type="number" name="low_stock_threshold" min="10" max="100000" value="{{ old('low_stock_threshold', $limit) }}" required>
                         <small class="pe-hint">Shown as "Low stock" in Inventory at or below this number.</small>
                     </label>
-                    <label class="pe-field">Weight (grams)
-                        <input type="number" name="weight_grams" min="0" max="1000000" value="{{ old('weight_grams', $product->variants->first()?->weight_grams ?: '') }}">
-                        <small class="pe-hint">Optional. Used for shipping.</small>
+                    <label class="pe-field">Packaged weight per unit (grams) *
+                        <input type="number" name="weight_grams" required min="1" max="10000000" value="{{ old('weight_grams', $product->variants->first()?->weight_grams ?: '') }}">
+                        <small class="pe-hint">Include packaging. Used to match a safe delivery vehicle.</small>
                     </label>
                 </div>
+                @include('seller.partials.package-fields')
             </section>
 
             <section class="pe-card pe-card-photos" aria-labelledby="pe-photo-title">
