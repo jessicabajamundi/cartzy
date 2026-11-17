@@ -1,6 +1,8 @@
 @extends('layouts.auth')
 
 @section('title', 'Forgot Password | cartzy')
+@section('auth_modal', 'forgot-password')
+@section('auth_modal_label', 'fp-title')
 @section('auth_visual', 'products')
 
 @section('auth_form')
