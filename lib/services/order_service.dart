@@ -192,11 +192,15 @@ class PlacedOrder {
   final String reference;
   final double total;
   final String message;
+  final int walletPaidMinor;
+  final int remainingMinor;
 
   const PlacedOrder({
     required this.reference,
     required this.total,
     required this.message,
+    this.walletPaidMinor = 0,
+    this.remainingMinor = 0,
   });
 }
 
@@ -211,6 +215,7 @@ class OrderService {
     required int addressId,
     required List<Map<String, dynamic>> items,
     String paymentMethod = 'COD',
+    int walletAmountMinor = 0,
     String? gcashReference,
     String? receiptPath,
   }) async {
@@ -219,6 +224,7 @@ class OrderService {
       final fields = <String, String>{
         'checkout_key': checkoutKey,
         'payment_method': paymentMethod,
+        'wallet_amount_minor': '$walletAmountMinor',
         'address_id': addressId.toString(),
         'items': jsonEncode(items),
         if (gcashReference != null && gcashReference.trim().isNotEmpty)
@@ -236,6 +242,7 @@ class OrderService {
         {
           'checkout_key': checkoutKey,
           'payment_method': paymentMethod,
+          'wallet_amount_minor': walletAmountMinor,
           'address_id': addressId,
           'items': items,
           if (gcashReference != null && gcashReference.trim().isNotEmpty)
@@ -249,6 +256,8 @@ class OrderService {
       reference: order['reference']?.toString() ?? '',
       total: double.tryParse(order['total']?.toString() ?? '') ?? 0,
       message: response['message']?.toString() ?? 'Order placed successfully!',
+      walletPaidMinor: (order['wallet_paid_minor'] as num?)?.toInt() ?? 0,
+      remainingMinor: (order['remaining_minor'] as num?)?.toInt() ?? ((double.tryParse('${order['total']}') ?? 0) * 100).round(),
     );
   }
 

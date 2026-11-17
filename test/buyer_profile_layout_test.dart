@@ -31,6 +31,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.byType(ThemeToggleTile), findsOneWidget);
+      expect(find.text('Cartzy Wallet'), findsOneWidget);
+      expect(tester.getTopLeft(find.text('MY ORDERS')).dy,
+          lessThan(tester.getTopLeft(find.text('Cartzy Wallet')).dy));
+      expect(tester.getTopLeft(find.text('Cartzy Wallet')).dy,
+          lessThan(tester.getTopLeft(find.text('ACCOUNT & SETTINGS')).dy));
       expect(tester.getTopLeft(find.byType(ThemeToggleTile)).dy,
           lessThan(tester.getTopLeft(find.text('Messages')).dy));
 

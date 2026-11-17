@@ -21,6 +21,7 @@ import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 
 import 'package:cartzy/services/auth_service.dart';
+import 'package:cartzy/buyer/wallet_screen.dart';
 import 'change_password_screen.dart';
 import 'package:cartzy/buyer/inbox_screen.dart';
 import 'package:cartzy/buyer/account_activity_screen.dart';
@@ -1206,6 +1207,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
               ),
 
               const SizedBox(height: 24),
+
+              if (widget.isLoggedIn) ...[
+                const WalletCard(),
+                const SizedBox(height: 24),
+              ],
 
               // ==========================================
               // 4. SETTINGS SECTION

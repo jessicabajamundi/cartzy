@@ -16,6 +16,7 @@ import 'package:cartzy/widgets/warehouse_note.dart';
 import 'package:cartzy/address/my_addresses_screen.dart';
 import 'package:cartzy/address/add_address_screen.dart';
 import 'package:cartzy/services/api_service.dart';
+import 'package:cartzy/services/wallet_service.dart';
 import 'package:cartzy/widgets/gcash_checkout_sheet.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -43,7 +44,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ── Payment Method ──
   String _selectedPaymentMethod = 'COD';
 
-  final double _deliveryFee = 60.00;
+  double _deliveryFee = 60.00;
+  int _walletBalance = 0;
+  bool _useWallet = false;
+  Map<String, dynamic>? _quote;
+  String? _quoteError;
+  int get _walletAmount => _useWallet ? math.min(_walletBalance, (totalPayment * 100).round()) : 0;
+  double get _remainingPayment => math.max(0, totalPayment - _walletAmount / 100);
+  bool get _walletOnly => _useWallet && _walletAmount > 0 && _remainingPayment == 0;
+
+  List<Map<String, dynamic>> get _checkoutLines => [
+    for (final item in CartService.instance.selectedItems) {
+      if (item.productId != null) 'product_id': item.productId,
+      if (item.variantId != null) 'variant_id': item.variantId,
+      'quantity': item.quantity,
+    },
+  ];
+
+  Future<bool> _refreshQuote() async {
+    final addressId = int.tryParse(_deliveryAddress?['id'] ?? '');
+    if (addressId == null) return false;
+    try {
+      final data = await ApiService.post('/checkout/quote', {'address_id': addressId, 'items': _checkoutLines}, token: AuthService.token);
+      if (!mounted) return false;
+      setState(() {
+        _quote = Map<String, dynamic>.from(data);
+        _walletBalance = (data['wallet_balance_minor'] as num).toInt();
+        _deliveryFee = (data['shipping_minor'] as num) / 100;
+        _quoteError = null;
+      });
+      return true;
+    } catch (_) {
+      if (mounted) setState(() => _quoteError = 'Could not refresh checkout. Tap to retry.');
+      return false;
+    }
+  }
 
   @override
   void initState() {
@@ -82,6 +117,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             'city': cityParts.isNotEmpty ? cityParts : (defaultAddr['municipality']?.toString() ?? ''),
           };
         });
+        await _refreshQuote();
       }
     } catch (_) {}
   }
@@ -128,6 +164,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               };
             });
             Navigator.of(context).pop();
+            _refreshQuote();
             showCartzyFlash(context, 'Delivery address updated');
           },
         ),
@@ -198,6 +235,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool get canUseShippingSaver => subtotal >= 1000.0;
 
   double get shippingDiscount {
+    if (_quote != null) return 0;
     if (_useShippingVoucher && canUseShippingSaver) {
       return 50.00;
     }
@@ -205,6 +243,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   double get voucherDiscount {
+    if (_quote != null) return (_quote!['discount_minor'] as num) / 100;
     try {
       final best = VoucherService.instance.getBestApplicableVoucher(subtotal);
       if (best != null && !best.isShippingDiscount) {
@@ -215,6 +254,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   double get totalPayment {
+    if (_quote != null) return (_quote!['total_minor'] as num) / 100;
     final total = subtotal + _deliveryFee - shippingDiscount - voucherDiscount;
     return (total.isNaN || total < 0) ? 0.0 : total;
   }
@@ -284,6 +324,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       final lines = cart.selectedItems;
+      final reviewedTotal = totalPayment;
+      final reviewedWallet = _walletAmount;
+      if (!await _refreshQuote()) return;
+      if (!mounted) return;
+      if (reviewedTotal != totalPayment || reviewedWallet != _walletAmount) {
+        showCartzyFlash(context, 'Your total or wallet balance changed. Review checkout before placing the order.');
+        return;
+      }
       if (lines.isEmpty) {
         showCartzyFlash(context, 'The items you selected are out of stock');
         return;
@@ -298,7 +346,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final placed = await OrderService.placeOrder(
         checkoutKey: _checkoutKey,
         addressId: addressId,
-        paymentMethod: _selectedPaymentMethod,
+        paymentMethod: _walletOnly ? 'CartzyWallet' : _selectedPaymentMethod,
+        walletAmountMinor: _walletAmount,
         gcashReference: gcashReference,
         receiptPath: receiptPath,
         items: [
@@ -332,7 +381,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _handleGcashNext(double totalPayment) {
+  void _handleGcashNext(double totalPayment) async {
     if (_placing) return;
     if ((AuthService.token ?? '').isEmpty) {
       showCartzyFlash(context, 'Please log in to place your order');
@@ -352,6 +401,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
+    if (!await _refreshQuote() || !mounted) return;
+    if (_walletOnly) { await _handlePlaceOrder(); return; }
     final cart = CartService.instance;
     final productIds = cart.selectedItems
         .map((i) => i.productId)
@@ -361,7 +412,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     GCashCheckoutSheet.show(
       context,
-      totalAmount: totalPayment,
+      totalAmount: _remainingPayment,
       productIds: productIds,
       onConfirmOrder: (ref, receiptPath) async {
         await _handlePlaceOrder(gcashReference: ref, receiptPath: receiptPath);
@@ -389,9 +440,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           content: Text(
-            _selectedPaymentMethod == 'GCash'
+            placed.remainingMinor == 0
+                ? 'Order ${placed.reference} is paid with Cartzy Wallet.\n\nWallet payment: ${WalletService.money(placed.walletPaidMinor)}'
+                : _selectedPaymentMethod == 'GCash'
                 ? 'Order ${placed.reference} has been placed via GCash QR.\n\nTotal: ₱${_formatCurrency(placed.total)}\n\nYour payment receipt is submitted and pending seller/admin verification. You will be notified once approved.'
-                : 'Order ${placed.reference} has been placed via Cash on Delivery.\n\nPrepare ₱${_formatCurrency(placed.total)} for the rider upon delivery.',
+                : 'Order ${placed.reference} has been placed via Cash on Delivery.\n\nWallet payment: ${WalletService.money(placed.walletPaidMinor)}\nPrepare ${WalletService.money(placed.remainingMinor)} for the rider upon delivery.',
             style: GoogleFonts.dmSans(fontSize: 13.5, color: CartzyColors.textOf(context, light: const Color(0xFF4A3E47)), height: 1.4),
           ),
           actions: [
@@ -1177,6 +1230,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (_quoteError != null) TextButton(onPressed: _refreshQuote, child: Text(_quoteError!)),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: Text('Use Cartzy Wallet · ${WalletService.money(_walletBalance)}'),
+            subtitle: const Text('Refund credit for any product. No cash-out.'),
+            value: _useWallet,
+            onChanged: _walletBalance > 0 ? (value) => setState(() => _useWallet = value) : null,
+          ),
+          if (_useWallet) Padding(padding: const EdgeInsets.only(bottom: 16),
+            child: Text('Wallet payment: ${WalletService.money(_walletAmount)}\nRemaining: ₱${_formatCurrency(_remainingPayment)}\nWallet balance after payment: ${WalletService.money(_walletBalance - _walletAmount)}')),
           // Option 1: Cash on Delivery (COD)
           GestureDetector(
             onTap: () => setState(() => _selectedPaymentMethod = 'COD'),
@@ -1346,9 +1409,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 14),
 
           Text(
-            _selectedPaymentMethod == 'GCash'
-                ? 'Tap Next to view the seller\'s GCash QR code and enter your payment reference.'
-                : 'No payment is collected now. Prepare ₱${_formatCurrency(totalPayment)} for delivery.',
+            _walletOnly ? 'Your wallet covers this order. No additional payment is required.'
+                : (_selectedPaymentMethod == 'GCash'
+                    ? 'Tap Next to pay the remaining ₱${_formatCurrency(_remainingPayment)} to the seller via GCash.'
+                    : 'Prepare the remaining ₱${_formatCurrency(_remainingPayment)} for delivery.'),
             style: GoogleFonts.dmSans(fontSize: 12, color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72))),
           ),
         ],
@@ -1449,7 +1513,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                   Text(
-                    _selectedPaymentMethod == 'GCash' ? 'Pay via GCash QR' : 'Pay on delivery',
+                    _walletOnly ? 'Pay with Cartzy Wallet' : (_useWallet
+                        ? (_selectedPaymentMethod == 'GCash' ? 'Cartzy Wallet + GCash' : 'Cartzy Wallet + COD')
+                        : (_selectedPaymentMethod == 'GCash' ? 'Pay via GCash QR' : 'Pay on delivery')),
                     style: GoogleFonts.dmSans(fontSize: 11, color: CartzyColors.mutedOf(context, light: const Color(0xFF8E8286))),
                   ),
                 ],
@@ -1470,6 +1536,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           const SizedBox(height: 12),
+          if (_useWallet) ...[
+            _buildSummaryRow('Wallet payment', '-${WalletService.money(_walletAmount)}'),
+            _buildSummaryRow('Remaining payment', '₱${_formatCurrency(_remainingPayment)}'),
+          ],
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1482,7 +1552,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                _selectedPaymentMethod == 'GCash' ? 'GCash QR' : 'Cash on Delivery',
+                _walletOnly ? 'Cartzy Wallet' : (_selectedPaymentMethod == 'GCash' ? 'GCash QR' : 'Cash on Delivery'),
                 style: GoogleFonts.dmSans(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -1496,9 +1566,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           // Place order / Next button
           _BlendButton(
             height: 52,
-            onTap: _deliveryAddress == null || _placing
+            onTap: _deliveryAddress == null || _placing || _quote == null || _quoteError != null
                 ? null
-                : (_selectedPaymentMethod == 'GCash'
+                : (_selectedPaymentMethod == 'GCash' && !_walletOnly
                     ? () => _handleGcashNext(totalPayment)
                     : _handlePlaceOrder),
             child: Row(
@@ -1514,7 +1584,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Text(
                   _placing
                       ? 'Placing order…'
-                      : (_selectedPaymentMethod == 'GCash' ? 'Next: Pay via GCash QR' : 'Place order'),
+                      : (_selectedPaymentMethod == 'GCash' && !_walletOnly ? 'Next: Pay via GCash QR' : 'Place order'),
                   style: GoogleFonts.dmSans(
                     fontSize: 14.5,
                     fontWeight: FontWeight.w800,
@@ -1523,7 +1593,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  '₱${_formatCurrency(totalPayment)}',
+                  '₱${_formatCurrency(_remainingPayment)}',
                   style: GoogleFonts.dmSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
