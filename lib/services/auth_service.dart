@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'wishlist_service.dart';
 import 'cart_service.dart';
-import 'user_account_service.dart';
 
 class AuthService {
   static Map<String, dynamic>? _currentUser;
@@ -242,12 +241,23 @@ class AuthService {
     required String otp,
     required String password,
   }) async {
-    await ApiService.post('/auth/password/reset', {
+    final response = await ApiService.post('/auth/password/reset', {
       'email': email,
       'otp': otp,
       'password': password,
       'password_confirmation': password,
-    });
+    }, token: _token);
+    if (response['session_preserved'] == true && response['user'] is Map) {
+      updateCurrentUser(Map<String, dynamic>.from(response['user'] as Map));
+    } else if (_currentUser?['email']?.toString().toLowerCase() == email.toLowerCase()) {
+      clearSession();
+    }
+  }
+
+  static Future<void> refreshCurrentUser() async {
+    if ((_token ?? '').isEmpty) return;
+    final response = await ApiService.get('/auth/me', token: _token);
+    if (response['user'] is Map) updateCurrentUser(Map<String, dynamic>.from(response['user'] as Map));
   }
 
   static Future<Map<String, dynamic>> registerRider(
@@ -269,53 +279,19 @@ class AuthService {
     required String newPassword,
     required String confirmPassword,
   }) async {
-    if (_token != null && _token!.isNotEmpty) {
-      try {
-        final response = await ApiService.post(
-          '/account/password',
-          {
-            'current_password': currentPassword,
-            'password': newPassword,
-            'password_confirmation': confirmPassword,
-          },
-          token: _token,
-        );
-        return response;
-      } on ApiException catch (e) {
-        if (e.statusCode == 422 || e.statusCode == 400 || e.statusCode == 401) {
-          rethrow;
-        }
-        try {
-          final fallbackResponse = await ApiService.post(
-            '/auth/change-password',
-            {
-              'current_password': currentPassword,
-              'password': newPassword,
-              'password_confirmation': confirmPassword,
-            },
-            token: _token,
-          );
-          return fallbackResponse;
-        } catch (_) {}
-      }
+    if ((_token ?? '').isEmpty) {
+      throw ApiException(401, 'Please sign in again before changing your Cartzy password.');
     }
-
-    final email = _currentUser?['email']?.toString() ?? '';
-    if (email.isNotEmpty) {
-      final success = UserAccountService.instance.updatePassword(
-        email: email,
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
-      if (!success) {
-        throw ApiException(422, 'The current password you entered is incorrect.');
-      }
-      return {'success': true, 'message': 'Your password has been changed successfully.'};
+    final response = await ApiService.post('/account/password', {
+      if (currentPassword.isNotEmpty) 'current_password': currentPassword,
+      'password': newPassword,
+      'password_confirmation': confirmPassword,
+    }, token: _token);
+    if (response['user'] is Map) {
+      updateCurrentUser(Map<String, dynamic>.from(response['user'] as Map));
     }
-
-    throw ApiException(400, 'Unable to update password. Please check your connection.');
+    return response;
   }
-
   static Future<void> logout() async {
     try {
       if (_token != null) {

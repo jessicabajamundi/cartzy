@@ -4,10 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:cartzy/buyer/change_password_screen.dart';
 import 'package:cartzy/services/auth_service.dart';
-import 'package:cartzy/services/user_account_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -55,7 +56,7 @@ void main() {
     expect(find.text('New password and confirmation do not match.'), findsOneWidget);
   });
 
-  testWidgets('ChangePasswordScreen updates password successfully in demo mode', (tester) async {
+  testWidgets('ChangePasswordScreen requires a server session instead of pretending to update locally', (tester) async {
     // Set logged in user
     AuthService.setSession(user: {
       'id': 1,
@@ -70,7 +71,6 @@ void main() {
       ),
     );
 
-    // Default seeded password for buyer@cartzy.com is '123456'
     await tester.enterText(find.byType(TextField).at(0), '123456');
     await tester.enterText(find.byType(TextField).at(1), 'SecurePass@2026');
     await tester.enterText(find.byType(TextField).at(2), 'SecurePass@2026');
@@ -83,8 +83,6 @@ void main() {
     await tester.tap(buttonFinder);
     await tester.pumpAndSettle();
 
-    // Check account was updated
-    final account = UserAccountService.instance.findAccountByEmail('buyer@cartzy.com');
-    expect(account?.password, 'SecurePass@2026');
+    expect(find.text('Please sign in again before changing your Cartzy password.'), findsOneWidget);
   });
 }

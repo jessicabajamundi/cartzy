@@ -15,11 +15,13 @@ class ForgotPasswordScreen extends StatefulWidget {
   /// 'buyer' or 'rider', matching the login screen the user came from.
   final String role;
   final String initialEmail;
+  final bool forAccountDeletion;
 
   const ForgotPasswordScreen({
     super.key,
     required this.role,
     this.initialEmail = '',
+    this.forAccountDeletion = false,
   });
 
   @override
@@ -203,7 +205,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _isBusy = false);
     if (ok) {
       _countdownTimer?.cancel();
-      showCartzyFlash(context, 'Password reset! Log in with your new password.');
+      showCartzyFlash(context, widget.forAccountDeletion && AuthService.token != null
+          ? 'Cartzy password ready. Enter it to confirm account deletion.'
+          : 'Password reset! Log in with your new password.');
       Navigator.of(context).pop(_email);
     }
   }
@@ -226,8 +230,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final (icon, title, subtitle) = switch (_step) {
       _ResetStep.email => (
           Icons.lock_reset_rounded,
-          'Forgot password?',
-          "Enter the email you use for your ${widget.role == 'courier' ? 'courier' : widget.role == 'rider' ? 'rider' : 'buyer'} account and we'll send you a reset code.",
+          widget.forAccountDeletion ? 'Set your Cartzy password' : 'Forgot password?',
+          widget.forAccountDeletion
+              ? 'Verify your email to set or reset your Cartzy password, then return to confirm deletion. Your Google password will not change.'
+              : "Enter the email you use for your ${widget.role == 'courier' ? 'courier' : widget.role == 'rider' ? 'rider' : 'buyer'} account and we'll send you a reset code.",
         ),
       _ResetStep.code => (
           Icons.mark_email_read_outlined,
@@ -268,7 +274,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             Icon(Icons.arrow_back_rounded, size: 18, color: CartzyColors.mutedOf(context, light: _brand)),
                             const SizedBox(width: 5),
                             Text(
-                              _step == _ResetStep.email ? 'Back to login' : 'Back',
+                              _step == _ResetStep.email && !widget.forAccountDeletion ? 'Back to login' : 'Back',
                               style: GoogleFonts.dmSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,

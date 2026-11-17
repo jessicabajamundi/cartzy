@@ -14,8 +14,6 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -42,6 +40,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
+  bool get _needsInitialPassword =>
+      AuthService.currentUser?['has_custom_password'] == false;
+
   // Password criteria checks
   bool get _hasMinLength => _newPasswordController.text.length >= 8;
   bool get _hasUppercase => RegExp(r'[A-Z]').hasMatch(_newPasswordController.text);
@@ -58,11 +59,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _serverErrorMessage = null;
     });
 
-    final current = _currentPasswordController.text.trim();
+    final current = _currentPasswordController.text;
     final newPass = _newPasswordController.text;
     final confirm = _confirmPasswordController.text;
 
-    if (current.isEmpty) {
+    if (!_needsInitialPassword && current.isEmpty) {
       setState(() => _serverErrorMessage = 'Please enter your current password.');
       return;
     }
@@ -82,7 +83,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       return;
     }
 
-    if (current == newPass) {
+    if (!_needsInitialPassword && current == newPass) {
       setState(() => _serverErrorMessage = 'New password must be different from current password.');
       return;
     }
@@ -130,7 +131,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: Text(
-          'Change Password',
+          _needsInitialPassword ? 'Set Cartzy Password' : 'Change Password',
           style: GoogleFonts.dmSans(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -251,23 +252,41 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // CURRENT PASSWORD
-                    _buildFieldLabel('Current Password'),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _currentPasswordController,
-                      obscureText: _obscureCurrent,
-                      textInputAction: TextInputAction.next,
-                      style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
-                      decoration: _buildInputDecoration(
-                        hintText: 'Enter current password',
-                        prefixIcon: Icons.lock_outline_rounded,
-                        isObscured: _obscureCurrent,
-                        onToggleVisibility: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                    if (_needsInitialPassword) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: CartzyColors.elevatedOf(context, light: const Color(0xFFF0F9FF)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'You signed in with Google and have not set a Cartzy password yet. Set one below (no current password needed) so you can also sign in with email or confirm account deletion.',
+                          style: GoogleFonts.dmSans(
+                            fontSize: 12.5,
+                            height: 1.4,
+                            color: CartzyColors.textOf(context, light: const Color(0xFF0369A1)),
+                          ),
+                        ),
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 18),
+                    ] else ...[
+                      // CURRENT PASSWORD
+                      _buildFieldLabel('Current Password'),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _currentPasswordController,
+                        obscureText: _obscureCurrent,
+                        textInputAction: TextInputAction.next,
+                        style: GoogleFonts.dmSans(fontSize: 14, color: CartzyColors.textOf(context, light: CartzyColors.navy)),
+                        decoration: _buildInputDecoration(
+                          hintText: 'Enter current password',
+                          prefixIcon: Icons.lock_outline_rounded,
+                          isObscured: _obscureCurrent,
+                          onToggleVisibility: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
 
                     // NEW PASSWORD
                     _buildFieldLabel('New Password'),

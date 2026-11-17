@@ -37,7 +37,7 @@ void main() {
       await tester.tap(find.text('Send Reset Code'));
       await tester.pump();
       await tester.pump();
-      expect(calls['/api/auth/password/forgot'], {'email': 'rider@example.test', 'role': 'rider'});
+      expect(calls['/api/auth/password/forgot'], {'email': 'rider@example.test', 'role': 'rider', 'client_send': true});
       expect(find.text('Check your email'), findsOneWidget);
 
       await tester.enterText(find.byType(TextField), '123456');
