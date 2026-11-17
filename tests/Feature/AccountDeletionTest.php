@@ -21,6 +21,23 @@ class AccountDeletionTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_all_non_admin_roles_receive_password_visibility_and_english_confirmation_controls(): void
+    {
+        foreach (['buyer', 'seller', 'logistics', 'courier'] as $role) {
+            $user = User::factory()->create(['role' => $role, 'status' => 'active']);
+            $this->actingAs($user, 'web');
+            $html = \Illuminate\Support\Facades\Blade::render("@include('partials.delete-account')", ['errors' => new \Illuminate\Support\ViewErrorBag]);
+            $this->assertStringContainsString('text-decoration: underline', $html);
+            $this->assertStringContainsString('Confirm with your Cartzy password', $html);
+            $this->assertStringContainsString('Show Cartzy password', $html);
+            $this->assertStringContainsString('data-delete-password-toggle', $html);
+            $this->assertStringContainsString('Permanently delete your account?', $html);
+            $this->assertStringContainsString('Yes, delete my account', $html);
+            $this->assertStringContainsString('data-delete-cancel', $html);
+            $this->assertStringContainsString('js/delete-account.js', $html);
+        }
+    }
+
     public function test_admin_cannot_delete_own_account_on_web_or_api(): void
     {
         $admin = User::factory()->create([
