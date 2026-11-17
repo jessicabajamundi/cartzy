@@ -123,6 +123,8 @@ class AuthService {
 
   static Future<Map<String, dynamic>> loginWithGoogle({
     required String email,
+    String? idToken,
+    String? intent,
     String? name,
     String? googleId,
     String? avatar,
@@ -131,6 +133,8 @@ class AuthService {
       '/auth/google',
       {
         'email': email,
+        if (idToken != null && idToken.isNotEmpty) 'id_token': idToken,
+        if (intent != null && intent.isNotEmpty) 'intent': intent,
         if (name != null && name.isNotEmpty) 'name': name,
         if (googleId != null && googleId.isNotEmpty) 'google_id': googleId,
         if (avatar != null && avatar.isNotEmpty) 'avatar': avatar,
