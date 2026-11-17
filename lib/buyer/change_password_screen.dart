@@ -14,6 +14,8 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -59,7 +61,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _serverErrorMessage = null;
     });
 
-    final current = _currentPasswordController.text;
+    final current = _currentPasswordController.text.trim();
     final newPass = _newPasswordController.text;
     final confirm = _confirmPasswordController.text;
 

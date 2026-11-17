@@ -1289,7 +1289,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         ),
                         Text(
-                          'Pay the rider in cash when your order arrives.',
+                          'Pay the rider in cash when your order arrives (max ₱50,000.00 per order).',
                           style: GoogleFonts.dmSans(
                             fontSize: 12,
                             color: CartzyColors.mutedOf(context, light: const Color(0xFF7A6E72)),

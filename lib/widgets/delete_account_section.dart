@@ -4,7 +4,6 @@ import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/theme/cartzy_colors.dart';
 import 'package:cartzy/widgets/cartzy_flash_notif.dart';
-import 'package:cartzy/auth/forgot_password_screen.dart';
 
 /// Reusable "Delete Account" Danger Zone card for Mobile Profile Settings.
 /// Hidden automatically for admin accounts.
@@ -89,110 +88,126 @@ class DeleteAccountSection extends StatelessWidget {
   }
 
   Future<void> _showDeleteDialog(BuildContext context) async {
-    try { await AuthService.refreshCurrentUser(); } catch (_) { /* Server still validates deletion. */ }
-    if (!context.mounted) return;
-    final result = await showDialog<String>(
+    final passwordCtrl = TextEditingController();
+    String? errorMsg;
+    bool submitting = false;
+    bool obscure = true;
+
+    await showDialog<void>(
       context: context,
-      barrierDismissible: false,
-      builder: (_) => const _DeleteAccountDialog(),
-    );
-    if (!context.mounted) return;
-    if (result == 'reset') {
-      final saved = await Navigator.of(context).push<String>(MaterialPageRoute(
-        builder: (_) => ForgotPasswordScreen(
-          role: (AuthService.currentUser?['role'] ?? 'buyer').toString(),
-          initialEmail: (AuthService.currentUser?['email'] ?? '').toString(),
-          forAccountDeletion: true,
-        ),
-      ));
-      if (saved != null && context.mounted) await _showDeleteDialog(context);
-    } else if (result == 'deleted') {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      showCartzyFlash(context, 'Your account has been permanently removed.', icon: Icons.info_outline);
-    }
-  }
-}
-
-class _DeleteAccountDialog extends StatefulWidget {
-  const _DeleteAccountDialog();
-  @override
-  State<_DeleteAccountDialog> createState() => _DeleteAccountDialogState();
-}
-
-class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
-  final _password = TextEditingController();
-  String? _error;
-  bool _submitting = false;
-  bool _obscure = true;
-
-  @override
-  void dispose() { _password.dispose(); super.dispose(); }
-
-  Future<void> _delete() async {
-    if (_submitting) return;
-    if (_password.text.isEmpty) {
-      setState(() => _error = 'Please enter your Cartzy password.');
-      return;
-    }
-    setState(() { _submitting = true; _error = null; });
-    try {
-      await AuthService.deleteAccount(_password.text);
-      if (mounted) {
-        Navigator.of(context).pop('deleted');
-      }
-    } catch (error) {
-      if (mounted) {
-        setState(() {
-          _submitting = false;
-          _error = error is ApiException ? error.message : 'Could not delete account. Please try again.';
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: !_submitting,
-    child: AlertDialog(
-      title: Text('Delete your account?', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800)),
-      content: SingleChildScrollView(child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Confirm deletion with your Cartzy password, not your Google/Gmail password. '
-            'If you signed in with Google and never set a Cartzy password, use Set/reset Cartzy password below. This action cannot be undone.',
-            style: GoogleFonts.dmSans(fontSize: 13, height: 1.4)),
-          const SizedBox(height: 14),
-          TextButton(
-            onPressed: _submitting ? null : () => Navigator.of(context).pop('reset'),
-            child: const Text('Set/reset Cartzy password by email'),
-          ),
-          TextField(
-            controller: _password, obscureText: _obscure, enabled: !_submitting,
-            autofillHints: const [AutofillHints.password],
-            decoration: InputDecoration(
-              labelText: 'Cartzy password',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              suffixIcon: IconButton(
-                onPressed: _submitting ? null : () => setState(() => _obscure = !_obscure),
-                icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 19),
+      barrierDismissible: !submitting,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'Delete your account?',
+                style: GoogleFonts.dmSans(fontWeight: FontWeight.w800),
               ),
-            ),
-          ),
-          if (_error != null) Padding(padding: const EdgeInsets.only(top: 10),
-            child: Text(_error!, style: GoogleFonts.dmSans(fontSize: 12.5, fontWeight: FontWeight.w600, color: const Color(0xFFBE123C)))),
-        ],
-      )),
-      actions: [
-        TextButton(onPressed: _submitting ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: _submitting ? null : _delete,
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFBE123C), foregroundColor: Colors.white),
-          child: _submitting
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Delete'),
-        ),
-      ],
-    ),
-  );
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AuthService.currentUser?['has_custom_password'] == false
+                        ? 'You signed in with Google. Please set a Cartzy password in Change Password first, then enter it here to permanently delete your account.'
+                        : 'Enter your current password to permanently delete your account. This action cannot be undone.',
+                    style: GoogleFonts.dmSans(fontSize: 13, height: 1.4),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: passwordCtrl,
+                    obscureText: obscure,
+                    enabled: !submitting,
+                    decoration: InputDecoration(
+                      labelText: 'Current password',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          size: 19,
+                        ),
+                        onPressed: () => setDialogState(() => obscure = !obscure),
+                      ),
+                    ),
+                  ),
+                  if (errorMsg != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      errorMsg!,
+                      style: GoogleFonts.dmSans(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFBE123C),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: submitting ? null : () => Navigator.of(dialogCtx).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: submitting
+                      ? null
+                      : () async {
+                          final password = passwordCtrl.text;
+                          if (password.isEmpty) {
+                            setDialogState(() => errorMsg = 'Please enter your password.');
+                            return;
+                          }
+                          setDialogState(() {
+                            submitting = true;
+                            errorMsg = null;
+                          });
+                          try {
+                            await AuthService.deleteAccount(password);
+                            if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil((route) => route.isFirst);
+                              showCartzyFlash(
+                                context,
+                                'Your account has been permanently removed.',
+                                icon: Icons.info_outline,
+                              );
+                            }
+                          } catch (e) {
+                            final msg = e is ApiException
+                                ? e.message
+                                : 'Could not delete account. Please try again.';
+                            if (ctx.mounted) {
+                              setDialogState(() {
+                                submitting = false;
+                                errorMsg = msg;
+                              });
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFBE123C),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: submitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Delete'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    passwordCtrl.dispose();
+  }
 }
