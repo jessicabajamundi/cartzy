@@ -26,6 +26,7 @@ import 'package:cartzy/services/api_service.dart' show ApiException;
 import 'package:cartzy/services/auth_service.dart';
 import 'package:cartzy/services/government_id_parser.dart';
 import 'package:cartzy/widgets/id_scanner_screen.dart';
+import 'package:cartzy/widgets/courier_terms_prompt.dart';
 
 // ============================================================
 // RIDER REGISTRATION
@@ -59,6 +60,8 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   }
   // ── Step tracking: 1 = Details, 2 = Sign-in, 3 = Verify ──
   int _currentStep = 1;
+  bool _termsAgreed = false;
+  bool _termsError = false;
 
   // ── Step 1: Personal Details ──
   final _firstNameController = TextEditingController();
@@ -455,6 +458,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       showCartzyFlash(context, 'Please correct the errors before proceeding.');
       return;
     }
+    if (_courierType == 'first_mile' && !_termsAgreed) {
+      setState(() => _termsError = true);
+      showCartzyFlash(context, 'Please read and agree to the Courier Terms & Conditions and Privacy Policy.');
+      return;
+    }
 
     setState(() => _isSendingOtp = true);
 
@@ -542,6 +550,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
   // ── Step 3 / Submit Application ──
   Future<void> _submitApplication() async {
     if (_isSubmitting) return;
+    if (_courierType == 'first_mile' && !_termsAgreed) {
+      setState(() { _termsError = true; _currentStep = 2; });
+      showCartzyFlash(context, 'Please read and agree to the Courier Terms & Conditions and Privacy Policy.');
+      return;
+    }
 
     final otp = _otpController.text.trim();
     if (otp.length < 6) {
@@ -591,6 +604,7 @@ class _RiderRegistrationState extends State<RiderRegistration> {
       'otp': otp,
       'logistics_partner': _selectedLogisticsPartner,
       'courier_type': _courierType,
+      if (_courierType == 'first_mile') 'terms_agreed': _termsAgreed ? '1' : '0',
       'vehicle_type': vehicleType,
       if (!_isNonMotorized) ...{
         'plate_no': _plateNumberController.text.trim().toUpperCase(),
@@ -1424,6 +1438,11 @@ class _RiderRegistrationState extends State<RiderRegistration> {
             }
           },
         ),
+        if (_courierType == 'first_mile') ...[
+          const SizedBox(height: 16),
+          CourierTermsPrompt(agreed: _termsAgreed, showError: _termsError,
+            onChanged: (value) => setState(() { _termsAgreed = value; _termsError = !value; })),
+        ],
         const SizedBox(height: 28),
         Row(
           children: [

@@ -42,6 +42,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/legal/courier-terms.json
     - assets/
     - assets/cartzy_splash.png
     - assets/google_logo.png
