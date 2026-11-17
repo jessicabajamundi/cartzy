@@ -118,6 +118,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('api.role:buyer')->group(function () {
+        Route::get('/wallet', \App\Http\Controllers\Buyer\WalletController::class);
+        Route::post('/checkout/quote', [OrderController::class, 'quote']);
         Route::get('/addresses', [AddressController::class, 'index']);
         Route::get('/addresses/{userId}', [AddressController::class, 'index'])->whereNumber('userId');
         Route::post('/addresses', [AddressController::class, 'store']);

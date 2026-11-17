@@ -18,13 +18,10 @@
     @elseif($action === 'inspect')
         <label>Inspection result<select name="result" required><option value="accepted">Accepted — proceed to refund</option><option value="rejected">Rejected — explain findings</option></select></label>
     @elseif($action === 'refund')
-        <p class="return-notice">Record only a payment already sent to the buyer. This form does not transfer money. Approved amount: PHP {{ number_format($case->amount_minor / 100, 2) }}.</p>
-        <label>Payment method<select name="method" required><option value="gcash">GCash</option><option value="bank">Bank transfer</option><option value="cash">Cash with receipt</option></select></label>
-        <label>Transaction / receipt reference<input name="reference" maxlength="150" required></label>
-        <label>Date paid<input type="date" name="paid_at" max="{{ now()->format('Y-m-d') }}" required></label>
-        <label>Payment receipt<input type="file" name="proof" accept="image/jpeg,image/png,image/webp,application/pdf" required></label>
-        <small>Private receipt, up to 5 MB. The buyer, seller, handling hub and administrators can access it. Hide unrelated financial information.</small>
-        <label class="return-check"><input type="checkbox" name="paid_confirmation" value="1" required> I confirm this amount has already been paid to the buyer.</label>
+        <p class="return-notice">Credit the approved refund to the buyer's Cartzy Wallet. It can pay for any Cartzy product and cannot be withdrawn. Approved amount: PHP {{ number_format($case->amount_minor / 100, 2) }}.</p>
+        <input type="hidden" name="method" value="cartzy_wallet">
+        <small>Submitting this form credits the wallet immediately and records a unique refund transaction.</small>
+
     @endif
     <label>{{ in_array($action, ['reject', 'appeal', 'inspect']) ? 'Reason / findings' : 'Notes' }}<textarea name="notes" rows="3" minlength="3" maxlength="2000" required></textarea></label>
     <button type="submit" class="return-button">{{ $label }}</button>

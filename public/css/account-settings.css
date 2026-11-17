@@ -335,3 +335,13 @@ body:has(.acct-banner) { overflow-x: clip; } /* 100vw includes the scrollbar; do
 @media (prefers-reduced-motion: reduce) {
     .acct *, .acct *::before, .acct *::after { animation: none !important; transition: none !important; }
 }
+
+/* Buyer refund credit */
+.wallet-body { padding: 0 24px 24px; line-height: 1.6; overflow-wrap: anywhere; }
+.wallet-balance { display: block; font-size: 34px; color: var(--acct-violet); }
+.wallet-history-title { margin-top: 24px; font-size: 16px; font-weight: 700; }
+.wallet-entry { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; padding: 14px 0; border-bottom: 1px solid var(--acct-line); }
+.wallet-entry strong { flex: 1; min-width: 140px; }
+.wallet-entry span { font-weight: 700; color: var(--acct-violet); }
+.wallet-entry p { width: 100%; font-size: 12px; color: var(--acct-muted); }
+.wallet-body > a { display: inline-block; margin-top: 18px; text-decoration: underline; color: var(--acct-violet); }

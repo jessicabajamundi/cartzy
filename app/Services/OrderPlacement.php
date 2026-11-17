@@ -31,7 +31,7 @@ class OrderPlacement
      * @param  \App\Models\Address|null  $address  A saved address of this buyer to ship to (the mobile app picks one);
      *         its recipient, phone and province are used. Null falls back to the default address when the text matches.
      */
-    public function place(User $buyer, array $cartItems, string $paymentMethod, string $deliveryAddress, ?array $voucherIds = null, ?\App\Models\Address $address = null, ?string $providerRef = null, ?string $receiptPath = null): Order
+    public function place(User $buyer, array $cartItems, string $paymentMethod, string $deliveryAddress, ?array $voucherIds = null, ?\App\Models\Address $address = null, ?string $providerRef = null, ?string $receiptPath = null, int $walletAmount = 0, ?string $checkoutKey = null): Order
     {
         if ($address && $address->user_id !== $buyer->id) {
             throw new RuntimeException('Please choose one of your own saved addresses.');
@@ -43,7 +43,12 @@ class OrderPlacement
             throw new RuntimeException('Your cart is empty.');
         }
 
-        return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress, $voucherIds, $address, $providerRef, $receiptPath) {
+        return DB::transaction(function () use ($buyer, $cartItems, $paymentMethod, $deliveryAddress, $voucherIds, $address, $providerRef, $receiptPath, $walletAmount, $checkoutKey) {
+            User::whereKey($buyer->id)->lockForUpdate()->firstOrFail();
+            if ($checkoutKey && ($existing = Order::where('buyer_id', $buyer->id)->where('checkout_key', $checkoutKey)->first())) return $existing;
+            if ($walletAmount < 0 || $walletAmount > app(BuyerWallet::class)->balance($buyer->id)) {
+                throw new RuntimeException('Your wallet balance changed. Refresh checkout and review your payment.');
+            }
             $defaultAddress = $address ?? \App\Models\Address::where('user_id', $buyer->id)->where('is_default', true)->first();
             $useDefaultContact = $defaultAddress && ($address !== null || $defaultAddress->formatted_address === $deliveryAddress);
             $provider = LogisticsProvider::query()->orderBy('id')->first();
@@ -109,7 +114,12 @@ class OrderPlacement
             $shippingDiscountMinor = $selection['shipping']['discount_minor'] ?? 0;
             $totalMinor = max(0, $subtotalMinor + $shippingMinor - $shopShippingDiscountMinor - $shippingDiscountMinor - $itemDiscountMinor - $shopDiscountMinor);
             $isCod = in_array(strtoupper(trim((string) $paymentMethod)), ['COD', 'CASH ON DELIVERY'], true);
-            if (!$isCod && $groups->count() !== 1) {
+            $walletOnly = strtoupper($paymentMethod) === 'CARTZYWALLET';
+            if ($walletAmount > $totalMinor || ($walletOnly && $walletAmount !== $totalMinor)) {
+                throw new RuntimeException('Review your wallet payment. The amount must match the current order total for wallet-only checkout.');
+            }
+            $externalAmount = $totalMinor - $walletAmount;
+            if (!$isCod && $externalAmount > 0 && $groups->count() !== 1) {
                 throw new RuntimeException('For direct GCash payments, check out one store at a time so each seller receives and verifies the correct payment.');
             }
 
@@ -117,20 +127,29 @@ class OrderPlacement
                 'buyer_id'         => $buyer->id,
                 'reference'        => $this->reference(),
                 'total_minor'      => $totalMinor,
-                'payment_method'   => $isCod ? 'cod' : 'wallet',
-                'payment_status'   => 'pending',
+                'payment_method'   => $isCod && $externalAmount > 0 ? 'cod' : 'wallet',
+                'payment_status'   => $externalAmount === 0 ? 'paid' : 'pending',
+                'wallet_paid_minor' => $walletAmount,
+                'checkout_key' => $checkoutKey,
                 'shipping_address' => [
                     'recipient' => $useDefaultContact ? $defaultAddress->recipient : $buyer->name,
                     'phone'     => $useDefaultContact ? $defaultAddress->phone : $buyer->phone,
                     'address'   => $deliveryAddress,
                 ],
             ]);
+            if ($walletAmount > 0) {
+                app(BuyerWallet::class)->record($buyer, -$walletAmount, 'checkout:'.$order->id, 'purchase', 'Payment for '.$order->reference, $order);
+            }
 
             // cartzy vouchers are shared across stores in proportion to what each store has left to pay.
             // They don't change commission (it stays on the full subtotal), and the courier is always paid
             // the full parcel fee. Shop vouchers belong to their own store only and are paid for by that store.
             $itemShares = self::allocate($itemDiscountMinor, collect($storeSubtotals)->map(fn ($subtotal, $id) => $subtotal - ($shopSelection[$id]['discount_minor'] ?? 0))->all());
             $shippingShares = self::allocate($shippingDiscountMinor, collect($storeShipping)->map(fn ($fee, $id) => $fee - ($shopShippingSelection[$id]['discount_minor'] ?? 0))->all());
+            $walletParts = collect($storeSubtotals)->map(fn ($subtotal, $id) => max(0, $subtotal + $storeShipping[$id]
+                - ($shopSelection[$id]['discount_minor'] ?? 0) - ($shopShippingSelection[$id]['discount_minor'] ?? 0)
+                - $itemShares[$id] - $shippingShares[$id]))->all();
+            $walletShares = self::allocate($walletAmount, $walletParts);
             foreach ($groups as $groupLines) {
                 $seller = $groupLines->first()['seller'];
                 $groupSubtotal = $storeSubtotals[$seller->id];
@@ -154,6 +173,7 @@ class OrderPlacement
                     'seller_voucher_discount_minor' => $groupShopDiscount,
                     'commission_minor'        => SellerOrder::commissionFor($groupSubtotal),
                     'status'                  => 'pending',
+                    'wallet_paid_minor' => $walletShares[$seller->id],
                 ]);
 
                 foreach ($groupLines as $l) {
@@ -177,7 +197,7 @@ class OrderPlacement
                     'tracking_code'         => 'CTZ-' . strtoupper(Str::random(10)),
                     'status'                => 'unassigned',
                     'fee_minor'             => $sellerOrder->courierFeeMinor(),
-                    'cod_amount_minor'      => $isCod ? $sellerOrder->buyerDueMinor() : 0,
+                    'cod_amount_minor'      => $isCod ? $sellerOrder->buyerDueMinor() - $sellerOrder->wallet_paid_minor : 0,
                 ]);
 
                 DeliveryEvent::create([
@@ -190,10 +210,14 @@ class OrderPlacement
                 ]);
             }
 
-            Payment::create([
+            if ($walletAmount > 0) Payment::create([
+                'order_id' => $order->id, 'method' => 'cartzy_wallet', 'amount_minor' => $walletAmount,
+                'status' => 'paid', 'provider_ref' => 'WALLET-'.$order->reference,
+            ]);
+            if ($externalAmount > 0) Payment::create([
                 'order_id' => $order->id,
                 'method' => $isCod ? 'cod' : 'gcash',
-                'amount_minor' => $totalMinor,
+                'amount_minor' => $externalAmount,
                 'status' => 'pending',
                 'provider_ref' => $isCod ? null : $providerRef,
                 'receipt_path' => $isCod ? null : $receiptPath,
@@ -211,7 +235,7 @@ class OrderPlacement
             \App\Models\ActivityLog::forUser($buyer, 'order_placed', $order->reference);
 
             return $order;
-        });
+        }, 3);
     }
 
     /**

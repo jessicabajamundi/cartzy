@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class SellerOrder extends Model
 {
+    protected static function booted(): void
+    {
+        static::updated(function (self $order) {
+            if ($order->wasChanged('status') && $order->status === 'cancelled' && $order->wallet_paid_minor > 0) {
+                app(\App\Services\BuyerWallet::class)->restoreCancelled($order);
+            }
+        });
+    }
+
     /** Flat platform commission on every item a seller sells: 10.00% (basis points). */
     public const COMMISSION_BPS = 1000;
 
@@ -29,6 +38,8 @@ class SellerOrder extends Model
 
     protected $fillable = [
         'order_id',
+        'wallet_paid_minor',
+        'wallet_refunded_minor',
         'seller_id',
         'logistics_provider_id',
         'subtotal_minor',
@@ -49,6 +60,8 @@ class SellerOrder extends Model
 
     protected $casts = [
         'subtotal_minor' => 'integer',
+        'wallet_paid_minor' => 'integer',
+        'wallet_refunded_minor' => 'integer',
         'shipping_fee_minor' => 'integer',
         'shipping_discount_minor' => 'integer',
         'seller_shipping_discount_minor' => 'integer',

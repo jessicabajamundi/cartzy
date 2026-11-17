@@ -223,6 +223,11 @@ class OrderTracking
             'paid' => 'Refund required. Contact the seller to arrange your refund.',
             default => null,
         } : null;
+        if ($terminal === 'cancelled' && $order->wallet_refunded_minor > 0) {
+            $refundStatus = 'PHP '.number_format($order->wallet_refunded_minor / 100, 2).' returned to Cartzy Wallet.'
+                . ($order->wallet_paid_minor < $order->buyerDueMinor() && $order->order->payment_status === 'paid'
+                    ? ' Contact the seller about any remaining payment refund.' : '');
+        }
 
         $history = $events->map(fn ($event) => [
             'label' => $labels[$event->status] ?? ucfirst(str_replace('_', ' ', $event->status)),

@@ -541,7 +541,7 @@ class SellerPortalController extends Controller
                     app(\App\Services\VoucherService::class)->reverseIfCancelled($order);
                 } elseif ($order->payment_status === 'pending') {
                     $remaining = $order->sellerOrders()->where('status', '!=', 'cancelled')->get()
-                        ->sum(fn ($row) => $row->buyerDueMinor());
+                        ->sum(fn ($row) => max(0, $row->buyerDueMinor() - $row->wallet_paid_minor));
                     $order->payments()->where('status', 'pending')->update(['amount_minor' => $remaining]);
                 }
             }

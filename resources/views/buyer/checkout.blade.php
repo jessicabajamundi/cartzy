@@ -174,6 +174,12 @@
                 <section class="checkout-card" aria-labelledby="payment-title">
                     @php($canUseGcash = count($storeItems) === 1 && (!empty($primarySeller?->gcash_number) || !empty($primarySeller?->gcash_qr_url)))
                     <div class="checkout-card-heading"><div class="checkout-section-title"><span class="checkout-step">04</span><h2 id="payment-title">Payment method</h2></div></div>
+                    @php($walletBalance = app(\App\Services\BuyerWallet::class)->balance($user->id))
+                    <input type="hidden" name="checkout_key" value="{{ old('checkout_key', (string) \Illuminate\Support\Str::uuid()) }}">
+                    <input type="hidden" name="wallet_amount_minor" id="wallet-amount" value="0">
+                    <input type="hidden" name="wallet_only" id="wallet-only" value="0">
+                    <label class="checkout-payment"><span class="checkout-payment-copy"><strong>Use Cartzy Wallet · ₱{{ number_format($walletBalance / 100, 2) }}</strong><small>Pay for any product with refunded credit. No cash-out. Any remainder uses the payment method below.</small></span><input type="checkbox" id="use-wallet" data-balance="{{ $walletBalance }}" @disabled($walletBalance <= 0)></label>
+                    <p id="wallet-breakdown" aria-live="polite"></p>
                     <fieldset class="checkout-payments"><legend class="checkout-sr-only">Choose your payment method</legend>
                         <label class="checkout-payment is-selected" id="payment-label-cod">
                             <span class="checkout-payment-icon" aria-hidden="true">&#8369;</span>
@@ -277,8 +283,16 @@
         const savings = Number(form.dataset.productSavings) + items + shipping + shop;
         form.querySelector('[data-shipping-discount]').textContent = (shipping ? '−' : '') + peso(shipping);
         form.querySelector('[data-voucher-discount-total]').textContent = (items ? '−' : '') + peso(items);
-        form.querySelectorAll('[data-total]').forEach(el => el.textContent = peso(total));
-        form.querySelector('[data-total-button]').textContent = peso(total) + ' →';
+        const useWallet = document.getElementById('use-wallet');
+        const balance = Number(useWallet?.dataset.balance || 0);
+        const wallet = useWallet?.checked ? Math.min(balance, total) : 0;
+        const remaining = total - wallet;
+        document.getElementById('wallet-amount').value = wallet;
+        document.getElementById('wallet-only').value = wallet > 0 && remaining === 0 ? '1' : '0';
+        document.getElementById('wallet-breakdown').textContent = `Order total: ${peso(total)} · Wallet: ${peso(wallet)} · Remaining: ${peso(remaining)} · Wallet balance after payment: ${peso(balance - wallet)}`;
+        form.querySelectorAll('[data-total]').forEach(el => el.textContent = peso(remaining));
+        form.querySelector('[data-total-button]').textContent = peso(remaining) + ' →';
+        form.dataset.remaining = remaining;
         const box = form.querySelector('[data-savings]');
         box.hidden = savings <= 0;
         box.querySelector('strong').textContent = peso(savings);
@@ -307,7 +321,8 @@
     const labelGcash = document.getElementById('payment-label-gcash');
 
     function updatePaymentMethod() {
-        const selected = form.querySelector('input[name="payment_method"]:checked')?.value || 'COD';
+        const fullWallet = document.getElementById('wallet-only').value === '1';
+        const selected = fullWallet ? 'CartzyWallet' : (form.querySelector('input[name="payment_method"]:checked')?.value || 'COD');
         ['gcash_reference', 'gcash_receipt'].forEach(id => {
             const input = document.getElementById(id);
             if (input) input.required = selected === 'GCash';
@@ -322,11 +337,15 @@
             labelCod?.classList.add('is-selected');
             labelGcash?.classList.remove('is-selected');
             if (gcashPanel) gcashPanel.style.display = 'none';
-            if (paymentNote) paymentNote.innerHTML = 'No payment is collected now. Prepare <strong data-total>' + peso(Math.max(0, Number(form.dataset.subtotal) + Number(form.dataset.shipping))) + '</strong> for delivery.';
-            if (reviewPayment) reviewPayment.textContent = 'Cash on Delivery';
+            if (paymentNote) paymentNote.textContent = fullWallet ? 'Your wallet covers this order. No additional payment is required.' : 'Pay the remaining ' + peso(Number(form.dataset.remaining || 0)) + ' on delivery.';
+            if (reviewPayment) reviewPayment.textContent = fullWallet ? 'Cartzy Wallet' : 'Cash on Delivery';
         }
     }
-    paymentMethods.forEach(r => r.addEventListener('change', updatePaymentMethod));
+    const recalculate = () => { refresh(); updatePaymentMethod(); };
+    document.getElementById('use-wallet').addEventListener('change', recalculate);
+    form.querySelectorAll('input[data-voucher-discount]').forEach(input => input.addEventListener('change', recalculate));
+    paymentMethods.forEach(r => r.addEventListener('change', recalculate));
+    refresh();
     updatePaymentMethod();
 })();
 

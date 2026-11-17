@@ -11,6 +11,9 @@
         'password'   => ['Password', 'M6 11h12v10H6Z M8.5 11V8a3.5 3.5 0 0 1 7 0v3 M12 15v2'],
         'activity'   => ['Account activity', 'M3 12a9 9 0 1 0 3-6.7L3 8 M3 3v5h5 M12 7v5l3 2'],
     ];
+    if ($user->isBuyer()) {
+        $acctSections = array_slice($acctSections, 0, 1, true) + ['wallet' => ['Cartzy Wallet', 'M3 6h18v14H3Z M3 6V3h15v3 M15 11h6v5h-6Z']] + array_slice($acctSections, 1, null, true);
+    }
     // Sections that are still being built show a friendly placeholder.
     $acctComingSoon = [
         'follows'    => 'Keep track of the shops you love and see their newest drops in one place.',
@@ -222,6 +225,7 @@
         </section>
 
         {{-- Delivery addresses --}}
+        @if($user->isBuyer()) @include('buyer.partials.wallet') @endif
         <section class="acct-card" id="acct-addresses" data-acct-section="addresses">
             <header class="acct-head">
                 <div>

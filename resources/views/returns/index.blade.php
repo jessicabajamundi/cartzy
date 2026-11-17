@@ -25,7 +25,7 @@
             if (($role === 'logistics' || $isAdmin) && $case->status === 'scheduled') $actions = ['dispatch' => 'Assign return rider', 'collect' => $case->handover_method === 'pickup' ? 'Confirm parcel collected' : 'Confirm drop-off received at hub'];
             if (($role === 'seller' || $isAdmin) && $case->status === 'in_transit') $actions = ['receive' => 'Confirm returned parcel received'];
             if (($role === 'seller' || $isAdmin) && $case->status === 'received') $actions = ['inspect' => 'Record inspection'];
-            if (($isAdmin || $case->canLogisticsDisburse(auth()->user())) && $case->status === 'refund_pending') $actions['refund'] = $role === 'logistics' ? 'Record completed COD refund to buyer' : 'Record completed refund payment';
+            if (($isAdmin || $case->canLogisticsDisburse(auth()->user())) && $case->status === 'refund_pending') $actions['refund'] = 'Credit buyer Cartzy Wallet';
         @endphp
         <article class="return-card" id="case-{{ $case->id }}">
             <header><div><h2>Case #{{ $case->id }} · {{ $report->order->reference }}</h2><p>{{ $report->sellerOrder->seller->name }} · {{ \App\Models\AdminDispute::RESOLUTIONS[$report->requested_resolution] }}</p></div><strong class="return-status">{{ $labels[$case->status] ?? $case->status }}</strong></header>
@@ -50,10 +50,10 @@
             @endif
             @if($case->inspection_notes)<p>Inspection: {{ $case->inspection_notes }}</p>@endif
             @if($case->status === 'refund_pending')
-                <p class="return-notice">The refund has been approved by the seller. @if($report->order->payment_method === 'cod') Logistics is holding the COD payment in escrow and can now disburse the refund to the buyer. @else Administration will arrange the online refund and record evidence of the completed payment; the logistics hub does not hold these funds. @endif</p>
+                <p class="return-notice">The refund has been approved. It becomes spendable when an authorized administrator or handling COD hub completes the Cartzy Wallet credit. Pending amounts are not part of the available wallet balance.</p>
             @endif
             @if($case->refund)
-                <p class="return-notice">PHP {{ number_format($case->refund->amount_minor / 100, 2) }} paid via {{ strtoupper($case->refund->method) }}. Reference: {{ $case->refund->reference }} · {{ $case->refund->paid_at->timezone('Asia/Manila')->format('M j, Y g:i A') }}.<br><a href="{{ route('returns.proof', $case->id) }}">Download payment receipt</a></p>
+                <p class="return-notice">PHP {{ number_format($case->refund->amount_minor / 100, 2) }} {{ $case->refund->method === 'cartzy_wallet' ? 'credited to Cartzy Wallet' : 'paid via '.strtoupper($case->refund->method) }}. Reference: {{ $case->refund->reference }} · {{ $case->refund->paid_at->timezone('Asia/Manila')->format('M j, Y g:i A') }}.@if($case->refund->method !== 'cartzy_wallet')<br><a href="{{ route('returns.proof', $case->id) }}">Download payment receipt</a>@endif</p>
             @endif
             <div class="return-actions">@foreach($actions as $action => $label)
                 <details><summary>{{ $label }}</summary>@include('returns.form')</details>

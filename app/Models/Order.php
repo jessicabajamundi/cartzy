@@ -16,10 +16,13 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'shipping_address',
+        'wallet_paid_minor',
+        'checkout_key',
     ];
 
     protected $casts = [
         'total_minor'      => 'integer',
+        'wallet_paid_minor' => 'integer',
         'shipping_address' => 'array',
     ];
 

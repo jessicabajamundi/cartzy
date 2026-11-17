@@ -59,10 +59,12 @@ class ReturnController extends Controller
                 'logistics_provider_id' => ['required', 'integer', Rule::exists('logistics_providers', 'id')->where('status', 'approved')]],
             'dispatch' => ['rider_id' => ['required', 'integer']],
             'inspect' => ['result' => ['required', Rule::in(['accepted', 'rejected'])]],
-            'refund' => ['method' => ['required', Rule::in(['gcash', 'bank', 'cash'])],
-                'reference' => ['required', 'string', 'max:150', Rule::unique('refund_transactions')->where('method', $request->input('method'))],
-                'paid_at' => ['required', 'date', 'before_or_equal:now'], 'paid_confirmation' => ['accepted'],
-                'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120']],
+            'refund' => $request->input('method') === 'cartzy_wallet'
+                ? ['method' => ['required', Rule::in(['cartzy_wallet'])]]
+                : ['method' => ['required', Rule::in(['gcash', 'bank', 'cash'])],
+                    'reference' => ['required', 'string', 'max:150', Rule::unique('refund_transactions')->where('method', $request->input('method'))],
+                    'paid_at' => ['required', 'date', 'before_or_equal:now'], 'paid_confirmation' => ['accepted'],
+                    'proof' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120']],
             'reject', 'appeal', 'collect', 'receive' => [],
             default => abort(404),
         };
@@ -70,7 +72,7 @@ class ReturnController extends Controller
         $data = $request->validate($rules);
         $path = null;
         try {
-            if ($action === 'refund') {
+            if ($action === 'refund' && $data['method'] !== 'cartzy_wallet') {
                 $path = $request->file('proof')->store('refund-proofs/'.$id, 'local');
                 abort_unless($path, 422, 'Payment receipt could not be saved. Please retry.');
                 $data['proof_path'] = $path;

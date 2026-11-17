@@ -65,7 +65,7 @@
         @else
             <small style="display:block; color:var(--dm-blue-ink, #007DFE); font-weight:700;">Direct Online Payment</small>
         @endif
-        @php $latestPay = $payment?->payments?->first(); @endphp
+        @php $latestPay = $payment?->payments?->first(fn ($entry) => $entry->method !== 'cartzy_wallet') ?? $payment?->payments?->first(); @endphp
         @if($latestPay?->provider_ref)
             <small style="display:block; color:var(--dm-blue-ink, #007DFE); font-weight:700;">Ref: {{ $latestPay->provider_ref }}</small>
         @endif

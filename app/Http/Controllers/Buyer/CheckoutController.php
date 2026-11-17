@@ -154,6 +154,8 @@ class CheckoutController extends Controller
      */
     public function process(Request $request)
     {
+        if ($request->boolean('wallet_only')) $request->merge(['payment_method' => 'CartzyWallet']);
+        if (!$request->filled('checkout_key')) $request->merge(['checkout_key' => (string) \Illuminate\Support\Str::uuid()]);
         $user = Auth::user();
 
         if (!$user) {
@@ -161,7 +163,9 @@ class CheckoutController extends Controller
         }
 
         $request->validate([
-            'payment_method'   => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
+            'payment_method'   => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash,CartzyWallet'],
+            'wallet_amount_minor' => ['nullable', 'integer', 'min:0'],
+            'checkout_key' => ['required', 'string', 'max:64'],
             'delivery_address' => ['required', 'string'],
             'gcash_reference'  => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'string', 'max:50'],
             'receipt'          => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
@@ -195,7 +199,8 @@ class CheckoutController extends Controller
 
         try {
             $order = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $checkoutItems, $request, $selectedCart, $shopVoucherIds, $receiptPath) {
-                $chosenMethod = in_array(strtoupper(trim((string) $request->input('payment_method'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
+                $chosenMethod = $request->input('payment_method') === 'CartzyWallet' ? 'CartzyWallet'
+                    : (in_array(strtoupper(trim((string) $request->input('payment_method'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash');
                 $gcashRef = $chosenMethod === 'GCash' ? ($request->input('gcash_reference') ?: null) : null;
                 $order = app(OrderPlacement::class)->place(
                     $user,
@@ -205,7 +210,9 @@ class CheckoutController extends Controller
                     ['items' => $request->integer('voucher_id') ?: null, 'shipping' => $request->integer('shipping_voucher_id') ?: null] + $shopVoucherIds,
                     null,
                     $gcashRef,
-                    $receiptPath
+                    $receiptPath,
+                    $request->integer('wallet_amount_minor'),
+                    $request->input('checkout_key')
                 );
 
                 if ($chosenMethod === 'GCash') {

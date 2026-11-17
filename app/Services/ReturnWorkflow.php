@@ -60,6 +60,9 @@ class ReturnWorkflow
         $orderRemaining = $order->total_minor - (clone $reserved)->sum('amount_minor');
         $storeRemaining = $so->buyerDueMinor() - (clone $reserved)
             ->whereHas('dispute', fn ($q) => $q->where('seller_order_id', $so->id))->sum('amount_minor');
+        $cancelledCredits = \App\Models\WalletTransaction::where('order_id', $order->id)->where('type', 'cancellation_refund');
+        $orderRemaining -= (clone $cancelledCredits)->sum('amount_minor');
+        $storeRemaining -= (clone $cancelledCredits)->where('seller_order_id', $so->id)->sum('amount_minor');
         if ($amount <= 0 || $amount > min($orderRemaining, $storeRemaining)) {
             throw ValidationException::withMessages(['amount' => 'The refund exceeds the remaining amount paid for this store/order, including other approved refunds.']);
         }
@@ -141,6 +144,10 @@ class ReturnWorkflow
                     $case->update(['status' => $data['result'] === 'accepted' ? 'refund_pending' : 'inspection_failed', 'inspection_notes' => $notes]);
                     break;
                 case 'refund':
+                    $walletRefund = ($data['method'] ?? '') === 'cartzy_wallet';
+                    if ($report->sellerOrder->wallet_paid_minor > 0 && !$walletRefund) {
+                        throw ValidationException::withMessages(['method' => 'Orders paid with wallet credit must be refunded to Cartzy Wallet. Wallet credit cannot be cashed out.']);
+                    }
                     // Serialize refund recording with changes to the parcel's COD remittance.
                     $shipment = $report->sellerOrder?->shipment()->lockForUpdate()->first();
                     $report->sellerOrder?->setRelation('shipment', $shipment);
@@ -149,6 +156,13 @@ class ReturnWorkflow
                     $this->requireState($case, ['refund_pending']);
                     $this->paidOrder($case, $order);
                     $this->checkAmount($case, $order, $case->amount_minor);
+                    if ($walletRefund) {
+                        $entry = app(BuyerWallet::class)->record($order->buyer, $case->amount_minor,
+                            'refund:'.$case->id, 'refund', 'Refund for '.$order->reference, $order, $report->sellerOrder);
+                        $data = array_merge($data, ['reference' => 'WALLET-'.$entry->id, 'proof_path' => '', 'paid_at' => now()]);
+                        $report->sellerOrder->increment('wallet_refunded_minor', min($case->amount_minor,
+                            max(0, $report->sellerOrder->wallet_paid_minor - $report->sellerOrder->wallet_refunded_minor)));
+                    }
                     RefundTransaction::create(['return_case_id' => $case->id, 'order_id' => $order->id,
                         'seller_order_id' => $report->seller_order_id, 'recorded_by' => $actor->id,
                         'amount_minor' => $case->amount_minor, 'method' => $data['method'],
@@ -157,7 +171,7 @@ class ReturnWorkflow
                     $order->update(['payment_status' => $totalRefunded >= $order->total_minor ? 'refunded' : 'partially_refunded']);
                     $case->update(['status' => 'refunded']);
                     $notes = trim($notes.' Payment: '.strtoupper($data['method']).' / '.$data['reference'].
-                        '; PHP '.number_format($case->amount_minor / 100, 2).'; completed payment manually recorded.');
+                        '; PHP '.number_format($case->amount_minor / 100, 2).($walletRefund ? '; credited to Cartzy Wallet.' : '; completed payment manually recorded.'));
                     $disbursedBy = $isLogistics ? ('Logistics Hub ('.$actor->logisticsProvider->name.')') : 'Administration';
                     $report->update(['status' => 'resolved', 'resolved_at' => now(),
                         'admin_notes' => "Refund payment disbursed by {$disbursedBy}: PHP ".number_format($case->amount_minor / 100, 2).'. '.$notes]);

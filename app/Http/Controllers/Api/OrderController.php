@@ -25,6 +25,21 @@ class OrderController extends Controller
 {
     public function __construct(private BuyerOrders $orders) {}
 
+    public function quote(Request $request)
+    {
+        $data = $request->validate(['address_id' => ['required', 'integer'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.variant_id' => ['nullable', 'integer'], 'items.*.product_id' => ['nullable', 'integer'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:1000000']]);
+        $address = Address::where('user_id', $request->user()->id)->findOrFail($data['address_id']);
+        try {
+            return response()->json(app(\App\Services\CheckoutQuote::class)->build($request->user(), $data['items'], $address))
+                ->header('Cache-Control', 'no-store');
+        } catch (RuntimeException $error) {
+            return response()->json(['message' => $error->getMessage()], 422);
+        }
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -80,7 +95,8 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'checkout_key' => ['required', 'string', 'max:64'],
-            'payment_method' => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash'],
+            'payment_method' => ['required', 'string', 'in:COD,GCash,wallet,cod,gcash,CartzyWallet'],
+            'wallet_amount_minor' => ['nullable', 'integer', 'min:0'],
             'gcash_reference' => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'string', 'max:50'],
             'receipt' => ['required_if:payment_method,GCash,gcash,wallet', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:5120'],
             'address_id' => ['required', 'integer'],
@@ -137,7 +153,8 @@ class OrderController extends Controller
                 $items[] = $item;
             }
 
-            $chosenMethod = in_array(strtoupper(trim((string) ($data['payment_method'] ?? 'COD'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash';
+            $chosenMethod = $data['payment_method'] === 'CartzyWallet' ? 'CartzyWallet'
+                : (in_array(strtoupper(trim((string) ($data['payment_method'] ?? 'COD'))), ['COD', 'CASH ON DELIVERY'], true) ? 'COD' : 'GCash');
             $receiptPath = null;
             if ($chosenMethod === 'GCash' && $request->hasFile('receipt')) {
                 $receiptPath = $request->file('receipt')->store('payment_receipts', 'public');
@@ -145,7 +162,7 @@ class OrderController extends Controller
             $placed = false;
 
             try {
-                $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address, $data['gcash_reference'] ?? null, $receiptPath);
+                $order = $placement->place($user, $items, $chosenMethod, $address->formatted_address, null, $address, $data['gcash_reference'] ?? null, $receiptPath, (int) ($data['wallet_amount_minor'] ?? 0), $data['checkout_key']);
                 $placed = true;
 
                 if ($chosenMethod === 'GCash') {
@@ -204,7 +221,9 @@ class OrderController extends Controller
                 'id' => $order->id,
                 'reference' => $order->reference,
                 'total' => $totalFormatted,
-                'payment_method' => $isCod ? 'COD' : 'GCash',
+                'wallet_paid_minor' => $order->wallet_paid_minor,
+                'remaining_minor' => max(0, $order->total_minor - $order->wallet_paid_minor),
+                'payment_method' => $order->wallet_paid_minor === $order->total_minor ? 'CartzyWallet' : ($isCod ? 'COD' : 'GCash'),
                 'payment_status' => $order->payment_status,
                 'seller_order_ids' => $order->sellerOrders->pluck('id')->values(),
             ],

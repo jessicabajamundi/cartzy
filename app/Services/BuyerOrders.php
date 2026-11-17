@@ -28,7 +28,8 @@ class BuyerOrders
 
     public function status(SellerOrder $so): string
     {
-        $hasPaidProof = !empty($so->order->payments->first()?->provider_ref) || !empty($so->order->payments->first()?->receipt_path);
+        $externalPayment = $so->order->payments->first(fn ($payment) => $payment->method !== 'cartzy_wallet');
+        $hasPaidProof = !empty($externalPayment?->provider_ref) || !empty($externalPayment?->receipt_path);
 
         return match (true) {
             $so->status === 'cancelled'                                   => 'cancelled',
@@ -52,6 +53,7 @@ class BuyerOrders
     public function card(SellerOrder $so): array
     {
         $order = $so->order;
+        $payment = $order->payments->first(fn ($payment) => $payment->method !== 'cartzy_wallet') ?? $order->payments->first();
         $singleSeller = $order->sellerOrders->count() === 1;
 
         return [
@@ -71,16 +73,19 @@ class BuyerOrders
             'status'   => $this->status($so),
             'date'     => $order->created_at->format('M d, Y'),
             'total'    => $singleSeller ? $order->total_minor / 100 : $so->buyerDueMinor() / 100,
-            'payment'  => match (strtoupper((string) ($order->payments->first()->method ?? $order->payment_method))) {
+            'wallet_paid_minor' => $so->wallet_paid_minor,
+            'remaining_minor' => max(0, $so->buyerDueMinor() - $so->wallet_paid_minor),
+            'payment'  => match (strtoupper((string) ($payment->method ?? $order->payment_method))) {
+                'CARTZY_WALLET' => 'Cartzy Wallet',
                 'WALLET', 'E-WALLET', 'GCASH' => 'GCash',
                 'COD', 'CASH ON DELIVERY'     => 'COD',
-                default                       => strtoupper((string) ($order->payments->first()->method ?? $order->payment_method)),
+                default                       => strtoupper((string) ($payment->method ?? $order->payment_method)),
             },
             'payment_status'      => $order->payment_status,
-            'payment_ref'         => $order->payments->first()?->provider_ref,
-            'payment_receipt_url' => $order->payments->first()?->receipt_url,
+            'payment_ref'         => $payment?->provider_ref,
+            'payment_receipt_url' => $payment?->receipt_url,
             'is_payment_verified' => $order->payment_status === 'paid',
-            'payment_note'        => ($order->payment_status === 'pending' && !empty($order->payments->first()?->provider_ref))
+            'payment_note'        => ($order->payment_status === 'pending' && $payment?->method !== 'cartzy_wallet' && !empty($payment?->provider_ref))
                 ? 'Payment receipt submitted · Pending verification'
                 : null,
             'items'    => $so->items->map(fn ($i) => [
