@@ -289,7 +289,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           children: [
             _summary('Order', _text('order')),
             _summary('Tracking no.', _text('tracking_no')),
-            _summary('Estimated arrival', _text('eta'), highlight: true),
+            if (_tracking?['eta'] != null && _text('eta') != 'Not confirmed by courier')
+              _summary('Estimated arrival', _text('eta'), highlight: true),
           ],
         ),
       ),
@@ -332,6 +333,8 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             _detail('Delivery area', _text('area')),
             _detail('Delivery attempts',
                 attempts == null || attempts == 0 ? 'No attempt recorded' : '$attempts'),
+            if (_tracking?['refund_status'] != null)
+              _detail('Refund status', _text('refund_status')),
             if (attention != null && '$attention'.isNotEmpty)
               Container(
                 width: double.infinity,
@@ -459,8 +462,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
     final done = step['done'] == true;
     final current = step['current'] == true;
     final rejected = step['rejected'] == true;
+    final error = rejected || step['error'] == true;
     const rejectColor = Color(0xFFBE123C);
-    final circleColor = rejected
+    final circleColor = error
         ? rejectColor
         : (current ? _rose : (done ? _brand : const Color(0xFFE5E7EB)));
     return IntrinsicHeight(
@@ -479,22 +483,22 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     shape: BoxShape.circle,
                     border: current
                         ? Border.all(
-                            color: (rejected ? rejectColor : _rose).withValues(alpha: 0.3),
+                            color: (error ? rejectColor : _rose).withValues(alpha: 0.3),
                             width: 4)
                         : null,
                   ),
-                  child: Icon(
-                      rejected ? Icons.close : (done ? Icons.check : Icons.circle),
-                      size: (done || rejected) ? 15 : 6,
-                      color: (done || rejected)
-                          ? Colors.white
-                          : CartzyColors.mutedOf(context, light: const Color(0xFF9CA3AF))),
+                  child: error || done
+                      ? Icon(error ? Icons.close : Icons.check, size: 15, color: Colors.white)
+                      : const Center(
+                          child: SizedBox(width: 13, height: 13,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                        ),
                 ),
                 if (!isLast)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: done && !current && !rejected
+                      color: done && !current && !error
                           ? _rose
                           : CartzyColors.elevatedOf(context, light: const Color(0xFFE5E7EB)),
                     ),
@@ -517,7 +521,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                           style: GoogleFonts.dmSans(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w700,
-                              color: rejected
+                              color: error
                                   ? rejectColor
                                   : (done
                                       ? CartzyColors.textOf(context, light: _ink)
@@ -526,14 +530,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
-                            color: (rejected ? rejectColor : _rose).withValues(alpha: 0.15),
+                            color: (error ? rejectColor : _rose).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text(rejected ? 'Rejected' : 'Latest confirmed',
+                          child: Text(error ? (rejected ? 'Rejected' : 'Stopped') : (done ? 'Completed' : 'Pending'),
                               style: GoogleFonts.dmSans(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: rejected
+                                  color: error
                                       ? rejectColor
                                       : CartzyColors.readableOf(context,
                                           light: CartzyColors.mutedOf(context, light: const Color(0xFF8C5A50)),
