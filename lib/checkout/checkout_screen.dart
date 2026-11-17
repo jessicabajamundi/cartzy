@@ -49,6 +49,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _useWallet = false;
   Map<String, dynamic>? _quote;
   String? _quoteError;
+  int _quoteRequest = 0;
   int get _walletAmount => _useWallet ? math.min(_walletBalance, (totalPayment * 100).round()) : 0;
   double get _remainingPayment => math.max(0, totalPayment - _walletAmount / 100);
   bool get _walletOnly => _useWallet && _walletAmount > 0 && _remainingPayment == 0;
@@ -62,11 +63,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   ];
 
   Future<bool> _refreshQuote() async {
+    final requestId = ++_quoteRequest;
     final addressId = int.tryParse(_deliveryAddress?['id'] ?? '');
     if (addressId == null) return false;
     try {
       final data = await ApiService.post('/checkout/quote', {'address_id': addressId, 'items': _checkoutLines}, token: AuthService.token);
-      if (!mounted) return false;
+      if (!mounted || requestId != _quoteRequest || _deliveryAddress?['id'] != addressId.toString()) return false;
       setState(() {
         _quote = Map<String, dynamic>.from(data);
         _walletBalance = (data['wallet_balance_minor'] as num).toInt();
@@ -74,8 +76,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         _quoteError = null;
       });
       return true;
-    } catch (_) {
-      if (mounted) setState(() => _quoteError = 'Could not refresh checkout. Tap to retry.');
+    } catch (error) {
+      if (mounted && requestId == _quoteRequest) {
+        setState(() {
+          _quote = null;
+          _quoteError = error is ApiException ? error.message : 'Could not refresh checkout. Tap to retry.';
+        });
+      }
       return false;
     }
   }
@@ -933,6 +940,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(height: 14),
 
           // Vouchers status notification box
+          for (final service in (_quote?['delivery_services'] as List? ?? []))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(service['service_label']?.toString() ?? 'Standard delivery',
+                style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 12)),
+            ),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

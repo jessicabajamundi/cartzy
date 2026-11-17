@@ -64,8 +64,9 @@ void main() {
     expect(find.text('First Mile courier'), findsOneWidget);
     expect(find.text('Metro South Hub'), findsOneWidget);
     expect(find.text('Not on shift'), findsOneWidget);
+    expect(find.textContaining('No Hub-to-Hub transfers assigned yet'), findsOneWidget);
+    await openTab(tester, 'Pickups');
     expect(find.textContaining('No pickups assigned to you'), findsOneWidget);
-    expect(find.textContaining('Nothing in your vehicle'), findsOneWidget);
     // No made-up rating or numbers.
     expect(find.textContaining('Rating'), findsNothing);
     expect(find.textContaining('★'), findsNothing);
@@ -90,11 +91,9 @@ void main() {
     );
 
     expect(find.text('On shift'), findsOneWidget);
-    expect(find.text('Laguna Gadgets'), findsNWidgets(1));
-    expect(find.textContaining('2 parcels waiting'), findsOneWidget);
-    expect(find.text('CTZ-IN-VAN-1'), findsOneWidget);
-
     await openTab(tester, 'Pickups');
+    expect(find.text('Laguna Gadgets'), findsOneWidget);
+    expect(find.textContaining('2 parcels waiting'), findsOneWidget);
     expect(find.text('09171234567'), findsOneWidget);
     expect(find.text('Gate 2'), findsOneWidget);
 

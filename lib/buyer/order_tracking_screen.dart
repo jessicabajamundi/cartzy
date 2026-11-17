@@ -329,7 +329,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
               _detail('Pickup rider', _text('pickup_rider')),
             if (_tracking?.containsKey('hub_to_hub_courier') == true)
               _detail('Hub-to-Hub courier', _text('hub_to_hub_courier')),
-            _detail('Delivery rider', _text('rider')),
+              if (_tracking?.containsKey('delivery_service') == true)
+                _detail('Delivery service', _text('delivery_service')),
+              _detail('Delivery driver', _text('rider')),
             _detail('Delivery area', _text('area')),
             _detail('Delivery attempts',
                 attempts == null || attempts == 0 ? 'No attempt recorded' : '$attempts'),

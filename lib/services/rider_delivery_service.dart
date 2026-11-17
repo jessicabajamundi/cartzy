@@ -18,6 +18,7 @@ class RiderDelivery {
   final bool isCod;
   final double codAmount;
   final int attempts;
+  final bool isBulky;
 
   const RiderDelivery({
     required this.id,
@@ -33,6 +34,7 @@ class RiderDelivery {
     this.isCod = false,
     this.codAmount = 0,
     this.attempts = 0,
+    this.isBulky = false,
   });
 
   bool get isOutForDelivery => status == 'out_for_delivery';
@@ -51,6 +53,7 @@ class RiderDelivery {
         isCod: json['is_cod'] == true,
         codAmount: (json['cod_amount'] as num?)?.toDouble() ?? 0,
         attempts: (json['attempts'] as num?)?.toInt() ?? 0,
+        isBulky: (json['package_profile'] as Map?)?['bulky'] == true,
       );
 }
 

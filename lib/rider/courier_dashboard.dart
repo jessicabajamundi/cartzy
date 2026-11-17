@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cartzy/buyer/notifications_screen.dart';
 import 'package:cartzy/rider/rider_attendance_screen.dart';
 import 'package:cartzy/rider/rider_parcel_scan.dart';
+import 'package:cartzy/rider/rider_delivery_dashboard.dart';
 import 'package:cartzy/services/api_service.dart';
 import 'package:cartzy/services/app_update_service.dart';
 import 'package:cartzy/services/courier_service.dart';
@@ -396,6 +397,15 @@ class _CourierDashboardState extends State<CourierDashboard> {
             ),
             const SizedBox(height: 18),
 
+            _Card(child: ListTile(
+              leading: const Icon(Icons.local_shipping_outlined),
+              title: const Text('Bulky pickups & buyer deliveries'),
+              subtitle: const Text('Assigned van/truck jobs. Scan, collect and complete delivery.'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (pageContext) => RiderDeliveryDashboard(
+                token: widget.token, onBack: () => Navigator.of(pageContext).pop()))),
+            )),
+            const SizedBox(height: 18),
             const _SectionTitle('Hub-to-Hub Transfers'),
             if (d.linehaulTransfers.isEmpty)
               const _Empty(

@@ -121,7 +121,7 @@ void main() {
     await tester.pump();
     expect(find.text('Waybill verified for this delivery.'), findsOneWidget);
 
-    await tester.tap(find.text('CONFIRM DELIVERY (NOTIFY SELLER & BUYER)'));
+    await tester.tap(find.text('CONFIRM DELIVERY (COMPLETE ORDER)'));
     await tester.pump();
     expect(saved, [
       ['https://cartzy.example/track/CTZ-DLV42', 'Juan Dela Cruz']

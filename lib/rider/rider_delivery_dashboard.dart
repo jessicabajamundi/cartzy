@@ -367,8 +367,9 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            titleCol,
-            badges,
+            Expanded(child: titleCol),
+            const SizedBox(width: 16),
+            Flexible(child: badges),
           ],
         );
       },
@@ -637,7 +638,7 @@ class _RiderDeliveryDashboardState extends State<RiderDeliveryDashboard> {
           ),
           const SizedBox(height: 3),
           Text(
-            'Store: ${order.sellerName ?? '—'}  •  Items: ${order.itemsSummary ?? order.itemsCount}',
+            '${order.isBulky ? 'BULKY · Van/truck required\n' : ''}Store: ${order.sellerName ?? '—'}  •  Items: ${order.itemsSummary ?? order.itemsCount}',
             maxLines: isMobile ? 2 : 1,
             overflow: TextOverflow.ellipsis,
             style: GoogleFonts.dmSans(fontSize: 9, color: CartzyColors.mutedOf(context, light: const Color(0xFF8A7780))),
