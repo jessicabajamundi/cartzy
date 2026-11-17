@@ -123,6 +123,7 @@ class AuthController extends Controller
         return response()->json(['token' => $token, 'user' => self::userJson($user)]);
     }
 
+
     /** Same email OTP as the website: request a code, then register with it. */
     public function requestOtp(Request $request)
     {
@@ -540,92 +541,19 @@ class AuthController extends Controller
     public function googleLogin(Request $request)
     {
         $data = $request->validate([
-            'email' => ['required', 'email'],
-            'google_id' => ['nullable', 'string', 'max:255'],
-            'name' => ['nullable', 'string', 'max:255'],
-            'avatar' => ['nullable', 'string', 'max:500'],
+            'intent' => ['required', Rule::in(['login', 'register'])],
+            'id_token' => ['required', 'string', 'max:10000'],
             'device_name' => ['nullable', 'string', 'max:100'],
         ]);
-
-        $email = strtolower(trim($data['email']));
-        $googleId = $data['google_id'] ?? null;
-        $name = trim($data['name'] ?? '');
-        if (empty($name)) {
-            $name = explode('@', $email)[0];
-        }
-        $avatar = $data['avatar'] ?? null;
-
-        $user = null;
-        if ($googleId) {
-            $user = User::where('google_id', $googleId)->first();
-        }
-        if (!$user) {
-            $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
-        }
-
-        if ($user) {
-            $updated = false;
-            if ($googleId && empty($user->google_id)) {
-                $user->google_id = $googleId;
-                $updated = true;
-            }
-            if ($avatar && empty($user->avatar)) {
-                $user->avatar = $avatar;
-                $updated = true;
-            }
-            if (!$user->email_verified_at) {
-                $user->email_verified_at = now();
-                $updated = true;
-            }
-            if ($updated) {
-                $user->save();
-            }
-        } else {
-            $user = DB::transaction(function () use ($email, $name, $googleId, $avatar) {
-                $created = User::create([
-                    'name' => $name,
-                    'email' => $email,
-                    'google_id' => $googleId,
-                    'avatar' => $avatar,
-                    'role' => User::ROLE_BUYER,
-                    'status' => 'active',
-                    'email_verified_at' => now(),
-                    'password' => Hash::make(\Illuminate\Support\Str::random(32)),
-                    'has_custom_password' => false,
-                ]);
-
-                \App\Models\Buyer::firstOrCreate(['user_id' => $created->id], [
-                    'name' => $created->name,
-                    'id_status' => 'unverified',
-                    'status' => 'active',
-                ]);
-
-                $role = \App\Models\Role::firstOrCreate(['name' => 'buyer']);
-                $created->roles()->syncWithoutDetaching([$role->id]);
-
-                return $created;
-            });
-        }
-
-        if (in_array($user->status, ['suspended', 'deactivated'], true) || $user->is_suspended) {
-            return response()->json(['message' => 'Your account is suspended. Please contact platform support.'], 403);
-        }
-        if ($user->status === 'rejected') {
-            return response()->json(['message' => 'Your account application was disapproved by the administrator.'], 403);
-        }
-        if ($user->status === 'pending' && !$user->isSeller()) {
-            return response()->json(['message' => 'Your account registration is still pending admin verification.'], 403);
-        }
-
+        $identity = app(\App\Services\GoogleIdentity::class)->verify($data['id_token']);
+        $user = app(\App\Services\GoogleAccounts::class)->resolve(
+            $identity['email'], (string) $identity['sub'], $identity['name'] ?? 'Google User',
+            $identity['picture'] ?? null, $data['intent']
+        );
         $token = $user->createToken($data['device_name'] ?? 'cartzy-mobile')->plainTextToken;
-        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google']);
-
-        return response()->json([
-            'token' => $token,
-            'user' => self::userJson($user),
-        ]);
+        ActivityLog::record(ActivityLog::LOGIN, $request, $user, ['method' => 'google', 'intent' => $data['intent']]);
+        return response()->json(['token' => $token, 'user' => self::userJson($user)]);
     }
-
     /**
      * Update current authenticated user profile (buyer, etc.).
      */

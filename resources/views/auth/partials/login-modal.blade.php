@@ -54,7 +54,7 @@
         'register' => $p['register'] ?? null,
         'url' => route($p['route']),
         'forgot' => route('password.forgot', ['portal' => $key]),
-        'google' => route('auth.google', ['portal' => $key]),
+        'google' => route('auth.google', ['portal' => $key, 'intent' => 'login']),
     ]);
     if ($portalData->has('courier')) {
         $portalData['courier'] = ['subtitle' => 'Deliveries and routes are in the cartzy app'] + $portalData['courier'];

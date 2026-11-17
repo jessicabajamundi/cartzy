@@ -1023,7 +1023,11 @@ class AuthController extends Controller
             $portal = User::ROLE_BUYER;
         }
 
-        session(['auth_google_portal' => $portal]);
+        $intent = $request->query('intent', 'login') === 'register' ? 'register' : 'login';
+        if ($intent === 'register' && $portal !== User::ROLE_BUYER) {
+            return redirect()->route('register')->withErrors(['email' => 'Google registration is available for buyers only.']);
+        }
+        session(['auth_google_portal' => $portal, 'auth_google_intent' => $intent]);
 
         $portalRoute = $portals[$portal]['route'] ?? 'login';
 
@@ -1031,7 +1035,7 @@ class AuthController extends Controller
         $clientSecret = config('services.google.client_secret');
 
         if (empty($clientId) || empty($clientSecret)) {
-            return redirect()->route($portalRoute)->withErrors([
+            return redirect()->route($intent === 'register' ? 'register' : $portalRoute)->withErrors([
                 'email' => 'Google Sign-In is not configured yet. Please configure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.',
             ]);
         }
@@ -1049,7 +1053,9 @@ class AuthController extends Controller
         if (!array_key_exists((string) $portal, $portals)) {
             $portal = User::ROLE_BUYER;
         }
+        $intent = session()->pull('auth_google_intent', 'login');
         $portalRoute = $portals[$portal]['route'] ?? 'login';
+        if ($intent === 'register') $portalRoute = 'register';
 
         if ($request->has('error')) {
             return redirect()->route($portalRoute)->withErrors([
@@ -1084,94 +1090,7 @@ class AuthController extends Controller
         $avatar = $googleUser->getAvatar();
 
         try {
-            // 1. Find user by google_id
-            $user = User::where('google_id', $googleId)->first();
-
-            if ($user) {
-                if (!$user->email_verified_at) {
-                    $user->email_verified_at = now();
-                    $user->save();
-                }
-            } else {
-                // 2. Check if an account with this email already exists
-                $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
-
-                if ($user) {
-                    $user->google_id = $googleId;
-                    if (empty($user->avatar) && $avatar) {
-                        $user->avatar = $avatar;
-                    }
-                    if (!$user->email_verified_at) {
-                        $user->email_verified_at = now();
-                    }
-                    $user->save();
-                } else {
-                    // No existing account found for this Google email
-                    if ($portal === User::ROLE_ADMIN) {
-                        return redirect()->route('login.admin')->withErrors([
-                            'email' => 'No administrator account found with email ' . $email . '. Admin accounts cannot be self-registered.',
-                        ]);
-                    }
-
-                    if ($portal === User::ROLE_SELLER) {
-                        return redirect()->route('register', ['role' => User::ROLE_SELLER])->withInput([
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => User::ROLE_SELLER,
-                        ])->withErrors([
-                            'email' => 'No seller account found with email ' . $email . '. Please complete your seller store registration below.',
-                        ]);
-                    }
-
-                    if ($portal === User::ROLE_LOGISTICS) {
-                        return redirect()->route('register', ['role' => User::ROLE_LOGISTICS])->withInput([
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => User::ROLE_LOGISTICS,
-                        ])->withErrors([
-                            'email' => 'No logistics account found with email ' . $email . '. Please complete your registration below.',
-                        ]);
-                    }
-
-                    if ($portal === User::ROLE_COURIER) {
-                        return redirect()->route('register.rider')->withInput([
-                            'email' => $email,
-                            'name' => $name,
-                        ])->withErrors([
-                            'email' => 'No courier rider account found with email ' . $email . '. Please submit your rider application first.',
-                        ]);
-                    }
-
-                    // Buyer registration (Google does not provide birthday: create buyer account directly)
-                    $user = \Illuminate\Support\Facades\DB::transaction(function () use ($email, $name, $googleId, $avatar) {
-                        $created = User::create([
-                            'name'              => $name,
-                            'email'             => $email,
-                            'google_id'         => $googleId,
-                            'avatar'            => $avatar,
-                            'role'              => User::ROLE_BUYER,
-                            'status'            => 'active',
-                            'email_verified_at' => now(),
-                            'password'          => Hash::make(\Illuminate\Support\Str::random(32)),
-                            'has_custom_password' => false,
-                        ]);
-
-                        \App\Models\Buyer::firstOrCreate(
-                            ['user_id' => $created->id],
-                            [
-                                'name'      => $created->name,
-                                'id_status' => 'unverified',
-                                'status'    => 'active',
-                            ]
-                        );
-
-                        $roleModel = \App\Models\Role::firstOrCreate(['name' => 'buyer']);
-                        $created->roles()->syncWithoutDetaching([$roleModel->id]);
-
-                        return $created;
-                    });
-                }
-            }
+            $user = app(\App\Services\GoogleAccounts::class)->resolve($email, $googleId, $name, $avatar, $intent, $portal);
 
             // Portal matching: verify the user's role matches the portal they are logging into
             if ($user->role !== $portal) {
@@ -1240,6 +1159,8 @@ class AuthController extends Controller
 
             return redirect()->intended(route($user->getDashboardRoute()));
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->route($portalRoute)->withErrors($e->errors());
         } catch (\Exception $e) {
             Log::error('Google Auth Processing Error: ' . $e->getMessage());
             return redirect()->route($portalRoute)->withErrors([

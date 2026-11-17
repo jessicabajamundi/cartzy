@@ -12,7 +12,7 @@ class GoogleRegistrationAgeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_new_google_buyer_automatically_creates_account(): void
+    public function test_explicit_google_buyer_registration_creates_account(): void
     {
         $googleUser = (new GoogleUser)->map([
             'id' => 'google-new-buyer',
@@ -24,7 +24,7 @@ class GoogleRegistrationAgeTest extends TestCase
         $provider->shouldReceive('user')->once()->andReturn($googleUser);
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
-        $response = $this->get('/auth/google/callback');
+        $response = $this->withSession(['auth_google_intent' => 'register', 'auth_google_portal' => 'buyer'])->get('/auth/google/callback');
 
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
