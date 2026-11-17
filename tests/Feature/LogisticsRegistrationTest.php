@@ -20,6 +20,7 @@ class LogisticsRegistrationTest extends TestCase
             'email' => 'partner@example.com',
             'phone' => '9535333656', 'phone_country_code' => '+63',
             ...$this->logisticsSignupFields(),
+            'sec_registration_no' => 'CS2020123456789', 'terms_agreed' => '1',
             'password' => 'Delivery@2026', 'password_confirmation' => 'Delivery@2026',
             'email_verification_otp' => '123456',
             ...$overrides,

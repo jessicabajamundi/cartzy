@@ -634,6 +634,9 @@
                 <p id="password-entry-note" class="rider-field-hint" style="margin-top: 6px; line-height: 1.45;">Please type both passwords manually. Copying, cutting, pasting and dropping text are disabled in these fields.</p>
             </div>
 
+            @if($courierType !== \App\Models\Rider::LAST_MILE)
+                @include('auth.partials.courier-terms-prompt')
+            @endif
             <p class="field-subheading" style="margin-bottom: 20px;">We'll send a six-digit verification code to this email address to finish creating your Cartzy account.</p>
 
             <div class="form-btn-row">
@@ -704,6 +707,9 @@
         </div>
     </form>
 
+    @if($courierType !== \App\Models\Rider::LAST_MILE)
+        @include('auth.partials.courier-terms-dialog')
+    @endif
     <!-- Foot Link -->
     <div class="auth-foot" style="margin-top: 16px;">
         Already applied or registered?
@@ -2300,6 +2306,7 @@
     async function handleContinueToVerify() {
         if (!validateRegistrationEmail(true)) return;
         if (!validateRegistrationPasswords(true)) return;
+        if (document.getElementById('courier_terms_agreed') && !window.validateCourierTerms?.(true)) return;
 
         const sent = await sendAutomaticOtp();
         if (!sent) return;
@@ -2732,7 +2739,7 @@
         showRiderPage({{ $riderErrorPage }}, false);
         @if($errors->has('email_verification_otp'))
             goToRiderStep(3);
-        @elseif($errors->has('email') || $errors->has('password'))
+        @elseif($errors->has('email') || $errors->has('password') || $errors->has('terms_agreed'))
             goToRiderStep(2);
         @endif
     });

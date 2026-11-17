@@ -193,6 +193,7 @@ class RiderRegistrationViewTest extends TestCase
             'role' => 'courier',
             'logistics_provider_id' => $provider->id,
             'courier_type' => 'first_mile',
+            'terms_agreed' => '1',
             'vehicle_type' => 'van',
             'province' => 'Laguna',
             'city' => 'Santa Cruz',
