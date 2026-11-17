@@ -295,32 +295,38 @@
                 <div><strong>Email verification</strong><span>{{ $user->email }}</span></div>
                 <span class="acct-badge {{ $user->email_verified_at ? 'acct-badge-verified' : 'acct-badge-unverified' }}">{{ $user->email_verified_at ? 'Verified' : 'Not verified' }}</span>
             </div>
-            @if($user->google_id)
-                <p class="acct-lead">You can sign in with Google. If you have not set a password, sign out and choose Forgot password on the login screen to set one first.</p>
+            @php($needsInitialPassword = $user->needsInitialPassword())
+            @if($needsInitialPassword)
+                <p class="acct-lead">You signed in with Google and haven't set a Cartzy password yet. Set one below (no current password needed) so you can also sign in with email or confirm account deletion.</p>
+            @elseif($user->google_id)
+                <p class="acct-lead">Your account is linked with Google. Use your Cartzy password here, not your Google password. If you have never set one, verify your email to set a Cartzy password.</p>
+                <a class="acct-btn" href="{{ route('password.forgot', ['email' => $user->email, 'context' => 'account-deletion']) }}">Set or reset Cartzy password</a>
             @endif
             <div class="acct-divider"></div>
-            <h3 class="acct-subhead">Change password</h3>
+            <h3 class="acct-subhead">{{ $needsInitialPassword ? 'Set Cartzy password' : 'Change password' }}</h3>
             <form action="{{ route('account.password.update') }}" method="POST">
                 @csrf
                 <div class="acct-grid">
-                    <label class="acct-field-wide">
-                        <span class="acct-label">Current password</span>
-                        <input class="acct-input" type="password" name="current_password" autocomplete="current-password" required>
-                        @error('current_password')<span class="acct-hint acct-hint-error">{{ $message }}</span>@enderror
-                    </label>
+                    @unless($needsInitialPassword)
+                        <label class="acct-field-wide">
+                            <span class="acct-label">Current password</span>
+                            <input class="acct-input" type="password" name="current_password" autocomplete="current-password" required>
+                            @error('current_password')<span class="acct-hint acct-hint-error">{{ $message }}</span>@enderror
+                        </label>
+                    @endunless
                     <label>
-                        <span class="acct-label">New password</span>
+                        <span class="acct-label">{{ $needsInitialPassword ? 'Cartzy password' : 'New password' }}</span>
                         <input class="acct-input" type="password" name="password" autocomplete="new-password" minlength="8" required>
                         @error('password')<span class="acct-hint acct-hint-error">{{ $message }}</span>@else<span class="acct-hint">Use at least 8 characters.</span>@enderror
                     </label>
                     <label>
-                        <span class="acct-label">Confirm new password</span>
+                        <span class="acct-label">Confirm password</span>
                         <input class="acct-input" type="password" name="password_confirmation" autocomplete="new-password" minlength="8" required>
                     </label>
                 </div>
                 <div class="acct-footer">
                     <span>You will stay signed in on this device.</span>
-                    <button class="acct-btn acct-btn-primary" type="submit">Update password</button>
+                    <button class="acct-btn acct-btn-primary" type="submit">{{ $needsInitialPassword ? 'Set password' : 'Update password' }}</button>
                 </div>
             </form>
             <div class="acct-divider"></div>

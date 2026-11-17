@@ -293,27 +293,37 @@ class AccountController extends Controller
      */
     public function updatePassword(Request $request)
     {
-        $request->validate([
-            'current_password'      => ['required', 'string'],
-            'password'              => ['required', 'string', 'confirmed', Password::min(8)],
-            'password_confirmation' => ['required', 'string'],
-        ]);
-
         $user = Auth::user();
+        abort_unless($user, 401);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request, $user) {
+            $user = \App\Models\User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $requiresCurrent = !$user->needsInitialPassword();
 
-        if ($user) {
-            if (!Hash::check($request->input('current_password'), $user->password)) {
-                return back()->withErrors(['current_password' => 'The current password you entered is incorrect.']);
+            $request->validate([
+                'current_password'      => [$requiresCurrent ? 'required' : 'nullable', 'string'],
+                'password'              => ['required', 'string', 'confirmed', Password::min(8)],
+                'password_confirmation' => ['required', 'string'],
+            ]);
+
+            if ($user) {
+                if ($requiresCurrent && !Hash::check((string) $request->input('current_password'), $user->password)) {
+                    return back()->withErrors(['current_password' => 'The current password you entered is incorrect.']);
+                }
+
+                $user->password = Hash::make($request->input('password'));
+                $user->has_custom_password = true;
+                $user->save();
+                Auth::setUser($user);
+                $request->session()->put('password_hash_web', $user->password);
+                \App\Models\ActivityLog::forUser($user, 'password_changed');
+
+                \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
             }
 
-            $user->password = Hash::make($request->input('password'));
-            $user->save();
-            \App\Models\ActivityLog::forUser($user, 'password_changed');
-
-            \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
-        }
-
-        return back()->with('success', 'Your password has been changed successfully.');
+            return back()->with('success', $requiresCurrent
+                ? 'Your password has been changed successfully.'
+                : 'Your Cartzy password has been set successfully.');
+        }, 3);
     }
 
     /**

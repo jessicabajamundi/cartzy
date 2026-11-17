@@ -51,6 +51,8 @@ class AuthController extends Controller
             'cart_count' => $user->cart?->items?->count() ?? 0,
             // Riders and couriers: first_mile opens the courier dashboard, last_mile the rider one.
             'courier_type' => $user->role === User::ROLE_COURIER ? $user->rider?->courier_type : null,
+            'has_custom_password' => (bool) ($user->has_custom_password ?? true),
+            'google_linked' => !empty($user->google_id),
             'vehicle_type' => $user->role === User::ROLE_COURIER ? $user->rider?->vehicle_type : null,
             'plate_no' => $user->role === User::ROLE_COURIER ? $user->rider?->plate_no : null,
             'area' => $user->role === User::ROLE_COURIER ? $user->rider?->area : null,
@@ -281,9 +283,15 @@ class AuthController extends Controller
         }
 
         $user->password = Hash::make($data['password']);
+        $user->has_custom_password = true;
         $user->save();
-        // Sign out every device that used the old password.
-        $user->tokens()->delete();
+        // An OTP-verified reset from this account may retain this device only.
+        $actor = auth('sanctum')->user();
+        if ($actor && $actor->id === $user->id) $actor->setRawAttributes($user->getAttributes(), true);
+        $token = $actor?->currentAccessToken();
+        $keepToken = $actor && $actor->id === $user->id && $token instanceof \Laravel\Sanctum\PersonalAccessToken
+            ? $token->id : null;
+        $user->tokens()->when($keepToken, fn ($query) => $query->where('id', '!=', $keepToken))->delete();
 
         Cache::forget('pwd_reset_otp_'.$email);
         Cache::forget('pwd_reset_verified_'.$email);
@@ -292,7 +300,8 @@ class AuthController extends Controller
             \App\Console\Commands\ExportDatabaseSql::exportSqlFile();
         }
 
-        return response()->json(['message' => 'Your password has been reset. You can now log in.']);
+        return response()->json(['message' => $keepToken ? 'Your Cartzy password has been set. You can now confirm account deletion.' : 'Your password has been reset. You can now log in.',
+            'session_preserved' => $keepToken !== null, 'user' => $keepToken ? self::userJson($user->fresh()) : null]);
     }
 
     public function registerBuyer(Request $request)
@@ -483,41 +492,49 @@ class AuthController extends Controller
 
     public function changePassword(Request $request)
     {
-        $data = $request->validate([
-            'current_password' => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'password_confirmation' => ['required', 'string'],
-        ], [
-            'current_password.required' => 'Current password is required.',
-            'password.required' => 'New password is required.',
-            'password.min' => 'Password must be at least 8 characters.',
-            'password.confirmed' => 'Password confirmation does not match.',
-        ]);
-
         $user = $request->user();
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        if (!Hash::check($data['current_password'], $user->password)) {
+        return DB::transaction(function () use ($request, $user) {
+            $user = User::whereKey($user->id)->lockForUpdate()->firstOrFail();
+            $requiresCurrent = !$user->needsInitialPassword();
+
+            $data = $request->validate([
+                'current_password' => [$requiresCurrent ? 'required' : 'nullable', 'string'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'password_confirmation' => ['required', 'string'],
+            ], [
+                'current_password.required' => 'Current password is required.',
+                'password.required' => 'New password is required.',
+                'password.min' => 'Password must be at least 8 characters.',
+                'password.confirmed' => 'Password confirmation does not match.',
+            ]);
+
+            if ($requiresCurrent && !Hash::check((string) ($data['current_password'] ?? ''), $user->password)) {
+                return response()->json([
+                    'message' => 'The current password you entered is incorrect.',
+                    'errors' => ['current_password' => ['The current password you entered is incorrect.']],
+                ], 422);
+            }
+
+            $user->password = Hash::make($data['password']);
+            $user->has_custom_password = true;
+            $user->save();
+            $request->user()->setRawAttributes($user->getAttributes(), true);
+
+            ActivityLog::record('password_changed', $request, $user, [
+                'method' => 'account_settings',
+                'description' => $requiresCurrent ? 'Password updated via mobile app' : 'Initial Cartzy password set via mobile app',
+            ]);
+
             return response()->json([
-                'message' => 'The current password you entered is incorrect.',
-                'errors' => ['current_password' => ['The current password you entered is incorrect.']],
-            ], 422);
-        }
-
-        $user->password = Hash::make($data['password']);
-        $user->save();
-
-        ActivityLog::record(ActivityLog::PASSWORD_RESET, $request, $user, [
-            'method' => 'account_settings',
-            'description' => 'Password updated via mobile app',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Your password has been changed successfully.',
-        ]);
+                'success' => true,
+                'message' => $requiresCurrent ? 'Your password has been changed successfully.' : 'Your Cartzy password has been set.',
+                'user' => self::userJson($user->fresh()),
+            ]);
+        }, 3);
     }
 
     public function googleLogin(Request $request)
@@ -574,6 +591,7 @@ class AuthController extends Controller
                     'status' => 'active',
                     'email_verified_at' => now(),
                     'password' => Hash::make(\Illuminate\Support\Str::random(32)),
+                    'has_custom_password' => false,
                 ]);
 
                 \App\Models\Buyer::firstOrCreate(['user_id' => $created->id], [

@@ -197,4 +197,33 @@ class AccountDeletionTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $courierUser->id]);
         $this->assertDatabaseMissing('riders', ['id' => $rider->id]);
     }
+
+    public function test_google_buyer_without_custom_password_can_set_password_then_delete_account(): void
+    {
+        $googleBuyer = User::factory()->create([
+            'role' => User::ROLE_BUYER,
+            'google_id' => 'google-12345',
+            'password' => Hash::make('random-generated-secret'),
+            'has_custom_password' => false,
+        ]);
+
+        // Set initial password via API without current_password
+        $token = $googleBuyer->createToken('mobile')->plainTextToken;
+        $this->withToken($token)
+            ->postJson('/api/account/password', [
+                'password' => 'MyNewPass123!',
+                'password_confirmation' => 'MyNewPass123!',
+            ])
+            ->assertOk()
+            ->assertJsonPath('user.has_custom_password', true);
+
+        $this->assertTrue((bool) $googleBuyer->fresh()->has_custom_password);
+
+        // Now delete account using the newly set password
+        $this->withToken($token)
+            ->postJson('/api/account/delete', ['password' => 'MyNewPass123!'])
+            ->assertOk();
+
+        $this->assertDatabaseMissing('users', ['id' => $googleBuyer->id]);
+    }
 }

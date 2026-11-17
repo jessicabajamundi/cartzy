@@ -14,6 +14,10 @@
         </div>
     @endif
 
+    @if(auth()->user()->google_id)
+        <p style="font-size:13px;margin-bottom:12px">Google sign-in does not give Cartzy your Google password. Confirm deletion with your own Cartzy password. If you have never set one, use the shortcut below to verify your email and create one.</p>
+        <p style="margin-bottom:14px"><a href="{{ route('password.forgot', ['email' => auth()->user()->email, 'context' => 'account-deletion']) }}">Set or reset Cartzy password by email</a></p>
+    @endif
     <form method="POST"
           action="{{ route('account.delete') }}"
           onsubmit="return confirm('Are you sure you want to permanently delete your account? This cannot be undone.');"
@@ -21,11 +25,11 @@
         @csrf
         @method('DELETE')
         <label style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; margin: 0;">
-            <span style="font-size: 12px; font-weight: 600; color: #374151;">Confirm with your current password</span>
+            <span style="font-size: 12px; font-weight: 600; color: #374151;">Confirm with your Cartzy password</span>
             <input type="password"
                    name="password"
                    autocomplete="current-password"
-                   placeholder="Enter your password"
+                   placeholder="Enter your Cartzy password"
                    required
                    style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(225, 29, 72, 0.35); background: #ffffff; color: #111827; font-size: 13px;">
         </label>

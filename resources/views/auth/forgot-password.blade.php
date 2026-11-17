@@ -5,8 +5,8 @@
 
 @section('auth_form')
 
-    <h2 class="auth-title" id="fp-title">Forgot your password?</h2>
-    <p class="auth-subtitle" id="fp-subtitle">Enter your email address and we'll send you a 6-digit code to reset your password.</p>
+    <h2 class="auth-title" id="fp-title">{{ request('context') === 'account-deletion' ? 'Set your Cartzy password' : 'Forgot your password?' }}</h2>
+    <p class="auth-subtitle" id="fp-subtitle">{{ request('context') === 'account-deletion' ? 'Verify your email to create or reset your Cartzy password, then return to confirm account deletion. Your Google password will not change.' : "Enter your email address and we'll send you a 6-digit code to reset your password." }}</p>
 
     {{-- Flash messages --}}
     @if(session('success'))
@@ -106,6 +106,7 @@
     {{-- ═══ STEP 3: Set New Password ═══ --}}
     <div id="fp-step-3" style="display: none;">
         <form action="{{ route('password.reset.submit') }}" method="POST" id="fp-reset-form">
+            @if(request('context') === 'account-deletion')<input type="hidden" name="context" value="account-deletion">@endif
             @csrf
             <input type="hidden" name="portal" value="{{ request('portal') }}">
             <input type="hidden" name="email" id="fp_reset_email">

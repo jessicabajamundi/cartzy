@@ -1153,6 +1153,7 @@ class AuthController extends Controller
                             'status'            => 'active',
                             'email_verified_at' => now(),
                             'password'          => Hash::make(\Illuminate\Support\Str::random(32)),
+                            'has_custom_password' => false,
                         ]);
 
                         \App\Models\Buyer::firstOrCreate(
@@ -1363,9 +1364,7 @@ class AuthController extends Controller
         $enteredOtp = trim($validated['otp']);
 
         $cached = Cache::get('pwd_reset_otp_' . $email);
-        $isVerified = Cache::get('pwd_reset_verified_' . $email, false);
-
-        if ((!$cached || $cached['otp'] !== $enteredOtp) && !$isVerified) {
+        if (!$cached || $cached['otp'] !== $enteredOtp) {
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -1392,11 +1391,20 @@ class AuthController extends Controller
 
         // Update password
         $user->password = Hash::make($validated['password']);
+        $user->has_custom_password = true;
         $user->save();
+        if (Auth::check() && Auth::id() === $user->id) Auth::setUser($user);
+        $user->tokens()->delete();
 
         // Clear cached OTP tokens
         Cache::forget('pwd_reset_otp_' . $email);
         Cache::forget('pwd_reset_verified_' . $email);
+
+        if (Auth::check() && Auth::id() === $user->id && $request->input('context') === 'account-deletion' && $user->isBuyer()) {
+            $request->session()->put('password_hash_web', $user->password);
+            return redirect()->route('buyer.dashboard', ['tab' => 'settings', 'section' => 'password'])
+                ->with('success', 'Your Cartzy password is ready. Enter it in Delete account to confirm deletion. Your Google password has not changed.');
+        }
 
         // Auto-sync SQL dump if helper exists
         if (class_exists(\App\Console\Commands\ExportDatabaseSql::class)) {

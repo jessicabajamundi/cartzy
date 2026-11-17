@@ -60,6 +60,7 @@ class User extends Authenticatable
         'id_verified_at',
         'email_verified_at',
         'password',
+        'has_custom_password',
         'role',
         'avatar',
         'status',
@@ -90,9 +91,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'id_verified_at' => 'datetime',
             'password' => 'hashed',
+            'has_custom_password' => 'boolean',
             'is_suspended' => 'boolean',
             'removed_at' => 'datetime',
         ];
+    }
+
+    public function needsInitialPassword(): bool
+    {
+        return !empty($this->google_id) && $this->has_custom_password === false;
     }
 
     /**
